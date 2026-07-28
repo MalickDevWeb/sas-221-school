@@ -1,0 +1,200 @@
+    if (cTeacher1) courseLabel = cTeacher1.titre.substring(0, 10);
+    else if (cTeacher2) courseLabel = cTeacher2.titre.substring(0, 10);
+
+    const newHw: ProfessorHomework = {
+      id: `hw-${Date.now()}`,
+      titre,
+      courseId,
+      courseLabel,
+      desc,
+      prio,
+      deadlineStr: `Jusqu'au ${deadlineStr}`,
+      submissionsCount: 0
+    };
+
+    allHomeworks.push(newHw);
+    this.saveHomeworksToStorage(allHomeworks);
+    return newHw;
+  }
+
+  async getSchedule(profId: string): Promise<ProfessorSchedule[]> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const saved = localStorage.getItem('shared_school_sessions');
+    if (saved) {
+      try {
+        let sessions = JSON.parse(saved);
+        // Auto-mark past courses that have not been dealt with as 'non_fait'
+        sessions = autoMarkPastDueCourses(sessions);
+        
+        return sessions
+          .filter((s: any) => s.profId === profId)
+          .map((s: any) => ({
+            id: s.id,
+            courseTitle: s.nom,
+            day: s.jourComplet,
+            time: s.heureStr,
+            room: s.salle,
+            type: s.type,
+            status: s.status,
+            cancellationReason: s.cancellationReason || '',
+            dateStr: s.dateStr,
+            jour: s.jour,
+            courseId: s.courseId,
+            classe: s.courseId ? (COURSE_CLASS_MAP[s.courseId] || 'L3-GL') : 'L3-GL'
+          }));
+      } catch (err) {
+        console.error("Failed to parse shared_school_sessions:", err);
+      }
+    }
+    if (profId === 'usr-prof-02') {
+      return MOCK_SCHEDULE_T2;
+    }
+    return MOCK_SCHEDULE_T1;
+  }
+
+  async cancelCourse(sessionId: string, reason: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const saved = localStorage.getItem('shared_school_sessions');
+    if (!saved) return;
+    try {
+      const sessions = JSON.parse(saved);
+      const index = sessions.findIndex((s: any) => s.id === sessionId);
+      if (index === -1) throw new Error("Séance introuvable");
+      
+      const session = sessions[index];
+      
+      if (!isCourseInFuture(session.dateStr)) {
+        throw new Error("Impossible d'annuler un cours déjà passé ou en cours.");
+      }
+      
+      sessions[index] = {
+        ...session,
+        status: 'annule',
+        cancellationReason: reason
+      };
+      
+      localStorage.setItem('shared_school_sessions', JSON.stringify(sessions));
+      
+      const payload = {
+        title: `Cours Annulé : ${session.nom}`,
+        desc: `Le cours de ${session.nom} prévu le ${session.jourComplet} à ${session.heureStr} est ANNULÉ.${reason ? ' Motif : ' + reason : ''}`,
+        time: "À l'instant",
+        read: false,
+        icon: "cancel",
+        color: "text-brand-red-deep bg-brand-red-light"
+      };
+
+      // Notify students via student_notifications local storage for backward compatibility
+      const notifs = JSON.parse(localStorage.getItem('student_notifications') || '[]');
+      notifs.unshift({
+        id: `notif-${Date.now()}`,
+        ...payload
+      });
+      localStorage.setItem('student_notifications', JSON.stringify(notifs));
+
+      // Real-time Firestore notification
+      notificationRepository.sendNotification(payload).catch(err => {
+        console.error("Failed to send Firestore notification:", err);
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async rescheduleCourse(sessionId: string, day: string, time: string, room: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const saved = localStorage.getItem('shared_school_sessions');
+    if (!saved) return;
+    try {
+      const sessions = JSON.parse(saved);
+      const index = sessions.findIndex((s: any) => s.id === sessionId);
+      if (index === -1) throw new Error("Séance introuvable");
+      
+      const session = sessions[index];
+      
+      if (!isCourseInFuture(session.dateStr)) {
+        throw new Error("Impossible de modifier un cours déjà passé.");
+      }
+      
+      // Standardize day & dayCode
+      let dayCode: 'LUN' | 'MAR' | 'MER' | 'JEU' | 'VEN' = 'LUN';
+      let dayComplet = day;
+      const dLower = day.toLowerCase();
+      if (dLower.startsWith('lu') || dLower === 'lun') { dayCode = 'LUN'; dayComplet = 'Lundi'; }
+      else if (dLower.startsWith('ma') || dLower === 'mar') { dayCode = 'MAR'; dayComplet = 'Mardi'; }
+      else if (dLower.startsWith('me') || dLower === 'mer') { dayCode = 'MER'; dayComplet = 'Mercredi'; }
+      else if (dLower.startsWith('je') || dLower === 'jeu') { dayCode = 'JEU'; dayComplet = 'Jeudi'; }
+      else if (dLower.startsWith('ve') || dLower === 'ven') { dayCode = 'VEN'; dayComplet = 'Vendredi'; }
+      
+      // Determine dateStr dynamically based on day of the week of July 6, 2026
+      let dayOffset = 0;
+      if (dayCode === 'LUN') dayOffset = 0;
+      else if (dayCode === 'MAR') dayOffset = 1;
+      else if (dayCode === 'MER') dayOffset = 2;
+      else if (dayCode === 'JEU') dayOffset = 3;
+      else if (dayCode === 'VEN') dayOffset = 4;
+      
+      const dateVal = new Date(2026, 6, 6 + dayOffset); // Starting from Monday, July 6, 2026
+      const monthNames = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
+      const newDateStr = `${String(dateVal.getDate()).padStart(2, '0')} ${monthNames[dateVal.getMonth()]} ${dateVal.getFullYear()}`;
+      
+      // Conflict checking: class has no other active courses at the same hour
+      const [newStart, newEnd] = time.split('-').map(s => s.trim());
+      
+      for (const s of sessions) {
+        if (s.id !== sessionId && s.jour === dayCode && s.status !== 'annule') {
+          if (hasTimeOverlap(time, s.heureStr)) {
+            throw new Error(`Conflit d'horaire : La classe a déjà un cours de "${s.nom}" (${s.type}) le ${dayComplet} de ${s.heureStr}.`);
+          }
+        }
+      }
+      
+      const originalTime = session.heureStr;
+      const originalDay = session.jourComplet;
+      
+      sessions[index] = {
+        ...session,
+        jour: dayCode,
+        jourComplet: dayComplet,
+        dateStr: newDateStr,
+        heureDebut: newStart,
+        heureFin: newEnd,
+        heureStr: time,
+        salle: room,
+        status: 'reprogramme',
+        isModified: true
+      };
+      
+      localStorage.setItem('shared_school_sessions', JSON.stringify(sessions));
+      
+      const payload = {
+        title: `Cours Reprogrammé : ${session.nom}`,
+        desc: `Le cours de ${session.nom} du ${originalDay} à ${originalTime} a été déplacé au ${dayComplet} de ${time} (Salle : ${room}).`,
+        time: "À l'instant",
+        read: false,
+        icon: "calendar_today",
+        color: "text-brand-red-deep bg-brand-red-light"
+      };
+
+      // Notify students via student_notifications local storage for backward compatibility
+      const notifs = JSON.parse(localStorage.getItem('student_notifications') || '[]');
+      notifs.unshift({
+        id: `notif-${Date.now()}`,
+        ...payload
+      });
+      localStorage.setItem('student_notifications', JSON.stringify(notifs));
+
+      // Real-time Firestore notification
+      notificationRepository.sendNotification(payload).catch(err => {
+        console.error("Failed to send Firestore notification:", err);
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async getVigilCheckIns(): Promise<VigilCheckIn[]> {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Récupérer les logs scannés par le vigile enregistrés dans localStorage ('v_scan_logs')

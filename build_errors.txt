@@ -1,0 +1,88 @@
+src/features/admin/hooks/useAdminSchoolState.ts(2,53): error TS2307: Cannot find module '../../domain/SchoolModels' or its corresponding type declarations.
+src/features/admin/ui/components/AdminGlobalScheduler.tsx(99,130): error TS2304: Cannot find name 'INITIAL_SLOTS'.
+src/features/admin/ui/components/AdminGlobalScheduler.tsx(99,160): error TS2304: Cannot find name 'INITIAL_UNASSIGNED'.
+src/features/admin/ui/components/AdminGlobalScheduler.tsx(99,194): error TS2304: Cannot find name 'INITIAL_CONFLICTS'.
+src/features/admin/ui/components/AdminHeader.tsx(26,61): error TS2339: Property 'name' does not exist on type '{ id: string; nom: string; role: RoleUtilisateur; email?: string | undefined; }'.
+src/features/admin/ui/components/AdminStudentManager.tsx(42,13): error TS2322: Type '{ students: Student[]; onAddStudents: (newList: Student[]) => void; onAddSingleStudent: (s: any) => void; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'onAddSingleStudent' does not exist on type 'IntrinsicAttributes & Props'. Did you mean 'onAddStudents'?
+src/features/admin/ui/components/AdminStudentManager.tsx(42,34): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/admin/ui/components/AdminWelcomeSection.tsx(6,49): error TS2339: Property 'prenom' does not exist on type '{ id: string; nom: string; role: RoleUtilisateur; email?: string | undefined; }'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(62,38): error TS2339: Property 'status' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(62,70): error TS2339: Property 'isAbsent' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(70,42): error TS2339: Property 'status' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(70,74): error TS2339: Property 'isAbsent' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(76,42): error TS2339: Property 'status' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(76,74): error TS2339: Property 'isAbsent' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(82,40): error TS2339: Property 'status' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(82,72): error TS2339: Property 'isAbsent' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(82,127): error TS2339: Property 'cancellationReason' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningGrid.tsx(83,118): error TS2339: Property 'cancellationReason' does not exist on type 'PlanningSlot'.
+src/features/admin/ui/components/school/PlanningTab.tsx(70,11): error TS2322: Type '(day: string, slot: string, item: { type: "teacher" | "room"; name: string; }) => void' is not assignable to type '(day: string, slot: string, item: { type: "room" | "class" | "teacher"; name: string; }) => void'.
+  Types of parameters 'item' and 'item' are incompatible.
+    Type '{ type: "room" | "class" | "teacher"; name: string; }' is not assignable to type '{ type: "room" | "teacher"; name: string; }'.
+      Types of property 'type' are incompatible.
+        Type '"room" | "class" | "teacher"' is not assignable to type '"room" | "teacher"'.
+          Type '"class"' is not assignable to type '"room" | "teacher"'.
+src/features/admin/ui/components/students/StudentDataGridTab.tsx(28,9): error TS2322: Type '(student: import("/home/pmt/T\u00E9l\u00E9chargements/papa-221-main/frontend/src/features/admin/domain/StudentModels").Student) => void' is not assignable to type '(student: Student) => void'.
+  Types of parameters 'student' and 'student' are incompatible.
+    Type 'Student' is missing the following properties from type 'Student': gpa, phoneParent
+src/features/admin/ui/components/students/profile360/ProfileTabContent.tsx(54,55): error TS2322: Type '{ selectedStudent: Student; erpData: any; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'erpData' does not exist on type 'IntrinsicAttributes & Props'.
+src/features/admin/ui/components/students/profile360/TabAcademic.tsx(83,41): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabAcademic.tsx(83,47): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabCommunication.tsx(17,50): error TS7006: Parameter 'msg' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabCommunication.tsx(44,39): error TS7006: Parameter 'evt' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabCommunication.tsx(44,44): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabCommunication.tsx(76,47): error TS7006: Parameter 'msg' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabCommunication.tsx(76,52): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabFinances.tsx(74,45): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/TabFinances.tsx(74,48): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/features/admin/ui/components/students/profile360/utils/CertUtils.ts(1,25): error TS2307: Cannot find module '../../../../domain/StudentModels' or its corresponding type declarations.
+src/features/admin/usecases/ManageAdminUseCase.ts(5,15): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/features/auth/ui/components/calendar/CalendarUtils.ts(62,57): error TS2367: This comparison appears to be unintentional because the types '3' and '5' have no overlap.
+src/features/collaboration/domain/CollaborationAlgorithms.ts(59,7): error TS2367: This comparison appears to be unintentional because the types '"mixed" | "random" | "alpha"' and '"gpa"' have no overlap.
+src/features/courses/ui/components/CourseDetailModal.tsx(80,65): error TS2322: Type '{ state: { course: Course; details: { chapitres: { titre: string; lecons: { titre: string; estDerniereEnseignee?: boolean | undefined; duree: string; complete: boolean; }[]; }[]; ressources: { titre: string; type: "link" | ... 2 more ... | "pdf"; taille: string; }[]; quizzes: { ...; }[]; devoirs: { ...; }[]; }; }; }' is not assignable to type 'IntrinsicAttributes & CourseResourcesTabProps'.
+  Property 'state' does not exist on type 'IntrinsicAttributes & CourseResourcesTabProps'.
+src/features/dashboard/ui/components/PerformanceChart.tsx(15,37): error TS2307: Cannot find module '../infrastructure/config/dependencies' or its corresponding type declarations.
+src/features/dashboard/ui/components/RealTimeMeetRoom.tsx(14,32): error TS2339: Property 'hlsUrl' does not exist on type 'LiveSession'.
+src/features/grades/ui/components/CurrentGradesPdfGenerator.ts(56,26): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/features/grades/ui/components/GradesPdfGenerator.ts(33,26): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/features/grades/ui/components/generateCustomGradePdf.ts(63,26): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/features/professor/ui/components/ProfessorPresenceModal.tsx(50,32): error TS2322: Type '{ profName: string; pointageType: "arrivée" | "départ"; onScanComplete: (() => void) | undefined; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'profName' does not exist on type 'IntrinsicAttributes & Props'.
+src/features/student/ui/components/layout/useStudentLayoutState.ts(54,69): error TS2345: Argument of type 'Dispatch<SetStateAction<{ id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }[]>>' is not assignable to parameter of type '(fn: (prev: Notification[]) => Notification[]) => void'.
+  Types of parameters 'value' and 'fn' are incompatible.
+    Type '(prev: Notification[]) => Notification[]' is not assignable to type 'SetStateAction<{ id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }[]>'.
+      Type '(prev: Notification[]) => Notification[]' is not assignable to type '(prevState: { id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }[]) => { id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }[]'.
+        Type 'Notification[]' is not assignable to type '{ id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }[]'.
+          Type 'Notification' is missing the following properties from type '{ id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string; }': time, icon, color
+src/main.tsx(13,46): error TS2345: Argument of type 'any[]' is not assignable to parameter of type '[]'.
+  Target allows only 0 element(s) but source may have more.
+src/shared/components/useQRCameraScanner.ts(16,35): error TS2339: Property 'getRunningTrack' does not exist on type 'Html5Qrcode'.
+src/shared/components/useQRCameraScanner.ts(67,39): error TS2339: Property 'getRunningTrack' does not exist on type 'Html5Qrcode'.
+src/shared/lib/googleAuth.ts(3,28): error TS2307: Cannot find module '../../../firebase-applet-config.json' or its corresponding type declarations.
+Node.js[144443]: ../src/node.cc:701:void node::ResetStdio(): Assertion `!(err != 0) || (err == -1 && (*__errno_location ()) == 1)' failed.
+ 1: 0x7477e120633c node::Abort() [/lib/x86_64-linux-gnu/libnode.so.109]
+ 2: 0x7477e12063cb  [/lib/x86_64-linux-gnu/libnode.so.109]
+ 3: 0x7477e11b88c6  [/lib/x86_64-linux-gnu/libnode.so.109]
+ 4: 0x7477e0447a76  [/lib/x86_64-linux-gnu/libc.so.6]
+ 5: 0x7477e0447bbe  [/lib/x86_64-linux-gnu/libc.so.6]
+ 6: 0x7477e112dc5d node::DefaultProcessExitHandler(node::Environment*, int) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 7: 0x7477e117e729 node::Environment::Exit(int) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 8: 0x7477e165138e v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 9: 0x7477e16519b1  [/lib/x86_64-linux-gnu/libnode.so.109]
+10: 0x7477e16522af v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) [/lib/x86_64-linux-gnu/libnode.so.109]
+11: 0x7477e14fc2f9  [/lib/x86_64-linux-gnu/libnode.so.109]
+Aborted (core dumped)
+Node.js[144426]: ../src/node.cc:701:void node::ResetStdio(): Assertion `!(err != 0) || (err == -1 && (*__errno_location ()) == 1)' failed.
+ 1: 0x778449e0633c node::Abort() [/lib/x86_64-linux-gnu/libnode.so.109]
+ 2: 0x778449e063cb  [/lib/x86_64-linux-gnu/libnode.so.109]
+ 3: 0x778449db88c6  [/lib/x86_64-linux-gnu/libnode.so.109]
+ 4: 0x778449047a76  [/lib/x86_64-linux-gnu/libc.so.6]
+ 5: 0x778449047bbe  [/lib/x86_64-linux-gnu/libc.so.6]
+ 6: 0x778449d2dc5d node::DefaultProcessExitHandler(node::Environment*, int) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 7: 0x778449d7e729 node::Environment::Exit(int) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 8: 0x77844a25138e v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) [/lib/x86_64-linux-gnu/libnode.so.109]
+ 9: 0x77844a2519b1  [/lib/x86_64-linux-gnu/libnode.so.109]
+10: 0x77844a2522af v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) [/lib/x86_64-linux-gnu/libnode.so.109]
+11: 0x77844a0fc2f9  [/lib/x86_64-linux-gnu/libnode.so.109]
