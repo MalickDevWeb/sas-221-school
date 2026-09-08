@@ -1,0 +1,200 @@
+              dateStr: '08 Juil 2026',
+              heureDebut: '12:00',
+              heureFin: '14:00',
+              heureStr: '12:00 - 14:00',
+              type: 'TD',
+              salle: 'Labo 5',
+              profId: 'usr-prof-01',
+              professeur: 'Dr. Cheikh Anta',
+              description: "Séance pratique d'exercices de niveau avancé sur la complexité et les tris.",
+              status: 'a_venir',
+              cancellationReason: ''
+            });
+          }
+          if (!hasWed2) {
+            newSessions.push({
+              id: 'p-wed-17-20',
+              nom: "Sécurité des Systèmes d'Information",
+              courseId: 'course-4',
+              jour: 'MER',
+              jourComplet: 'Mercredi',
+              dateStr: '08 Juil 2026',
+              heureDebut: '17:00',
+              heureFin: '20:00',
+              heureStr: '17:00 - 20:00',
+              type: 'CM',
+              salle: 'Amphi B',
+              profId: 'usr-prof-01',
+              professeur: 'Dr. Cheikh Anta',
+              description: "Introduction aux concepts de cryptographie, modélisation de menaces et protocoles de communication sécurisés.",
+              status: 'a_venir',
+              cancellationReason: ''
+            });
+          }
+          localStorage.setItem('shared_school_sessions', JSON.stringify(newSessions));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  private getModulesFromStorage(): CourseModule[] {
+    const data = localStorage.getItem('p_modules');
+    return data ? JSON.parse(data) : DEFAULT_MODULES;
+  }
+
+  private saveModulesToStorage(modules: CourseModule[]) {
+    localStorage.setItem('p_modules', JSON.stringify(modules));
+  }
+
+  private getQuizzesFromStorage(): CourseQuiz[] {
+    const data = localStorage.getItem('p_quizzes');
+    return data ? JSON.parse(data) : DEFAULT_QUIZZES;
+  }
+
+  private saveQuizzesToStorage(quizzes: CourseQuiz[]) {
+    localStorage.setItem('p_quizzes', JSON.stringify(quizzes));
+  }
+
+  private getLessonsFromStorage(): ProfessorLesson[] {
+    const data = localStorage.getItem('p_lessons');
+    return data ? JSON.parse(data) : DEFAULT_LESSONS;
+  }
+
+  private saveLessonsToStorage(lessons: ProfessorLesson[]) {
+    localStorage.setItem('p_lessons', JSON.stringify(lessons));
+  }
+
+  private getGradesFromStorage(): StudentGrade[] {
+    const data = localStorage.getItem('p_grades');
+    return data ? JSON.parse(data) : DEFAULT_GRADES;
+  }
+
+  private saveGradesToStorage(grades: StudentGrade[]) {
+    localStorage.setItem('p_grades', JSON.stringify(grades));
+  }
+
+  private getHomeworksFromStorage(): ProfessorHomework[] {
+    const data = localStorage.getItem('p_homeworks');
+    return data ? JSON.parse(data) : DEFAULT_HOMEWORKS;
+  }
+
+  private saveHomeworksToStorage(hw: ProfessorHomework[]) {
+    localStorage.setItem('p_homeworks', JSON.stringify(hw));
+  }
+
+  private getRemindersFromStorage(): ClassroomReminder[] {
+    const data = localStorage.getItem('p_reminders');
+    return data ? JSON.parse(data) : DEFAULT_REMINDERS;
+  }
+
+  private saveRemindersToStorage(rem: ClassroomReminder[]) {
+    localStorage.setItem('p_reminders', JSON.stringify(rem));
+  }
+
+  async getCourses(profId: string): Promise<ProfessorCourse[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    // Pr. Cheikh Anta est 'usr-prof-01', Mme. Seynabou Sene est 'usr-prof-02'
+    if (profId === 'usr-prof-02') {
+      return MOCK_COURSES_TEACHER_2;
+    }
+    return MOCK_COURSES_TEACHER_1;
+  }
+
+  async getStudents(courseId: string): Promise<StudentEnrolled[]> {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return MOCK_STUDENTS;
+  }
+
+  async getGrades(courseId: string): Promise<StudentGrade[]> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allGrades = this.getGradesFromStorage();
+    return allGrades.filter(g => g.courseId === courseId);
+  }
+
+  async updateGrade(courseId: string, studentId: string, cc: number, examen: number): Promise<StudentGrade> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const allGrades = this.getGradesFromStorage();
+    
+    // Règle métier : 40% CC, 60% Examen
+    const finalGrade = Math.round(((cc * 0.4) + (examen * 0.6)) * 10) / 10;
+    const status = finalGrade >= 10 ? 'Validé' : 'Rattrapage';
+
+    const index = allGrades.findIndex(g => g.courseId === courseId && g.studentId === studentId);
+    
+    let updatedGrade: StudentGrade;
+
+    if (index >= 0) {
+      const existing = allGrades[index];
+      updatedGrade = {
+        ...existing,
+        cc,
+        examen,
+        finalGrade,
+        status
+      };
+      allGrades[index] = updatedGrade;
+    } else {
+      const student = MOCK_STUDENTS.find(s => s.id === studentId);
+      updatedGrade = {
+        id: `gr-${Date.now()}`,
+        studentId,
+        studentNom: student ? `${student.prenom} ${student.nom}` : 'Étudiant',
+        courseId,
+        cc,
+        examen,
+        finalGrade,
+        status
+      };
+      allGrades.push(updatedGrade);
+    }
+
+    this.saveGradesToStorage(allGrades);
+
+    // Envoyer une notification en temps réel à l'étudiant
+    try {
+      const course = [...MOCK_COURSES_TEACHER_1, ...MOCK_COURSES_TEACHER_2].find(c => c.id === courseId);
+      const courseTitle = course ? course.titre : "un module";
+      const payload = {
+        title: `Nouvelle note publiée`,
+        desc: `Votre note pour le cours de "${courseTitle}" a été mise à jour : Moyenne ${finalGrade}/20 (${status}).`,
+        time: "À l'instant",
+        read: false,
+        icon: "grade",
+        color: "text-[#E3A857] bg-[#E3A857]/10"
+      };
+
+      // Notification locale (localStorage)
+      const notifs = JSON.parse(localStorage.getItem('student_notifications') || '[]');
+      notifs.unshift({
+        id: `notif-${Date.now()}`,
+        ...payload
+      });
+      localStorage.setItem('student_notifications', JSON.stringify(notifs));
+
+      // Notification Firestore temps réel
+      notificationRepository.sendNotification(payload).catch(err => {
+        console.error("Firestore notification failed:", err);
+      });
+    } catch (e) {
+      console.error("Failed to generate grade notification:", e);
+    }
+
+    return updatedGrade;
+  }
+
+  async getHomeworks(courseId: string): Promise<ProfessorHomework[]> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allHomeworks = this.getHomeworksFromStorage();
+    return allHomeworks.filter(h => h.courseId === courseId);
+  }
+
+  async createHomework(courseId: string, titre: string, desc: string, prio: 'haute' | 'normale', deadlineStr: string): Promise<ProfessorHomework> {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const allHomeworks = this.getHomeworksFromStorage();
+
+    // Déterminer un label court
+    let courseLabel = 'Devoir';
+    const cTeacher1 = MOCK_COURSES_TEACHER_1.find(c => c.id === courseId);
+    const cTeacher2 = MOCK_COURSES_TEACHER_2.find(c => c.id === courseId);

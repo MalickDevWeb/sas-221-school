@@ -1,0 +1,10 @@
+export { ParentLayout } from './ui/components/layout/ParentLayout';
+export { ParentDashboardPage } from './ui/pages/ParentDashboardPage';
+export { ParentSchedulePage } from './ui/pages/ParentSchedulePage';
+export { ParentGradesPage } from './ui/pages/ParentGradesPage';
+export { ParentAttendancePage } from './ui/pages/ParentAttendancePage';
+export { ParentMessagesPage } from './ui/pages/ParentMessagesPage';
+export { ParentEnrollChildPage } from './ui/pages/ParentEnrollChildPage';
+export { ParentProfilePage } from './ui/pages/ParentProfilePage';
+export { ParentApplicationTrackingPage } from './ui/pages/ParentApplicationTrackingPage';
+export { ParentPaymentsPage } from './ui/pages/ParentPaymentsPage';

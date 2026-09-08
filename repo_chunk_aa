@@ -1,0 +1,200 @@
+import type { ProfessorRepository } from '../../domain/ProfessorRepository';
+import { notificationRepository } from '@/features/notifications/infrastructure/config/dependencies';
+import type { 
+  ProfessorCourse, 
+  StudentEnrolled, 
+  StudentGrade, 
+  ProfessorHomework, 
+  ProfessorSchedule, 
+  VigilCheckIn,
+  ClassroomReminder,
+  ProfessorLesson,
+  CourseModule,
+  CourseQuiz,
+  QuizQuestion
+} from '../../domain/ProfessorModels';
+
+import {
+  DEFAULT_MODULES,
+  DEFAULT_QUIZZES,
+  DEFAULT_LESSONS,
+  DEFAULT_REMINDERS,
+  MOCK_COURSES_TEACHER_1,
+  MOCK_COURSES_TEACHER_2,
+  MOCK_STUDENTS,
+  DEFAULT_GRADES,
+  DEFAULT_HOMEWORKS,
+  MOCK_SCHEDULE_T1,
+  MOCK_SCHEDULE_T2
+} from './ProfessorMockData';
+
+
+export function isCourseInFuture(dateStr: string): boolean {
+  try {
+    const parts = dateStr.split(' ');
+    if (parts.length < 3) return true;
+    const day = parseInt(parts[0]);
+    const monthStr = parts[1].toLowerCase();
+    const year = parseInt(parts[2]);
+    let month = 6; // default July
+    if (monthStr.startsWith('juin')) month = 5;
+    else if (monthStr.startsWith('juil')) month = 6;
+    
+    // Course date at the end of its scheduled day (23:59:59)
+    const courseDate = new Date(year, month, day, 23, 59, 59);
+    // Reference date Saturday, July 4, 2026, 11:05:12
+    const referenceDate = new Date(2026, 6, 4, 11, 5, 12);
+    return courseDate.getTime() > referenceDate.getTime();
+  } catch (err) {
+    return true;
+  }
+}
+
+function parseTimeToMinutes(timeStr: string): number {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+export function hasTimeOverlap(time1: string, time2: string): boolean {
+  try {
+    const [start1Str, end1Str] = time1.split('-').map(s => s.trim());
+    const [start2Str, end2Str] = time2.split('-').map(s => s.trim());
+    
+    const start1 = parseTimeToMinutes(start1Str);
+    const end1 = parseTimeToMinutes(end1Str);
+    const start2 = parseTimeToMinutes(start2Str);
+    const end2 = parseTimeToMinutes(end2Str);
+    
+    return start1 < end2 && start2 < end1;
+  } catch (err) {
+    return false;
+  }
+}
+
+function autoMarkPastDueCourses(sessions: any[]): any[] {
+  let changed = false;
+  const updated = sessions.map((s: any) => {
+    if (s.status === 'a_venir' && !isCourseInFuture(s.dateStr)) {
+      changed = true;
+      return { ...s, status: 'non_fait' };
+    }
+    return s;
+  });
+  if (changed) {
+    localStorage.setItem('shared_school_sessions', JSON.stringify(updated));
+  }
+  return updated;
+}
+
+const COURSE_CLASS_MAP: Record<string, string> = {
+  'course-1': 'L2 CM',
+  'course-4': 'L3 Développement Web',
+  'course-2': 'Master IA',
+  'course-5': 'L1 Développement Web',
+};
+
+export class InMemoryProfessorRepository implements ProfessorRepository {
+  constructor() {
+    // Migration: s'assurer que les anciennes clés contenant "Génie Civil" sont purgées pour refléter la nouvelle classe "L2 CM"
+    if (!localStorage.getItem('p_migrated_to_l2_cm_v2')) {
+      localStorage.removeItem('shared_school_sessions');
+      localStorage.removeItem('p_grades');
+      localStorage.removeItem('p_homeworks');
+      localStorage.removeItem('p_lessons');
+      localStorage.removeItem('p_modules');
+      localStorage.removeItem('p_quizzes');
+      localStorage.removeItem('p_reminders');
+      localStorage.setItem('p_migrated_to_l2_cm_v2', 'true');
+    }
+
+    // Initialisation du localStorage si absent
+    if (!localStorage.getItem('p_grades')) {
+      localStorage.setItem('p_grades', JSON.stringify(DEFAULT_GRADES));
+    }
+    if (!localStorage.getItem('p_homeworks')) {
+      localStorage.setItem('p_homeworks', JSON.stringify(DEFAULT_HOMEWORKS));
+    }
+    if (!localStorage.getItem('p_reminders')) {
+      localStorage.setItem('p_reminders', JSON.stringify(DEFAULT_REMINDERS));
+    }
+    if (!localStorage.getItem('p_lessons')) {
+      localStorage.setItem('p_lessons', JSON.stringify(DEFAULT_LESSONS));
+    }
+    if (!localStorage.getItem('p_modules')) {
+      localStorage.setItem('p_modules', JSON.stringify(DEFAULT_MODULES));
+    }
+    if (!localStorage.getItem('p_quizzes')) {
+      localStorage.setItem('p_quizzes', JSON.stringify(DEFAULT_QUIZZES));
+    }
+    
+    const savedSessions = localStorage.getItem('shared_school_sessions');
+    if (!savedSessions) {
+      const initialSessions = [
+        {
+          id: 'p1',
+          nom: 'Algorithmique Avancée',
+          courseId: 'course-1',
+          jour: 'LUN',
+          jourComplet: 'Lundi',
+          dateStr: '06 Juil 2026',
+          heureDebut: '08:00',
+          heureFin: '11:00',
+          heureStr: '08:00 - 11:00',
+          type: 'CM',
+          salle: 'Amphi A',
+          profId: 'usr-prof-01',
+          professeur: 'Dr. Cheikh Anta',
+          description: "Analyse de complexité théorique, structures de données avancées, graphes et programmation dynamique.",
+          status: 'a_venir',
+          cancellationReason: ''
+        },
+        {
+          id: 'p2',
+          nom: 'Éthique & Droit Numérique',
+          courseId: 'course-ethique',
+          jour: 'LUN',
+          jourComplet: 'Lundi',
+          dateStr: '06 Juil 2026',
+          heureDebut: '10:00',
+          heureFin: '12:05',
+          heureStr: '10:00 - 12:05',
+          type: 'CM',
+          salle: 'Amphi B',
+          profId: 'usr-prof-other',
+          professeur: 'Dr. Kane',
+          description: "Aspects juridiques des données à caractère personnel, législation cybernétique au Sénégal et éthique des algorithmes.",
+          status: 'a_venir',
+          cancellationReason: ''
+        },
+        {
+          id: 'p3',
+          nom: 'Développement Web Fullstack',
+          courseId: 'course-web',
+          jour: 'LUN',
+          jourComplet: 'Lundi',
+          dateStr: '06 Juil 2026',
+          heureDebut: '14:00',
+          heureFin: '16:00',
+          heureStr: '14:00 - 16:00',
+          type: 'TP',
+          salle: 'Labo 10',
+          profId: 'usr-prof-other',
+          professeur: 'M. Malick Teuw',
+          description: "Industrialisation d'une application React avec Vite, typage TypeScript strict, state managers et intégration back-end.",
+          status: 'a_venir',
+          cancellationReason: ''
+        },
+        {
+          id: 'p4',
+          nom: 'Anglais Technique',
+          courseId: 'course-anglais',
+          jour: 'MAR',
+          jourComplet: 'Mardi',
+          dateStr: '07 Juil 2026',
+          heureDebut: '09:00',
+          heureFin: '11:00',
+          heureStr: '09:00 - 11:00',
+          type: 'TD',
+          salle: 'Salle 301',
+          profId: 'usr-prof-other',
+          professeur: 'Mrs. Ndiaye',

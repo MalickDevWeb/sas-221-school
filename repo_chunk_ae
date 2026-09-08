@@ -1,0 +1,141 @@
+    const saved = localStorage.getItem('v_scan_logs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((item: any) => ({
+          id: item.id || Date.now().toString(),
+          name: item.name || 'Inconnu',
+          studentId: item.studentId || 'Badge inconnu',
+          statut: item.status === 'Autorisé' ? 'Autorisé' : 'Refusé',
+          time: item.time || '10:00',
+          date: item.date || "Aujourd'hui",
+          type: item.type || 'Scanner',
+          avatar: item.avatar || null
+        }));
+      } catch (err) {
+        console.error('Failed to parse v_scan_logs:', err);
+      }
+    }
+    
+    // Fallback de logs réalistes
+    return [
+      { id: '1', name: 'Assane Diop', studentId: '221-E001', statut: 'Autorisé', time: '08:02', date: "Aujourd'hui", type: 'Scanner', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80' },
+      { id: '2', name: 'Fatou Sow', studentId: '221-E002', statut: 'Autorisé', time: '07:58', date: "Aujourd'hui", type: 'Scanner', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80' },
+      { id: '3', name: 'Malick Ndiaye', studentId: '221-E003', statut: 'Autorisé', time: '07:45', date: "Aujourd'hui", type: 'Scanner', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80' },
+    ];
+  }
+
+  async getReminders(courseId: string): Promise<ClassroomReminder[]> {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const allReminders = this.getRemindersFromStorage();
+    return allReminders.filter(r => r.courseId === courseId);
+  }
+
+  async createReminder(courseId: string, content: string, isUrgent: boolean): Promise<ClassroomReminder> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allReminders = this.getRemindersFromStorage();
+    
+    // Find associated course room/salle
+    const course = [...MOCK_COURSES_TEACHER_1, ...MOCK_COURSES_TEACHER_2].find(c => c.id === courseId);
+    const salle = course ? course.salle : "Amphi A";
+    const courseName = course ? course.titre : "";
+
+    const newRem: ClassroomReminder = {
+      id: `rem-${Date.now()}`,
+      courseId,
+      content,
+      dateStr: "À l'instant",
+      isUrgent,
+      room: salle,
+      salle: salle
+    };
+    allReminders.unshift(newRem); // Display newest reminders first
+    this.saveRemindersToStorage(allReminders);
+
+    // Push real-time notification to students
+    try {
+      const notifs = JSON.parse(localStorage.getItem('student_notifications') || '[]');
+      notifs.unshift({
+        id: `notif-${Date.now()}`,
+        title: isUrgent ? `🚨 Rappel Urgent (Salle ${salle})` : `📢 Rappel de Cours (Salle ${salle})`,
+        desc: `${courseName ? courseName + ' : ' : ''}${content}`,
+        time: "À l'instant",
+        read: false,
+        icon: isUrgent ? "warning" : "campaign",
+        color: isUrgent ? "text-brand-red-deep bg-brand-red-light" : "text-[#E3A857] bg-[#E3A857]/10"
+      });
+      localStorage.setItem('student_notifications', JSON.stringify(notifs));
+    } catch (e) {
+      console.error("Failed to append student notification from professor reminder", e);
+    }
+
+    return newRem;
+  }
+
+  async getLessons(courseId: string): Promise<ProfessorLesson[]> {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const allLessons = this.getLessonsFromStorage();
+    return allLessons.filter(l => l.courseId === courseId);
+  }
+
+  async createLesson(courseId: string, title: string, description: string, attachmentName?: string, attachmentUrl?: string, moduleId?: string): Promise<ProfessorLesson> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allLessons = this.getLessonsFromStorage();
+    const newLesson: ProfessorLesson = {
+      id: `les-${Date.now()}`,
+      courseId,
+      moduleId,
+      title,
+      description,
+      dateStr: "À l'instant",
+      attachmentName,
+      attachmentUrl
+    };
+    allLessons.unshift(newLesson);
+    this.saveLessonsToStorage(allLessons);
+    return newLesson;
+  }
+
+  async getModules(courseId: string): Promise<CourseModule[]> {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const allModules = this.getModulesFromStorage();
+    return allModules.filter(m => m.courseId === courseId);
+  }
+
+  async createModule(courseId: string, title: string, description: string): Promise<CourseModule> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allModules = this.getModulesFromStorage();
+    const newModule: CourseModule = {
+      id: `mod-${Date.now()}`,
+      courseId,
+      title,
+      description
+    };
+    allModules.push(newModule);
+    this.saveModulesToStorage(allModules);
+    return newModule;
+  }
+
+  async getQuizzes(courseId: string): Promise<CourseQuiz[]> {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const allModules = this.getModulesFromStorage();
+    const courseModuleIds = allModules.filter(m => m.courseId === courseId).map(m => m.id);
+    const allQuizzes = this.getQuizzesFromStorage();
+    return allQuizzes.filter(q => courseModuleIds.includes(q.moduleId));
+  }
+
+  async createQuiz(moduleId: string, title: string, description: string, questions: QuizQuestion[]): Promise<CourseQuiz> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const allQuizzes = this.getQuizzesFromStorage();
+    const newQuiz: CourseQuiz = {
+      id: `quiz-${Date.now()}`,
+      moduleId,
+      title,
+      description,
+      questions
+    };
+    allQuizzes.push(newQuiz);
+    this.saveQuizzesToStorage(allQuizzes);
+    return newQuiz;
+  }
+}

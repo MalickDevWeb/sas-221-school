@@ -1,0 +1,67 @@
+import React from 'react';
+import { ArrowLeft, Users, BookOpen, PenTool, Award } from 'lucide-react';
+import { ProfessorProfileSection } from './ProfessorProfileSection';
+import { ProfessorClassroomHeader } from './ProfessorClassroomHeader';
+import { ProfessorClassroomSessions } from './ProfessorClassroomSessions';
+
+interface ClassroomSidebarProps {
+  readonly selectedCourse: any;
+  readonly onSelectCourse: (id: string) => void;
+  readonly activeTab: string;
+  readonly onSelectTab: (tab: string) => void;
+  readonly classroomSubTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements';
+  readonly setClassroomSubTab: (tab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => void;
+  readonly schedule: readonly any[];
+  readonly profName?: string;
+  readonly initials?: string;
+  readonly onLogout?: () => void;
+}
+
+export function ProfessorClassroomSidebar({
+  selectedCourse, onSelectCourse, activeTab, onSelectTab, classroomSubTab, setClassroomSubTab, schedule, profName, initials, onLogout
+}: ClassroomSidebarProps) {
+  const classSessions = schedule.filter(
+    (s) => s && selectedCourse && (s.courseId === selectedCourse.id || (s.courseTitle || "").toLowerCase() === (selectedCourse.titre || "").toLowerCase())
+  );
+
+  const handleSubTabClick = (subTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => {
+    onSelectTab('classroom');
+    setClassroomSubTab(subTab);
+  };
+
+  return (
+    <aside className="hidden md:flex flex-col h-screen pb-6 gap-4 bg-surface-container-low border-r border-neutral-gray-250 w-64 fixed left-0 top-0 z-50 px-4 select-none overflow-y-auto no-scrollbar animate-fade-in">
+      <ProfessorClassroomHeader selectedCourse={selectedCourse} />
+
+      <button onClick={() => onSelectCourse('')} className="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-neutral-50 text-brand-red-deep text-xs font-black rounded-xl border border-neutral-gray-200 hover:border-brand-red-deep/30 transition-all cursor-pointer shadow-3xs shrink-0">
+        <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5]" /> Quitter la classe
+      </button>
+
+      <div className="flex-grow space-y-4">
+        <div>
+          <span className="px-3 text-[10px] font-black uppercase text-[#64748B] tracking-wider block mb-1.5">Espace pédagogique</span>
+          <nav className="flex flex-col gap-1">
+            {[
+              { id: 'attendance', label: 'Présence & Appel', icon: Users },
+              { id: 'modules', label: 'Chapitres & Supports', icon: BookOpen },
+              { id: 'homework', label: 'Devoirs de classe', icon: PenTool },
+              { id: 'grades', label: 'Notes d\'Évaluation', icon: Award },
+            ].map((item) => {
+              const IconComp = item.icon;
+              const isActive = activeTab === 'classroom' && classroomSubTab === item.id;
+              return (
+                <button key={item.id} onClick={() => handleSubTabClick(item.id as any)} className={`w-full flex items-center gap-3 px-3 py-2 text-xs rounded-lg transition-all text-left cursor-pointer border-0 ${isActive ? 'bg-primary-container text-on-primary-container font-black shadow-3xs' : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'}`}>
+                  <IconComp className={`h-4 w-4 ${isActive ? 'text-white' : 'text-neutral-400'}`} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+        <ProfessorClassroomSessions classSessions={classSessions} />
+      </div>
+
+      {profName && initials && onLogout && <ProfessorProfileSection profName={profName} initials={initials} onLogout={onLogout} />}
+    </aside>
+  );
+}
