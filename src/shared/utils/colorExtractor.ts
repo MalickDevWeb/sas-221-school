@@ -113,12 +113,22 @@ function hslToHex(h: number, s: number, l: number): string {
   return rgbToHex(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
 }
 
-function getContrastRatio(r: number, g: number, b: number): number {
+export function calculateLuminance(r: number, g: number, b: number): number {
   const luminance = (v: number) => {
     v /= 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   };
   return 0.2126 * luminance(r) + 0.7152 * luminance(g) + 0.0722 * luminance(b);
+}
+
+export function getContrastRatio(hex1: string, hex2: string): number {
+  const [r1, g1, b1] = hexToRgb(hex1);
+  const [r2, g2, b2] = hexToRgb(hex2);
+  const lum1 = calculateLuminance(r1, g1, b1);
+  const lum2 = calculateLuminance(r2, g2, b2);
+  const brightest = Math.max(lum1, lum2);
+  const darkest = Math.min(lum1, lum2);
+  return (brightest + 0.05) / (darkest + 0.05);
 }
 
 /**
@@ -151,8 +161,8 @@ export function generatePaletteFromHex(primaryHex: string): TenantPalette {
   // Surface warm : fond légèrement teinté (très doux)
   const surfaceWarm = hslToHex(h, Math.min(s * 0.06, 6), 98);
 
-  // Texte sur fond primaire : blanc si luminance < 0.3, noir sinon
-  const lum = getContrastRatio(r, g, b);
+  // Texte sur fond primaire : blanc si luminance < 0.35, noir sinon
+  const lum = calculateLuminance(r, g, b);
   const textOnPrimary = lum < 0.35 ? '#FFFFFF' : '#1E293B';
 
   return {

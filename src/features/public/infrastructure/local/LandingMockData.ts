@@ -214,3 +214,4 @@ export const PRICING_PLANS_DATA: PricingPlan[] = [
     ctaText: 'Contacter les ventes',
   },
 ];
+

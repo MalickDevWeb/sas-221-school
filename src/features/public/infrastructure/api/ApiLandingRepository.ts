@@ -51,3 +51,4 @@ export class ApiLandingRepository implements LandingRepository {
     return this.fallback.submitContactForm(data);
   }
 }
+

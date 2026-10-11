@@ -37,3 +37,4 @@ export interface LandingRepository {
    */
   submitContactForm(data: ContactMessageFormData): Promise<ContactSubmissionResult>;
 }
+

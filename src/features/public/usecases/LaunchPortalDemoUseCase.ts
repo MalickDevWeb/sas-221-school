@@ -18,3 +18,4 @@ export class LaunchPortalDemoUseCase {
     navigate(demo.targetPath);
   }
 }
+

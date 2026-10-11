@@ -10,3 +10,4 @@ export const landingRepository = new ApiLandingRepository();
 export const submitContactFormUseCase = new SubmitContactFormUseCase(landingRepository);
 export const launchPortalDemoUseCase = new LaunchPortalDemoUseCase();
 export const getLandingContentUseCase = new GetLandingContentUseCase(landingRepository);
+
