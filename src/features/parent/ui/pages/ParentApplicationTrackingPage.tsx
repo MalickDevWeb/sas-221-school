@@ -86,7 +86,7 @@ export function ParentApplicationTrackingPage() {
           </div>
           <button
             onClick={() => navigate(ROUTES.parent.inscrireEnfant)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#1565C0] hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
           >
             <span translate="no" className="material-symbols-outlined text-[16px]">person_add</span>
             Nouveau dossier
@@ -205,7 +205,7 @@ export function ParentApplicationTrackingPage() {
                   {d.statut === 'REFUSE' && (
                     <button
                       onClick={() => navigate(ROUTES.parent.inscrireEnfant)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#1565C0] text-white rounded-xl text-xs font-black hover:bg-[#0D47A1] transition-all"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-[#0D47A1] transition-all"
                     >
                       <span translate="no" className="material-symbols-outlined text-[14px]">refresh</span>
                       Resoumettre le dossier
@@ -233,7 +233,7 @@ export function ParentApplicationTrackingPage() {
           <p className="text-xs text-neutral-400 mt-1 mb-5">Inscrivez votre premier enfant en cliquant ci-dessous</p>
           <button
             onClick={() => navigate(ROUTES.parent.inscrireEnfant)}
-            className="px-6 py-3 bg-[#1565C0] text-white rounded-xl text-sm font-black hover:bg-[#0D47A1] shadow-md shadow-blue-200 transition-all"
+            className="px-6 py-3 bg-primary text-white rounded-xl text-sm font-black hover:bg-[#0D47A1] shadow-md shadow-blue-200 transition-all"
           >
             Inscrire un enfant
           </button>

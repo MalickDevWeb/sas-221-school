@@ -21,7 +21,7 @@ export function getNextCourse(sessions: readonly CourseSession[], currentHourStr
   if (sessions.length === 0) return null;
 
   // We simulate the current day as Wednesday (MER) to match the app's timeline
-  const currentDayNum = 3; // MER
+  const currentDayNum: number = 3; // MER
   const [currH, currM] = currentHourStr.split(':').map(Number);
   const currentTotalMinutes = currH * 60 + currM;
 

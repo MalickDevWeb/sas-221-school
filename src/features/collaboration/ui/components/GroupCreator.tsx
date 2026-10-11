@@ -28,7 +28,7 @@ export function GroupCreator({ onAutoGenerate, onCreateManual }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-neutral-gray-200 p-5 shadow-sm">
       <div className="flex items-center gap-2.5 mb-4">
-        <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+        <div className="p-2 rounded-xl bg-primary/10 text-primary">
           <Users className="w-4 h-4" />
         </div>
         <div>

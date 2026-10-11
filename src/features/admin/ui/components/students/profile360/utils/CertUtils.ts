@@ -1,4 +1,4 @@
-import { Student } from '../../../../domain/StudentModels';
+import { Student } from '../../../../../domain/StudentModels';
 
 export function generateCert(student: Student) {
   const content = `

@@ -4,14 +4,14 @@ import { EcolagesTab } from './finances/EcolagesTab';
 import { DepensesTab } from './finances/DepensesTab';
 import { ReportsTab } from './finances/ReportsTab';
 import { AutomationTab } from './finances/AutomationTab';
-import { StudentFinance, Expense, INITIAL_STUDENTS_FINANCES, INITIAL_EXPENSES } from '../../domain/FinancesModels';
+import { Expense } from '../../domain/FinancesModels';
+import { useAdminFinances } from './finances/useAdminFinances';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
 export function AdminFinanceDashboard() {
   const [activeTab, setActiveTab] = useState('ecolages');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [students, setStudents] = useState<StudentFinance[]>(INITIAL_STUDENTS_FINANCES);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+  const { students, setStudents, expenses, addExpense, loading } = useAdminFinances();
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -19,9 +19,8 @@ export function AdminFinanceDashboard() {
     setTimeout(() => setToast(null), 4500);
   };
 
-  const handleAddExpense = (newExp: Omit<Expense, 'id'>) => {
-    const id = `exp-${Math.floor(10 + Math.random() * 89)}`;
-    setExpenses([...expenses, { id, ...newExp }]);
+  const handleAddExpense = async (newExp: Omit<Expense, 'id'>) => {
+    await addExpense(newExp);
     showToast(`Dépense de ${newExp.amount.toLocaleString()} FCFA enregistrée !`, true);
   };
 

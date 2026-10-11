@@ -30,7 +30,7 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
       ];
       metrics.forEach((m, i) => {
         const x = 15 + i * 46;
-        doc.setFillColor(255).setDrawColor(220).roundedRect(x, 89, 42, 19, 2, 2, "F");
+        doc.setFillColor(255, 255, 255).setDrawColor(220, 220, 220).roundedRect(x, 89, 42, 19, 2, 2, "F");
         doc.roundedRect(x, 89, 42, 19, 2, 2, "S");
         doc.setFontSize(7).setTextColor(120).text(m.l, x + 21, 93, { align: "center" });
         doc.setFontSize(10).setTextColor(41, 23, 21).text(m.v, x + 21, 99, { align: "center" });

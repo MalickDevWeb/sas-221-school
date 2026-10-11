@@ -42,12 +42,45 @@ import { useDeviceInitializer } from '@/features/screenguard/hooks/useDeviceInit
 import { GatekeeperModal } from '@/features/screenguard/ui/components/GatekeeperModal';
 import { OfflineSyncToast } from '@/shared/components/OfflineSyncToast';
 import { PWAInstallBanner } from '@/shared/components/PWAInstallBanner';
+import { SchoolRegistrationPage } from '@/features/onboarding/ui/pages/SchoolRegistrationPage';
+import { TenantLoginPage } from '@/features/auth/ui/pages/TenantLoginPage';
+import { LandingPage } from '@/features/public/ui/pages/LandingPage';
 
-const PageSkeleton = () => <div className="p-8 text-center text-gray-500 font-bold text-xs">Chargement...</div>;
+const PageSkeleton = () => (
+  <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#FAF8F6] p-6 select-none animate-fadeIn">
+    <div className="relative flex flex-col items-center justify-center">
+      {/* Halo d'ambiance */}
+      <div className="absolute w-44 h-16 rounded-3xl bg-indigo-500/10 blur-xl animate-pulse" />
+      {/* Logo officiel */}
+      <div className="relative z-10 flex items-center justify-center gap-3 p-3">
+        <img
+          src="/myschool-icon.png"
+          alt="My School Icon"
+          className="h-12 w-12 object-contain drop-shadow-md"
+        />
+        <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          My School
+        </span>
+      </div>
+    </div>
+    {/* Indicateur de chargement fluide */}
+    <div className="mt-6 flex items-center gap-2">
+      <div className="w-2.5 h-2.5 rounded-full bg-[#7C3AED] animate-bounce [animation-delay:-0.3s]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#6366F1] animate-bounce [animation-delay:-0.15s]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6] animate-bounce" />
+    </div>
+    <p className="mt-3 text-[11px] font-black uppercase tracking-widest text-slate-500">
+      Chargement de l'environnement...
+    </p>
+  </div>
+);
 
 const DashboardRedirect = () => {
   const { utilisateur } = useAuthStore();
-  if (utilisateur?.role === ROLE_UTILISATEUR.ADMIN || utilisateur?.role === ROLE_UTILISATEUR.ADMINISTRATOR || utilisateur?.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur?.role === ROLE_UTILISATEUR.PLATFORM_OWNER) {
+  if (utilisateur?.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur?.role === ROLE_UTILISATEUR.PLATFORM_OWNER || (utilisateur?.role as string) === 'PLATFORM_ADMIN') {
+    return <Navigate to="/super-admin/dashboard" replace />;
+  }
+  if (utilisateur?.role === ROLE_UTILISATEUR.ADMIN || utilisateur?.role === ROLE_UTILISATEUR.ADMINISTRATOR) {
     return <Navigate to={ROUTES.admin.dashboard} replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.VIGIL) {
@@ -69,18 +102,40 @@ export function AppRouter() {
     <>
       <GatekeeperModal />
       <OfflineSyncToast />
-      <PWAInstallBanner />
       <Suspense fallback={<PageSkeleton />}>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/accueil" element={<LandingPage />} />
           <Route path={ROUTES.login} element={<LoginPage />} />
-          <Route path="/register-school" element={React.createElement(React.lazy(() => import('@/features/onboarding/ui/pages/SchoolRegistrationPage').then(m => ({ default: m.SchoolRegistrationPage }))))} />
+          <Route path="/register-school" element={<SchoolRegistrationPage />} />
+          <Route path="/inscription-ecole" element={<SchoolRegistrationPage />} />
+          <Route path="/t/:tenantSlug/login" element={<TenantLoginPage />} />
+          <Route path="/t/:tenantSlug" element={<TenantLoginPage />} />
+          <Route path="/ecole221" element={<TenantLoginPage />} />
+          <Route path="/ecole-221" element={<TenantLoginPage />} />
           <Route path={ROUTES.candidature} element={<CandidaturePage />} />
+          
+          {/* Portails de Connexion Spécifiques */}
+          <Route path="/super-admin" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminLoginPage').then(m => ({ default: m.SuperAdminLoginPage }))))} />
+          <Route path="/admin" element={React.createElement(React.lazy(() => import('@/features/admin/ui/pages/AdminPortalLoginPage').then(m => ({ default: m.AdminPortalLoginPage }))))} />
+          
+          <Route path="/unauthorized" element={<div className="p-10 text-center text-red-500 font-bold text-xl">403 - Accès Refusé</div>} />
 
           <Route path={ROUTES.dashboard} element={<DashboardRedirect />} />
 
           {/* Super Admin / Platform Owner Routes */}
           <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>
-            <Route path="/super-admin/dashboard" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminDashboardPage').then(m => ({ default: m.SuperAdminDashboardPage }))))} />
+            <Route element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/components/layout/SuperAdminLayout').then(m => ({ default: m.SuperAdminLayout }))))}>
+              <Route path="/super-admin/dashboard" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminDashboardPage').then(m => ({ default: m.SuperAdminDashboardPage }))))} />
+              <Route path="/super-admin/tenants" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminTenantsPage').then(m => ({ default: m.SuperAdminTenantsPage }))))} />
+              <Route path="/super-admin/users" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminUsersPage').then(m => ({ default: m.SuperAdminUsersPage }))))} />
+              <Route path="/super-admin/billing" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminBillingPage').then(m => ({ default: m.SuperAdminBillingPage }))))} />
+              <Route path="/super-admin/reports" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminReportsPage').then(m => ({ default: m.SuperAdminReportsPage }))))} />
+              <Route path="/super-admin/analytics" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminAnalyticsPage').then(m => ({ default: m.SuperAdminAnalyticsPage }))))} />
+              <Route path="/super-admin/system" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSystemPage').then(m => ({ default: m.SuperAdminSystemPage }))))} />
+              <Route path="/super-admin/support" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSupportPage').then(m => ({ default: m.SuperAdminSupportPage }))))} />
+              <Route path="/super-admin/settings" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSettingsPage').then(m => ({ default: m.SuperAdminSettingsPage }))))} />
+            </Route>
           </Route>
 
           <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>

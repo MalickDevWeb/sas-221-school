@@ -32,14 +32,14 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
       <div className="mb-2 px-4 flex flex-col items-start">
         <div
           style={{ paddingLeft: '11px', paddingRight: '1px', paddingTop: '7px', paddingBottom: '9px', marginTop: '-13px' }}
-          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1565C0] to-[#0D47A1] text-white flex items-center justify-center font-black shadow-md shadow-[#1565C0]/25 transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-white flex items-center justify-center font-black shadow-md shadow-primary/25 transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           onClick={() => navigate(ROUTES.parent.dashboard)}
         >
           <span translate="no" className="material-symbols-outlined text-[20px] font-bold">family_restroom</span>
         </div>
         <div className="flex flex-col mt-3">
           <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">École 221</h1>
-          <p className="text-[10px] font-black text-[#1565C0] uppercase tracking-widest mt-0.5">Portail Parent</p>
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Parent</p>
         </div>
         <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2025-26</p>
       </div>
@@ -55,12 +55,12 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
                 onClick={() => onSelectChild(child.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${
                   selectedChildId === child.id
-                    ? 'bg-[#1565C0]/10 border border-[#1565C0]/30 text-[#1565C0]'
+                    ? 'bg-primary/10 border border-primary/30 text-primary'
                     : 'hover:bg-neutral-100 text-neutral-600'
                 }`}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                  selectedChildId === child.id ? 'bg-[#1565C0] text-white' : 'bg-neutral-200 text-neutral-600'
+                  selectedChildId === child.id ? 'bg-primary text-white' : 'bg-neutral-200 text-neutral-600'
                 }`}>
                   {child.prenom[0]}{child.nom[0]}
                 </div>
@@ -69,7 +69,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
                   <p className="text-[9px] text-neutral-400 font-semibold truncate">{child.classe}</p>
                 </div>
                 {selectedChildId === child.id && (
-                  <span translate="no" className="material-symbols-outlined text-[14px] text-[#1565C0] shrink-0 ml-auto">check_circle</span>
+                  <span translate="no" className="material-symbols-outlined text-[14px] text-primary shrink-0 ml-auto">check_circle</span>
                 )}
               </button>
             ))}
@@ -89,7 +89,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
             className={({ isActive }) =>
               `flex flex-row items-center gap-3 px-3 py-2.5 font-label-md text-label-md rounded-lg transition-transform relative ${
                 isActive
-                  ? 'bg-[#1565C0]/10 text-[#1565C0] font-black border-l-2 border-[#1565C0]'
+                  ? 'bg-primary/10 text-primary font-black border-l-2 border-primary'
                   : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'
               }`
             }
@@ -113,8 +113,8 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
           className={({ isActive }) =>
             `w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-black transition-all ${
               isActive
-                ? 'bg-[#1565C0] text-white shadow-md shadow-blue-100'
-                : 'bg-[#1565C0]/10 text-[#1565C0] hover:bg-[#1565C0]/20'
+                ? 'bg-primary text-white shadow-md shadow-blue-100'
+                : 'bg-primary/10 text-primary hover:bg-primary/20'
             }`
           }
         >
@@ -125,7 +125,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
           to={ROUTES.parent.profil}
           className={({ isActive }) =>
             `w-full flex flex-row items-center justify-start gap-3 px-3 py-2 font-label-md text-label-md rounded-lg cursor-pointer transition-colors ${
-              isActive ? 'text-[#1565C0] font-black bg-[#1565C0]/10' : 'text-secondary hover:bg-neutral-100 hover:text-neutral-800'
+              isActive ? 'text-primary font-black bg-primary/10' : 'text-secondary hover:bg-neutral-100 hover:text-neutral-800'
             }`
           }
         >

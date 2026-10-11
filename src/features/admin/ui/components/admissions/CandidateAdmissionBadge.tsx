@@ -7,7 +7,7 @@ interface Props {
 
 export function CandidateAdmissionBadge({ type }: Props) {
   const mapping: Record<AdmissionType, { label: string; style: string }> = {
-    BAC: { label: 'Nouveau Bachelier', style: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    BAC: { label: 'Nouveau Bachelier', style: 'bg-primary/10 text-primary/90 border-primary/30' },
     L2: { label: 'Admission L2', style: 'bg-blue-50 text-blue-700 border-blue-200' },
     L3: { label: 'Admission L3', style: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
     M1: { label: 'Admission M1', style: 'bg-emerald-50 text-emerald-700 border-emerald-200' },

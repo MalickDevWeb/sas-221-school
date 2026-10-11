@@ -98,7 +98,7 @@ export function ParentMessagesPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider mb-1 block">Professeur concerné</label>
-                <select className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-[#1565C0] outline-none">
+                <select className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary outline-none">
                   <option>Dr. Sall — Algorithmique</option>
                   <option>Prof. Ndiaye — Base de Données</option>
                   <option>Administration — Secrétariat</option>
@@ -106,19 +106,19 @@ export function ParentMessagesPage() {
               </div>
               <div>
                 <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider mb-1 block">Disponibilité souhaitée</label>
-                <input type="date" className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-[#1565C0] outline-none" />
+                <input type="date" className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary outline-none" />
               </div>
               <div>
                 <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider mb-1 block">Motif du rendez-vous</label>
                 <textarea 
-                  className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 focus:border-[#1565C0] outline-none resize-none h-20"
+                  className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 focus:border-primary outline-none resize-none h-20"
                   placeholder="Ex: Suivi des résultats, orientation..."
                 />
               </div>
             </div>
             
             <div className="mt-6">
-              <button onClick={() => { alert('Demande envoyée !'); setShowRdv(false); }} className="w-full py-3 bg-[#1565C0] hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2">
+              <button onClick={() => { alert('Demande envoyée !'); setShowRdv(false); }} className="w-full py-3 bg-primary hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <span translate="no" className="material-symbols-outlined text-[16px]">send</span>
                 Envoyer la demande
               </button>

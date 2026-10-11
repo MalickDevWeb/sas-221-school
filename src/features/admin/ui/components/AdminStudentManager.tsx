@@ -5,11 +5,12 @@ import { ExcelImportTab } from './students/ExcelImportTab';
 import { StudentProfile360Tab } from './students/StudentProfile360Tab';
 import { INITIAL_STUDENTS, Student } from '../../domain/StudentModels';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { useAdminStudents } from './students/useAdminStudents';
 
 export function AdminStudentManager() {
   const [activeTab, setActiveTab] = useState('annuaire');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const { students, setStudents, loading, updateFinancialStatus, refetch } = useAdminStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student>(INITIAL_STUDENTS[0]);
 
   const handleViewProfile = (student: Student) => {
@@ -33,13 +34,14 @@ export function AdminStudentManager() {
             students={students}
             onUpdateStudents={setStudents}
             onViewProfile={handleViewProfile}
+            onToggleFinancialStatus={updateFinancialStatus}
+            onRefresh={refetch}
           />
         )}
         {activeTab === 'import' && (
           <ExcelImportTab
             students={students}
             onAddStudents={(newList) => setStudents([...students, ...newList])}
-            onAddSingleStudent={(s) => setStudents([...students, s])}
           />
         )}
         {activeTab === 'profil360' && (

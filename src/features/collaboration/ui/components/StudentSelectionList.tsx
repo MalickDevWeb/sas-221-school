@@ -23,11 +23,11 @@ export function StudentSelectionList({ students, selectedIds, onToggleStudent }:
               type="button"
               onClick={() => onToggleStudent(student.id)}
               className={`w-full flex items-center justify-between text-left px-2 py-1 rounded text-xs transition-colors ${
-                isSelected ? 'bg-indigo-50 text-indigo-900 border border-indigo-100' : 'bg-white hover:bg-gray-100 text-gray-700'
+                isSelected ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-white hover:bg-gray-100 text-gray-700'
               }`}
             >
               <span>{student.name} ({student.gender} - GPA {student.gpa})</span>
-              {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+              {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
             </button>
           );
         })}

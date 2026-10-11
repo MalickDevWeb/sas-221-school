@@ -4,18 +4,19 @@ import { DiagnosticIaPanel } from '../DiagnosticIaPanel';
 
 interface Props {
   selectedStudent: Student;
+  erpData?: any;
 }
 
 export function TabAI({ selectedStudent }: Props) {
   return (
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-ai">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="border border-neutral-100 p-3 bg-indigo-50/40 rounded-2xl flex items-center justify-between">
+        <div className="border border-neutral-100 p-3 bg-primary/10/40 rounded-2xl flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-indigo-800 font-bold uppercase tracking-wider">Score Académique</p>
-            <p className="text-indigo-700 font-black text-base mt-0.5">94 / 100</p>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Score Académique</p>
+            <p className="text-primary/90 font-black text-base mt-0.5">94 / 100</p>
           </div>
-          <span translate="no" className="material-symbols-outlined text-indigo-600 text-xl">insights</span>
+          <span translate="no" className="material-symbols-outlined text-primary text-xl">insights</span>
         </div>
 
         <div className="border border-neutral-100 p-3 bg-emerald-50/40 rounded-2xl flex items-center justify-between">

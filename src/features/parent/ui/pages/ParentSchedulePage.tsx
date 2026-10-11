@@ -70,7 +70,7 @@ export function ParentSchedulePage() {
                   onClick={() => setSelectedDay(jour)}
                   className={`flex-shrink-0 flex flex-col items-center px-4 py-2.5 rounded-2xl border border-solid font-bold text-xs transition-all ${
                     selectedDay === jour
-                      ? 'bg-[#1565C0] text-white border-[#1565C0] shadow-md shadow-blue-200'
+                      ? 'bg-primary text-white border-primary shadow-md shadow-blue-200'
                       : 'bg-white text-neutral-600 border-neutral-200 hover:border-blue-300'
                   }`}
                 >

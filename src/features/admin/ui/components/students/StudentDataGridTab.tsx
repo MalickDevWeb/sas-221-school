@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Student } from '../../../domain/StudentModels';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileStudentCards } from '@/features/screenguard/ui/components/MobileStudentCards';
+import { EnrollTransferStudentModal } from "./EnrollTransferStudentModal";
 
 interface Props {
   students: Student[];
   onUpdateStudents: (list: Student[]) => void;
   onViewProfile: (student: Student) => void;
+  onToggleFinancialStatus?: (id: string, newStatus: 'En Règle' | 'En Retard') => void;
+  onRefresh?: () => void;
 }
 
-export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile }: Props) {
+export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleFinancialStatus, onRefresh }: Props) {
   const { isMobile } = useDeviceStore();
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('ALL');
   const [filterFin, setFilterFin] = useState('ALL');
   const [filterQr, setFilterQr] = useState('ALL');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleQrStatus = (id: string) => {
     onUpdateStudents(students.map(s => s.id === id ? { ...s, qrStatus: s.qrStatus === 'AUTORISÉ' ? 'SUSPENDU' : 'AUTORISÉ' } : s));
@@ -25,7 +30,7 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile }
       <MobileStudentCards
         students={students as any}
         onToggleQr={toggleQrStatus}
-        onViewProfile={onViewProfile}
+        onViewProfile={onViewProfile as any}
       />
     );
   }
@@ -45,6 +50,10 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile }
           <h3 className="font-extrabold text-[#1E293B] text-sm">Annuaire & DataGrid Enterprise</h3>
           <p className="text-[10px] text-neutral-400 font-bold">Suivi d'accès QR, états de paiement et scolarité.</p>
         </div>
+        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-[#1E293B] hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-colors">
+          <span translate="no" className="material-symbols-outlined text-sm">person_add</span>
+          Inscrire / Transférer
+        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
@@ -90,7 +99,24 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile }
                   </td>
                   <td className="px-4 py-3 text-neutral-500 font-semibold">{s.classe}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[8.5px] border font-black uppercase ${s.financialStatus === 'En Règle' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{s.financialStatus}</span>
+                    <button
+                      onClick={() => {
+                        const nextStatus = s.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
+                        if (onToggleFinancialStatus) {
+                          onToggleFinancialStatus(s.id, nextStatus);
+                        } else {
+                          onUpdateStudents(students.map(st => st.id === s.id ? { ...st, financialStatus: nextStatus } : st));
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded-full text-[8.5px] border font-black uppercase cursor-pointer hover:opacity-80 transition-opacity ${
+                        s.financialStatus === 'En Règle'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border-rose-200'
+                      }`}
+                      title="Cliquer pour modifier le statut financier"
+                    >
+                      {s.financialStatus}
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <button onClick={() => toggleQrStatus(s.id)} className={`px-2.5 py-1 text-[8.5px] font-black uppercase rounded-lg border cursor-pointer ${s.qrStatus === 'AUTORISÉ' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
@@ -106,6 +132,14 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile }
           </table>
         </div>
       </div>
+      <EnrollTransferStudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          toast.success('Étudiant inscrit ou transféré avec succès');
+          onRefresh?.();
+        }}
+      />
     </div>
   );
 }

@@ -13,7 +13,7 @@ export function useQRCameraScanner(elementId: string, onScanComplete: (text: str
   const applyZoom = async (val: number) => {
     if (!qrRef.current) return;
     try {
-      const track = qrRef.current.getRunningTrack();
+      const track = (qrRef.current as any).getRunningTrack?.() || (qrRef.current as any).getRunningTrack;
       if (track) {
         const caps = track.getCapabilities() as any;
         if (caps?.zoom) {
@@ -64,7 +64,7 @@ export function useQRCameraScanner(elementId: string, onScanComplete: (text: str
           setIsScanning(true);
           setError(null);
           try {
-            const track = html5QrCode.getRunningTrack();
+            const track = (html5QrCode as any).getRunningTrack?.() || (html5QrCode as any).getRunningTrack;
             if (track) {
               const caps = track.getCapabilities() as any;
               const constraints: any = {};

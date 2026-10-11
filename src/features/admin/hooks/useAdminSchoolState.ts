@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Room, Filiere, Classe, PlanningSlot } from '../../domain/SchoolModels';
+import { Room, Filiere, Classe, PlanningSlot } from '../domain/SchoolModels';
 import { apiClient } from '@/shared/lib/apiClient';
 
 export function useAdminSchoolState() {

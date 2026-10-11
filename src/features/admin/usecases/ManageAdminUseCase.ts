@@ -2,7 +2,11 @@ import { AdminRepository } from '../domain/AdminRepository';
 import { AdminStats, AdminStudent, AdminProfessor, AdminPromotion, AdminSession } from '../domain/AdminModels';
 
 export class ManageAdminUseCase {
-  constructor(private adminRepository: AdminRepository) {}
+  private adminRepository: AdminRepository;
+
+  constructor(adminRepository: AdminRepository) {
+    this.adminRepository = adminRepository;
+  }
 
   async fetchStats(): Promise<AdminStats> {
     return this.adminRepository.getStats();

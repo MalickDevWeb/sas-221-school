@@ -18,4 +18,5 @@ export const UTILISATEURS_SIMULES: {
   { email: 'surv221@gmail.com', motDePasse: 'ecole221', utilisateur: { id: 'usr-surv-01', nom: 'Sene', prenom: 'Ousmane', email: 'surv221@gmail.com', role: ROLE_UTILISATEUR.SECRETAIRE }, token: 'fake-jwt-token-surv-221' },
   { email: 'surv222@gmail.com', motDePasse: 'ecole221', utilisateur: { id: 'usr-surv-02', nom: 'Ndiaye', prenom: 'Awa', email: 'surv222@gmail.com', role: ROLE_UTILISATEUR.SECRETAIRE }, token: 'fake-jwt-token-surv-222' },
   { email: 'vigile221@gmail.com', motDePasse: 'ecole221', utilisateur: { id: 'usr-vigil-01', nom: 'Diallo', prenom: 'Aboulaye', email: 'vigile221@gmail.com', role: ROLE_UTILISATEUR.VIGIL }, token: 'fake-jwt-token-vigil-221' },
+  { email: 'superadmin@ecole221.sn', motDePasse: 'super221', utilisateur: { id: 'usr-super-01', nom: 'Platform', prenom: 'SuperAdmin', email: 'superadmin@ecole221.sn', role: ROLE_UTILISATEUR.SUPER_ADMIN }, token: 'fake-jwt-token-superadmin-221' },
 ];

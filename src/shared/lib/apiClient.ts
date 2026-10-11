@@ -9,6 +9,19 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+/**
+ * Client HTTP PUBLIC — sans token d'authentification.
+ * À utiliser pour les endpoints accessibles sans connexion :
+ * /register-school, /public/tenants/{slug}, /candidature, etc.
+ */
+export const publicApiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  timeout: 15_000,
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: false, // Pas de cookies non plus
+});
+
+
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -40,13 +53,50 @@ apiClient.interceptors.response.use(
   async (error) => {
     const status = error.response?.status;
     const isLoginRequest = error.config?.url?.includes('auth/login');
-    const isAlreadyOnLoginPage = window.location.pathname === ROUTES.login || window.location.pathname === '/';
+
+    // ── Erreurs de connexion ─────────────────────────────────────────────────
+    // Pas de toast, pas de redirect — le message est affiché dans le formulaire
+    if (isLoginRequest) {
+      return Promise.reject(error);
+    }
+
+    const rawPath = window.location.pathname;
+    const currentPath = rawPath.replace(/\/+$/, '') || '/';
+    const isPublicOrLoginPage = currentPath === ROUTES.login
+      || currentPath === '/'
+      || currentPath === '/accueil'
+      || currentPath === '/super-admin'
+      || currentPath === '/admin'
+      || currentPath === '/ecole221'
+      || currentPath === '/ecole-221'
+      || currentPath === '/register-school'
+      || currentPath === '/inscription-ecole'
+      || currentPath === '/candidature'
+      || currentPath.startsWith('/t/');
     
-    // Auth redirect — only if NOT already on the login page (prevents infinite loop)
-    if (status === 401 && !isLoginRequest && !isAlreadyOnLoginPage) {
+    // Auth redirect — only if NOT on a public/login page (prevents unwanted redirects & infinite loops)
+    if (status === 401 && !isPublicOrLoginPage) {
+      // Vider toute la session
       localStorage.removeItem('auth_token');
       localStorage.removeItem('access_token');
-      window.location.href = ROUTES.login;
+      localStorage.removeItem('ecole-221-auth-storage'); // Vider le store Zustand persisté
+
+      // Rediriger vers le bon portail de connexion selon la page actuelle
+      if (currentPath.startsWith('/super-admin')) {
+        window.location.href = '/super-admin';
+      } else if (currentPath.startsWith('/admin')) {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = ROUTES.login;
+      }
+      return Promise.reject(error);
+    }
+    
+    if (status === 403 && !isPublicOrLoginPage) {
+      toast.error('Accès refusé', {
+        description: 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.'
+      });
+      window.location.href = '/unauthorized';
       return Promise.reject(error);
     }
 
@@ -77,9 +127,14 @@ apiClient.interceptors.response.use(
         });
         // Silent in console to avoid pollution
       } else if (status !== 404) {
-        toast.error(`Erreur ${status} (${method})`, {
-          description: `L'appel API vers ${url} a échoué.`
-        });
+        const serverMsg = error.response?.data?.message;
+        if (serverMsg) {
+          toast.error(`Erreur ${status}`, { description: serverMsg });
+        } else {
+          toast.error(`Erreur ${status} (${method})`, {
+            description: `L'appel API vers ${url} a échoué.`
+          });
+        }
         console.error(`[API ERROR] ${method} ${url} - Status ${status}`, error.response.data);
       }
     }

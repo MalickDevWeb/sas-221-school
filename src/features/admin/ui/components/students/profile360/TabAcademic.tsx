@@ -80,7 +80,7 @@ export function TabAcademic({ selectedStudent, erpData }: Props) {
               </tr>
             </thead>
             <tbody>
-              {finalErpData.ueList.map((item, idx) => (
+              {finalErpData.ueList.map((item: any, idx: number) => (
                 <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors text-[11px]">
                   <td className="p-3">
                     <p className="font-extrabold text-[#1E293B]">{item.module}</p>

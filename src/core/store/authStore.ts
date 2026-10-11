@@ -17,11 +17,17 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       estConnecte: false,
 
-      connexionReussie: (payload) => set({
-        utilisateur: payload.utilisateur,
-        token: payload.token,
-        estConnecte: true,
-      }),
+      connexionReussie: (payload) => {
+        const user = { ...payload.utilisateur };
+        if (user && user.role && typeof user.role === 'object' && (user.role as any).value) {
+          user.role = (user.role as any).value;
+        }
+        set({
+          utilisateur: user,
+          token: payload.token,
+          estConnecte: true,
+        });
+      },
       deconnexion: () => {
         localStorage.removeItem('access_token');
         set({

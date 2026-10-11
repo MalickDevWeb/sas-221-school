@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
 
+// Cache module-level : toutes les vues de login (Mobile/Tablet/Desktop) partagent une seule requête
+let _cache: { data: CandidatureSettings; ts: number } | null = null;
+let _pending: Promise<CandidatureSettings> | null = null;
+const CACHE_TTL_MS = 30_000; // 30 secondes
+
 export interface CandidatureSettings {
   ouvert: boolean;
   dateOuverture: string;
@@ -26,18 +31,29 @@ export function useCandidatureSettings() {
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = async () => {
+    // Cache encore valide ?
+    if (_cache && Date.now() - _cache.ts < CACHE_TTL_MS) {
+      setSettings({ ..._cache.data, showRegisterButton: _cache.data.showRegisterButton !== false });
+      setLoading(false);
+      return;
+    }
+    // Requête déjà en cours ? → on attend la même
+    if (!_pending) {
+      _pending = apiClient.get('/candidatures/settings')
+        .then(r => r.data as CandidatureSettings)
+        .catch((err: any) => {
+          const status = err.response?.status;
+          const isOffline = !err.response || (status === 500 && String(err.response?.data).includes('proxy'));
+          if (!isOffline) console.error('Erreur de chargement des paramètres:', err);
+          return null as any;
+        })
+        .finally(() => { _pending = null; });
+    }
     try {
-      const { data } = await apiClient.get('/candidatures/settings');
-      setSettings({
-        ...data,
-        showRegisterButton: data.showRegisterButton !== false
-      });
-    } catch (err: any) {
-      // Don't pollute console if it's just the backend being offline (proxy error/network error)
-      const status = err.response?.status;
-      const isOfflineError = !err.response || (status === 500 && String(err.response?.data).includes('proxy'));
-      if (!isOfflineError) {
-        console.error('Erreur de chargement des paramètres de candidature:', err);
+      const data = await _pending;
+      if (data) {
+        _cache = { data, ts: Date.now() };
+        setSettings({ ...data, showRegisterButton: data.showRegisterButton !== false });
       }
     } finally {
       setLoading(false);

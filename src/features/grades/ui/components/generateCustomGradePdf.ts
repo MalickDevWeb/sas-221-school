@@ -60,7 +60,7 @@ export function generateCustomGradePdf(
 
       metrics.forEach((m, i) => {
         const x = 15 + i * 46;
-        doc.setFillColor(255).setDrawColor(220).roundedRect(x, 87, 42, 18, 2, 2, "F");
+        doc.setFillColor(255, 255, 255).setDrawColor(220, 220, 220).roundedRect(x, 87, 42, 18, 2, 2, "F");
         doc.roundedRect(x, 87, 42, 18, 2, 2, "S");
         doc.setFontSize(6.5).setTextColor(120).text(m.l, x + 21, 91, { align: "center" });
         doc.setFontSize(9.5).setTextColor(secondary[0], secondary[1], secondary[2]).setFont("helvetica", "bold").text(m.v, x + 21, 97, { align: "center" });

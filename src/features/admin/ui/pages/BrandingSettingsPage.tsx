@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { apiClient } from '@/shared/lib/apiClient';
-import { Button } from '@/shared/design/components/Button';
 
 export const BrandingSettingsPage = () => {
   const [branding, setBranding] = useState({
@@ -96,9 +95,9 @@ export const BrandingSettingsPage = () => {
         </div>
 
         <div className="pt-4 flex justify-end">
-          <Button onClick={handleSave} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <button onClick={handleSave} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white">
             {isLoading ? 'Sauvegarde...' : 'Enregistrer les paramètres'}
-          </Button>
+          </button>
         </div>
       </div>
     </div>

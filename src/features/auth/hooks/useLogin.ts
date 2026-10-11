@@ -29,7 +29,9 @@ export function useLogin() {
       setEtat('SUCCES');
       
       // Redirection sécurisée selon le rôle
-      if (utilisateur.role === ROLE_UTILISATEUR.ADMIN || utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN) {
+      if (utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur.role === ROLE_UTILISATEUR.PLATFORM_OWNER) {
+        navigate('/super-admin/dashboard');
+      } else if (utilisateur.role === ROLE_UTILISATEUR.ADMIN || utilisateur.role === ROLE_UTILISATEUR.ADMINISTRATOR) {
         navigate(ROUTES.admin.dashboard);
       } else if (utilisateur.role === ROLE_UTILISATEUR.VIGIL) {
         navigate(ROUTES.vigil.dashboard);
@@ -39,9 +41,30 @@ export function useLogin() {
         navigate(ROUTES.dashboard);
       }
       
-    } catch (e: unknown) {
+    } catch (e: any) {
       setEtat('ERREUR');
-      setErreur(e instanceof Error ? e.message : 'Une erreur est survenue.');
+
+      // 1. Message direct du serveur via Axios (500 ou 4xx avec body JSON)
+      const serverMsg =
+        e?.response?.data?.message
+        ?? e?.response?.data?.reason
+        ?? null;
+
+      if (serverMsg) {
+        setErreur(serverMsg);
+      } else if (e?.name === 'IdentifiantsInvalidesError' || e?.message?.includes('incorrect') || e?.message?.includes('mot de passe') || e?.message?.includes('Email')) {
+        // 2. IdentifiantsInvalidesError — erreur 401 wrappée par ApiAuthRepository
+        setErreur('Email ou mot de passe incorrect.');
+      } else if (e?.response?.status === 401) {
+        setErreur('Email ou mot de passe incorrect.');
+      } else if (e?.response?.status === 403) {
+        setErreur('Accès refusé. Vous n\'avez pas les permissions nécessaires.');
+      } else if (!e?.response) {
+        // 3. Erreur réseau (backend éteint)
+        setErreur('Impossible de joindre le serveur. Vérifiez que le backend est démarré.');
+      } else {
+        setErreur('Une erreur est survenue. Veuillez réessayer.');
+      }
     }
   };
 

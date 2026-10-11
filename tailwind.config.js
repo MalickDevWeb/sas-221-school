@@ -71,7 +71,17 @@ export default {
         "on-tertiary-fixed-variant": "#475569",
         "inverse-on-surface": "#F8FAFC",
         "success-green": "#16A34A",
-        "primary": "#B3181C",
+        // ── PALETTE DYNAMIQUE MULTI-TENANT ─────────────────────────────
+        // Toutes ces couleurs sont injectées par tenantStore.applyTheme()
+        // via des variables CSS dans :root — elles s'adaptent à chaque école
+        "primary":        "rgb(var(--color-primary-rgb, 179 24 28) / <alpha-value>)",
+        "primary-light":  "rgb(var(--color-primary-light-rgb, 255 245 245) / <alpha-value>)",
+        "primary-dark":   "rgb(var(--color-primary-dark-rgb, 143 19 22) / <alpha-value>)",
+        "secondary-brand":"rgb(var(--color-secondary-rgb, 250 248 246) / <alpha-value>)",
+        "accent":         "rgb(var(--color-accent-rgb, 227 168 87) / <alpha-value>)",
+        "surface-warm":   "rgb(var(--color-surface-warm-rgb, 250 248 246) / <alpha-value>)",
+        "text-on-primary":"var(--color-text-on-primary, #ffffff)",
+        // ───────────────────────────────────────────────────────────────
         "on-background": "#1E293B"
       },
       borderRadius: {

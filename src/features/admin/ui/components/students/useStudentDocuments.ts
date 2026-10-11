@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export interface Document {
   id: string;
@@ -16,7 +16,7 @@ export function useStudentDocuments(studentId: string) {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/admin/students/${studentId}/documents`);
+      const res = await apiClient.get(`/admin/students/${studentId}/documents`);
       setDocs(res.data);
     } catch (err) {
       console.error(err);
@@ -35,9 +35,9 @@ export function useStudentDocuments(studentId: string) {
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        const upRes = await axios.post('/api/upload', { fileStr: reader.result as string });
+        const upRes = await apiClient.post('/upload', { fileStr: reader.result as string });
         if (upRes.data?.url) {
-          const docRes = await axios.post(`/api/admin/students/${studentId}/documents`, {
+          const docRes = await apiClient.post(`/admin/students/${studentId}/documents`, {
             name: file.name,
             size: `${(file.size / (1024 * 1024)).toFixed(2)} Mo`,
             url: upRes.data.url

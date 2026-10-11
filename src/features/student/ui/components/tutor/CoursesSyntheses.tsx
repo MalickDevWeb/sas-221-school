@@ -49,7 +49,7 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
                   {course.titre}
                 </h3>
               </div>
-              <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-lg border bg-indigo-50 text-indigo-600 border-indigo-100">
+              <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-lg border bg-primary/10 text-primary border-primary/20">
                 {(course.coefficient || 4) >= 5 ? 'Élevée' : 'Moyenne'}
               </span>
             </div>
@@ -76,7 +76,7 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
                 onClick={() => onAskAboutCourse(course.titre, 'comprendre')}
                 className="py-1.5 px-0.5 text-center text-[8px] font-black uppercase tracking-wider bg-white border border-neutral-gray-200 text-neutral-500 rounded-lg hover:text-[#3f1e1e] hover:border-[#3f1e1e]/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
               >
-                <HelpCircle className="h-3 w-3 text-indigo-500" />
+                <HelpCircle className="h-3 w-3 text-primary/80" />
                 S'exercer
               </button>
               <button

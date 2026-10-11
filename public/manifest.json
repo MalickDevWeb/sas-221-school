@@ -1,7 +1,7 @@
 {
-  "name": "École 221",
-  "short_name": "École 221",
-  "description": "Plateforme éducative collaborative et de gestion scolaire pour l'École 221.",
+  "name": "MY SCHOOL APP",
+  "short_name": "MY SCHOOL APP",
+  "description": "Plateforme éducative collaborative et de gestion scolaire MY SCHOOL APP.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fff8f7",

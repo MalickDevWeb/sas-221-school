@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Award, CheckCircle2 } from 'lucide-react';
 
-import { dashboardRepository } from '../infrastructure/config/dependencies';
+import { dashboardRepository } from '../../infrastructure/config/dependencies';
 import { PerformanceData } from '../../domain/Dashboard';
 
 import { PerformanceComposedChart } from './PerformanceComposedChart';

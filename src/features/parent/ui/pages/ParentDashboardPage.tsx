@@ -50,7 +50,7 @@ export function ParentDashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1565C0] to-[#0D47A1] flex items-center justify-center shadow-md shadow-blue-200">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-[#0D47A1] flex items-center justify-center shadow-md shadow-blue-200">
             <span translate="no" className="material-symbols-outlined text-white text-[20px]">family_restroom</span>
           </div>
           <div>
@@ -71,7 +71,7 @@ export function ParentDashboardPage() {
               onClick={() => switchChild(c.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-solid ${
                 selectedChildId === c.id
-                  ? 'bg-[#1565C0] text-white border-[#1565C0] shadow-md shadow-blue-200'
+                  ? 'bg-primary text-white border-primary shadow-md shadow-blue-200'
                   : 'bg-white text-neutral-600 border-neutral-200 hover:border-blue-300'
               }`}
             >
@@ -83,7 +83,7 @@ export function ParentDashboardPage() {
       )}
 
       {/* Fiche enfant */}
-      <div className="bg-gradient-to-br from-[#1565C0] to-[#0D47A1] rounded-3xl p-6 mb-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 mb-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
@@ -104,7 +104,7 @@ export function ParentDashboardPage() {
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
             <button
               onClick={() => alert('Affichage du QR Code de retrait...')}
-              className="flex-1 md:flex-none items-center justify-center gap-2 px-4 py-2 bg-white text-[#1565C0] rounded-xl text-xs font-black shadow-md hover:bg-neutral-50 transition-all flex"
+              className="flex-1 md:flex-none items-center justify-center gap-2 px-4 py-2 bg-white text-primary rounded-xl text-xs font-black shadow-md hover:bg-neutral-50 transition-all flex"
             >
               <span translate="no" className="material-symbols-outlined text-[16px]">qr_code_scanner</span>
               Retrait Élève

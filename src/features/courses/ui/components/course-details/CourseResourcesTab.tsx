@@ -41,7 +41,7 @@ export function CourseResourcesTab({ course, details, triggerToast }: CourseReso
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
                   res.type === 'pdf' ? 'bg-red-50 text-red-600 border-red-100' :
-                  res.type === 'video' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                  res.type === 'video' ? 'bg-primary/10 text-primary border-primary/20' :
                   res.type === 'code' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                   'bg-amber-50 text-amber-600 border-amber-100'
                 }`}>

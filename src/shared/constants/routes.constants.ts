@@ -1,9 +1,10 @@
 export const ROUTES = {
-  login:       '/',
+  login:       '/login',
+  landing:     '/',
   candidature: '/candidature',
   dashboard:   '/dashboard',
   admin: {
-    dashboard: '/admin',
+    dashboard: '/admin/dashboard',
   },
   student: {
     dashboard: '/etudiant',

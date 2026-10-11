@@ -56,11 +56,9 @@ export function splitIntoBalancedGroups(
   }
 
   // Standard round-robin for general criteria
-  if (criterion !== 'gpa') {
-    pool.forEach((student, index) => {
-      groups[index % targetGroupCount].push(student);
-    });
-  }
+  pool.forEach((student, index) => {
+    groups[index % targetGroupCount].push(student);
+  });
 
   return groups;
 }

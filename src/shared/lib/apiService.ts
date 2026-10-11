@@ -41,10 +41,23 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('[Session Expired] Redirecting to login...');
+      console.warn('[Session Expired] 401 detected');
       localStorage.removeItem('token');
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const currentPath = window.location.pathname;
+        const isPublicOrLoginPage = currentPath === '/'
+          || currentPath === '/login'
+          || currentPath === '/super-admin'
+          || currentPath === '/admin'
+          || currentPath === '/ecole221'
+          || currentPath === '/ecole-221'
+          || currentPath === '/register-school'
+          || currentPath === '/inscription-ecole'
+          || currentPath === '/candidature'
+          || currentPath.startsWith('/t/');
+        if (!isPublicOrLoginPage) {
+          window.location.href = '/';
+        }
       }
     } else if (error.response?.status === 403) {
       console.error('[Access Denied] Action non autorisée sur cet appareil.');

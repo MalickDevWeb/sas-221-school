@@ -15,6 +15,7 @@ import { AdminFinanceDashboard } from '../ui/components/AdminFinanceDashboard';
 import { AdminNotificationsHub } from '../ui/components/AdminNotificationsHub';
 import { AdminPredictiveAIEngine } from '../ui/components/AdminPredictiveAIEngine';
 import { AdminSecurityAuditTrail } from '../ui/components/AdminSecurityAuditTrail';
+import { AdminSubscriptionManager } from '../ui/components/AdminSubscriptionManager';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
@@ -32,7 +33,7 @@ export function AdminPage() {
     setIsSidebarCollapsed(isTablet || activeTab !== 'dashboard');
   }, [activeTab, isTablet]);
 
-  const handleLogout = () => { deconnexion(); localStorage.removeItem('access_token'); navigate(ROUTES.login); };
+  const handleLogout = () => { deconnexion(); localStorage.removeItem('access_token'); navigate('/admin'); };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -44,6 +45,7 @@ export function AdminPage() {
       case 'admissions':    return <AdminAdmissionsKanban />;
       case 'finances':      return <AdminFinanceDashboard />;
       case 'collaboration': return <CollaborationPage />;
+      case 'billing':       return <AdminSubscriptionManager />;
       case 'notifications': return <AdminNotificationsHub />;
       case 'ai':            return <AdminPredictiveAIEngine />;
       case 'security':      return <AdminSecurityAuditTrail />;

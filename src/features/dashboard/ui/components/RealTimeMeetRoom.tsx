@@ -11,7 +11,7 @@ interface RealTimeMeetRoomProps {
 }
 
 export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTimeMeetRoomProps) {
-  const meetUrl = selectedLive.hlsUrl || "https://meet.google.com";
+  const meetUrl = (selectedLive as any).hlsUrl || (selectedLive as any).streamUrl || "https://meet.google.com";
 
   const handleOpenMeet = () => {
     window.open(meetUrl, '_blank', 'noopener,noreferrer');
@@ -46,7 +46,7 @@ export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTi
         <div className="flex-grow flex flex-col items-center justify-center p-8 text-center space-y-6 max-w-lg mx-auto">
           <div className="relative">
             <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl scale-125 animate-pulse" />
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 border border-white/10 flex items-center justify-center shadow-2xl relative">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-primary/80 border border-white/10 flex items-center justify-center shadow-2xl relative">
               <Icon icon="logos:google-meet" className="h-10 w-10 filter drop-shadow-lg" />
             </div>
           </div>
@@ -64,7 +64,7 @@ export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTi
 
           <button 
             onClick={handleOpenMeet} 
-            className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-[#1557b0] hover:from-blue-500 hover:to-[#1a73e8] text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-3 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-white/10"
+            className="px-8 py-3.5 bg-gradient-to-r from-primary to-[#1557b0] hover:from-blue-500 hover:to-[#1a73e8] text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-3 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer border border-white/10"
           >
             <Icon icon="lucide:external-link" className="h-4 w-4" />
             Rejoindre sur Google Meet

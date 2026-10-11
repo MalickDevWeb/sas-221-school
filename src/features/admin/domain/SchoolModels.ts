@@ -31,6 +31,9 @@ export interface PlanningSlot {
   prof: string;
   roomName: string;
   isLive?: boolean;
+  status?: string;
+  isAbsent?: boolean;
+  cancellationReason?: string;
 }
 
 export const INITIAL_ROOMS: Room[] = [

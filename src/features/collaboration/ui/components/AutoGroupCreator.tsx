@@ -106,7 +106,7 @@ export function AutoGroupCreator({ onAutoGenerate }: Props) {
 
       <button
         type="submit"
-        className="w-full py-2 bg-indigo-600 text-white font-bold text-xs rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5"
+        className="w-full py-2 bg-primary text-white font-bold text-xs rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5"
       >
         <Shuffle className="w-3.5 h-3.5" />
         <span>Répartir automatiquement</span>

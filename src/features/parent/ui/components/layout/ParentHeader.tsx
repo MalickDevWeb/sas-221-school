@@ -36,7 +36,7 @@ export function ParentHeader() {
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-neutral-100 overflow-hidden animate-fade-in">
               <div className="p-4 border-b border-neutral-100 flex justify-between items-center">
                 <h3 className="font-black text-sm text-neutral-900">Notifications</h3>
-                <span className="text-[10px] font-bold text-[#1565C0] cursor-pointer">Tout marquer comme lu</span>
+                <span className="text-[10px] font-bold text-primary cursor-pointer">Tout marquer comme lu</span>
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {alertes.map(a => (
@@ -71,7 +71,7 @@ export function ParentHeader() {
 
         {/* Profil Mini */}
         <div className="hidden md:flex items-center gap-2 pl-4 border-l border-neutral-200">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1565C0] to-[#0D47A1] text-white flex items-center justify-center text-xs font-black">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#0D47A1] text-white flex items-center justify-center text-xs font-black">
             MD
           </div>
         </div>

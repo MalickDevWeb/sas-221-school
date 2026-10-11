@@ -28,7 +28,7 @@ export function QuickPrompts({ onSend, disabled }: QuickPromptsProps) {
         disabled={disabled}
         className="shrink-0 text-[10px] font-black uppercase tracking-wider bg-[#FAF9F7] border border-neutral-gray-200 rounded-2xl px-4 py-2 text-neutral-500 hover:text-[#3f1e1e] hover:border-[#3f1e1e]/40 transition-all cursor-pointer flex items-center gap-1.5 hover:shadow-3xs disabled:opacity-50"
       >
-        <MessageSquare className="h-3.5 w-3.5 text-indigo-500" /> Quiz d'entraînement 🧠
+        <MessageSquare className="h-3.5 w-3.5 text-primary/80" /> Quiz d'entraînement 🧠
       </button>
     </div>
   );

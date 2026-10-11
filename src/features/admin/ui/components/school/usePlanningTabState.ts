@@ -14,7 +14,7 @@ export function usePlanningTabState(
   const [pendingConflict, setPendingConflict] = useState<any | null>(null);
   const [clearingCell, setClearingCell] = useState<{ day: string; slot: string } | null>(null);
 
-  const executeAssignment = (day: string, slot: string, item: { type: 'teacher' | 'room'; name: string }) => {
+  const executeAssignment = (day: string, slot: string, item: { type: 'teacher' | 'room' | 'class'; name: string }) => {
     const isRoom = item.type === 'room';
     const idx = slots.findIndex(s => s.classeId === selectedClassId && s.day === day && s.slot === slot);
     const updated = [...slots];
@@ -29,7 +29,7 @@ export function usePlanningTabState(
     setTimeout(() => setSuccessToast(null), 3000);
   };
 
-  const handleDropItem = (day: string, slot: string, item: { type: 'teacher' | 'room'; name: string }) => {
+  const handleDropItem = (day: string, slot: string, item: { type: 'teacher' | 'room' | 'class'; name: string }) => {
     if (!selectedClassId) return;
     const isRoom = item.type === 'room';
     const current = slots.find(s => s.classeId === selectedClassId && s.day === day && s.slot === slot);

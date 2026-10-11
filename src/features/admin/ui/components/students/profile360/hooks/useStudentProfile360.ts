@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { apiClient } from '@/shared/lib/apiClient';
 import { getStudentERPData } from '../utils/StudentMockData';
 
 export function useStudentProfile360(studentId: string, studentName: string) {
@@ -11,7 +11,7 @@ export function useStudentProfile360(studentId: string, studentName: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`/api/admin/students/${studentId}/profile360`);
+      const response = await apiClient.get(`/admin/students/${studentId}/profile360`);
       if (response.data) {
         setErpData(response.data);
       } else {
@@ -34,7 +34,7 @@ export function useStudentProfile360(studentId: string, studentName: string) {
     allergies?: string;
   }) => {
     try {
-      await axios.post(`/api/admin/students/${studentId}/profile360`, fields);
+      await apiClient.post(`/admin/students/${studentId}/profile360`, fields);
       await fetchProfile();
       return true;
     } catch (err: any) {

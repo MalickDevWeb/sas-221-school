@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { usePWAInstall } from '@/shared/hooks/usePWAInstall';
 
 export function PWAInstallBanner() {
   const { isInstallable, handleInstall } = usePWAInstall();
   const [isDismissed, setIsDismissed] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     // Only show if PWA is installable and not previously dismissed in this session
@@ -27,7 +29,8 @@ export function PWAInstallBanner() {
     setIsDismissed(true);
   };
 
-  if (isDismissed) return null;
+  // Ne pas afficher sur les pages du Super Admin
+  if (isDismissed || location.pathname.includes('/super-admin')) return null;
 
   return (
     <div className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:w-[380px] z-[9999] bg-white border border-neutral-gray-200/80 shadow-2xl rounded-2xl p-4 flex flex-col gap-3 animate-fade-in">

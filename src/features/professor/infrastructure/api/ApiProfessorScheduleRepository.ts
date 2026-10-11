@@ -44,7 +44,17 @@ function mapScheduleList(list: any[]): ProfessorSchedule[] {
 export class ApiProfessorScheduleRepository {
   async getCourses(profId: string): Promise<ProfessorCourse[]> {
     const r = await apiClient.get('/professor/courses', { params: { profId } });
-    return r.data;
+    const items = Array.isArray(r.data) ? r.data : (r.data?.content || []);
+    return items.map((c: any) => ({
+      id: c.id || c.code || 'course-1',
+      titre: c.titre || c.name || c.title || 'Cours',
+      coefficient: c.coefficient || c.totalHours || 3,
+      progress: c.progress || 50,
+      unites: c.unites || ['CM', 'TD'],
+      prochainCours: c.prochainCours || 'Lundi 08:00',
+      salle: c.salle || 'Salle B12',
+      classe: c.classe || 'M1 GL'
+    }));
   }
 
   async getStudents(courseId: string): Promise<StudentEnrolled[]> {
@@ -54,17 +64,47 @@ export class ApiProfessorScheduleRepository {
 
   async getGrades(courseId: string): Promise<StudentGrade[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/grades`);
-    return r.data;
+    const list = Array.isArray(r.data) ? r.data : (r.data?.content || []);
+    return list.map((g: any) => ({
+      id: g.id || `grade-${g.studentId}`,
+      studentId: g.studentId,
+      studentNom: (g.prenom || g.nom) ? `${g.prenom || ''} ${g.nom || ''}`.trim() : (g.studentNom || 'Étudiant'),
+      courseId: g.courseId || courseId,
+      cc: g.cc ?? 0,
+      examen: g.examen ?? 0,
+      finalGrade: g.finalGrade ?? 0,
+      status: (g.finalGrade >= 10 || g.mention === 'A' || g.mention === 'B' || g.mention === 'C') ? 'Validé' : 'Rattrapage'
+    }));
   }
 
   async updateGrade(courseId: string, studentId: string, cc: number, examen: number): Promise<StudentGrade> {
     const r = await apiClient.post(`/professor/courses/${courseId}/grades/${studentId}`, { cc, examen });
-    return r.data;
+    const g = r.data;
+    return {
+      id: g.id || `grade-${studentId}`,
+      studentId: g.studentId || studentId,
+      studentNom: (g.prenom || g.nom) ? `${g.prenom || ''} ${g.nom || ''}`.trim() : (g.studentNom || 'Étudiant'),
+      courseId: g.courseId || courseId,
+      cc: g.cc ?? cc,
+      examen: g.examen ?? examen,
+      finalGrade: g.finalGrade ?? 0,
+      status: (g.finalGrade >= 10 || g.mention === 'A' || g.mention === 'B' || g.mention === 'C') ? 'Validé' : 'Rattrapage'
+    };
   }
 
   async getHomeworks(courseId: string): Promise<ProfessorHomework[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/homeworks`);
-    return r.data;
+    const list = Array.isArray(r.data) ? r.data : (r.data?.content || []);
+    return list.map((h: any) => ({
+      id: h.id,
+      titre: h.titre || h.title || 'Devoir',
+      courseId: h.courseId || courseId,
+      courseLabel: h.courseLabel || 'Cours',
+      desc: h.desc || h.description || '',
+      prio: (h.priority?.value === 'HIGH' || h.prio === 'haute') ? 'haute' : 'normale',
+      deadlineStr: h.deadlineStr || h.deadline || '2026-10-15',
+      submissionsCount: h.submissionsCount || 0
+    }));
   }
 
   async createHomework(courseId: string, titre: string, desc: string, prio: 'haute' | 'normale', deadlineStr: string): Promise<ProfessorHomework> {

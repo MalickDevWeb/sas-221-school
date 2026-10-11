@@ -6,7 +6,7 @@ export function useRealTimeMeet() {
   const [activeMeet, setActiveMeet] = useState<LiveSession | null>(null);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     const fetchMeetStatus = async () => {
       try {
         const res = await apiClient.get('/meet/active');

@@ -77,7 +77,7 @@ export function CourseDetailModal({ course, onClose, triggerToast }: CourseDetai
             {/* Scrollable Work Area */}
             <div className="flex-1 p-5 md:p-6 overflow-y-auto min-h-0 space-y-5 no-scrollbar">
               {activeTab === 'chapters' && <CourseChaptersTab state={{ course, details }} />}
-              {activeTab === 'resources' && <CourseResourcesTab state={{ course, details }} />}
+              {activeTab === 'resources' && <CourseResourcesTab course={course} details={details} triggerToast={triggerToast} />}
               {activeTab === 'quizzes' && (
                 <CourseQuizzesTab
                   details={details}

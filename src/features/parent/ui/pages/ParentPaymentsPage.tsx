@@ -80,7 +80,7 @@ export function ParentPaymentsPage() {
       </div>
 
       {/* Carte récap bleue */}
-      <div className="bg-gradient-to-br from-[#1565C0] to-[#0D47A1] rounded-3xl p-6 mb-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 mb-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
         <div className="relative">
           <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-4">{MOCK_SCOLARITE.filiere}</p>
@@ -138,7 +138,7 @@ export function ParentPaymentsPage() {
                   )}
                   {(e.statut === 'EN_COURS' || isOverdue) && (
                     <button onClick={() => { setSelectedEch(e.id); setShowModal(true); }}
-                      className="flex items-center gap-1 text-[9px] font-black text-white bg-[#1565C0] px-2.5 py-1 rounded-lg hover:bg-[#0D47A1] transition-all">
+                      className="flex items-center gap-1 text-[9px] font-black text-white bg-primary px-2.5 py-1 rounded-lg hover:bg-[#0D47A1] transition-all">
                       <span translate="no" className="material-symbols-outlined text-[11px]">payment</span>Payer
                     </button>
                   )}

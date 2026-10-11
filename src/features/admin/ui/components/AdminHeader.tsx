@@ -23,7 +23,7 @@ export function AdminHeader({ onLogout }: Props) {
         <div className="hidden sm:flex items-center justify-center flex-grow max-w-xl">
           <div className="bg-[#FAF8F6] border border-[#E2DCDA] rounded-full px-4 py-1.5 text-[11px] font-bold text-[#8E7977] flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-            <span>Mode Administration Actif — {utilisateur?.name || 'Administrateur'}</span>
+            <span>Mode Administration Actif — {utilisateur?.nom || (utilisateur as any)?.name || 'Administrateur'}</span>
           </div>
         </div>
 

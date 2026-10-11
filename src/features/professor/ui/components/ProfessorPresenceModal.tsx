@@ -47,7 +47,7 @@ export function ProfessorPresenceModal({ profName, onClose, pointageType = 'arri
         </div>
 
         <div className="p-5 text-center space-y-4">
-          <ProfessorScannerTab profName={profName} pointageType={pointageType} onScanComplete={onScanComplete ? () => onScanComplete() : undefined} />
+          <ProfessorScannerTab pointageType={pointageType} onScanComplete={onScanComplete ? () => onScanComplete() : undefined} />
 
           <button 
             onClick={onClose}

@@ -3,7 +3,7 @@ import { useAuthStore } from '@/core/store/authStore';
 
 export function AdminWelcomeSection() {
   const { utilisateur } = useAuthStore();
-  const userName = utilisateur ? `${utilisateur.prenom} ${utilisateur.nom}` : "Administrateur";
+  const userName = utilisateur ? ((utilisateur as any).prenom ? `${(utilisateur as any).prenom} ${utilisateur.nom}` : ((utilisateur as any).name || utilisateur.nom)) : "Administrateur";
 
   const formattedDate = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',

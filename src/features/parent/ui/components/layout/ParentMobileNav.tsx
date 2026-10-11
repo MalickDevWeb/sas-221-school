@@ -26,7 +26,7 @@ export function ParentMobileNav({ unreadCount }: Props) {
           end={to === ROUTES.parent.dashboard}
           className={({ isActive }) =>
             `flex flex-col items-center justify-center transition-all duration-200 py-1.5 px-0.5 sm:px-2 rounded-xl flex-1 relative ${
-              isActive ? 'text-[#1565C0] font-bold bg-[#1565C0]/10 scale-102' : 'text-neutral-500 hover:text-neutral-800'
+              isActive ? 'text-primary font-bold bg-primary/10 scale-102' : 'text-neutral-500 hover:text-neutral-800'
             }`
           }
         >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiClient } from '@/shared/lib/apiClient';
 import { FormattedText } from './FormattedText';
 
 interface Props {
@@ -16,7 +16,7 @@ export function DiagnosticIaPanel({ studentId, studentName }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/admin/student-diagnostic', { studentId });
+      const response = await apiClient.post('/admin/student-diagnostic', { studentId });
       if (response.data && response.data.text) {
         setDiagnostic(response.data.text);
       } else {

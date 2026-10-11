@@ -21,7 +21,7 @@ export default defineConfig(() => {
       // Proxy toutes les requêtes /api vers le backend (Spring Boot)
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: 'http://127.0.0.1:8090',
           changeOrigin: true,
         },
       },

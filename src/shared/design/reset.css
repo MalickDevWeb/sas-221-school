@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Animations globales ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn  { animation: fadeIn  0.35s ease both; }
+.animate-slideUp { animation: slideUp 0.4s ease both; }
+
+/* ── Transition des variables CSS (couleurs du thème) ── */
+:root {
+  transition:
+    --color-primary 0.4s ease,
+    --color-primary-light 0.4s ease,
+    --color-accent 0.4s ease;
+}
+
 /* Prevent horizontal overflow scrolling and hide all scrollbars completely */
 html, body {
   overflow-x: hidden !important;

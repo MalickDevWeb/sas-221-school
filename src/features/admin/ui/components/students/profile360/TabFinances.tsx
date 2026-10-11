@@ -71,7 +71,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {finalErpData.payments.map((p, idx) => (
+                {finalErpData.payments.map((p: any, idx: number) => (
                   <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
                     <td className="p-2.5">
                       <p className="font-extrabold text-[#1E293B]">{p.label}</p>

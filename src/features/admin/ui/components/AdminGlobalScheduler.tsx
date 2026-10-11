@@ -8,6 +8,7 @@ import { StatsTab } from './planning/StatsTab';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminSchedulerState } from '../../hooks/useAdminSchedulerState';
 import { generateOptimizedSchedule } from '../../domain/PlanningGenerator';
+import { INITIAL_SLOTS, INITIAL_UNASSIGNED, INITIAL_CONFLICTS } from '../../domain/PlanningMockData';
 
 export function AdminGlobalScheduler() {
   const [activeTab, setActiveTab] = useState('calendar');

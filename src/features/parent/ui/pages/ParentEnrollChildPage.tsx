@@ -76,10 +76,10 @@ function Field({
 }
 
 const inputCls =
-  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-[#1565C0] focus:ring-2 focus:ring-[#1565C0]/10 outline-none transition-all placeholder-neutral-300';
+  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder-neutral-300';
 
 const selectCls =
-  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-[#1565C0] focus:ring-2 focus:ring-[#1565C0]/10 outline-none transition-all';
+  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all';
 
 // ─── Étape 1 : Infos personnelles ───────────────────────────
 function Step1({ form, set }: { form: FormData; set: (k: keyof FormData, v: string | boolean) => void }) {
@@ -187,7 +187,7 @@ function UploadZone({ label, hint, value, onChange }: {
     <div className="flex flex-col gap-1">
       <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">{label}</label>
       <label className={`flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-        value ? 'border-emerald-400 bg-emerald-50' : 'border-neutral-200 bg-neutral-50 hover:border-[#1565C0] hover:bg-blue-50/30'
+        value ? 'border-emerald-400 bg-emerald-50' : 'border-neutral-200 bg-neutral-50 hover:border-primary hover:bg-blue-50/30'
       }`}>
         <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFile} />
         {value ? (
@@ -277,7 +277,7 @@ function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: stri
       <label className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 cursor-pointer group">
         <input type="checkbox" checked={form.accepteReglement}
           onChange={e => set('accepteReglement', e.target.checked)}
-          className="mt-0.5 w-4 h-4 accent-[#1565C0] cursor-pointer" />
+          className="mt-0.5 w-4 h-4 accent-primary cursor-pointer" />
         <p className="text-[11px] text-amber-800 font-semibold leading-relaxed">
           J'atteste que les informations fournies sont exactes et j'accepte le
           <strong className="text-amber-900"> règlement intérieur </strong>
@@ -371,7 +371,7 @@ export function ParentEnrollChildPage() {
           </button>
           <button
             onClick={() => navigate(ROUTES.parent.dashboard)}
-            className="flex-1 h-11 bg-[#1565C0] hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
+            className="flex-1 h-11 bg-primary hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
           >
             Retour au tableau de bord
           </button>
@@ -387,13 +387,13 @@ export function ParentEnrollChildPage() {
       <div className="mb-8">
         <button
           onClick={() => navigate(ROUTES.parent.dashboard)}
-          className="flex items-center gap-1.5 text-[11px] font-black text-neutral-400 hover:text-[#1565C0] transition-colors mb-4 group"
+          className="flex items-center gap-1.5 text-[11px] font-black text-neutral-400 hover:text-primary transition-colors mb-4 group"
         >
           <span translate="no" className="material-symbols-outlined text-[16px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
           Retour
         </button>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1565C0] to-[#0D47A1] flex items-center justify-center shadow-md shadow-blue-200 shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-[#0D47A1] flex items-center justify-center shadow-md shadow-blue-200 shrink-0">
             <span translate="no" className="material-symbols-outlined text-white text-[20px]">person_add</span>
           </div>
           <div>
@@ -416,7 +416,7 @@ export function ParentEnrollChildPage() {
                 step > s.id
                   ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
                   : step === s.id
-                  ? 'bg-[#1565C0] text-white shadow-md shadow-blue-200'
+                  ? 'bg-primary text-white shadow-md shadow-blue-200'
                   : 'bg-neutral-100 text-neutral-400'
               }`}>
                 {step > s.id
@@ -425,7 +425,7 @@ export function ParentEnrollChildPage() {
                 }
               </div>
               <p className={`text-[8px] font-black text-center leading-tight max-w-[60px] ${
-                step === s.id ? 'text-[#1565C0]' : 'text-neutral-400'
+                step === s.id ? 'text-primary' : 'text-neutral-400'
               }`}>{s.label}</p>
             </div>
             {i < STEPS.length - 1 && (
@@ -438,7 +438,7 @@ export function ParentEnrollChildPage() {
       {/* Contenu de l'étape */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm p-6 md:p-8 mb-6">
         <h2 className="text-sm font-black text-neutral-800 mb-6 flex items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-[18px] text-[#1565C0]">
+          <span translate="no" className="material-symbols-outlined text-[18px] text-primary">
             {STEPS[step - 1].icon}
           </span>
           {STEPS[step - 1].label}
@@ -470,7 +470,7 @@ export function ParentEnrollChildPage() {
           <button
             onClick={handleNext}
             disabled={!canNext()}
-            className="h-11 px-8 bg-[#1565C0] hover:bg-[#0D47A1] active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="h-11 px-8 bg-primary hover:bg-[#0D47A1] active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Suivant →
           </button>

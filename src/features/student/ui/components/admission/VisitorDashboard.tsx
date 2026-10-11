@@ -30,11 +30,11 @@ export function VisitorDashboard() {
   const steps = [
     { title: "Dossier Déposé", desc: "Candidature enregistrée avec succès", status: "complete", icon: CheckCircle2, color: "text-emerald-500 bg-emerald-500/10" },
     { title: "Vérification Académique", desc: "Dossier en cours d'examen par le jury", status: statut === "En attente" ? "active" : "complete", icon: Clock, color: "text-amber-500 bg-amber-500/10" },
-    { title: "Décision Finale", desc: statut === "Accepté" ? "Félicitations, vous êtes admis !" : statut === "Refusé" ? "Dossier refusé" : "En attente de décision", status: statut === "Accepté" ? "complete" : "pending", icon: Sparkles, color: "text-indigo-400 bg-indigo-500/10" }
+    { title: "Décision Finale", desc: statut === "Accepté" ? "Félicitations, vous êtes admis !" : statut === "Refusé" ? "Dossier refusé" : "En attente de décision", status: statut === "Accepté" ? "complete" : "pending", icon: Sparkles, color: "text-primary/80 bg-primary/80/10" }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white" id="visitor-dashboard">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-primary/80 selection:text-white" id="visitor-dashboard">
       <header className="border-b border-white/5 py-4 px-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 bg-[#B3181C] rounded-full animate-ping" />
@@ -48,7 +48,7 @@ export function VisitorDashboard() {
 
       <main className="flex-grow flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="max-w-xl w-full bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-primary to-transparent" />
           <h2 className="text-lg font-black tracking-tight text-white mb-2 text-center">Suivi de votre Candidature</h2>
           <p className="text-xs text-slate-400 font-semibold mb-8 text-center">Votre dossier est en cours de traitement en temps réel</p>
 

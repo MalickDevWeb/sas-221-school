@@ -36,7 +36,7 @@ export function ParentGradesPage() {
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-[#1565C0] hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
         >
           <span translate="no" className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
           Télécharger le bulletin
@@ -45,7 +45,7 @@ export function ParentGradesPage() {
 
       {/* Résumé */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-[#1565C0] to-[#0D47A1] rounded-3xl p-6 text-white col-span-1 md:col-span-1 shadow-lg shadow-blue-200">
+        <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 text-white col-span-1 md:col-span-1 shadow-lg shadow-blue-200">
           <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-1">Moyenne générale</p>
           <p className="text-4xl font-black leading-none">{moyenne}<span className="text-lg text-blue-200">/20</span></p>
           <span className={`mt-3 inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-solid ${MENTION_CONFIG[mention]?.bg ?? ''} ${MENTION_CONFIG[mention]?.color ?? ''}`}>
