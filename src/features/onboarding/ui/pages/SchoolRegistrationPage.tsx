@@ -355,6 +355,32 @@ export const SchoolRegistrationPage: React.FC = () => {
     [isEcole221]
   );
 
+  // Restauration automatique des données sauvegardées en cas de tentative précédente
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('pending_school_registration');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.schoolName || parsed.adminEmail) {
+          setFormData((prev) => ({
+            ...prev,
+            schoolName: parsed.schoolName || prev.schoolName,
+            slug: parsed.slug || prev.slug,
+            adminEmail: parsed.adminEmail || prev.adminEmail,
+            adminFirstName: parsed.adminFirstName || prev.adminFirstName,
+            adminLastName: parsed.adminLastName || prev.adminLastName,
+            adminPhone: parsed.adminPhone || prev.adminPhone,
+          }));
+          if (parsed.primaryColor) {
+            applyPalette(generatePaletteFromHex(parsed.primaryColor));
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [applyPalette]);
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -405,6 +431,7 @@ export const SchoolRegistrationPage: React.FC = () => {
       });
       setRegisteredOrg(response.data || {});
       setShowSuccessModal(true);
+      localStorage.removeItem('pending_school_registration');
       confetti({
         particleCount: 120,
         spread: 80,
