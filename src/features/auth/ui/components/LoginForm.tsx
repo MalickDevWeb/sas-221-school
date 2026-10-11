@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from '@iconify/react';
 import confetti from 'canvas-confetti';
 import { useLogin } from '../../hooks/useLogin';
 import { useCandidatureSettings } from '../../hooks/useCandidatureSettings';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { ResetSuccessMessage } from './ResetSuccessMessage';
 import { ROUTES } from '@/shared/constants';
@@ -24,6 +25,49 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
   const [resetError, setResetError] = useState('');
   const { executer, etat, erreur } = useLogin();
   const { settings } = useCandidatureSettings();
+
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const activeSlug = tenantSlug || currentTenant?.slug || 'ecole221';
+  const isDefaultSchool = activeSlug === 'ecole221' || activeSlug === 'ecole-221';
+  const schoolDisplayName = isDefaultSchool ? 'École 221' : (currentTenant?.name || activeSlug.toUpperCase());
+
+  const localRegisteredAdmin = typeof window !== 'undefined'
+    ? localStorage.getItem(`tenant_admin_${activeSlug}`)
+    : null;
+
+  const quickCredentials = {
+    admin: {
+      label: 'Admin',
+      email: isDefaultSchool ? 'admin221@gmail.com' : (localRegisteredAdmin || `admin@${activeSlug}.sn`),
+      password: 'ecole221',
+      badgeClass: 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200',
+    },
+    etudiant: {
+      label: 'Étudiant',
+      email: isDefaultSchool ? 'etudiant221@gmail.com' : `etudiant@${activeSlug}.sn`,
+      password: 'ecole221',
+      badgeClass: 'bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] border-[#1E5E3A]/20',
+    },
+    professeur: {
+      label: 'Prof',
+      email: isDefaultSchool ? 'professeur221@gmail.com' : `prof@${activeSlug}.sn`,
+      password: 'ecole221',
+      badgeClass: 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200',
+    },
+    vigile: {
+      label: 'Vigile',
+      email: isDefaultSchool ? 'vigile221@gmail.com' : `vigile@${activeSlug}.sn`,
+      password: 'ecole221',
+      badgeClass: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200',
+    },
+    parent: {
+      label: 'Parent',
+      email: isDefaultSchool ? 'parent221@gmail.com' : `parent@${activeSlug}.sn`,
+      password: 'ecole221',
+      badgeClass: 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200',
+    },
+  };
 
   const loading = etat === 'CHARGEMENT';
   const success = etat === 'SUCCES';
@@ -205,58 +249,26 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
       </div>
 
       <div className="mt-4 pt-3 border-t border-[#E2DCDA]/60 space-y-2">
-        <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">Identifiants Rapides :</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">
+            Identifiants Rapides ({schoolDisplayName}) :
+          </p>
+        </div>
         <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('admin221@gmail.com');
-              setPassword('ecole221');
-            }}
-            className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-[9.5px] font-black rounded-lg border border-rose-200 transition-all cursor-pointer active:scale-95"
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('etudiant221@gmail.com');
-              setPassword('ecole221');
-            }}
-            className="px-2.5 py-1 bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] text-[9.5px] font-black rounded-lg border border-[#1E5E3A]/20 transition-all cursor-pointer active:scale-95"
-          >
-            Étudiant
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('professeur221@gmail.com');
-              setPassword('ecole221');
-            }}
-            className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[9.5px] font-black rounded-lg border border-blue-200 transition-all cursor-pointer active:scale-95"
-          >
-            Prof
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('vigile221@gmail.com');
-              setPassword('ecole221');
-            }}
-            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[9.5px] font-black rounded-lg border border-amber-200 transition-all cursor-pointer active:scale-95"
-          >
-            Vigile
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('parent221@gmail.com');
-              setPassword('ecole221');
-            }}
-            className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 text-[9.5px] font-black rounded-lg border border-purple-200 transition-all cursor-pointer active:scale-95"
-          >
-            Parent
-          </button>
+          {Object.entries(quickCredentials).map(([key, item]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setEmail(item.email);
+                setPassword(item.password);
+              }}
+              title={`${item.label} : ${item.email}`}
+              className={`px-2.5 py-1 text-[9.5px] font-black rounded-lg border transition-all cursor-pointer active:scale-95 ${item.badgeClass}`}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
     </motion.form>

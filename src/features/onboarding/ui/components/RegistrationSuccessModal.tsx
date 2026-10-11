@@ -24,6 +24,13 @@ export const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> =
   const slugToAccess = formData.slug || registeredOrg?.slug || 'mon-ecole';
 
   const handleAccessPortal = () => {
+    if (formData.adminEmail) {
+      try {
+        localStorage.setItem(`tenant_admin_${slugToAccess}`, formData.adminEmail);
+      } catch (e) {
+        // Ignore local storage error
+      }
+    }
     onClose();
     navigate(`/t/${slugToAccess}/login`);
   };
