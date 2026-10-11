@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from '@iconify/react';
+import confetti from 'canvas-confetti';
 import { useLogin } from '@/features/auth/hooks/useLogin';
-import { Building2, Mail, Lock, ChevronRight, Sparkles, ArrowLeft, School, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 export const AdminPortalLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [schoolSlug, setSchoolSlug] = useState('ecole221');
   const [customSchoolName, setCustomSchoolName] = useState('École 221');
-  
+
   const { executer, etat, erreur } = useLogin();
   const loading = etat === 'CHARGEMENT';
+  const success = etat === 'SUCCES';
   const { utilisateur } = useAuthStore();
   const { currentTenant, resolveTenant } = useTenantStore();
   const navigate = useNavigate();
@@ -33,29 +36,49 @@ export const AdminPortalLoginPage: React.FC = () => {
     }
   }, [schoolSlug, resolveTenant]);
 
+  // Si l'utilisateur est déjà connecté avant d'arriver sur la page
   useEffect(() => {
-    if (utilisateur?.role === 'ADMIN' || utilisateur?.role === 'ADMINISTRATOR') {
+    if (etat === 'IDLE' && (utilisateur?.role === 'ADMIN' || utilisateur?.role === 'ADMINISTRATOR')) {
       navigate('/admin/dashboard');
     }
-  }, [utilisateur, navigate]);
+  }, [utilisateur, navigate, etat]);
+
+  // Déclencher le feedback confetti lors du succès de la connexion
+  useEffect(() => {
+    if (success) {
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#10B981', '#34D399', '#7C3AED', '#38BDF8'],
+        disableForReducedMotion: true,
+      });
+    }
+  }, [success]);
 
   const handleSchoolChange = (newSlug: string) => {
     setSchoolSlug(newSlug);
     if (newSlug !== 'custom') {
-      const selected = PRESET_SCHOOLS.find(s => s.slug === newSlug);
+      const selected = PRESET_SCHOOLS.find((s) => s.slug === newSlug);
       if (selected) setCustomSchoolName(selected.name);
     }
   };
 
+  const handleQuickFill = (roleEmail: string, rolePass: string) => {
+    setEmail(roleEmail);
+    setPassword(rolePass);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || loading || success) return;
 
     // S'assurer que le thème de l'école choisie est actif
-    const activeSlug = schoolSlug === 'custom' 
-      ? customSchoolName.toLowerCase().replace(/[^a-z0-9]+/g, '-') 
-      : schoolSlug;
-    
+    const activeSlug =
+      schoolSlug === 'custom'
+        ? customSchoolName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        : schoolSlug;
+
     await resolveTenant(activeSlug);
 
     // Lancement de la connexion
@@ -67,7 +90,7 @@ export const AdminPortalLoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#080B17] text-white flex flex-col justify-between relative overflow-hidden font-sans select-none">
       {/* Halos d'ambiance dynamiques aux couleurs de l'école */}
-      <div 
+      <div
         className="absolute top-1/4 left-1/4 w-[650px] h-[650px] rounded-full blur-[180px] pointer-events-none opacity-20 transition-colors duration-700"
         style={{ backgroundColor: primaryColor }}
       />
@@ -75,18 +98,18 @@ export const AdminPortalLoginPage: React.FC = () => {
 
       {/* Header avec retour à l'accueil */}
       <header className="relative z-20 px-6 py-6 max-w-7xl mx-auto w-full flex items-center justify-between">
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10"
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 active:scale-95 cursor-pointer"
         >
-          <ArrowLeft size={16} />
+          <Icon icon="solar:arrow-left-line-duotone" className="text-base" />
           <span>Retour à l'accueil</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-400 via-indigo-500 to-purple-500 p-[1px] flex items-center justify-center shadow-lg">
             <div className="w-full h-full bg-slate-900 rounded-[11px] flex items-center justify-center">
-              <span className="material-symbols-outlined text-purple-400 text-lg">school</span>
+              <Icon icon="solar:square-academic-cap-bold-duotone" className="text-purple-400 text-lg" />
             </div>
           </div>
           <span className="text-lg font-black tracking-tight text-white">My School</span>
@@ -95,21 +118,17 @@ export const AdminPortalLoginPage: React.FC = () => {
 
       {/* Layout Split-Screen 2 Colonnes */}
       <div className="relative z-20 flex-1 grid grid-cols-1 lg:grid-cols-12 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-8 gap-8 lg:gap-12 items-center">
-        
-        {/* ── COLONNE GAUCHE : Visuel 3D Verre Dépoli & Dashboard en direct ── */}
+        {/* ── COLONNE GAUCHE : Visuel Verre Dépoli & Dashboard en direct ── */}
         <div className="hidden lg:flex lg:col-span-6 flex-col justify-center relative">
           {/* Badge haut */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-black uppercase tracking-widest w-fit mb-4">
-            <Sparkles size={14} className="text-amber-400" />
+            <Icon icon="solar:stars-bold-duotone" className="text-amber-400 text-sm" />
             <span>Portail Décisionnel & Pilotage</span>
           </div>
 
           <h1 className="text-3xl xl:text-4xl font-black text-white tracking-tight mb-3">
             Gérez votre établissement avec <br />
-            <span 
-              className="transition-colors duration-500"
-              style={{ color: primaryColor }}
-            >
+            <span className="transition-colors duration-500" style={{ color: primaryColor }}>
               excellence & sérénité.
             </span>
           </h1>
@@ -118,10 +137,10 @@ export const AdminPortalLoginPage: React.FC = () => {
             Centralisez les scolarités, suivez les présences en temps réel et pilotez vos flux financiers Wave & Orange Money sur un dashboard unique.
           </p>
 
-          {/* Carte 3D Glassmorphism - Dashboard Preview Réactif */}
+          {/* Carte Glassmorphism - Dashboard Preview Réactif */}
           <div className="relative rounded-3xl p-6 bg-slate-900/60 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
             {/* Halo lumineux d'angle */}
-            <div 
+            <div
               className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-30 transition-colors duration-500"
               style={{ backgroundColor: primaryColor }}
             />
@@ -129,11 +148,11 @@ export const AdminPortalLoginPage: React.FC = () => {
             {/* Header du mini dashboard */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
               <div className="flex items-center gap-3">
-                <div 
+                <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-base shadow-lg transition-colors duration-500"
                   style={{ backgroundColor: primaryColor }}
                 >
-                  {customSchoolName ? customSchoolName[0].toUpperCase() : '🎓'}
+                  <Icon icon="solar:buildings-3-bold-duotone" className="text-xl" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white tracking-tight">
@@ -154,7 +173,6 @@ export const AdminPortalLoginPage: React.FC = () => {
 
             {/* Grille des statistiques clés */}
             <div className="grid grid-cols-2 gap-3.5 mb-5">
-              {/* Stat 1 : Élèves */}
               <div className="rounded-2xl p-3.5 bg-white/[0.04] border border-white/10 flex flex-col justify-between">
                 <div className="flex items-center justify-between text-slate-400 mb-1">
                   <span className="text-xs font-medium">Élèves Actifs</span>
@@ -166,7 +184,6 @@ export const AdminPortalLoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Stat 2 : Présences */}
               <div className="rounded-2xl p-3.5 bg-white/[0.04] border border-white/10 flex flex-col justify-between">
                 <div className="flex items-center justify-between text-slate-400 mb-1">
                   <span className="text-xs font-medium">Taux Présence</span>
@@ -179,7 +196,7 @@ export const AdminPortalLoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Stat 3 : Paiements Scolarité Wave & OM */}
+            {/* Paiements Wave & OM */}
             <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-950/40 via-slate-900/60 to-indigo-950/40 border border-purple-500/20 mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
@@ -202,11 +219,11 @@ export const AdminPortalLoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Barre de passage Vigile / Sécurité */}
+            {/* Contrôle vigile */}
             <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
-                  ✓
+                  <Icon icon="solar:check-circle-bold-duotone" className="text-sm" />
                 </div>
                 <span className="text-slate-300 font-medium">Contrôle d'accès campus</span>
               </div>
@@ -215,21 +232,25 @@ export const AdminPortalLoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── COLONNE DROITE : Formulaire de Connexion Direction ── */}
+        {/* ── COLONNE DROITE : Formulaire de Connexion avec State Machine & Micro-interactions ── */}
         <div className="col-span-1 lg:col-span-6 w-full max-w-lg mx-auto">
-          <div className="rounded-3xl p-7 sm:p-9 bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden">
-            {/* Accent bar réactive au sommet */}
-            <div 
+          <motion.div
+            animate={etat === 'ERREUR' ? { x: [-10, 10, -8, 8, -4, 4, 0] } : {}}
+            transition={{ duration: 0.4 }}
+            className="rounded-3xl p-7 sm:p-9 bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden"
+          >
+            {/* Barre d'accentuation en haut */}
+            <div
               className="absolute top-0 inset-x-0 h-1.5 transition-colors duration-500"
-              style={{ backgroundColor: primaryColor }}
+              style={{ backgroundColor: success ? '#10B981' : primaryColor }}
             />
 
             <div className="text-left mb-6">
               <div className="inline-flex lg:hidden items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-black uppercase tracking-wider mb-3">
-                <Sparkles size={12} className="text-amber-400" />
+                <Icon icon="solar:stars-bold-duotone" className="text-amber-400 text-xs" />
                 <span>Espace Direction</span>
               </div>
-              
+
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1.5">
                 Connexion Direction
               </h2>
@@ -245,11 +266,12 @@ export const AdminPortalLoginPage: React.FC = () => {
                   Établissement Scolaire *
                 </label>
                 <div className="relative">
-                  <School className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                  <Icon icon="solar:buildings-3-bold-duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none" />
                   <select
                     value={schoolSlug}
                     onChange={(e) => handleSchoolChange(e.target.value)}
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-white font-medium text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all cursor-pointer appearance-none"
+                    disabled={loading || success}
+                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-8 text-white font-medium text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer appearance-none disabled:opacity-60"
                   >
                     {PRESET_SCHOOLS.map((s) => (
                       <option key={s.slug} value={s.slug} className="bg-slate-900 text-white">
@@ -257,8 +279,8 @@ export const AdminPortalLoginPage: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">
-                    ▼
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <Icon icon="solar:alt-arrow-down-linear" className="text-sm" />
                   </div>
                 </div>
 
@@ -271,19 +293,20 @@ export const AdminPortalLoginPage: React.FC = () => {
                       placeholder="Nom officiel de votre école..."
                       value={customSchoolName}
                       onChange={(e) => setCustomSchoolName(e.target.value)}
-                      className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                      disabled={loading || success}
+                      className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                     />
                   </div>
                 )}
 
-                {/* Badge indicatif de l'école active */}
+                {/* Badge indicatif du thème de l'école */}
                 <div className="mt-2 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5">
                   <span className="text-slate-400 flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-400" />
+                    <Icon icon="solar:verified-check-bold-duotone" className="text-emerald-400 text-sm" />
                     <span>Branding actif :</span>
                   </span>
                   <span className="font-bold flex items-center gap-1.5 text-white">
-                    <span 
+                    <span
                       className="w-2.5 h-2.5 rounded-full inline-block shadow-sm transition-colors duration-500"
                       style={{ backgroundColor: primaryColor }}
                     />
@@ -292,25 +315,26 @@ export const AdminPortalLoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. Email Administratif */}
+              {/* 2. Email de l'administrateur */}
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
                   Email de l'Administrateur *
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-                  <input 
-                    type="email" 
+                <div className="relative group">
+                  <Icon icon="solar:letter-bold-duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none group-focus-within:text-purple-400 transition-colors" />
+                  <input
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    disabled={loading || success}
+                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all disabled:opacity-60"
                     placeholder="admin@mon-ecole.sn ou admin221@gmail.com"
                     required
                   />
                 </div>
               </div>
 
-              {/* 3. Mot de passe */}
+              {/* 3. Mot de passe avec toggle visibilité */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-black uppercase tracking-wider text-slate-300">
@@ -320,57 +344,104 @@ export const AdminPortalLoginPage: React.FC = () => {
                     Mot de passe oublié ?
                   </a>
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-                  <input 
-                    type="password" 
+                <div className="relative group">
+                  <Icon icon="solar:lock-keyhole-bold-duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none group-focus-within:text-purple-400 transition-colors" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    disabled={loading || success}
+                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-11 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all disabled:opacity-60"
                     placeholder="••••••••"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Icon icon={showPassword ? 'solar:eye-closed-bold-duotone' : 'solar:eye-bold-duotone'} className="text-lg" />
+                  </button>
                 </div>
               </div>
 
-              {/* Message d'erreur */}
-              {erreur && (
-                <div className="p-3 text-xs text-rose-200 bg-rose-500/15 border border-rose-500/30 rounded-xl font-medium">
-                  {erreur}
-                </div>
-              )}
+              {/* Message d'erreur animé */}
+              <AnimatePresence>
+                {erreur && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="p-3 text-xs text-rose-200 bg-rose-500/15 border border-rose-500/30 rounded-xl font-medium flex items-center gap-2"
+                  >
+                    <Icon icon="solar:danger-triangle-bold-duotone" className="text-rose-400 text-base shrink-0" />
+                    <span>{erreur}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Bouton Néon Dégradé Violet / Magenta */}
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full h-13 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 active:scale-[0.99] text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center transition-all shadow-[0_0_25px_rgba(217,70,239,0.35)] hover:shadow-[0_0_35px_rgba(217,70,239,0.55)] mt-4 cursor-pointer"
+              {/* Bouton avec STATE MACHINE : IDLE -> LOADING -> SUCCESS */}
+              <motion.button
+                type="submit"
+                disabled={loading || success}
+                whileHover={!loading && !success ? { scale: 1.01 } : {}}
+                whileTap={!loading && !success ? { scale: 0.98 } : {}}
+                className={`w-full h-13 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center transition-all duration-300 mt-4 cursor-pointer shadow-lg ${
+                  success
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-600/40'
+                    : loading
+                    ? 'bg-purple-900/60 text-purple-200 border border-purple-500/40 cursor-wait'
+                    : 'bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white shadow-[0_0_25px_rgba(217,70,239,0.35)] hover:shadow-[0_0_35px_rgba(217,70,239,0.55)]'
+                }`}
               >
                 {loading ? (
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="flex items-center gap-2.5">
+                    <Icon icon="solar:refresh-circle-bold-duotone" className="text-lg animate-spin" />
+                    <span>Vérification et chargement du campus...</span>
+                  </div>
+                ) : success ? (
+                  <div className="flex items-center gap-2">
+                    <Icon icon="solar:check-circle-bold-duotone" className="text-lg animate-pulse" />
+                    <span>Connexion réussie ! Redirection...</span>
+                  </div>
                 ) : (
-                  <span className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <span>Accéder à mon espace Direction</span>
-                    <ChevronRight size={16} />
-                  </span>
+                    <Icon icon="solar:arrow-right-line-duotone" className="text-base group-hover:translate-x-1 transition-transform" />
+                  </div>
                 )}
-              </button>
+              </motion.button>
             </form>
 
+            {/* Raccourci de test en 1 clic */}
+            <div className="mt-4 pt-4 border-t border-white/5">
+              <p className="text-[10px] font-mono uppercase text-slate-400 mb-2">Compte Démo Rapide :</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickFill('admin221@gmail.com', 'ecole221')}
+                  className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Icon icon="solar:user-bold-duotone" className="text-purple-400 text-xs" />
+                  <span>Directeur (admin221@gmail.com)</span>
+                </button>
+              </div>
+            </div>
+
             {/* Raccourci vers Inscription */}
-            <div className="mt-6 pt-5 border-t border-white/10 text-center">
-              <p className="text-xs text-slate-400 mb-2">
+            <div className="mt-5 pt-4 border-t border-white/10 text-center">
+              <p className="text-xs text-slate-400 mb-1.5">
                 Votre établissement n'est pas encore enregistré ?
               </p>
               <Link
                 to="/register-school"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                <Building2 size={14} />
+                <Icon icon="solar:buildings-3-bold-duotone" className="text-sm" />
                 <span>Inscrire mon établissement gratuitement →</span>
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

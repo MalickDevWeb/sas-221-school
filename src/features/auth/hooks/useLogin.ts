@@ -28,6 +28,9 @@ export function useLogin() {
       
       setEtat('SUCCES');
       
+      // Laisser l'animation de succès se jouer pour un feedback utilisateur optimal
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      
       // Redirection sécurisée selon le rôle
       if (utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur.role === ROLE_UTILISATEUR.PLATFORM_OWNER) {
         navigate('/super-admin/dashboard');
