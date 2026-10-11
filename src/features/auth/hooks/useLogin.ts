@@ -31,8 +31,10 @@ export function useLogin() {
       // Laisser l'animation de succès se jouer pour un feedback utilisateur optimal
       await new Promise((resolve) => setTimeout(resolve, 750));
       
-      // Redirection sécurisée selon le rôle
-      if (utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur.role === ROLE_UTILISATEUR.PLATFORM_OWNER) {
+      // Redirection sécurisée : si connecté depuis le portail /admin, aller directement sur l'espace école
+      if (window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/admin/dashboard')) {
+        navigate(ROUTES.admin.dashboard);
+      } else if (utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur.role === ROLE_UTILISATEUR.PLATFORM_OWNER) {
         navigate('/super-admin/dashboard');
       } else if (utilisateur.role === ROLE_UTILISATEUR.ADMIN || utilisateur.role === ROLE_UTILISATEUR.ADMINISTRATOR) {
         navigate(ROUTES.admin.dashboard);

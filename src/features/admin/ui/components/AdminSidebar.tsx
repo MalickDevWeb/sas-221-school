@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
   onLogout: () => void;
@@ -27,6 +27,9 @@ const MENU_ITEMS = [
 
 export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
   const navigate = useNavigate();
+  const { currentTenant } = useTenantStore();
+  const schoolName = currentTenant?.name || 'École 221';
+  const primaryColor = currentTenant?.branding?.primaryColor || '#7C3AED';
 
   return (
     <aside
@@ -39,8 +42,8 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
       <div className="flex items-center justify-between px-2 mb-4 shrink-0">
         {!isCollapsed && (
           <div className="flex flex-col">
-            <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">École 221</h1>
-            <p className="text-[10px] font-black text-[#B3181C] uppercase tracking-widest mt-0.5">Admin ERP</p>
+            <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
+            <p className="text-[10px] font-black uppercase tracking-widest mt-0.5" style={{ color: primaryColor }}>Admin ERP</p>
           </div>
         )}
         <button

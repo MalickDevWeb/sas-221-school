@@ -19,15 +19,20 @@ import { AdminSubscriptionManager } from '../ui/components/AdminSubscriptionMana
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 export function AdminPage() {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
+  const { currentTenant } = useTenantStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tenant, setTenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { isMobile, isTablet } = useDeviceStore();
+
+  const schoolName = currentTenant?.name || tenant.name || 'École 221';
+  const primaryColor = currentTenant?.branding?.primaryColor || '#7C3AED';
 
   useEffect(() => {
     setIsSidebarCollapsed(isTablet || activeTab !== 'dashboard');
@@ -70,8 +75,8 @@ export function AdminPage() {
       <div className={`flex-grow min-w-0 w-full overflow-x-hidden transition-all duration-300 bg-neutral-50 min-h-screen flex flex-col pb-20 ${leftMarginClass}`}>
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-neutral-200 px-6 h-16 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] text-xl">school</span>
-            <span className="text-xs font-black text-slate-800 uppercase tracking-wider">École 221</span>
+            <span translate="no" className="material-symbols-outlined text-xl" style={{ color: primaryColor }}>school</span>
+            <span className="text-xs font-black text-slate-800 uppercase tracking-wider">{schoolName}</span>
           </div>
 
           <button

@@ -254,12 +254,16 @@ export const AdminPortalLoginPage: React.FC = () => {
         <div className="col-span-1 lg:col-span-6 w-full max-w-lg mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={
-              etat === 'ERREUR'
-                ? { x: [-10, 10, -8, 8, -4, 4, 0] }
-                : { opacity: 1, y: 0 }
-            }
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              x: etat === 'ERREUR' ? [-8, 8, -6, 6, -3, 3, 0] : 0,
+            }}
+            transition={{
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+              x: { duration: 0.4 },
+            }}
             className="rounded-3xl p-7 sm:p-9 bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden"
           >
             {/* Ligne lumineuse supérieure sobre et élégante */}
@@ -439,13 +443,13 @@ export const AdminPortalLoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('admin221@gmail.com');
-                  setPassword('ecole221');
+                  setEmail('superadmin@ecole221.sn');
+                  setPassword('SuperAdmin@221!');
                 }}
                 className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-slate-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <Icon icon="solar:user-bold-duotone" className="text-purple-400 text-xs" />
-                <span>Remplir compte Directeur</span>
+                <span>Remplir compte Direction</span>
               </button>
             </div>
 
