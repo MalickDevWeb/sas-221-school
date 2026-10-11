@@ -20,7 +20,7 @@ export function ForgotPasswordForm({
   return (
     <form onSubmit={handleResetSubmit} className="space-y-3.5 md:space-y-4 lg:space-y-5 animate-fade-in">
       {resetError && (
-        <div className="p-2.5 text-xs text-[#B3181C] bg-[#FFF5F5] rounded-xl border border-[#B3181C]/20 font-semibold">
+        <div className="p-2.5 text-xs text-primary bg-primary-light rounded-xl border border-primary/20 font-semibold">
           {resetError}
         </div>
       )}
@@ -30,15 +30,15 @@ export function ForgotPasswordForm({
           Saisissez l'adresse e-mail associée à votre compte. Nous vous enverrons un lien de réinitialisation sécurisé.
         </p>
         <label className="text-[12px] font-bold text-[#3E2927] block" htmlFor="resetEmail">
-          Adresse e-mail <span className="text-[#DE4E3F] font-bold">*</span>
+          Adresse e-mail <span className="text-status-danger font-bold">*</span>
         </label>
         <div className="relative group">
-          <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-[#B3181C] transition-colors">mail</span>
+          <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-primary transition-colors">mail</span>
           <input
-            className="w-full h-11 md:h-12 pl-10 pr-4 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-[#B3181C] focus:ring-1 focus:ring-[#B3181C]/10 text-[#291715] transition-all outline-none"
+            className="w-full h-11 md:h-12 pl-10 pr-4 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-1 focus:ring-primary/10 text-[#291715] transition-all outline-none"
             id="resetEmail"
             name="resetEmail"
-            placeholder="votre_adresse@ecole221.sn"
+            placeholder="votre_adresse@ecole.sn"
             required
             type="email"
             value={resetEmail}
@@ -48,7 +48,7 @@ export function ForgotPasswordForm({
       </div>
 
       <button
-        className="w-full h-11 bg-[#B3181C] hover:bg-[#8F1316] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#B3181C]/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        className="w-full h-11 bg-primary hover:opacity-95 text-text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-primary/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         type="submit"
         disabled={resetLoading}
       >
@@ -59,7 +59,7 @@ export function ForgotPasswordForm({
         <button
           type="button"
           onClick={() => setCurrentView('CONNEXION')}
-          className="flex items-center gap-1 text-[11px] font-bold text-[#8E7977] hover:text-[#B3181C] transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-[11px] font-bold text-[#8E7977] hover:text-primary transition-colors cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-[15px]">arrow_back</span>
           <span>Retour à la connexion</span>

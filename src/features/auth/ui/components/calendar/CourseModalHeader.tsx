@@ -14,7 +14,7 @@ interface HeaderProps {
 
 export function CourseModalHeader({ selectedCourse, classLabel, onClose }: HeaderProps) {
   return (
-    <div className="bg-gradient-to-br from-[#B3181C] to-[#8e1215] text-white p-6 pb-5 relative">
+    <div className="bg-gradient-to-br from-primary to-primary-dark text-text-on-primary p-6 pb-5 relative">
       <button 
         onClick={onClose} 
         className="absolute top-5 right-5 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer border-0"

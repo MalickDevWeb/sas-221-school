@@ -10,7 +10,7 @@ export function MonthlyView({ state, juneDays }: { state: any, juneDays: any[] }
       <div className="md:col-span-7 bg-white p-4 rounded-2xl border border-neutral-100 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <span className="text-xs md:text-sm font-black text-neutral-800 tracking-tight flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#B3181C]" />
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary" />
             Juin 2026
           </span>
           <div className="flex gap-1">
@@ -36,10 +36,10 @@ export function MonthlyView({ state, juneDays }: { state: any, juneDays: any[] }
               onClick={() => state.setSelectedMonthDayIdx(dayIdx)}
               className={`h-9 w-full rounded-xl flex flex-col items-center justify-center relative cursor-pointer transition-all duration-200 text-xs ${
                 state.selectedMonthDayIdx === dayIdx
-                  ? 'bg-[#B3181C] text-white font-black shadow-md shadow-[#B3181C]/20 scale-105 z-10'
+                  ? 'bg-primary text-text-on-primary font-black shadow-md shadow-primary/25 scale-105 z-10'
                   : dayItem.dayOfWeekIndex >= 5
                   ? 'bg-neutral-50/50 text-neutral-300 hover:bg-neutral-100/50'
-                  : 'bg-white hover:bg-[#FFF5F5] border border-neutral-100 text-neutral-700 font-bold hover:border-[#B3181C]/20'
+                  : 'bg-white hover:bg-primary-light border border-neutral-100 text-neutral-700 font-bold hover:border-primary/20'
               }`}
             >
               <span>{dayItem.dayNumber}</span>
@@ -102,7 +102,7 @@ export function MonthlyView({ state, juneDays }: { state: any, juneDays: any[] }
         {selectedDayInfo.classItem && (
           <button
             onClick={() => state.handleSelectCourse(selectedDayInfo.classItem)}
-            className="w-full py-3 bg-white text-[#B3181C] hover:bg-[#B3181C] hover:text-white border border-[#B3181C]/25 hover:border-transparent rounded-xl text-[10.5px] font-black flex items-center justify-center gap-1.5 mt-5 shadow-sm transition-all duration-300 cursor-pointer active:scale-95"
+            className="w-full py-3 bg-white text-primary hover:bg-primary hover:text-text-on-primary border border-primary/25 hover:border-transparent rounded-xl text-[10.5px] font-black flex items-center justify-center gap-1.5 mt-5 shadow-sm transition-all duration-300 cursor-pointer active:scale-95"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Interagir & Prendre Notes

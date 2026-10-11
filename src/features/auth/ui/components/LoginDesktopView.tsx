@@ -35,8 +35,8 @@ export function LoginDesktopView({ bgImageUrl, desktopShowCalendar, setDesktopSh
             <div className="bg-[#FAF8F6] rounded-[32px] border border-[#E2DCDA] shadow-[0_24px_64px_rgba(41,23,21,0.2)] p-6 xl:p-8 overflow-y-auto max-h-[94vh] no-scrollbar" style={{ margin: '6px 13px' }}>
               <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#E2DCDA]/80 select-none">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 bg-primary text-white rounded-xl shadow-md shadow-primary/15 flex items-center justify-center"><span translate="no" className="material-symbols-outlined text-[20px] font-bold">calendar_month</span></div>
-                  <div><h3 className="font-sans font-black text-xs uppercase text-[#291715] tracking-widest">Calendrier Interactif</h3><p className="text-[10px] text-[#8E7977] font-black tracking-wide uppercase leading-none mt-1">ÉCOLE 221 · ESPACE INTERACTIF</p></div>
+                  <div className="h-10 w-10 bg-primary text-text-on-primary rounded-xl shadow-md shadow-primary/15 flex items-center justify-center"><span translate="no" className="material-symbols-outlined text-[20px] font-bold">calendar_month</span></div>
+                  <div><h3 className="font-sans font-black text-xs uppercase text-[#291715] tracking-widest">Calendrier Interactif</h3><p className="text-[10px] text-[#8E7977] font-black tracking-wide uppercase leading-none mt-1">{currentTenant?.name?.toUpperCase() || 'ÉCOLE 221'} · ESPACE INTERACTIF</p></div>
                 </div>
                 <button onClick={() => setDesktopShowCalendar(false)} className="px-4 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer border border-primary/5">Masquer</button>
               </div>

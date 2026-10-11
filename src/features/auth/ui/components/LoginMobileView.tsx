@@ -19,7 +19,7 @@ export function LoginMobileView({ bgImageUrl, setShowMobileCalendarModal }: Logi
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/15 to-transparent"></div>
           <div className="absolute top-[18px] left-[18px] z-20"><EcoleBadge /></div>
-          <button type="button" onClick={() => setShowMobileCalendarModal(true)} className="absolute top-[18px] right-[18px] z-20 h-11 w-11 rounded-2xl bg-[#B3181C] hover:bg-[#8F1316] text-white border border-white/20 shadow-lg flex items-center justify-center cursor-pointer transition-all duration-200">
+          <button type="button" onClick={() => setShowMobileCalendarModal(true)} className="absolute top-[18px] right-[18px] z-20 h-11 w-11 rounded-2xl bg-primary hover:opacity-90 text-text-on-primary border border-white/20 shadow-lg flex items-center justify-center cursor-pointer transition-all duration-200">
             <span translate="no" className="material-symbols-outlined text-[19px] font-bold">calendar_month</span>
           </button>
         </div>
@@ -30,7 +30,7 @@ export function LoginMobileView({ bgImageUrl, setShowMobileCalendarModal }: Logi
           </div>
           <div className="text-left mb-3 shrink-0 px-0.5">
             <h2 className="text-[20px] font-black text-[#291715] tracking-tight leading-tight">Connexion</h2>
-            <p className="text-[#8E7977] text-[11px] font-medium leading-normal mt-0.5">Connectez-vous à votre espace École 221.</p>
+            <p className="text-[#8E7977] text-[11px] font-medium leading-normal mt-0.5">Connectez-vous à votre espace.</p>
           </div>
           <div className="flex-grow flex flex-col justify-start">
             <LoginForm isMobile={true} />
