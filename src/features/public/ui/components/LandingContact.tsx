@@ -11,10 +11,20 @@ export const LandingContact: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-28 bg-slate-950 relative overflow-hidden border-t border-white/5">
-      {/* Halos d'ambiance */}
-      <div className="absolute top-1/2 right-10 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-[130px] pointer-events-none" />
+    <section id="contact" className="py-28 bg-[#070A14] relative overflow-hidden border-t border-white/5 isolate">
+      {/* Halos d'ambiance ultra-performants via radial-gradients */}
+      <div
+        className="absolute top-1/2 right-10 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.02) 50%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute bottom-10 left-10 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.10) 0%, rgba(99, 102, 241, 0.02) 50%, transparent 70%)',
+        }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
@@ -31,7 +41,7 @@ export const LandingContact: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch max-w-6xl mx-auto">
           {/* Informations directes */}
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl p-8 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-xl">
+          <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl p-8 bg-slate-900/90 sm:bg-slate-900/80 backdrop-blur-md border border-white/10 shadow-xl">
             <div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-6">
                 <MessageSquare size={14} />
@@ -86,7 +96,7 @@ export const LandingContact: React.FC = () => {
           </div>
 
           {/* Formulaire de contact */}
-          <div className="lg:col-span-7 rounded-3xl p-8 sm:p-10 bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-2xl">
+          <div className="lg:col-span-7 rounded-3xl p-8 sm:p-10 bg-slate-900/90 sm:bg-slate-900/80 backdrop-blur-md border border-white/10 shadow-2xl">
             {submitted ? (
               <div className="h-full min-h-[380px] flex flex-col items-center justify-center text-center p-6">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 animate-bounce">

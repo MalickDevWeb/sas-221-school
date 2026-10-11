@@ -407,7 +407,7 @@ const TiltCard: React.FC<TiltCardProps> = ({ demo, idx, onLaunch }) => {
         rotateY,
         transformStyle: 'preserve-3d',
       }}
-      className="group relative rounded-3xl p-6 bg-slate-900/65 backdrop-blur-xl border border-slate-800 hover:border-purple-500/50 shadow-xl hover:shadow-2xl hover:shadow-purple-500/15 transition-colors duration-300 flex flex-col justify-between overflow-hidden"
+      className="group relative rounded-3xl p-6 bg-slate-900/90 sm:bg-slate-900/85 backdrop-blur-md border border-slate-800 hover:border-purple-500/50 shadow-xl hover:shadow-2xl hover:shadow-purple-500/15 transition-colors duration-300 flex flex-col justify-between overflow-hidden"
     >
       {/* Spotlight interactif suivant la souris */}
       <div
@@ -490,11 +490,26 @@ export const LandingDemos: React.FC = () => {
   });
 
   return (
-    <section id="demo" className="relative py-28 bg-[#070A14] text-white overflow-hidden">
-      {/* Halos d'ambiance néon */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-purple-600/15 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/3 left-10 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[130px] pointer-events-none" />
+    <section id="demo" className="relative py-28 bg-[#070A14] text-white overflow-hidden isolate">
+      {/* Halos d'ambiance néon ultra-performants via radial-gradients */}
+      <div
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[450px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.16) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute bottom-10 right-10 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.03) 50%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute top-1/3 left-10 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 50%, transparent 70%)',
+        }}
+      />
 
       {/* Grille technique de fond */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0a_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />

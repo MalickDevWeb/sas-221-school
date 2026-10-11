@@ -67,9 +67,14 @@ export const LandingPricing: React.FC = () => {
   };
 
   return (
-    <section id="pricing" className="py-28 bg-[#080B17] relative overflow-hidden">
-      {/* Background glowing aura */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-purple-600/15 rounded-full blur-[160px] pointer-events-none" />
+    <section id="pricing" className="py-28 bg-[#080B17] relative overflow-hidden isolate">
+      {/* Background glowing aura ultra-performante via radial-gradient */}
+      <div
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[450px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.03) 50%, transparent 70%)',
+        }}
+      />
 
       {/* Background grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0a_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
@@ -103,8 +108,8 @@ export const LandingPricing: React.FC = () => {
               whileHover={{ y: plan.isPopular ? -20 : -8 }}
               className={`rounded-3xl p-8 border flex flex-col justify-between transition-all duration-300 relative ${
                 plan.isPopular
-                  ? 'bg-slate-900/80 border-fuchsia-500/80 shadow-[0_0_35px_rgba(217,70,239,0.3)] ring-2 ring-fuchsia-500/50 transform lg:-translate-y-4'
-                  : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 shadow-xl'
+                  ? 'bg-slate-900/95 sm:bg-slate-900/90 border-fuchsia-500/80 shadow-[0_0_35px_rgba(217,70,239,0.3)] ring-2 ring-fuchsia-500/50 transform lg:-translate-y-4'
+                  : 'bg-slate-900/90 sm:bg-slate-900/85 border-slate-800 hover:border-slate-700 shadow-xl'
               }`}
             >
               {/* Badge RECOMMANDÉ au-dessus de la carte populaire */}

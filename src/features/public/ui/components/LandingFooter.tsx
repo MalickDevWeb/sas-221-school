@@ -1,14 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Icon } from '@iconify/react';
 
 export const LandingFooter: React.FC = () => {
   return (
-    <footer className="border-t border-slate-800 bg-slate-950/90 py-12 px-6">
+    <footer className="border-t border-slate-800 bg-[#05070E] py-12 px-6 relative isolate">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-400 p-[1px] flex items-center justify-center shadow-lg shadow-purple-900/30">
             <div className="w-full h-full bg-slate-900/90 rounded-[11px] flex items-center justify-center">
-              <span className="material-symbols-outlined text-purple-400 text-xl">school</span>
+              <Icon icon="solar:square-academic-cap-bold-duotone" className="text-xl text-purple-400" />
             </div>
           </div>
           <div>

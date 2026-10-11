@@ -349,7 +349,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ feature, idx }) => {
         rotateY,
         transformStyle: 'preserve-3d',
       }}
-      className="group relative rounded-3xl p-7 bg-slate-900/65 backdrop-blur-2xl border border-white/10 hover:border-purple-500/40 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-colors duration-300 flex flex-col justify-between overflow-hidden"
+      className="group relative rounded-3xl p-7 bg-slate-900/90 sm:bg-slate-900/85 backdrop-blur-md border border-white/10 hover:border-purple-500/40 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-colors duration-300 flex flex-col justify-between overflow-hidden"
     >
       {/* Spotlight interactif au curseur */}
       <div
@@ -402,10 +402,20 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ feature, idx }) => {
 
 export const LandingFeatures: React.FC = () => {
   return (
-    <section id="features" className="py-28 bg-[#090D1A] relative overflow-hidden text-white select-none">
-      {/* Halos d'ambiance néon doux */}
-      <div className="absolute top-1/4 left-1/4 w-[650px] h-[650px] bg-purple-600/10 rounded-full blur-[170px] pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[550px] h-[550px] bg-cyan-600/10 rounded-full blur-[160px] pointer-events-none" />
+    <section id="features" className="py-28 bg-[#090D1A] relative overflow-hidden text-white select-none isolate">
+      {/* Halos d'ambiance néon doux ultra-performants via radial-gradients */}
+      <div
+        className="absolute top-1/4 left-1/4 w-[650px] h-[650px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 50%, transparent 70%)',
+        }}
+      />
+      <div
+        className="absolute bottom-10 right-1/4 w-[550px] h-[550px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0.02) 50%, transparent 70%)',
+        }}
+      />
 
       {/* Grille technique de fond */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0a_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />

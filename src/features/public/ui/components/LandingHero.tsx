@@ -7,7 +7,7 @@ import { Hero3DScene } from './Hero3DScene';
 
 export const LandingHero: React.FC = () => {
   return (
-    <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-slate-950">
+    <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-slate-950 isolate">
       {/* 1. Arrière-plan photo immersif avec opacité équilibrée */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-25 select-none pointer-events-none transform scale-105"
@@ -17,16 +17,18 @@ export const LandingHero: React.FC = () => {
       {/* 2. Masque de fond sombre net et protecteur */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-950/70 to-slate-950 -z-10 pointer-events-none" />
 
-      {/* 3. Halos de lumière néon d'ambiance avec pulsation fluide */}
-      <motion.div
-        animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.25, 0.15] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -top-32 left-1/2 -translate-x-1/2 w-[850px] h-[500px] bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none -z-10"
+      {/* 3. Halos de lumière néon d'ambiance ultra-performants (radial gradients sans coût de filtre) */}
+      <div
+        className="absolute -top-32 left-1/2 -translate-x-1/2 w-[850px] h-[500px] rounded-full pointer-events-none -z-10"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.22) 0%, rgba(99, 102, 241, 0.06) 45%, transparent 70%)',
+        }}
       />
-      <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.2, 0.12] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-purple-600/15 rounded-full blur-[120px] pointer-events-none -z-10"
+      <div
+        className="absolute top-1/3 left-1/4 w-[500px] h-[450px] rounded-full pointer-events-none -z-10"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(168, 85, 247, 0.16) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%)',
+        }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

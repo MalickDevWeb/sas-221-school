@@ -16,11 +16,11 @@ import { LandingFooter } from '../components/LandingFooter';
  */
 export const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white">
+    <div className="min-h-screen bg-[#070A14] text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white relative overflow-x-hidden isolate">
       {/* 1. Barre de navigation avec tous les liens d'accès direct */}
       <LandingNavbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow relative overflow-x-hidden">
         {/* 2. Hero Section cinématographique avec arrière-plan immersif */}
         <LandingHero />
 
