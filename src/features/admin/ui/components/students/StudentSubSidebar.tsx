@@ -47,7 +47,7 @@ export function StudentSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggl
               onClick={() => onSelectTab(item.id)}
               className={`flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
                 isActive
-                  ? 'bg-[#B3181C]/10 text-[#B3181C]'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-[#4A5568] hover:bg-neutral-50 hover:text-neutral-900'
               }`}
               title={item.label}

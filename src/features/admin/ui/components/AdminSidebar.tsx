@@ -33,7 +33,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
 
   return (
     <aside
-      className={`hidden md:flex flex-col h-screen pb-6 gap-3 bg-[#FAF8F6] border-r border-[#E2DCDA] fixed left-0 top-0 z-[20] px-3 select-none overflow-y-auto no-scrollbar transition-all duration-300 ${
+      className={`hidden md:flex flex-col h-screen pb-6 gap-3 bg-surface-page border-r border-surface-border fixed left-0 top-0 z-[20] px-3 select-none overflow-y-auto no-scrollbar transition-all duration-300 ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
       style={{ paddingTop: '10px' }}
@@ -43,7 +43,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
         {!isCollapsed && (
           <div className="flex flex-col">
             <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
-            <p className="text-[10px] font-black uppercase tracking-widest mt-0.5" style={{ color: primaryColor }}>Admin ERP</p>
+            <p className="text-[10px] font-black uppercase tracking-widest mt-0.5 text-primary">Admin ERP</p>
           </div>
         )}
         <button
@@ -66,7 +66,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
               onClick={() => onSelectTab(item.id)}
               className={`flex flex-row items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
                 isActive
-                  ? 'bg-[#B3181C] text-white shadow-md shadow-[#B3181C]/15'
+                  ? 'bg-primary text-text-on-primary shadow-md shadow-primary/20'
                   : 'text-[#4A5568] hover:bg-[#F1EFEF] hover:text-[#1E293B]'
               }`}
               title={item.label}
@@ -83,7 +83,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
       <div className="mt-auto space-y-2 shrink-0 pt-3 border-t border-neutral-200">
         <button
           onClick={onLogout}
-          className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-neutral-600 hover:bg-[#FFF5F5] hover:text-[#B3181C] text-xs font-bold rounded-xl cursor-pointer"
+          className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-neutral-600 hover:bg-primary-light hover:text-primary text-xs font-bold rounded-xl cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-[18px]">logout</span>
           {!isCollapsed && <span>Déconnexion</span>}

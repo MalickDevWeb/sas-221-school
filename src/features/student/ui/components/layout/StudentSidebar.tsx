@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
   onOpenSettings: () => void;
@@ -11,6 +12,8 @@ interface Props {
 export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
+  const { currentTenant } = useTenantStore();
+  const schoolName = currentTenant?.name || 'École 221';
 
   return (
     <aside
@@ -29,14 +32,14 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
             marginRight: '0px',
             marginBottom: '0px',
           }}
-          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#B3181C] to-[#6B0E10] text-white flex items-center justify-center font-black shadow-md shadow-[#B3181C]/25 transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-text-on-primary flex items-center justify-center font-black shadow-md shadow-primary/25 transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           onClick={() => navigate(ROUTES.student.dashboard)}
         >
           <span translate="no" className="material-symbols-outlined text-[20px] font-bold">school</span>
         </div>
         <div className="flex flex-col mt-3">
-          <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">École 221</h1>
-          <p className="text-[10px] font-black text-brand-red-deep uppercase tracking-widest mt-0.5">Portail Étudiant</p>
+          <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Étudiant</p>
         </div>
         <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2023-24</p>
       </div>

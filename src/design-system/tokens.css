@@ -1,0 +1,30 @@
+:root {
+  /* ── 1. IDENTITÉ DE L'ÉCOLE (PAR DÉFAUT ÉCOLE 221 - RÉFÉRENCE SACRALISÉE) ── */
+  --color-primary: #B3181C;
+  --color-primary-rgb: 179 24 28;
+  --color-primary-light: #FFF5F5;
+  --color-primary-light-rgb: 255 245 245;
+  --color-primary-dark: #8F1316;
+  --color-primary-dark-rgb: 143 19 22;
+  --color-secondary: #FAF8F6;
+  --color-secondary-rgb: 250 248 246;
+  --color-accent: #E3A857;
+  --color-accent-rgb: 227 168 87;
+  --color-surface-warm: #FAF8F6;
+  --color-surface-warm-rgb: 250 248 246;
+  --color-text-on-primary: #FFFFFF;
+
+  /* ── 2. STRUCTURE & NEUTRES (PROTÉGÉS PAR LE DESIGN SYSTEM) ── */
+  --surface-page: #FAF8F6;
+  --surface-card: #FFFFFF;
+  --surface-border: #E2DCDA;
+  --text-body: #1E293B;
+  --text-muted: #64748B;
+
+  /* ── 3. ÉTATS FONCTIONNELS (INVIOLABLES - JAMAIS MODIFIÉS PAR L'ÉCOLE) ── */
+  --status-success: #16A34A;
+  --status-warning: #D97706;
+  --status-danger: #DC2626;
+  --status-info: #0284C7;
+}
+

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./design-system/tokens.css";
 
 /* Prevent horizontal overflow scrolling and hide root scrollbars */
 html, body {

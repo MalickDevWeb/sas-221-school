@@ -127,6 +127,7 @@ export const useTenantStore = create<TenantState>()(
 
         // ── Surface chaude (background admin) ────────────────────────────
         inject('--color-surface-warm', palette.surfaceWarm);
+        root.style.setProperty('--surface-page', palette.surfaceWarm);
 
         // ── Texte sur fond primaire ───────────────────────────────────────
         root.style.setProperty('--color-text-on-primary', palette.textOnPrimary);
