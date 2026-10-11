@@ -155,38 +155,52 @@ export function useSchoolRegistration(): UseSchoolRegistrationReturn {
       setShowSuccessModal(true);
       draftManagementUseCase.clearDraft();
 
+      // Appliquer immédiatement la palette choisie dans le store tenant
+      useTenantStore.setState({
+        currentTenant: {
+          id: result.id || 'org-' + submissionData.slug,
+          name: result.name || submissionData.schoolName,
+          slug: submissionData.slug,
+          branding: {
+            primaryColor: submissionData.primaryColor,
+            palette,
+          },
+        },
+      });
+      useTenantStore.getState().applyTheme({
+        primaryColor: submissionData.primaryColor,
+        palette,
+      });
+
       confetti({
         particleCount: 120,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#a855f7', '#6366f1', '#06b6d4', '#10b981'],
+        colors: [palette.primary, palette.accent, '#6366f1', '#10b981'],
       });
 
       toast.success('🎉 Inscription réussie !', {
-        description: 'Votre cockpit établissement est prêt.',
+        description: 'Votre cockpit établissement est prêt avec votre identité visuelle.',
       });
     } catch (err: any) {
       const status = err?.response?.status;
-      const serverMessage = err?.response?.data;
+      const data = err?.response?.data;
+      const errorMsg = data?.error || data?.message || (typeof data === 'string' ? data : err?.message);
 
-      // Sauvegarde de secours en draft local en cas d'erreur serveur
-      draftManagementUseCase.saveDraft(submissionData);
-
-      if (status === 500) {
-        const detail =
-          typeof serverMessage === 'string'
-            ? serverMessage.slice(0, 200)
-            : 'Erreur interne serveur (500)';
+      if (status === 400 || status === 409) {
+        toast.error("Information déjà enregistrée", {
+          description: errorMsg || 'Cet email ou numéro de téléphone est déjà associé à un compte.',
+          duration: 7000,
+        });
+      } else if (status === 500) {
+        draftManagementUseCase.saveDraft(submissionData);
         toast.warning('Serveur indisponible — données sauvegardées localement', {
-          description: detail || 'Réessayez quand le backend sera prêt.',
+          description: errorMsg || 'Réessayez quand le backend sera prêt.',
           duration: 8000,
         });
       } else {
         toast.error(`Erreur ${status || 'réseau'}`, {
-          description:
-            typeof serverMessage === 'string'
-              ? serverMessage
-              : err?.message || 'Vérifiez votre connexion.',
+          description: errorMsg || 'Vérifiez votre connexion.',
         });
       }
     } finally {

@@ -53,16 +53,34 @@ export const useTenantStore = create<TenantState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { data } = await publicApiClient.get(`/api/v1/public/tenants/${slug}`);
-          // Si l'API ne renvoie pas de palette, la générer automatiquement
-          if (!data.branding.palette && data.branding.primaryColor) {
-            data.branding.palette = generatePaletteFromHex(data.branding.primaryColor);
-          }
-          set({ currentTenant: data, isLoading: false });
-          get().applyTheme(data.branding);
+          const { data } = await publicApiClient.get(`/public/tenants/${slug}`);
+          const branding = data.branding || {};
+          const primaryColor = branding.primaryColor || '#7C3AED';
+          const palette = branding.palette || generatePaletteFromHex(primaryColor);
+
+          const tenantInfo: TenantInfo = {
+            id: data.id || 'tenant-' + slug,
+            name: data.name || slug,
+            slug: data.slug || slug,
+            branding: {
+              primaryColor,
+              palette,
+              logoUrl: branding.logoUrl,
+            },
+          };
+
+          set({ currentTenant: tenantInfo, isLoading: false });
+          get().applyTheme(tenantInfo.branding);
         } catch {
-          console.warn(`Tenant API indisponible, fallback pour '${slug}'`);
-          const isEcole221 = slug === 'ecole221';
+          console.warn(`Tenant API indisponible, fallback local pour '${slug}'`);
+          const existing = get().currentTenant;
+          if (existing && existing.slug === slug) {
+            get().applyTheme(existing.branding);
+            set({ isLoading: false });
+            return;
+          }
+
+          const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
           const mockTenant: TenantInfo = isEcole221
             ? MOCK_ECOLE_221
             : {
@@ -70,8 +88,8 @@ export const useTenantStore = create<TenantState>()(
                 name: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '),
                 slug,
                 branding: {
-                  primaryColor: '#e11d48',
-                  palette: generatePaletteFromHex('#e11d48'),
+                  primaryColor: '#7C3AED',
+                  palette: generatePaletteFromHex('#7C3AED'),
                 },
               };
           set({ currentTenant: mockTenant, isLoading: false });
