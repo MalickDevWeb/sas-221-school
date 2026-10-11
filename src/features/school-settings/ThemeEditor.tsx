@@ -3,43 +3,17 @@ import { toast } from 'sonner';
 import { useTheme } from '@/design-system/ThemeProvider';
 import { ThemePreview } from './ThemePreview';
 import { generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
-
-const PRESET_PALETTES = [
-  {
-    id: 'ecole221',
-    name: 'École 221 (Prestige)',
-    primary: '#B3181C',
-    description: 'Rouge bordeaux signature, or noble et blanc lin.',
-  },
-  {
-    id: 'ocean',
-    name: 'Dakar Océan',
-    primary: '#1D4ED8',
-    description: 'Bleu royal atlantique, idéal pour lycées modernes & tech.',
-  },
-  {
-    id: 'nature',
-    name: 'Casamance Émeraude',
-    primary: '#047857',
-    description: 'Vert forêt profond, inspiré de la nature et de l\'excellence.',
-  },
-  {
-    id: 'teranga',
-    name: 'Teranga Ambre',
-    primary: '#B45309',
-    description: 'Terre cuite chaude et or, chaleureux et institutionnel.',
-  },
-  {
-    id: 'imperial',
-    name: 'Violet Impérial',
-    primary: '#6D28D9',
-    description: 'Pourpre académique et distinction universitaire.',
-  },
-];
+import {
+  SAAS_50_PALETTES,
+  CATEGORY_FILTERS,
+  type PresetCategory,
+} from '@/shared/constants/colorPresets50';
 
 export function ThemeEditor() {
   const { theme, colors, setPreviewPalette, clearPreview, saveTheme, resetToDefault } = useTheme();
   const [selectedHex, setSelectedHex] = useState(colors.primary);
+  const [selectedCategory, setSelectedCategory] = useState<PresetCategory>('tous');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Aperçu de la palette courante en cours de saisie
@@ -122,39 +96,103 @@ export function ThemeEditor() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Colonne de gauche : Contrôles & Palettes */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Sélection de palette prédéfinie */}
+          {/* Catalogue 50 Palettes Multi-Écoles */}
           <div className="p-5 rounded-2xl bg-surface-card border border-surface-border space-y-4">
-            <h2 className="text-sm font-black text-text-body">Palettes Harmonieuses Prédéfinies</h2>
-            <div className="grid grid-cols-1 gap-2.5">
-              {PRESET_PALETTES.map((preset) => {
-                const isSelected = selectedHex.toLowerCase() === preset.primary.toLowerCase();
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => handleSelectPreset(preset.primary)}
-                    className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-primary bg-primary-light/50 ring-2 ring-primary/20'
-                        : 'border-surface-border bg-white hover:bg-neutral-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-lg shadow-2xs border border-black/10 shrink-0"
-                        style={{ backgroundColor: preset.primary }}
-                      />
-                      <div>
-                        <div className="text-xs font-bold text-text-body">{preset.name}</div>
-                        <div className="text-[10px] text-text-muted">{preset.description}</div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-black text-text-body">Catalogue 50 Palettes Multi-Écoles</h2>
+                <p className="text-[11px] text-text-muted">Palettes harmonieuses et vérifiées WCAG</p>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                {SAAS_50_PALETTES.filter((p) => {
+                  const mCat = selectedCategory === 'tous' || p.category === selectedCategory;
+                  const mSearch = searchQuery === '' || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.primary.toLowerCase().includes(searchQuery.toLowerCase());
+                  return mCat && mSearch;
+                }).length} / 50 palettes
+              </span>
+            </div>
+
+            {/* Filtres de catégorie */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+              {CATEGORY_FILTERS.map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.key)}
+                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    selectedCategory === cat.key
+                      ? 'bg-primary text-text-on-primary shadow-xs'
+                      : 'bg-neutral-100 text-text-muted hover:text-text-body hover:bg-neutral-200'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Champ de recherche rapide */}
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou code hex (#1D4ED8)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 text-xs rounded-xl border border-surface-border bg-white text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+
+            {/* Grille défilante des 50 palettes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-80 overflow-y-auto p-1 scrollbar-thin">
+              {SAAS_50_PALETTES
+                .filter((preset) => {
+                  const mCat = selectedCategory === 'tous' || preset.category === selectedCategory;
+                  const mSearch = searchQuery === '' || preset.name.toLowerCase().includes(searchQuery.toLowerCase()) || preset.primary.toLowerCase().includes(searchQuery.toLowerCase());
+                  return mCat && mSearch;
+                })
+                .map((preset) => {
+                  const isSelected = selectedHex.toLowerCase() === preset.primary.toLowerCase();
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleSelectPreset(preset.primary)}
+                      className={`flex flex-col p-2.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        isSelected
+                          ? 'border-primary bg-primary-light/40 ring-2 ring-primary/25 shadow-xs'
+                          : 'border-surface-border bg-white hover:bg-neutral-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <div
+                          className="w-5 h-5 rounded-md shadow-2xs border border-black/10 shrink-0"
+                          style={{ backgroundColor: preset.primary }}
+                          title={`Primaire: ${preset.primary}`}
+                        />
+                        <div
+                          className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                          style={{ backgroundColor: preset.accent }}
+                          title={`Accent: ${preset.accent}`}
+                        />
+                        <div
+                          className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                          style={{ backgroundColor: preset.secondary }}
+                          title={`Secondaire: ${preset.secondary}`}
+                        />
+                        <span className="text-[9px] font-mono font-bold text-text-muted ml-auto">
+                          #{preset.id}
+                        </span>
                       </div>
-                    </div>
-                    {isSelected && (
-                      <span className="material-symbols-outlined text-primary text-base">check_circle</span>
-                    )}
-                  </button>
-                );
-              })}
+
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-bold truncate ${isSelected ? 'text-primary' : 'text-text-body'}`}>
+                          {preset.name}
+                        </span>
+                        {isSelected && (
+                          <span className="text-[10px] font-bold text-primary">Actif</span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-mono text-text-muted mt-0.5">{preset.primary}</span>
+                    </button>
+                  );
+                })}
             </div>
           </div>
 
