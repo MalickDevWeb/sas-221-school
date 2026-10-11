@@ -1,339 +1,173 @@
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Icon } from '@iconify/react';
 
 export const Hero3DScene: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  // Motion values pour un tilt 3D soyeux et ultra-fluide
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
-  // Motion values pour les cartes superposées en verre dépoli
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 120, damping: 18 });
-  const springY = useSpring(mouseY, { stiffness: 120, damping: 18 });
-  const cardRotateX = useTransform(springY, [-0.5, 0.5], ['10deg', '-10deg']);
-  const cardRotateY = useTransform(springX, [-0.5, 0.5], ['-10deg', '10deg']);
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['7deg', '-7deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-7deg', '7deg']);
 
-    const width = container.clientWidth || 360;
-    const height = container.clientHeight || 420;
+  // Reflet lumineux dynamique (Spotlight) qui suit la souris
+  const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
 
-    // --- 1. INITIALISATION DE LA SCÈNE THREE.JS ---
-    const scene = new THREE.Scene();
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.z = 7;
+    const xPct = mouseX / rect.width - 0.5;
+    const yPct = mouseY / rect.height - 0.5;
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance',
+    x.set(xPct);
+    y.set(yPct);
+
+    setGlarePos({
+      x: (mouseX / rect.width) * 100,
+      y: (mouseY / rect.height) * 100,
+      opacity: 0.15,
     });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    container.appendChild(renderer.domElement);
+  };
 
-    // --- 2. ÉCLAIRAGES DYNAMIQUES DU VERRE ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-    scene.add(ambientLight);
-
-    // Lumière violette néon
-    const pointLightPurple = new THREE.PointLight(0xa855f7, 4, 20);
-    pointLightPurple.position.set(4, 4, 4);
-    scene.add(pointLightPurple);
-
-    // Lumière cyan néon
-    const pointLightCyan = new THREE.PointLight(0x06b6d4, 4, 20);
-    pointLightCyan.position.set(-4, -3, 3);
-    scene.add(pointLightCyan);
-
-    // Lumière d'accentuation magenta
-    const pointLightMagenta = new THREE.PointLight(0xec4899, 3, 15);
-    pointLightMagenta.position.set(0, 5, -2);
-    scene.add(pointLightMagenta);
-
-    // --- 3. GROUPE 3D PRINCIPAL FLOTTANT ---
-    const mainGroup = new THREE.Group();
-    scene.add(mainGroup);
-
-    // Matériau de verre dépoli haut de gamme (Frosted Glass / Physical Glass)
-    const glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x9333ea,
-      emissive: 0x2e1065,
-      emissiveIntensity: 0.2,
-      roughness: 0.18,
-      metalness: 0.1,
-      transmission: 0.85,
-      ior: 1.52,
-      thickness: 1.5,
-      transparent: true,
-      opacity: 0.85,
-      reflectivity: 0.9,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-    });
-
-    // Cœur néon intérieur lumineux
-    const coreMaterial = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      emissive: 0x0ea5e9,
-      emissiveIntensity: 2.5,
-      roughness: 0.2,
-      metalness: 0.8,
-    });
-
-    // Objet central : Cube en verre à arêtes biseautées
-    const boxGeometry = new THREE.BoxGeometry(2.3, 2.3, 2.3);
-    const glassCube = new THREE.Mesh(boxGeometry, glassMaterial);
-    mainGroup.add(glassCube);
-
-    // Lignes d'arêtes holographiques lumineuses (Wireframe d'orfèvre)
-    const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
-    const edgesMaterial = new THREE.LineBasicMaterial({
-      color: 0xc084fc,
-      transparent: true,
-      opacity: 0.7,
-      linewidth: 1.5,
-    });
-    const edgesMesh = new THREE.LineSegments(edgesGeometry, edgesMaterial);
-    glassCube.add(edgesMesh);
-
-    // Sphère d'énergie flottant au centre du cube
-    const coreGeometry = new THREE.IcosahedronGeometry(0.7, 2);
-    const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
-    mainGroup.add(coreMesh);
-
-    // Anneau orbital externe (Gyroscope / Torus)
-    const ringGeometry = new THREE.TorusGeometry(2.4, 0.04, 16, 100);
-    const ringMaterial = new THREE.MeshStandardMaterial({
-      color: 0xa855f7,
-      emissive: 0x9333ea,
-      emissiveIntensity: 1.2,
-      metalness: 0.9,
-      roughness: 0.1,
-    });
-    const ringMesh1 = new THREE.Mesh(ringGeometry, ringMaterial);
-    ringMesh1.rotation.x = Math.PI / 3;
-    mainGroup.add(ringMesh1);
-
-    const ringMesh2 = new THREE.Mesh(ringGeometry, ringMaterial);
-    ringMesh2.rotation.y = Math.PI / 3;
-    ringMesh2.scale.set(1.15, 1.15, 1.15);
-    mainGroup.add(ringMesh2);
-
-    // Petits satellites de données en orbite
-    const satelliteGroup = new THREE.Group();
-    mainGroup.add(satelliteGroup);
-
-    const satMaterial = new THREE.MeshStandardMaterial({
-      color: 0x34d399,
-      emissive: 0x10b981,
-      emissiveIntensity: 2,
-    });
-
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const radius = 2.8;
-      const satGeo = new THREE.SphereGeometry(0.09, 16, 16);
-      const sat = new THREE.Mesh(satGeo, satMaterial);
-      sat.position.set(Math.cos(angle) * radius, (Math.sin(angle) * radius) * 0.4, Math.sin(angle) * radius);
-      satelliteGroup.add(sat);
-    }
-
-    // Nuage de particules de fond
-    const particlesCount = 70;
-    const particlesGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particlesCount * 3);
-
-    for (let i = 0; i < particlesCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 12;
-      positions[i + 1] = (Math.random() - 0.5) * 10;
-      positions[i + 2] = (Math.random() - 0.5) * 8;
-    }
-    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const particlesMat = new THREE.PointsMaterial({
-      color: 0x818cf8,
-      size: 0.05,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const particles = new THREE.Points(particlesGeo, particlesMat);
-    scene.add(particles);
-
-    // --- 4. GESTION DES MOUVEMENTS SOURIS & TACTILE ---
-    const updateTargetCoords = (clientX: number, clientY: number) => {
-      const rect = container.getBoundingClientRect();
-      const x = (clientX - rect.left) / rect.width;
-      const y = (clientY - rect.top) / rect.height;
-
-      mouseRef.current.targetX = (x - 0.5) * 1.5;
-      mouseRef.current.targetY = (y - 0.5) * 1.5;
-
-      mouseX.set(x - 0.5);
-      mouseY.set(y - 0.5);
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      updateTargetCoords(event.clientX, event.clientY);
-    };
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (event.touches.length > 0) {
-        updateTargetCoords(event.touches[0].clientX, event.touches[0].clientY);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-
-    // Redimensionnement fluide
-    const handleResize = () => {
-      if (!container) return;
-      const w = container.clientWidth || 360;
-      const h = container.clientHeight || 420;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-
-    const resizeObserver = new ResizeObserver(() => handleResize());
-    resizeObserver.observe(container);
-
-    // --- 5. BOUCLE DE RENDU 60 FPS ---
-    let animationFrameId: number;
-    let clock = new THREE.Clock();
-
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
-
-      // Interpolation fluide (Damping)
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
-
-      // Rotation de la scène influencée par la souris/toucher + auto-rotation naturelle
-      mainGroup.rotation.y = elapsedTime * 0.25 + mouseRef.current.x * 0.8;
-      mainGroup.rotation.x = Math.sin(elapsedTime * 0.3) * 0.15 + mouseRef.current.y * 0.6;
-      mainGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.18;
-
-      // Mouvement du cœur d'énergie et des anneaux
-      coreMesh.rotation.y = -elapsedTime * 0.8;
-      coreMesh.rotation.z = elapsedTime * 0.5;
-      ringMesh1.rotation.z = elapsedTime * 0.4;
-      ringMesh2.rotation.x = -elapsedTime * 0.3;
-      satelliteGroup.rotation.y = elapsedTime * 0.6;
-
-      // Légère oscillation des lumières
-      pointLightPurple.position.x = Math.sin(elapsedTime) * 3 + 3;
-      pointLightCyan.position.y = Math.cos(elapsedTime * 0.8) * 3 - 2;
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    // --- 6. NETTOYAGE LORS DU DÉMONTAGE ---
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-      resizeObserver.disconnect();
-      renderer.dispose();
-      boxGeometry.dispose();
-      glassMaterial.dispose();
-      coreGeometry.dispose();
-      coreMaterial.dispose();
-      ringGeometry.dispose();
-      ringMaterial.dispose();
-      edgesGeometry.dispose();
-      edgesMaterial.dispose();
-      particlesGeo.dispose();
-      particlesMat.dispose();
-      if (container && renderer.domElement) {
-        container.removeChild(renderer.domElement);
-      }
-    };
-  }, []);
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    setGlarePos((prev) => ({ ...prev, opacity: 0 }));
+  };
 
   return (
-    <div className="relative w-full h-[360px] sm:h-[460px] lg:h-[520px] flex items-center justify-center select-none overflow-visible">
-      {/* Conteneur WebGL Three.js */}
-      <div
-        ref={containerRef}
-        className="absolute inset-0 z-0 flex items-center justify-center touch-pan-y"
-      />
+    <div className="relative w-full max-w-[480px] mx-auto py-6 flex items-center justify-center select-none">
+      {/* 1. Halo d'ambiance doux et élégant (violet/indigo feutré, pas agressif) */}
+      <div className="absolute -inset-4 bg-gradient-to-tr from-purple-600/20 via-indigo-600/15 to-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Cartes holographiques en verre dépoli flottant au-dessus de la 3D */}
+      {/* 2. Carte Principale en Verre Dépoli Flottante avec perspective 3D */}
       <motion.div
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         style={{
-          rotateX: cardRotateX,
-          rotateY: cardRotateY,
+          rotateX,
+          rotateY,
           transformStyle: 'preserve-3d',
         }}
-        className="relative z-10 w-full max-w-[380px] sm:max-w-[420px] pointer-events-none px-2 sm:px-4"
+        className="relative w-full bg-slate-900/75 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] hover:border-purple-500/40 transition-colors duration-500"
       >
-        {/* Badge Flottant Supérieur : Paiements Wave / OM en direct */}
-        <motion.div
-          animate={{ y: [-3, 3, -3] }}
-          transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-          className="absolute -top-10 sm:-top-12 left-1 sm:-left-6 bg-slate-900/85 backdrop-blur-xl border border-cyan-500/40 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-2xl shadow-cyan-950/60 flex items-center gap-2.5 sm:gap-3"
-          style={{ transform: 'translateZ(30px)' }}
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shrink-0">
-            <Icon icon="solar:wallet-money-bold-duotone" className="text-base sm:text-xl" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase text-cyan-300">Wave & OM Reçus</span>
-            </div>
-            <p className="text-xs sm:text-sm font-black text-white">+ 245 000 FCFA</p>
-            <p className="text-[8px] sm:text-[9px] text-slate-400">Scolarité validée</p>
-          </div>
-        </motion.div>
+        {/* Reflet de lumière soyeux (Glass Specular Glare) */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-3xl transition-opacity duration-500"
+          style={{
+            opacity: glarePos.opacity,
+            background: `radial-gradient(circle 260px at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.2), transparent 70%)`,
+          }}
+        />
 
-        {/* Badge Flottant Inférieur Droit : Présences & Appel Direct */}
-        <motion.div
-          animate={{ y: [3, -3, 3] }}
-          transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 0.5 }}
-          className="absolute -bottom-8 sm:-bottom-10 right-1 sm:-right-4 bg-slate-900/85 backdrop-blur-xl border border-purple-500/40 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-2xl shadow-purple-950/70 flex items-center gap-2.5 sm:gap-3"
-          style={{ transform: 'translateZ(35px)' }}
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shrink-0">
-            <Icon icon="solar:shield-check-bold-duotone" className="text-base sm:text-xl" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] sm:text-[10px] font-mono font-bold text-purple-300">ACCÈS CAMPUS</span>
-              <span className="text-[7px] sm:text-[8px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">
-                EN DIRECT
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm font-black text-white">1 240 Élèves</p>
-            <p className="text-[8px] sm:text-[9px] text-slate-400">Portique QR Sécurisé</p>
-          </div>
-        </motion.div>
+        {/* Ligne lumineuse subtile au sommet */}
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-purple-400/30 to-transparent" />
 
-        {/* Badge Flottant Central : Réseau Multi-Campus */}
-        <motion.div
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-          className="absolute -bottom-18 sm:-bottom-22 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur-2xl border border-white/15 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-2xl flex items-center gap-2 whitespace-nowrap"
-          style={{ transform: 'translateZ(25px)' }}
-        >
-          <Icon icon="solar:global-bold-duotone" className="text-purple-400 text-sm sm:text-base shrink-0" />
-          <span className="text-[10px] sm:text-[11px] font-bold text-slate-300">
-            Dakar • Thiès • Saint-Louis
+        {/* --- En-tête de la carte --- */}
+        <div className="flex items-center justify-between pb-5 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/40 text-white">
+              <Icon icon="solar:buildings-3-bold-duotone" className="text-xl" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-white leading-tight">
+                Lycée d'Excellence Dakar
+              </h4>
+              <p className="text-[11px] text-slate-400 font-medium">Campus Principal • Année 2024-2025</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>EN DIRECT</span>
+          </div>
+        </div>
+
+        {/* --- 3 Métriques Clés Épurées --- */}
+        <div className="grid grid-cols-3 gap-3 my-5">
+          <div className="bg-slate-950/50 rounded-2xl p-3 border border-white/5">
+            <span className="text-[10px] font-medium text-slate-400 block mb-1">Élèves</span>
+            <span className="text-base sm:text-lg font-black text-white font-mono">1,240</span>
+          </div>
+
+          <div className="bg-slate-950/50 rounded-2xl p-3 border border-white/5">
+            <span className="text-[10px] font-medium text-slate-400 block mb-1">Présences</span>
+            <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">98.4%</span>
+          </div>
+
+          <div className="bg-slate-950/50 rounded-2xl p-3 border border-white/5">
+            <span className="text-[10px] font-medium text-slate-400 block mb-1">Recouvrement</span>
+            <span className="text-base sm:text-lg font-black text-cyan-300 font-mono">94%</span>
+          </div>
+        </div>
+
+        {/* --- Mini Graphique d'Activité Minimaliste --- */}
+        <div className="bg-slate-950/60 rounded-2xl p-4 border border-white/5 mb-5">
+          <div className="flex items-center justify-between text-[11px] mb-3">
+            <span className="font-bold text-slate-300">Activité hebdomadaire</span>
+            <span className="text-purple-400 font-mono font-semibold text-[10px]">Semaine en cours</span>
+          </div>
+
+          {/* Barres d'activité fluides */}
+          <div className="flex items-end justify-between h-14 gap-2 pt-2">
+            {[
+              { day: 'Lun', h: '65%', color: 'bg-purple-500' },
+              { day: 'Mar', h: '85%', color: 'bg-indigo-500' },
+              { day: 'Mer', h: '70%', color: 'bg-purple-500' },
+              { day: 'Jeu', h: '95%', color: 'bg-cyan-400' },
+              { day: 'Ven', h: '88%', color: 'bg-indigo-500' },
+            ].map((bar, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: bar.h }}
+                  transition={{ duration: 0.8, delay: 0.1 * i, ease: [0.16, 1, 0.3, 1] }}
+                  className={`w-full rounded-md ${bar.color}/80 hover:${bar.color} transition-colors shadow-sm`}
+                />
+                <span className="text-[9px] font-mono text-slate-500">{bar.day}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* --- Ligne Inférieure : Activité temps réel Wave / Portique --- */}
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          {/* Notification Wave & OM */}
+          <div className="flex-1 bg-cyan-950/20 border border-cyan-500/20 rounded-xl px-3 py-2 flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+              <Icon icon="solar:wallet-money-bold-duotone" className="text-sm" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-cyan-200 truncate">Scolarité encaissée</p>
+              <p className="text-[9px] text-slate-400 font-mono">Wave • +45,000 FCFA</p>
+            </div>
+          </div>
+
+          {/* Badge Contrôle d'Accès */}
+          <div className="flex-1 bg-purple-950/20 border border-purple-500/20 rounded-xl px-3 py-2 flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Icon icon="solar:shield-check-bold-duotone" className="text-sm" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-purple-200 truncate">Portique sécurisé</p>
+              <p className="text-[9px] text-slate-400 font-mono">Accès badge validé</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Indicateur multi-campus en bas */}
+        <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+          <span className="flex items-center gap-1.5">
+            <Icon icon="solar:global-bold-duotone" className="text-purple-400 text-xs" />
+            <span>Multi-campus Sénégal</span>
           </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-        </motion.div>
+          <span className="text-slate-500">v1.2.0</span>
+        </div>
       </motion.div>
     </div>
   );
