@@ -19,15 +19,13 @@ export const Hero3DScene: React.FC = () => {
     const container = containerRef.current;
     if (!container) return;
 
+    const width = container.clientWidth || 360;
+    const height = container.clientHeight || 420;
+
     // --- 1. INITIALISATION DE LA SCÈNE THREE.JS ---
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      100
-    );
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 7;
 
     const renderer = new THREE.WebGLRenderer({
@@ -35,7 +33,7 @@ export const Hero3DScene: React.FC = () => {
       antialias: true,
       powerPreference: 'high-performance',
     });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
@@ -71,8 +69,8 @@ export const Hero3DScene: React.FC = () => {
       emissiveIntensity: 0.2,
       roughness: 0.18,
       metalness: 0.1,
-      transmission: 0.85, // Effet verre transparent
-      ior: 1.52,          // Indice de réfraction du verre
+      transmission: 0.85,
+      ior: 1.52,
       thickness: 1.5,
       transparent: true,
       opacity: 0.85,
@@ -148,7 +146,7 @@ export const Hero3DScene: React.FC = () => {
       satelliteGroup.add(sat);
     }
 
-    // Nuage de particules de fond (Constellation scolaire connectée)
+    // Nuage de particules de fond
     const particlesCount = 70;
     const particlesGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(particlesCount * 3);
@@ -169,11 +167,11 @@ export const Hero3DScene: React.FC = () => {
     const particles = new THREE.Points(particlesGeo, particlesMat);
     scene.add(particles);
 
-    // --- 4. GESTION DES MOUVEMENTS DE LA SOURIS ---
-    const handleMouseMove = (event: MouseEvent) => {
+    // --- 4. GESTION DES MOUVEMENTS SOURIS & TACTILE ---
+    const updateTargetCoords = (clientX: number, clientY: number) => {
       const rect = container.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = (event.clientY - rect.top) / rect.height;
+      const x = (clientX - rect.left) / rect.width;
+      const y = (clientY - rect.top) / rect.height;
 
       mouseRef.current.targetX = (x - 0.5) * 1.5;
       mouseRef.current.targetY = (y - 0.5) * 1.5;
@@ -182,16 +180,27 @@ export const Hero3DScene: React.FC = () => {
       mouseY.set(y - 0.5);
     };
 
+    const handleMouseMove = (event: MouseEvent) => {
+      updateTargetCoords(event.clientX, event.clientY);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length > 0) {
+        updateTargetCoords(event.touches[0].clientX, event.touches[0].clientY);
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     // Redimensionnement fluide
     const handleResize = () => {
       if (!container) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      camera.aspect = width / height;
+      const w = container.clientWidth || 360;
+      const h = container.clientHeight || 420;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      renderer.setSize(w, h);
     };
 
     const resizeObserver = new ResizeObserver(() => handleResize());
@@ -205,14 +214,14 @@ export const Hero3DScene: React.FC = () => {
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Interpolation fluide (Damping) vers la position de la souris
+      // Interpolation fluide (Damping)
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
 
-      // Rotation de la scène influencée par la souris + auto-rotation naturelle
+      // Rotation de la scène influencée par la souris/toucher + auto-rotation naturelle
       mainGroup.rotation.y = elapsedTime * 0.25 + mouseRef.current.x * 0.8;
       mainGroup.rotation.x = Math.sin(elapsedTime * 0.3) * 0.15 + mouseRef.current.y * 0.6;
-      mainGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.18; // Flottement organique vertical
+      mainGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.18;
 
       // Mouvement du cœur d'énergie et des anneaux
       coreMesh.rotation.y = -elapsedTime * 0.8;
@@ -234,6 +243,7 @@ export const Hero3DScene: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       resizeObserver.disconnect();
       renderer.dispose();
       boxGeometry.dispose();
@@ -253,11 +263,11 @@ export const Hero3DScene: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-[420px] sm:h-[480px] lg:h-[540px] flex items-center justify-center select-none">
+    <div className="relative w-full h-[360px] sm:h-[460px] lg:h-[520px] flex items-center justify-center select-none overflow-visible">
       {/* Conteneur WebGL Three.js */}
       <div
         ref={containerRef}
-        className="absolute inset-0 z-0 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="absolute inset-0 z-0 flex items-center justify-center touch-pan-y"
       />
 
       {/* Cartes holographiques en verre dépoli flottant au-dessus de la 3D */}
@@ -267,65 +277,64 @@ export const Hero3DScene: React.FC = () => {
           rotateY: cardRotateY,
           transformStyle: 'preserve-3d',
         }}
-        className="relative z-10 w-full max-w-[420px] pointer-events-none px-4"
+        className="relative z-10 w-full max-w-[380px] sm:max-w-[420px] pointer-events-none px-2 sm:px-4"
       >
         {/* Badge Flottant Supérieur : Paiements Wave / OM en direct */}
         <motion.div
-          animate={{ y: [-4, 4, -4] }}
+          animate={{ y: [-3, 3, -3] }}
           transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-          className="absolute -top-12 -left-4 sm:-left-8 bg-slate-900/80 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-3 shadow-2xl shadow-cyan-950/60 flex items-center gap-3"
-          style={{ transform: 'translateZ(40px)' }}
+          className="absolute -top-10 sm:-top-12 left-1 sm:-left-6 bg-slate-900/85 backdrop-blur-xl border border-cyan-500/40 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-2xl shadow-cyan-950/60 flex items-center gap-2.5 sm:gap-3"
+          style={{ transform: 'translateZ(30px)' }}
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-            <Icon icon="solar:wallet-money-bold-duotone" className="text-xl" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shrink-0">
+            <Icon icon="solar:wallet-money-bold-duotone" className="text-base sm:text-xl" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-[10px] font-mono font-black uppercase text-cyan-300">Wave & OM Reçus</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase text-cyan-300">Wave & OM Reçus</span>
             </div>
-            <p className="text-sm font-black text-white">+ 245 000 FCFA</p>
-            <p className="text-[9px] text-slate-400">Scolarité validée à l'instant</p>
+            <p className="text-xs sm:text-sm font-black text-white">+ 245 000 FCFA</p>
+            <p className="text-[8px] sm:text-[9px] text-slate-400">Scolarité validée</p>
           </div>
         </motion.div>
 
         {/* Badge Flottant Inférieur Droit : Présences & Appel Direct */}
         <motion.div
-          animate={{ y: [4, -4, 4] }}
+          animate={{ y: [3, -3, 3] }}
           transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 0.5 }}
-          className="absolute -bottom-10 -right-2 sm:-right-6 bg-slate-900/85 backdrop-blur-xl border border-purple-500/40 rounded-2xl p-3.5 shadow-2xl shadow-purple-950/70 flex items-center gap-3"
-          style={{ transform: 'translateZ(50px)' }}
+          className="absolute -bottom-8 sm:-bottom-10 right-1 sm:-right-4 bg-slate-900/85 backdrop-blur-xl border border-purple-500/40 rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-2xl shadow-purple-950/70 flex items-center gap-2.5 sm:gap-3"
+          style={{ transform: 'translateZ(35px)' }}
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg">
-            <Icon icon="solar:shield-check-bold-duotone" className="text-xl" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shrink-0">
+            <Icon icon="solar:shield-check-bold-duotone" className="text-base sm:text-xl" />
           </div>
           <div>
             <div className="flex items-center gap-1">
-              <span className="text-[10px] font-mono font-bold text-purple-300">CONTRÔLE ACCÈS</span>
-              <span className="text-[8px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">
-                TEMPS RÉEL
+              <span className="text-[9px] sm:text-[10px] font-mono font-bold text-purple-300">ACCÈS CAMPUS</span>
+              <span className="text-[7px] sm:text-[8px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">
+                EN DIRECT
               </span>
             </div>
-            <p className="text-sm font-black text-white">1 240 Élèves sur site</p>
-            <p className="text-[9px] text-slate-400">Portique QR Badge Sécurisé</p>
+            <p className="text-xs sm:text-sm font-black text-white">1 240 Élèves</p>
+            <p className="text-[8px] sm:text-[9px] text-slate-400">Portique QR Sécurisé</p>
           </div>
         </motion.div>
 
         {/* Badge Flottant Central : Réseau Multi-Campus */}
         <motion.div
-          animate={{ scale: [1, 1.03, 1] }}
+          animate={{ scale: [1, 1.02, 1] }}
           transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-          className="absolute -bottom-24 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur-2xl border border-white/15 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2.5"
-          style={{ transform: 'translateZ(30px)' }}
+          className="absolute -bottom-18 sm:-bottom-22 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur-2xl border border-white/15 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-2xl flex items-center gap-2 whitespace-nowrap"
+          style={{ transform: 'translateZ(25px)' }}
         >
-          <Icon icon="solar:global-bold-duotone" className="text-purple-400 text-base" />
-          <span className="text-[11px] font-bold text-slate-300">
-            Dakar • Thiès • Saint-Louis • Ziguinchor
+          <Icon icon="solar:global-bold-duotone" className="text-purple-400 text-sm sm:text-base shrink-0" />
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-300">
+            Dakar • Thiès • Saint-Louis
           </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
         </motion.div>
       </motion.div>
     </div>
   );
 };
-
