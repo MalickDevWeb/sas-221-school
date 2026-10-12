@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
-
 import { parentApi } from '@/features/parent/api';
+import type { ParentApplication } from '@/features/parent/types';
 
-const STATUT_CFG = {
+const STATUT_CFG: Record<string, { label: string; color: string; bg: string; icon: string; dot: string }> = {
   EN_ATTENTE: {
     label: 'En attente',
     color: 'text-amber-700',
@@ -19,6 +19,13 @@ const STATUT_CFG = {
     icon: 'check_circle',
     dot: 'bg-emerald-500',
   },
+  ACCEPTE: {
+    label: 'Accepté',
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-50 border-emerald-200',
+    icon: 'check_circle',
+    dot: 'bg-emerald-500',
+  },
   REFUSE: {
     label: 'Refusé',
     color: 'text-red-700',
@@ -28,21 +35,29 @@ const STATUT_CFG = {
   },
 };
 
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return 'Date non spécifiée';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 export function ParentApplicationTrackingPage() {
   const navigate = useNavigate();
-  const [dossiers, setDossiers] = useState<any[]>([]);
+  const [dossiers, setDossiers] = useState<ParentApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     parentApi.getApplications()
-      .then((data: any) => {
-        setDossiers(data || []);
-        if (data && data.length > 0) {
-          setExpanded(data[0].id);
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setDossiers(list);
+        if (list.length > 0) {
+          setExpanded(list[0].id);
         }
       })
-      .catch((err: any) => {
+      .catch((err) => {
         console.warn("Erreur chargement candidatures:", err);
         setDossiers([]);
       })
@@ -135,7 +150,7 @@ export function ParentApplicationTrackingPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-[9px] text-neutral-400 font-semibold">
-                    {new Date(d.dateDepot).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })}
+                    {formatDate(d.dateDepot)}
                   </p>
                   <span translate="no" className={`material-symbols-outlined text-[18px] text-neutral-400 mt-1 block transition-transform ${isOpen ? 'rotate-180' : ''}`}>
                     expand_more

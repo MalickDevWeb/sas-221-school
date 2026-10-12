@@ -55,7 +55,7 @@ export const parentApi = {
     await apiClient.post('/parent/inscrire-enfant', payload);
   },
 
-  getApplications: async (): Promise<any[]> => {
+  getApplications: async (): Promise<import('./types').ParentApplication[]> => {
     const { data } = await apiClient.get('/parent/candidatures');
     return data;
   },

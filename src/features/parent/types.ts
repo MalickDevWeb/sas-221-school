@@ -89,3 +89,16 @@ export interface EnrollChildPayload {
   anneeBac?: string;
   mentionBac?: string;
 }
+
+export interface ParentApplication {
+  id: string;
+  enfant: string;
+  filiere: string;
+  niveau: string;
+  dateDepot: string;
+  statut: 'EN_ATTENTE' | 'ACCEPTE' | 'VALIDE' | 'REFUSE';
+  progress: number;
+  etape: string;
+  commentaire?: string;
+}
+
