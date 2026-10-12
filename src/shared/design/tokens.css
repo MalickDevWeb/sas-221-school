@@ -4,9 +4,9 @@
 
 :root {
   /* ─── COULEURS DE MARQUE ─── */
-  --color-brand-500:  #B3181C; /* Professional Polish Crimson Red */
-  --color-brand-600:  #8F1316;
-  --color-brand-700:  #6B0E10;
+  --color-brand-500:  var(--color-primary, #B3181C);
+  --color-brand-600:  var(--color-primary-dark, #8F1316);
+  --color-brand-700:  var(--color-primary-dark, #6B0E10);
 
   /* ─── COULEURS SÉMANTIQUES ─── */
   --color-success-light: #EFF6FF;

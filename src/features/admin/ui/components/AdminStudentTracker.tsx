@@ -30,7 +30,7 @@ export function AdminStudentTracker({ students, onUpdate }: { students: TrackerS
   return (
     <div className="bg-white p-3.5 border border-[#E2DCDA] rounded-xl text-xs space-y-3" id="admin-student-tracker">
       <div className="flex justify-between items-center pb-1.5 border-b border-[#E2DCDA]/60">
-        <h5 className="font-extrabold text-[#B3181C] uppercase tracking-wider text-[10.5px]">Suivi Individuel des Élèves</h5>
+        <h5 className="font-extrabold text-primary uppercase tracking-wider text-[10.5px]">Suivi Individuel des Élèves</h5>
         <span className="text-[9px] text-[#8E7977] font-bold">Dossier académique et observations</span>
       </div>
 
@@ -47,7 +47,7 @@ export function AdminStudentTracker({ students, onUpdate }: { students: TrackerS
           <div className="grid grid-cols-2 gap-2 bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/60">
             <div>
               <p className="text-[9px] text-[#8E7977] font-bold uppercase">Moyenne Générale</p>
-              <p className="text-sm font-black text-[#B3181C]">{student.average || 12}/20</p>
+              <p className="text-sm font-black text-primary">{student.average || 12}/20</p>
             </div>
             <div>
               <p className="text-[9px] text-[#8E7977] font-bold uppercase">Humeur / Statut</p>
@@ -84,10 +84,10 @@ export function AdminStudentTracker({ students, onUpdate }: { students: TrackerS
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-[#8E7977] uppercase">Ajouter un signalement</label>
-                <input value={text} onChange={e => setText(e.target.value)} placeholder="Texte de l'observation..." className="w-full h-8 bg-[#FAF8F6] border border-[#E2DCDA] rounded-md px-2 text-[10px] outline-none focus:border-[#B3181C]" required />
+                <input value={text} onChange={e => setText(e.target.value)} placeholder="Texte de l'observation..." className="w-full h-8 bg-[#FAF8F6] border border-[#E2DCDA] rounded-md px-2 text-[10px] outline-none focus:border-primary" required />
               </div>
             </div>
-            <button type="submit" disabled={loading} className="w-full h-8 bg-[#B3181C] hover:bg-[#8F1316] text-white font-bold uppercase rounded-md tracking-wider transition-all">{loading ? 'Saisie...' : 'Enregistrer la note'}</button>
+            <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-md tracking-wider transition-all">{loading ? 'Saisie...' : 'Enregistrer la note'}</button>
           </form>
         </div>
       ) : (

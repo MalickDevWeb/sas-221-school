@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
   onLogout: () => void;
@@ -7,15 +8,17 @@ interface Props {
 
 export function AdminHeader({ onLogout }: Props) {
   const { utilisateur } = useAuthStore();
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
 
   return (
     <header className="w-full top-0 sticky z-[40] bg-white/90 backdrop-blur-md border-b border-neutral-gray-200/80 shadow-sm animate-fade-in" id="admin-header">
       <div className="flex items-center justify-between px-6 md:px-8 w-full h-16 gap-4 relative">
         <div className="flex items-center gap-3 shrink-0">
-          <span className="font-headline-md text-headline-md font-black text-brand-red-deep md:hidden tracking-tight">École 221</span>
+          <span className="font-headline-md text-headline-md font-black text-brand-red-deep md:hidden tracking-tight">{schoolName}</span>
           <div className="hidden md:flex items-center text-neutral-gray-400 select-none">
             <span translate="no" className="material-symbols-outlined text-brand-red-deep text-[22px] animate-pulse">school</span>
-            <span className="ml-2 font-bold text-xs text-[#1E293B] uppercase tracking-wider">Pilotage Académique</span>
+            <span className="ml-2 font-bold text-xs text-[#1E293B] uppercase tracking-wider">{schoolName} · Pilotage</span>
           </div>
         </div>
 
@@ -31,7 +34,7 @@ export function AdminHeader({ onLogout }: Props) {
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onLogout}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase rounded-xl bg-[#FFF5F5] hover:bg-[#FFEBEB] text-[#B3181C] border border-[#FFD1D1] transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase rounded-xl bg-primary-light hover:bg-primary-light text-primary border border-[#FFD1D1] transition-all cursor-pointer"
             title="Se déconnecter"
           >
             <span translate="no" className="material-symbols-outlined text-[16px]">logout</span>

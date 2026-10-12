@@ -45,20 +45,20 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] uppercase font-black text-neutral-400">Niveau</label>
-                <select value={level} onChange={e => setLevel(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-[#B3181C]">
+                <select value={level} onChange={e => setLevel(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
                   {['L1', 'L2', 'L3', 'M1', 'M2'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-neutral-400">Filière d'Étude</label>
-                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-[#B3181C]">
+                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
                   {filieres.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               </div>
             </div>
             <div>
               <label className="text-[10px] uppercase font-black text-neutral-400">Libellé Personnalisé (Optionnel)</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]" placeholder="Laisser vide pour calcul automatique" />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary" placeholder="Laisser vide pour calcul automatique" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -101,7 +101,7 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
               <button type="button" onClick={onClose} className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-500 hover:bg-neutral-50 bg-white cursor-pointer">
                 Annuler
               </button>
-              <button type="submit" className="px-4 py-2 bg-[#B3181C] text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0">
+              <button type="submit" className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0">
                 Enregistrer
               </button>
             </div>

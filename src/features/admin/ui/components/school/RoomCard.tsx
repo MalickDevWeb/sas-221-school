@@ -8,6 +8,11 @@ interface RoomCardProps {
 
 export function RoomCard({ room, onSelect }: RoomCardProps) {
   const isDisponible = room.status === 'Disponible';
+  const equipmentList = Array.isArray(room.equipment)
+    ? room.equipment
+    : typeof room.equipment === 'string' && (room.equipment as string).trim().length > 0
+    ? (room.equipment as string).split(',').map((e: string) => e.trim()).filter(Boolean)
+    : [];
 
   return (
     <div className="bg-white border border-[#E2DCDA] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-full">
@@ -30,7 +35,7 @@ export function RoomCard({ room, onSelect }: RoomCardProps) {
 
       <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-2.5">
         <div className="flex flex-wrap gap-1">
-          {room.equipment.map(eq => (
+          {equipmentList.map(eq => (
             <span key={eq} className="text-[8px] bg-neutral-100 text-neutral-500 font-bold px-1.5 py-0.5 rounded uppercase">
               {eq}
             </span>

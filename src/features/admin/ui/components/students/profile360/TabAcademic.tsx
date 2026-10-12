@@ -34,7 +34,7 @@ export function TabAcademic({ selectedStudent, erpData }: Props) {
             onClick={() => setSelectedYear(yr)}
             className={`px-3 py-1.5 rounded-xl font-black transition-all cursor-pointer ${
               selectedYear === yr
-                ? 'bg-[#B3181C] text-white'
+                ? 'bg-primary text-white'
                 : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
             }`}
           >
@@ -50,7 +50,7 @@ export function TabAcademic({ selectedStudent, erpData }: Props) {
         </div>
         <div className="border border-neutral-200/60 p-3.5 rounded-2xl bg-neutral-50/50">
           <p className="text-[10px] text-neutral-400 font-bold uppercase">Moyenne Générale</p>
-          <p className="text-[#B3181C] font-black text-sm mt-0.5">{yearSummary.gpa}</p>
+          <p className="text-primary font-black text-sm mt-0.5">{yearSummary.gpa}</p>
         </div>
         <div className="border border-neutral-200/60 p-3.5 rounded-2xl bg-neutral-50/50">
           <p className="text-[10px] text-neutral-400 font-bold uppercase">Crédits ECTS validés</p>
@@ -61,7 +61,7 @@ export function TabAcademic({ selectedStudent, erpData }: Props) {
       <div className="border border-neutral-100 rounded-2xl overflow-hidden bg-white">
         <div className="bg-neutral-50 border-b border-neutral-100 px-4 py-3 flex items-center justify-between">
           <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <span translate="no" className="material-symbols-outlined text-sm text-[#B3181C]">view_list</span>
+            <span translate="no" className="material-symbols-outlined text-sm text-primary">view_list</span>
             Programme d'Études & Syllabus Courant ({selectedYear})
           </h4>
           <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[9px] font-black uppercase">

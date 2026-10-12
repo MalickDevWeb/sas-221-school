@@ -16,7 +16,7 @@ export function VigilMobileNav() {
           end 
           className={({ isActive }) => `flex flex-col items-center justify-center transition-all duration-150 py-1.5 flex-1 ${
             isActive 
-              ? 'text-[#E31E24] font-black' 
+              ? 'text-primary font-black' 
               : 'text-neutral-500 hover:text-neutral-800 font-bold'
           }`}
         >

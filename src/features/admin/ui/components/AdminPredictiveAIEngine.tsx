@@ -29,7 +29,7 @@ export function AdminPredictiveAIEngine() {
   return (
     <div className="space-y-4" id="predictive-ai-root">
       <div className="bg-gradient-to-r from-red-50/50 to-amber-50/20 border border-red-200/60 p-5 rounded-2xl shadow-sm space-y-3">
-        <h4 className="text-xs font-black text-[#B3181C] uppercase tracking-wider flex items-center gap-1.5">
+        <h4 className="text-xs font-black text-primary uppercase tracking-wider flex items-center gap-1.5">
           <span translate="no" className="material-symbols-outlined text-lg animate-pulse">psychology</span>
           Assistant IA Prédictif & Analyse Décisionnelle
         </h4>
@@ -39,18 +39,18 @@ export function AdminPredictiveAIEngine() {
             placeholder="Posez une question en langage naturel (ex: Qui risque de décrocher ?)..."
             value={query}
             onChange={e => setQuery(e.target.value)}
-            className="flex-grow px-4 py-2 border border-red-200/60 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#B3181C] bg-white"
+            className="flex-grow px-4 py-2 border border-red-200/60 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary bg-white"
           />
-          <button onClick={() => handleAsk(query)} className="px-5 py-2 bg-[#B3181C] text-white rounded-xl text-xs font-bold hover:bg-[#B3181C]/90 transition-colors cursor-pointer shrink-0">Interroger</button>
+          <button onClick={() => handleAsk(query)} className="px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer shrink-0">Interroger</button>
         </div>
         <div className="flex flex-wrap gap-1.5 pt-1">
           {SUGGESTIONS.map(s => (
-            <button key={s} onClick={() => handleAsk(s)} className="text-[10px] bg-white border border-red-200 text-[#B3181C] px-2.5 py-1 rounded-full hover:bg-red-50/50 transition-all font-bold cursor-pointer">{s}</button>
+            <button key={s} onClick={() => handleAsk(s)} className="text-[10px] bg-white border border-red-200 text-primary px-2.5 py-1 rounded-full hover:bg-red-50/50 transition-all font-bold cursor-pointer">{s}</button>
           ))}
         </div>
       </div>
 
-      {loading && <div className="text-center p-8 text-xs font-black text-[#B3181C] animate-pulse">L'IA de pilotage analyse les modèles prédictifs de l'établissement...</div>}
+      {loading && <div className="text-center p-8 text-xs font-black text-primary animate-pulse">L'IA de pilotage analyse les modèles prédictifs de l'établissement...</div>}
 
       {result && !loading && (
         <div className="bg-white border border-neutral-200/80 p-5 rounded-2xl shadow-sm text-xs font-bold text-neutral-600 whitespace-pre-line leading-relaxed border-l-4 border-l-[#B3181C]">
@@ -73,9 +73,9 @@ export function AdminPredictiveAIEngine() {
           <span className="text-[10px] uppercase font-black text-neutral-400">Prévision Trésorerie (Semestre Suivant)</span>
           <div className="flex items-center justify-between">
             <span>Projection à 6 mois</span>
-            <span className="text-[#B3181C] font-extrabold">+18 200 000 FCFA</span>
+            <span className="text-primary font-extrabold">+18 200 000 FCFA</span>
           </div>
-          <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden"><div className="bg-[#B3181C] h-full" style={{ width: '75%' }}></div></div>
+          <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden"><div className="bg-primary h-full" style={{ width: '75%' }}></div></div>
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
         />
         <button
           type="submit"
-          className="px-3 py-1.5 bg-[#B3181C] hover:bg-[#921316] text-white text-[10px] font-black uppercase rounded-lg cursor-pointer shrink-0 border-0"
+          className="px-3 py-1.5 bg-primary hover:bg-[#921316] text-white text-[10px] font-black uppercase rounded-lg cursor-pointer shrink-0 border-0"
         >
           Valider
         </button>

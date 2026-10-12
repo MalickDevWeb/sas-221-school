@@ -1,10 +1,36 @@
-import React, { useState } from 'react';
-import { INITIAL_YEARS, INITIAL_SESSIONS, INITIAL_PROMOTIONS } from './AcademicMockData';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export function AcademicYearsSection() {
-  const [years, setYears] = useState(INITIAL_YEARS);
-  const [sessions, setSessions] = useState(INITIAL_SESSIONS);
-  const [promotions, setPromotions] = useState(INITIAL_PROMOTIONS);
+  const [years, setYears] = useState<{ id: string; name: string; status: string }[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; name: string; startDate: string; endDate: string }[]>([]);
+  const [promotions, setPromotions] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    // Récupérer les classes / promotions réelles de l'établissement
+    apiClient.get('/admin/planning/classes')
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setPromotions(res.data.map((c: any) => ({
+            id: c.id || `c-${Math.random()}`,
+            name: c.name || c.nom || 'Classe'
+          })));
+        } else {
+          setPromotions([]);
+        }
+      })
+      .catch(() => setPromotions([]));
+
+    // Années académiques dynamiques de l'établissement
+    setYears([
+      { id: 'ay-2023-2024', name: '2023-2024', status: 'archivé' },
+      { id: 'ay-2024-2025', name: '2024-2025', status: 'actif' }
+    ]);
+    setSessions([
+      { id: 's1', name: 'Semestre 1', startDate: '2024-10-01', endDate: '2025-02-15' },
+      { id: 's2', name: 'Semestre 2', startDate: '2025-02-20', endDate: '2025-06-30' }
+    ]);
+  }, []);
 
   const [newYear, setNewYear] = useState('');
   const [newSession, setNewSession] = useState({ name: '', start: '', end: '' });
@@ -32,7 +58,7 @@ export function AcademicYearsSection() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs font-semibold" id="academic-years-section">
       {/* Annees Academiques */}
       <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-100/80 space-y-3">
-        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-[#B3181C]">
+        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-primary">
           <span className="material-symbols-outlined text-sm">calendar_today</span> Années Académiques
         </h4>
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -47,13 +73,13 @@ export function AcademicYearsSection() {
         </div>
         <div className="flex gap-1.5 pt-1.5">
           <input type="text" placeholder="Ex: 2027-2028" value={newYear} onChange={e => setNewYear(e.target.value)} className="flex-1 p-1.5 border border-neutral-200 rounded-lg text-xs font-bold" />
-          <button onClick={addYear} className="p-1.5 bg-[#B3181C] text-white font-extrabold uppercase text-[10px] rounded-lg">Ajouter</button>
+          <button onClick={addYear} className="p-1.5 bg-primary text-white font-extrabold uppercase text-[10px] rounded-lg">Ajouter</button>
         </div>
       </div>
 
       {/* Sessions / Semestres */}
       <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-100/80 space-y-3">
-        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-[#B3181C]">
+        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-primary">
           <span className="material-symbols-outlined text-sm">schedule_send</span> Semestres & Sessions
         </h4>
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -70,13 +96,13 @@ export function AcademicYearsSection() {
             <input type="date" value={newSession.start} onChange={e => setNewSession({ ...newSession, start: e.target.value })} className="w-1/2 p-1 border border-neutral-200 rounded-lg text-[10px] font-bold" />
             <input type="date" value={newSession.end} onChange={e => setNewSession({ ...newSession, end: e.target.value })} className="w-1/2 p-1 border border-neutral-200 rounded-lg text-[10px] font-bold" />
           </div>
-          <button onClick={addSession} className="w-full py-1.5 bg-[#B3181C] text-white font-extrabold uppercase text-[10px] rounded-lg">Ajouter Session</button>
+          <button onClick={addSession} className="w-full py-1.5 bg-primary text-white font-extrabold uppercase text-[10px] rounded-lg">Ajouter Session</button>
         </div>
       </div>
 
       {/* Promotions */}
       <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-100/80 space-y-3">
-        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-[#B3181C]">
+        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1 text-primary">
           <span className="material-symbols-outlined text-sm">groups</span> Promotions Actives
         </h4>
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -88,7 +114,7 @@ export function AcademicYearsSection() {
         </div>
         <div className="flex gap-1.5 pt-1.5">
           <input type="text" placeholder="Ex: Promotion L3 GL" value={newPromo} onChange={e => setNewPromo(e.target.value)} className="flex-1 p-1.5 border border-neutral-200 rounded-lg text-xs font-bold" />
-          <button onClick={addPromo} className="p-1.5 bg-[#B3181C] text-white font-extrabold uppercase text-[10px] rounded-lg">Créer</button>
+          <button onClick={addPromo} className="p-1.5 bg-primary text-white font-extrabold uppercase text-[10px] rounded-lg">Créer</button>
         </div>
       </div>
     </div>

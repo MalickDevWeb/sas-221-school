@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useParentContext } from './ParentLayout';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 export function ParentHeader() {
   const { messages, unreadCount, markRead } = useParentContext();
   const [showNotifications, setShowNotifications] = useState(false);
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
 
   // Pour les notifications, on utilise les messages non lus + quelques alertes simulées
   const alertes = [
@@ -15,7 +18,7 @@ export function ParentHeader() {
     <header className="h-16 border-b border-neutral-200 bg-white/80 backdrop-blur-md sticky top-0 z-[100] px-4 md:px-8 flex items-center justify-between">
       <div className="flex items-center gap-3">
         {/* Réservé pour le burger menu sur mobile si nécessaire */}
-        <p className="text-sm font-black text-neutral-800 md:hidden">École 221</p>
+        <p className="text-sm font-black text-neutral-800 md:hidden">{schoolName}</p>
       </div>
 
       <div className="flex items-center gap-4 ml-auto">

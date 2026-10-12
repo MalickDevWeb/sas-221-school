@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { addEcole221Footer, addEcole221Header, ECOLE_221_PALETTE } from '@/shared/lib/pdfTheme';
+import { addEcole221Footer, addEcole221Header, getActiveTenantPdfTheme } from '@/shared/lib/pdfTheme';
 import { CourseSession } from '../domain/Schedule';
 
 /**
@@ -20,10 +20,11 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
   const marginX = 15;
   let currentY = 15;
 
-  const { primary: primaryColor, secondary: secondaryColor, neutral: neutralDark, lightBg, border: borderLight } = ECOLE_221_PALETTE;
+  const tenantTheme = getActiveTenantPdfTheme();
+  const { primary: primaryColor, secondary: secondaryColor, neutral: neutralDark, lightBg, border: borderLight } = tenantTheme.palette;
 
   const { currentY: headerY } = await addEcole221Header(doc, {
-    title: 'ÉCOLE 221 — PORTAIL ACADÉMIQUE',
+    title: `${tenantTheme.schoolName.toUpperCase()} — PORTAIL ACADÉMIQUE`,
     subtitle: 'EMPLOI DU TEMPS INDIVIDUEL DE L\'ÉTUDIANT',
     meta: `Semaine du 23 au 27 Octobre 2023 | Classe : ${className} | Semestre 1`,
     generatedAt: new Date(),
@@ -194,10 +195,10 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
 
   // --- BAS DE PAGE (FOOTER) ---
   addEcole221Footer(doc, [
-    "Ce document est un planning officiel de l'Université École 221.",
+    `Ce document est un planning officiel de ${tenantTheme.schoolName}.`,
     "Toute modification frauduleuse est passible de sanctions disciplinaires. Consultez votre espace numérique pour les mises à jour.",
   ]);
 
   // Sauvegarde automatique du PDF
-  doc.save(`mon-emploi-du-temps-${className.toLowerCase()}.pdf`);
+  doc.save(`emploi_du_temps_${tenantTheme.slug}_${className.toLowerCase()}.pdf`);
 }

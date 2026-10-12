@@ -12,7 +12,7 @@ interface AdmissionProps {
 export function AdmissionCard({ admissionDetails }: AdmissionProps) {
   return (
     <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2" id="admission-card">
-      <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-[#B3181C]">
+      <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-primary">
         <span translate="no" className="material-symbols-outlined text-sm">school</span>
         Parcours Pré-Universitaire (Admission)
       </h4>
@@ -27,7 +27,7 @@ export function AdmissionCard({ admissionDetails }: AdmissionProps) {
         </div>
         <div>
           <p className="text-[9px] text-neutral-400 font-bold uppercase">Note Bac</p>
-          <p className="text-[#B3181C] font-extrabold">{admissionDetails.bacGrade}</p>
+          <p className="text-primary font-extrabold">{admissionDetails.bacGrade}</p>
         </div>
         <div>
           <p className="text-[9px] text-neutral-400 font-bold uppercase">Mention Bac</p>
@@ -48,7 +48,7 @@ interface MedicalProps {
 export function MedicalCard({ bloodGroup, setBloodGroup, allergies, setAllergies }: MedicalProps) {
   return (
     <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2" id="medical-card">
-      <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-[#B3181C]">
+      <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-primary">
         <span translate="no" className="material-symbols-outlined text-sm">medical_services</span>
         Fiche Médicale (Sécurisée)
       </h4>

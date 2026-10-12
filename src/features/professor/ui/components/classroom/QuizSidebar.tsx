@@ -57,7 +57,7 @@ export function QuizSidebar({
               onClick={() => onSelectQuiz(qz.id)}
               className={`group flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                 activeQuizId === qz.id
-                  ? 'bg-[#FFF5F5] border-[#B3181C]/20 text-brand-red-deep font-black'
+                  ? 'bg-primary-light border-primary/20 text-brand-red-deep font-black'
                   : 'bg-white border-neutral-100 text-neutral-700 hover:bg-neutral-50'
               }`}
             >
@@ -71,7 +71,7 @@ export function QuizSidebar({
                   e.stopPropagation();
                   onDeleteQuiz(qz.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-brand-red-deep p-1 rounded-lg hover:bg-[#FFF5F5] border-0 bg-transparent transition-all cursor-pointer shrink-0"
+                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-brand-red-deep p-1 rounded-lg hover:bg-primary-light border-0 bg-transparent transition-all cursor-pointer shrink-0"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

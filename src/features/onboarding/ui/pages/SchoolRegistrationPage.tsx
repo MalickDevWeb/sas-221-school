@@ -224,7 +224,14 @@ export const SchoolRegistrationPage: React.FC = () => {
               Déjà inscrit ?{' '}
               <button
                 type="button"
-                onClick={() => navigate(ROUTES.login)}
+                onClick={() => {
+                  const targetSlug = formData.slug?.trim() || registeredOrg?.slug;
+                  if (targetSlug) {
+                    navigate(`/t/${targetSlug}/login`);
+                  } else {
+                    navigate(ROUTES.login);
+                  }
+                }}
                 className="text-purple-400 hover:text-purple-300 font-bold hover:underline transition-colors ml-1 cursor-pointer"
               >
                 Se connecter

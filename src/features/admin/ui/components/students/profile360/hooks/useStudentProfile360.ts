@@ -18,10 +18,9 @@ export function useStudentProfile360(studentId: string, studentName: string) {
         throw new Error('Données vides');
       }
     } catch (err: any) {
-      console.warn('Backend profile360 endpoint failed, falling back to local simulation:', err.message);
-      // Fallback to high-fidelity mock data so the app never breaks
-      const fallback = getStudentERPData(studentId, studentName);
-      setErpData(fallback);
+      console.warn("Erreur lors de la récupération du profil 360 réel:", err?.message);
+      setError(err?.response?.data?.message || err?.message || "Impossible de charger le dossier 360.");
+      setErpData(null);
     } finally {
       setLoading(false);
     }

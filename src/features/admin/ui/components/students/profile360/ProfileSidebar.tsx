@@ -45,7 +45,7 @@ export function ProfileSidebar({ activeSection, onSelectSection }: Props) {
             onClick={() => onSelectSection(item.id)}
             className={`flex items-center gap-2 px-3 py-2 text-left rounded-xl transition-all whitespace-nowrap text-xs font-extrabold cursor-pointer w-auto lg:w-full ${
               isActive
-                ? 'bg-[#B3181C]/10 text-[#B3181C]'
+                ? 'bg-primary/10 text-primary'
                 : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900'
             }`}
           >

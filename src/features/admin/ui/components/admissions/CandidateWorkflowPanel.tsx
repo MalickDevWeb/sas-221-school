@@ -24,7 +24,7 @@ export function CandidateWorkflowPanel({ candidate, onUpdateCandidate }: Props) 
             onClick={() => onUpdateCandidate({ ...candidate, step: step.id })}
             className={`px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wider font-black border transition-all cursor-pointer ${
               candidate.step === step.id
-                ? 'bg-[#B3181C] text-white border-[#B3181C]'
+                ? 'bg-primary text-white border-primary'
                 : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'
             }`}
           >

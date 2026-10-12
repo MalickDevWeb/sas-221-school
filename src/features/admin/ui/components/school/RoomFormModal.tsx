@@ -33,7 +33,7 @@ export function RoomFormModal({ onClose, onSubmit }: RoomFormModalProps) {
     <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl p-6 border border-neutral-200 w-full max-w-md space-y-4">
         <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-1.5">
-          <span translate="no" className="material-symbols-outlined text-[#B3181C]">add_circle</span>
+          <span translate="no" className="material-symbols-outlined text-primary">add_circle</span>
           <span>Ajouter une Nouvelle Salle</span>
         </h3>
         
@@ -45,7 +45,7 @@ export function RoomFormModal({ onClose, onSubmit }: RoomFormModalProps) {
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]"
+              className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
               placeholder="ex: Salle 301, Labo Informatique"
             />
           </div>
@@ -57,7 +57,7 @@ export function RoomFormModal({ onClose, onSubmit }: RoomFormModalProps) {
               onChange={e => setCapacity(e.target.value)}
               required
               min="1"
-              className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]"
+              className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
             />
           </div>
           <div>
@@ -71,7 +71,7 @@ export function RoomFormModal({ onClose, onSubmit }: RoomFormModalProps) {
                     key={eq}
                     onClick={() => toggleEquipment(eq)}
                     className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${
-                      active ? 'bg-[#B3181C] text-white border-transparent' : 'bg-neutral-50 text-neutral-500 border-neutral-200'
+                      active ? 'bg-primary text-white border-transparent' : 'bg-neutral-50 text-neutral-500 border-neutral-200'
                     }`}
                   >
                     {eq}
@@ -92,7 +92,7 @@ export function RoomFormModal({ onClose, onSubmit }: RoomFormModalProps) {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-[#B3181C] text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer"
+            className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer"
           >
             Enregistrer
           </button>

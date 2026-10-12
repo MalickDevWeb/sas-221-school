@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarWidget } from '@/features/auth/ui/components/CalendarWidget';
 import { ProfileDropdown } from '@/shared/components';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
   readonly title: string;
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export function ProfessorHeader({ title, profName, activeTab, onSelectTab, triggerToast }: Props) {
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -34,10 +37,10 @@ export function ProfessorHeader({ title, profName, activeTab, onSelectTab, trigg
       )}
       <div className="flex items-center justify-between px-6 md:px-8 w-full h-16 gap-4 relative z-[190]">
         <div className="flex items-center gap-3 shrink-0">
-          <span className="font-headline-md text-headline-md font-black text-brand-red-deep md:hidden tracking-tight">École 221</span>
+          <span className="font-headline-md text-headline-md font-black text-brand-red-deep md:hidden tracking-tight">{schoolName}</span>
           <div className="hidden md:flex items-center text-neutral-gray-400">
             <span translate="no" className="material-symbols-outlined text-brand-red-deep text-[22px] mr-2">school</span>
-            <span className="text-xs font-black uppercase text-secondary tracking-widest">Espace Enseignant</span>
+            <span className="text-xs font-black uppercase text-secondary tracking-widest">{schoolName} · Espace Enseignant</span>
           </div>
         </div>
         <div className="flex-grow" />

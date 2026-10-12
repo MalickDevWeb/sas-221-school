@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 import type { ChildProfile } from '@/features/parent/types';
 
 interface Props {
@@ -24,6 +25,8 @@ const NAV_ITEMS = [
 export function ParentSidebar({ children, selectedChildId, onSelectChild, unreadCount }: Props) {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
 
   return (
     <aside className="hidden md:flex flex-col h-screen pb-8 gap-4 bg-surface-container-low border-r border-[#E0E0E0] w-64 fixed left-0 top-0 z-[20] px-4 select-none overflow-y-auto no-scrollbar" style={{ paddingTop: '10px' }}>
@@ -38,7 +41,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
           <span translate="no" className="material-symbols-outlined text-[20px] font-bold">family_restroom</span>
         </div>
         <div className="flex flex-col mt-3">
-          <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">École 221</h1>
+          <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Parent</p>
         </div>
         <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2025-26</p>
@@ -97,7 +100,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
             <span translate="no" className="material-symbols-outlined text-center text-[22px]">{icon}</span>
             <span className="leading-none">{label}</span>
             {label === 'Messages' && unreadCount > 0 && (
-              <span className="ml-auto bg-[#B3181C] text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center shrink-0">
+              <span className="ml-auto bg-primary text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center shrink-0">
                 {unreadCount}
               </span>
             )}

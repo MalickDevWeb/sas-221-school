@@ -38,7 +38,7 @@ export function ProfessorGradesView({ selectedCourse, grades, editCC, editExam, 
 
           <div className="relative">
             <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-neutral-400" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un élève..." className="pl-9.5 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 focus:border-[#B3181C] text-xs font-bold text-neutral-700 rounded-xl outline-none w-full sm:w-[240px] transition-colors" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un élève..." className="pl-9.5 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 focus:border-primary text-xs font-bold text-neutral-700 rounded-xl outline-none w-full sm:w-[240px] transition-colors" />
           </div>
         </div>
 

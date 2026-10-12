@@ -48,7 +48,7 @@ export function VigilPatrolPage() {
 
       {feedback && (
         <div className={APP_CONFIG.theme.classes.feedbackOverlay}>
-          <div className={`rounded-3xl p-6 text-white text-center shadow-2xl flex flex-col items-center gap-3 transition-all transform scale-100 opacity-100 max-w-xs w-full backdrop-blur-md ${feedback.success ? 'bg-[#28A745]/95' : 'bg-[#ba0013]/95'}`}>
+          <div className={`rounded-3xl p-6 text-white text-center shadow-2xl flex flex-col items-center gap-3 transition-all transform scale-100 opacity-100 max-w-xs w-full backdrop-blur-md ${feedback.success ? 'bg-[#28A745]/95' : 'bg-primary/95'}`}>
             {feedback.success ? <CheckCircle2 className="h-14 w-14 animate-[bounce_1s_infinite]" /> : <XCircle className="h-14 w-14 animate-pulse" />}
             <p className="font-extrabold tracking-wide uppercase text-sm">{feedback.message}</p>
           </div>
@@ -58,8 +58,8 @@ export function VigilPatrolPage() {
       {showBadge && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col items-center justify-center p-4 animate-fade-in">
           <div className="relative w-full max-w-[400px] bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center gap-6">
-            <button type="button" onClick={() => setShowBadge(false)} className="absolute top-4 right-4 h-9 w-9 rounded-full bg-neutral-100 hover:bg-red-50 text-neutral-500 hover:text-[#ba0013] flex items-center justify-center transition-colors active:scale-90"><span className="text-lg">×</span></button>
-            <div className="flex flex-col gap-1 mt-2"><span className="text-xs text-[#ba0013] font-black uppercase tracking-widest">GROUPE SCOLAIRE</span><h3 className="text-lg font-black text-neutral-800">Badge Borne d'Accès</h3></div>
+            <button type="button" onClick={() => setShowBadge(false)} className="absolute top-4 right-4 h-9 w-9 rounded-full bg-neutral-100 hover:bg-red-50 text-neutral-500 hover:text-primary flex items-center justify-center transition-colors active:scale-90"><span className="text-lg">×</span></button>
+            <div className="flex flex-col gap-1 mt-2"><span className="text-xs text-primary font-black uppercase tracking-widest">GROUPE SCOLAIRE</span><h3 className="text-lg font-black text-neutral-800">Badge Borne d'Accès</h3></div>
             <div className="p-8 bg-white border-2 border-neutral-100 rounded-3xl shadow-xs flex items-center justify-center w-72 h-72"><RenderQRCode className="w-full h-full select-none" /></div>
             <div className="flex flex-col gap-1 text-xs text-neutral-400 font-bold uppercase tracking-wider">
               <p className="text-neutral-700 font-extrabold flex items-center gap-1.5 justify-center">

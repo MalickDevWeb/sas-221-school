@@ -24,7 +24,7 @@ export function ExcelImportTab({ onAddStudents }: Props) {
           <h4 className="font-extrabold text-[#1E293B] text-sm">Importateur Excel / CSV</h4>
           <p className="text-[10px] text-neutral-400 font-semibold">Téléverser et valider des listes d'étudiants.</p>
         </div>
-        <button onClick={downloadTemplate} className="px-2.5 py-1 bg-[#B3181C]/10 hover:bg-[#B3181C]/20 text-[#B3181C] font-black uppercase text-[9px] tracking-wider rounded-lg flex items-center gap-1 transition-all">
+        <button onClick={downloadTemplate} className="px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary font-black uppercase text-[9px] tracking-wider rounded-lg flex items-center gap-1 transition-all">
           <span translate="no" className="material-symbols-outlined text-xs">download</span>
           <span>Modèle CSV</span>
         </button>

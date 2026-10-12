@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getDynamicBadgeData } from '@/shared/lib/qrSecurity';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface StudentHeaderBannerProps {
   attendancesCount: number;
@@ -12,6 +13,9 @@ interface StudentHeaderBannerProps {
 export function StudentHeaderBanner({ 
   attendancesCount, onPointer, onShowBadge, studentName, matricule 
 }: StudentHeaderBannerProps) {
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name ? currentTenant.name : "l'École 221";
+
   const currentHour = new Date().getHours();
   const nameToDisplay = studentName ? studentName.split(' ')[0] : "Abdoulaye";
   const welcomeMessage = currentHour >= 18 
@@ -38,20 +42,20 @@ export function StudentHeaderBanner({
   return (
     <div className="-mt-6 mb-[19px] mr-0 flex flex-row items-center justify-between gap-3 sm:gap-6 bg-white p-4 sm:p-6 pr-4 sm:pr-6 py-4 sm:py-6 rounded-3xl border border-neutral-gray-200 shadow-sm relative overflow-hidden">
       {/* Background decoration elements */}
-      <div className="absolute right-0 top-0 -mt-12 -mr-12 w-48 h-48 rounded-full bg-brand-red-light/5 pointer-events-none"></div>
+      <div className="absolute right-0 top-0 -mt-12 -mr-12 w-48 h-48 rounded-full bg-primary-light/10 pointer-events-none"></div>
 
       <div className="flex-1 space-y-3 min-w-0">
         <div className="max-w-full">
           <h2 className="font-headline-lg font-black text-on-surface tracking-tight leading-tight max-w-full pl-[6px] text-[20px] sm:text-[45px]">{welcomeMessage}</h2>
           <p className="text-[14px] sm:text-[21px] sm:leading-[35px] leading-snug pl-[5px] max-w-full font-semibold text-secondary mt-1">
-            Bienvenue dans votre espace d'apprentissage en temps réel de <span className="text-brand-red-deep text-[21px] sm:text-[27px] font-bold not-italic">l'École 221</span>.
+            Bienvenue dans votre espace d'apprentissage en temps réel de <span className="text-primary text-[21px] sm:text-[27px] font-bold not-italic">{schoolName}</span>.
           </p>
         </div>
 
         {attendancesCount > 0 && (
-          <div className="inline-flex items-center gap-1.5 bg-[#B3181C]/5 border border-[#B3181C]/15 px-2.5 sm:px-3 py-1 rounded-full">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#B3181C] animate-pulse"></span>
-            <span className="font-mono text-[8.5px] sm:text-[9.5px] text-[#B3181C] font-black">
+          <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-2.5 sm:px-3 py-1 rounded-full">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+            <span className="font-mono text-[8.5px] sm:text-[9.5px] text-primary font-black">
               {attendancesCount} {attendancesCount === 1 ? 'pointage' : 'pointages'}
             </span>
           </div>
@@ -82,7 +86,7 @@ export function StudentHeaderBanner({
               referrerPolicy="no-referrer"
             />
             {/* Horizontal scan line effect */}
-            <div className="absolute inset-x-0 h-0.5 bg-[#B3181C]/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
+            <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>
         </div>
 
@@ -90,7 +94,7 @@ export function StudentHeaderBanner({
         <button
           id="scanner-action-btn"
           onClick={() => onPointer(nextPointerType)}
-          className="bg-brand-red-deep text-white rounded-xl font-black uppercase tracking-wider shadow-md hover:bg-[#961215] transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap border border-brand-red-deep/10 w-[145px] h-[35px] text-[10px] leading-[12px]"
+          className="bg-primary text-white rounded-xl font-black uppercase tracking-wider shadow-md hover:bg-primary-dark transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap border border-primary/10 w-[145px] h-[35px] text-[10px] leading-[12px]"
         >
           <span translate="no" className="material-symbols-outlined text-[11px] font-black animate-pulse">qr_code_scanner</span>
           Scanner ({nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})

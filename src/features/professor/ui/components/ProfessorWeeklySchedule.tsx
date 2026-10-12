@@ -35,10 +35,10 @@ export function ProfessorWeeklySchedule({ schedule, onEnterCourse }: Props) {
       <div className="absolute top-0 left-0 right-0 h-[3.5px] bg-gradient-to-r from-[#B3181C] via-[#8e1215] to-[#B3181C]" />
       <div className="flex justify-between items-center mb-4.5 shrink-0">
         <h3 className="font-sans text-[13.5px] font-black flex items-center gap-2.5 text-neutral-800">
-          <span translate="no" className="material-symbols-outlined text-[#B3181C] scale-105">calendar_month</span>
+          <span translate="no" className="material-symbols-outlined text-primary scale-105">calendar_month</span>
           Mon Emploi du Temps
         </h3>
-        <span className="font-extrabold text-[9.5px] tracking-wider uppercase bg-[#FFF5F5] text-[#B3181C] border border-[#B3181C]/10 px-3 py-1 rounded-xl">Semaine Courante</span>
+        <span className="font-extrabold text-[9.5px] tracking-wider uppercase bg-primary-light text-primary border border-primary/10 px-3 py-1 rounded-xl">Semaine Courante</span>
       </div>
 
       <ProfessorMobileSchedule

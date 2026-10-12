@@ -28,7 +28,7 @@ export function EmergencyTab({ onTriggerEmergency }: Props) {
   };
 
   return (
-    <div className="bg-[#FFF5F5] border border-red-200 rounded-2xl p-6 text-xs font-bold text-[#4A5568] space-y-6 shadow-sm" id="emergency-tab">
+    <div className="bg-primary-light border border-red-200 rounded-2xl p-6 text-xs font-bold text-[#4A5568] space-y-6 shadow-sm" id="emergency-tab">
       <div className="flex items-center gap-3 pb-3 border-b border-red-100">
         <span translate="no" className="material-symbols-outlined text-red-600 text-3xl font-black animate-pulse">campaign</span>
         <div>

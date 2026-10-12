@@ -1,0 +1,8 @@
+Nom Complet,Matricule Eleve,Courriel,WhatsApp / Tel,Moyenne,Statut Ecolage,Remarques
+Amadou Lamine Diallo,2026-CYBER-001,amadou.diallo@ecole221.sn,+221 77 123 45 67,16.8,En Règle,Dossier complet
+Fatou Bintou Sow,2026-CYBER-002,fatou.sow@ecole221.sn,+221 78 456 78 90,15.2,En Retard,Tranche 2 en attente
+Moussa Diouf,,moussa.diouf_sans_domaine,+221 70 999 88 77,14.5,En Règle,Matricule vide (sera auto-généré)
+Awa Ndiaye,2026-CYBER-004,,,17.0,Impayé,Email et Téléphone manquants
+,2026-CYBER-005,sansnom@ecole221.sn,+221 76 111 22 33,12.0,En Règle,Nom manquant (erreur critique)
+Khadim Fall,2026-CYBER-006,khadim.fall@ecole221.sn,77123,non_note,En Règle,Tel court et Moyenne non numérique
+Mariama Ba,2026-CYBER-007,mariama.ba@ecole221.sn,+221 77 888 99 00,18.5,Payé,"Excellente élève, tout valide"

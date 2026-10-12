@@ -65,7 +65,7 @@ export function ReportsTab() {
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-neutral-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-[#B3181C] h-full transition-all duration-150" style={{ width: `${progress}%` }} />
+            <div className="bg-primary h-full transition-all duration-150" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}

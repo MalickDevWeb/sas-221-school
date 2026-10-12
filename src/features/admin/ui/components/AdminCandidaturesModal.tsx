@@ -52,19 +52,19 @@ export function AdminCandidaturesModal({ onClose, onRefreshData }: { onClose: ()
             <h3 className="font-black text-sm text-[#291715]">Gestion des Inscriptions</h3>
             <p className="text-[10px] text-[#8E7977] font-bold uppercase">Scolarité, Campagnes & Sélection</p>
           </div>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-[#B3181C] text-xs font-black">[ Fermer ]</button>
+          <button onClick={onClose} className="text-[#8E7977] hover:text-primary text-xs font-black">[ Fermer ]</button>
         </div>
 
         <div className="flex border-b border-[#E2DCDA] bg-white px-4">
           <button 
             onClick={() => setActiveTab('list')}
-            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 px-4 transition-all ${activeTab === 'list' ? 'border-[#B3181C] text-[#B3181C]' : 'border-transparent text-[#8E7977] hover:text-[#291715]'}`}
+            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 px-4 transition-all ${activeTab === 'list' ? 'border-primary text-primary' : 'border-transparent text-[#8E7977] hover:text-[#291715]'}`}
           >
             📂 Dossiers reçus
           </button>
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 px-4 transition-all ${activeTab === 'settings' ? 'border-[#B3181C] text-[#B3181C]' : 'border-transparent text-[#8E7977] hover:text-[#291715]'}`}
+            className={`py-2.5 text-xs font-black uppercase tracking-wider border-b-2 px-4 transition-all ${activeTab === 'settings' ? 'border-primary text-primary' : 'border-transparent text-[#8E7977] hover:text-[#291715]'}`}
           >
             ⚙️ Paramètres de Campagne
           </button>
@@ -75,7 +75,7 @@ export function AdminCandidaturesModal({ onClose, onRefreshData }: { onClose: ()
             <div className="p-2.5 bg-white border-b border-[#E2DCDA] flex flex-wrap gap-2 justify-between items-center text-xs">
               <div className="flex gap-1 bg-[#FAF8F6] p-1 rounded-lg border border-[#E2DCDA]">
                 {(['Tous', 'En ligne', 'Présentiel'] as const).map(t => (
-                  <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-1 rounded-md font-bold text-[9.5px] transition-all ${filterType === t ? 'bg-[#B3181C] text-white' : 'text-[#8E7977]'}`}>{t}</button>
+                  <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-1 rounded-md font-bold text-[9.5px] transition-all ${filterType === t ? 'bg-primary text-white' : 'text-[#8E7977]'}`}>{t}</button>
                 ))}
               </div>
               <div className="flex gap-1 bg-[#FAF8F6] p-1 rounded-lg border border-[#E2DCDA]">

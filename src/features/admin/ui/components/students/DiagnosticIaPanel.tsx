@@ -39,7 +39,7 @@ export function DiagnosticIaPanel({ studentId, studentName }: Props) {
     <div id="diagnostic-ia-panel" className="bg-[#FAF8F6] border border-neutral-200/60 rounded-2xl p-4 space-y-4">
       {loading ? (
         <div className="flex flex-col items-center justify-center py-10 space-y-3">
-          <div className="w-8 h-8 border-4 border-[#B3181C] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-[10px] text-neutral-500 font-black uppercase tracking-wider animate-pulse">
             Analyse cognitive de {studentName.split(' ')[0]} en cours...
           </p>
@@ -48,7 +48,7 @@ export function DiagnosticIaPanel({ studentId, studentName }: Props) {
         <div className="text-center py-6 space-y-3">
           <span translate="no" className="material-symbols-outlined text-rose-500 text-3xl">error</span>
           <p className="text-xs text-rose-600 font-bold">{error}</p>
-          <button onClick={fetchDiagnostic} className="px-3 py-1.5 bg-[#B3181C] hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase rounded-lg">
+          <button onClick={fetchDiagnostic} className="px-3 py-1.5 bg-primary hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase rounded-lg">
             Réessayer
           </button>
         </div>
@@ -66,7 +66,7 @@ export function DiagnosticIaPanel({ studentId, studentName }: Props) {
         </div>
       ) : (
         <div className="text-center py-8 space-y-4 flex flex-col items-center">
-          <div className="w-12 h-12 bg-[#B3181C]/5 text-[#B3181C] border border-[#B3181C]/15 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-primary/5 text-primary border border-primary/15 rounded-2xl flex items-center justify-center">
             <span translate="no" className="material-symbols-outlined text-2xl">psychology</span>
           </div>
           <div className="space-y-1 max-w-xs">
@@ -75,7 +75,7 @@ export function DiagnosticIaPanel({ studentId, studentName }: Props) {
               Générez un rapport d'évaluation pédagogique de {studentName} basé sur ses notes réelles, son assiduité et son comportement.
             </p>
           </div>
-          <button onClick={fetchDiagnostic} className="px-4 py-2 bg-[#B3181C] hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-2 shadow-sm shadow-[#B3181C]/10 hover:scale-105 transition-transform duration-200">
+          <button onClick={fetchDiagnostic} className="px-4 py-2 bg-primary hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-2 shadow-sm shadow-[#B3181C]/10 hover:scale-105 transition-transform duration-200">
             <span translate="no" className="material-symbols-outlined text-sm">science</span>
             <span>Générer le diagnostic IA</span>
           </button>

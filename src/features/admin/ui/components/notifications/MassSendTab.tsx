@@ -50,14 +50,14 @@ export function MassSendTab({ onSendCampaign }: Props) {
           <div className="flex flex-wrap gap-3">
             {['WhatsApp', 'SMS', 'Email', 'Push App'].map(ch => (
               <label key={ch} className="inline-flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={channels.includes(ch)} onChange={() => toggleChannel(ch)} className="w-4 h-4 rounded border-neutral-200 text-[#B3181C] focus:ring-[#B3181C] cursor-pointer" />
+                <input type="checkbox" checked={channels.includes(ch)} onChange={() => toggleChannel(ch)} className="w-4 h-4 rounded border-neutral-200 text-primary focus:ring-primary cursor-pointer" />
                 <span>{ch}</span>
               </label>
             ))}
           </div>
         </div>
 
-        <button type="submit" disabled={sending} className="w-full py-2.5 bg-[#B3181C] hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[10px] font-black transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1">
+        <button type="submit" disabled={sending} className="w-full py-2.5 bg-primary hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[10px] font-black transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1">
           <span translate="no" className="material-symbols-outlined text-sm">{sending ? 'sync' : 'send'}</span>
           <span>{sending ? 'Diffusion...' : 'Lancer la diffusion'}</span>
         </button>

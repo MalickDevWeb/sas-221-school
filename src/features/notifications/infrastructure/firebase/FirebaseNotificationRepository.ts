@@ -29,7 +29,8 @@ export class ApiNotificationRepository implements NotificationRepository {
     };
 
     fetch();
-    this.pollingTimer = setInterval(fetch, 5000);
+    // Polling toutes les 30 s — les notifications ne changent pas au milliseconde
+    this.pollingTimer = setInterval(fetch, 30000);
 
     return () => {
       if (this.pollingTimer) clearInterval(this.pollingTimer);

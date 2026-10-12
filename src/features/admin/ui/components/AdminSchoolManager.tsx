@@ -6,11 +6,17 @@ import { ClassesTab } from './school/ClassesTab';
 import { PlanningTab } from './school/PlanningTab';
 import { AcademicFrameworkTab } from './school/AcademicFrameworkTab';
 import { useAdminSchoolState } from '../../hooks/useAdminSchoolState';
+import { useAdminStudents } from './students/useAdminStudents';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
-export function AdminSchoolManager() {
-  const [activeTab, setActiveTab] = useState('academic');
+interface Props {
+  defaultTab?: string;
+}
+
+export function AdminSchoolManager({ defaultTab = 'classes' }: Props) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { students } = useAdminStudents();
 
   const {
     rooms,
@@ -27,7 +33,7 @@ export function AdminSchoolManager() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]" id="school-manager-loading">
-        <span translate="no" className="material-symbols-outlined text-3xl text-[#B3181C] animate-spin">progress_activity</span>
+        <span translate="no" className="material-symbols-outlined text-3xl text-primary animate-spin">progress_activity</span>
       </div>
     );
   }
@@ -53,7 +59,13 @@ export function AdminSchoolManager() {
           <FilieresTab filieres={filieres} onUpdateFilieres={updateFilieres} />
         )}
         {activeTab === 'classes' && (
-          <ClassesTab classes={classes} filieres={filieres} onUpdateClasses={updateClasses} />
+          <ClassesTab 
+            classes={classes} 
+            filieres={filieres} 
+            slots={slots} 
+            students={students}
+            onUpdateClasses={updateClasses} 
+          />
         )}
         {activeTab === 'planning' && (
           <PlanningTab rooms={rooms} classes={classes} slots={slots} onUpdateSlots={updateSlots} />

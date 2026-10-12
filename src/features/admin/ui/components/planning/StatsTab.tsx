@@ -13,7 +13,7 @@ export function StatsTab({ associations, slots, onRemoveAssociation }: Props) {
     <div className="space-y-4 text-xs font-bold text-[#4A5568]" id="stats-tab-root">
       <div className="pb-2 border-b border-neutral-100">
         <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-[#B3181C]">analytics</span>
+          <span translate="no" className="material-symbols-outlined text-primary">analytics</span>
           <span>Association Enseignant ↔ Classe ↔ Matière & Statistiques de Charge</span>
         </h3>
         <p className="text-[10px] text-neutral-400 font-semibold">Registre mémorisé des affectations pédagogiques et équilibre horaire des enseignants.</p>
@@ -34,7 +34,7 @@ export function StatsTab({ associations, slots, onRemoveAssociation }: Props) {
                   <div>
                     <div className="font-extrabold text-[#1E293B]">{assoc.prof}</div>
                     <div className="text-[10px] text-neutral-400 font-semibold mt-0.5">
-                      {assoc.subject} <span className="text-[#B3181C] font-black">→</span> {assoc.classe}
+                      {assoc.subject} <span className="text-primary font-black">→</span> {assoc.classe}
                     </div>
                   </div>
                   <button
@@ -63,7 +63,7 @@ export function StatsTab({ associations, slots, onRemoveAssociation }: Props) {
                   <div className="flex justify-between items-center text-[10px]">
                     <span className="font-extrabold text-[#1E293B]">{teacher.name}</span>
                     <span className="font-black text-neutral-500">
-                      {currentHours}h / <span className="text-[#B3181C]">{teacher.maxHours}h max</span>
+                      {currentHours}h / <span className="text-primary">{teacher.maxHours}h max</span>
                     </span>
                   </div>
                   <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">

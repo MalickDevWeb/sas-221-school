@@ -96,7 +96,7 @@ export function PlanningTab({ rooms, classes, slots, onUpdateSlots }: Props) {
         <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 border border-neutral-200 w-full max-w-md space-y-4">
             <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-1.5 border-b border-neutral-100 pb-2">
-              <span translate="no" className="material-symbols-outlined text-[#B3181C]">security</span>
+              <span translate="no" className="material-symbols-outlined text-primary">security</span>
               <span>Confirmer la suppression du cours</span>
             </h3>
             <DeleteConfirmInput

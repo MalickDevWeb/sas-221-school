@@ -11,7 +11,7 @@ export function AcademicFrameworkTab() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-neutral-100 pb-3">
         <div>
           <h3 className="text-sm font-black text-[#1E293B] uppercase tracking-wider flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#B3181C]" />
+            <span className="h-2 w-2 rounded-full bg-primary" />
             Moteur de Cadre Académique & Pédagogique
           </h3>
           <p className="text-[11px] text-neutral-400 font-bold mt-0.5">
@@ -23,7 +23,7 @@ export function AcademicFrameworkTab() {
           <button
             onClick={() => setSubTab('years')}
             className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer ${
-              subTab === 'years' ? 'bg-white text-[#B3181C] shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
+              subTab === 'years' ? 'bg-white text-primary shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             Années & Sessions
@@ -31,7 +31,7 @@ export function AcademicFrameworkTab() {
           <button
             onClick={() => setSubTab('programs')}
             className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer ${
-              subTab === 'programs' ? 'bg-white text-[#B3181C] shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
+              subTab === 'programs' ? 'bg-white text-primary shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             Modules & Crédits
@@ -39,7 +39,7 @@ export function AcademicFrameworkTab() {
           <button
             onClick={() => setSubTab('schedule')}
             className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer ${
-              subTab === 'schedule' ? 'bg-white text-[#B3181C] shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
+              subTab === 'schedule' ? 'bg-white text-primary shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             Affectations & Examens

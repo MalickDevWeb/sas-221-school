@@ -56,7 +56,7 @@ export function DeleteSecurityCodeCard() {
         <button
           type="submit"
           className={`w-full py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1 text-white ${
-            saved ? 'bg-emerald-600 hover:bg-emerald-750' : 'bg-[#B3181C] hover:bg-[#921316]'
+            saved ? 'bg-emerald-600 hover:bg-emerald-750' : 'bg-primary hover:bg-[#921316]'
           }`}
         >
           <span translate="no" className="material-symbols-outlined text-sm">

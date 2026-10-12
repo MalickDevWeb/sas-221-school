@@ -40,7 +40,7 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-general">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-1">
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2">
-          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-[#B3181C]">
+          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-primary">
             <span translate="no" className="material-symbols-outlined text-sm">person</span>
             Fiche d'Identité & Contact
           </h4>
@@ -69,7 +69,7 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
 
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-[#FAF8F6] flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-[#B3181C]">
+            <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-primary">
               <span translate="no" className="material-symbols-outlined text-sm">qr_code_2</span>
               Badge Numérique ERP
             </h4>
@@ -84,7 +84,7 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
       </div>
 
       <div className="flex justify-end pt-2">
-        <button onClick={handleSave} className="px-4 py-2 bg-[#B3181C] hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5">
+        <button onClick={handleSave} className="px-4 py-2 bg-primary hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5">
           <span translate="no" className="material-symbols-outlined text-sm">save</span>
           <span>{isSaved ? 'Enregistré avec succès !' : 'Enregistrer les modifications'}</span>
         </button>

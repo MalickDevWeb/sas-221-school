@@ -33,7 +33,7 @@ export function ProfessorActiveMeetView({ active, stopMeet }: ProfessorActiveMee
           </a>
           <button
             onClick={() => stopMeet(active.id)}
-            className="px-3.5 py-2 bg-[#B3181C] hover:bg-[#8c1215] text-white rounded-xl font-bold text-[10px] cursor-pointer transition-all hover:scale-102 active:scale-98"
+            className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold text-[10px] cursor-pointer transition-all hover:scale-102 active:scale-98"
           >
             Terminer le cours
           </button>

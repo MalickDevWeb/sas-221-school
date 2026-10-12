@@ -19,7 +19,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setFinanceTab('fees')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            financeTab === 'fees' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            financeTab === 'fees' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Frais & Scolarité
@@ -27,7 +27,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setFinanceTab('vault')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            financeTab === 'vault' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            financeTab === 'vault' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Coffre-fort Numérique

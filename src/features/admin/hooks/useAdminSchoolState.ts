@@ -18,10 +18,76 @@ export function useAdminSchoolState() {
           apiClient.get('/planning/classes'),
           apiClient.get('/planning/slots'),
         ]);
-        setRooms(resRooms.data);
-        setFilieres(resFilieres.data);
-        setClasses(resClasses.data);
-        setSlots(resSlots.data);
+        const rawRooms = resRooms.data;
+        const roomsList: any[] = Array.isArray(rawRooms)
+          ? rawRooms
+          : Array.isArray(rawRooms?.content)
+          ? rawRooms.content
+          : [];
+        const normalizedRooms: Room[] = roomsList.map((r: any) => ({
+          id: r.id || `room-${Math.random()}`,
+          name: r.name || 'Salle sans nom',
+          capacity: r.capacity || 40,
+          equipment: Array.isArray(r.equipment)
+            ? r.equipment
+            : typeof r.equipment === 'string' && r.equipment.trim().length > 0
+            ? r.equipment.split(',').map((e: string) => e.trim()).filter(Boolean)
+            : ['Projecteur'],
+          status: r.status || 'Disponible',
+        }));
+
+        const rawFilieres = resFilieres.data;
+        const filieresList: any[] = Array.isArray(rawFilieres)
+          ? rawFilieres
+          : Array.isArray(rawFilieres?.content)
+          ? rawFilieres.content
+          : [];
+        const normalizedFilieres: Filiere[] = filieresList.map((f: any) => ({
+          id: f.id || `fil-${Math.random()}`,
+          name: f.name || 'Filière sans nom',
+          code: f.code || 'GEN',
+          description: f.description || '',
+        }));
+
+        const rawClasses = resClasses.data;
+        const classesList: any[] = Array.isArray(rawClasses)
+          ? rawClasses
+          : Array.isArray(rawClasses?.content)
+          ? rawClasses.content
+          : [];
+        const normalizedClasses: Classe[] = classesList.map((c: any) => ({
+          id: c.id || `cls-${Math.random()}`,
+          name: c.name || 'Classe sans nom',
+          level: c.level || 'L1',
+          filiereId: c.filiereId || '',
+          capacityMax: c.capacityMax ?? c.capacity ?? 35,
+          price: c.price ?? 450000,
+        }));
+
+        const rawSlots = resSlots.data;
+        const slotsList: any[] = Array.isArray(rawSlots)
+          ? rawSlots
+          : Array.isArray(rawSlots?.content)
+          ? rawSlots.content
+          : [];
+        const normalizedSlots: PlanningSlot[] = slotsList.map((s: any) => ({
+          id: s.id || `slot-${Math.random()}`,
+          day: s.day || s.dayOfWeek || 'MONDAY',
+          slot: s.slot || `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
+          classeId: s.classeId || '',
+          subject: s.subject || s.matiere || 'Cours',
+          prof: s.prof || s.professeur || 'Enseignant',
+          roomName: s.roomName || s.room?.name || 'Salle Principale',
+          isLive: s.isLive ?? false,
+          status: s.status,
+          isAbsent: s.isAbsent ?? false,
+          cancellationReason: s.cancellationReason,
+        }));
+
+        setRooms(normalizedRooms);
+        setFilieres(normalizedFilieres);
+        setClasses(normalizedClasses);
+        setSlots(normalizedSlots);
       } catch (err) {
         console.error("Failed to load school management data from backend:", err);
       } finally {

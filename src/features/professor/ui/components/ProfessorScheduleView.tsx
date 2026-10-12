@@ -72,18 +72,18 @@ export function ProfessorScheduleView({ schedule, handleCancelCourse, handleResc
             <h1 className="text-xl md:text-2xl font-black text-[#291715] tracking-tight leading-none mb-1">Mon Emploi du Temps</h1>
             <p className="text-neutral-500 text-xs font-bold">Semaine du 23 au 27 Octobre 2023 • Semestre 1 • Espace Enseignant</p>
           </div>
-          <button onClick={() => setIsSyncOpen(true)} className="flex items-center justify-center gap-2 bg-[#B3181C] text-white px-5 h-11 rounded-2xl hover:bg-[#8c1215] transition-all font-black text-xs uppercase tracking-wider cursor-pointer border-0 shadow-md whitespace-nowrap"><CalendarPlus className="h-4 w-4" /> Synchroniser l'agenda</button>
+          <button onClick={() => setIsSyncOpen(true)} className="flex items-center justify-center gap-2 bg-primary text-white px-5 h-11 rounded-2xl hover:bg-primary-dark transition-all font-black text-xs uppercase tracking-wider cursor-pointer border-0 shadow-md whitespace-nowrap"><CalendarPlus className="h-4 w-4" /> Synchroniser l'agenda</button>
         </div>
 
         <ProfessorScheduleFilters viewMode={viewMode} setViewMode={setViewMode} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterType={filterType} setFilterType={setFilterType} filterStatus={filterStatus} setFilterStatus={setFilterStatus} filterClass={filterClass} setFilterClass={setFilterClass} classesList={classesList} triggerToast={triggerToast} />
 
         <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-between mb-6 p-4 bg-white border border-neutral-gray-200 rounded-2xl shadow-3xs print:hidden">
           <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-[#B3181C]/10 text-[#B3181C]"><GraduationCap className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">CM : Cours Magistral</span></div>
+            <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-primary/10 text-primary"><GraduationCap className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">CM : Cours Magistral</span></div>
             <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-blue-50 text-blue-600"><FileText className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">TD : Travaux Dirigés</span></div>
             <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-green-50 text-green-600"><Laptop className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">TP : Travaux Pratiques</span></div>
           </div>
-          <div className="flex items-center gap-1.5 text-neutral-400"><Info className="h-3.5 w-3.5 text-[#B3181C] animate-pulse" /><span className="text-[10px] font-black italic tracking-wider uppercase">Cliquez sur un créneau pour gérer la séance</span></div>
+          <div className="flex items-center gap-1.5 text-neutral-400"><Info className="h-3.5 w-3.5 text-primary animate-pulse" /><span className="text-[10px] font-black italic tracking-wider uppercase">Cliquez sur un créneau pour gérer la séance</span></div>
         </div>
 
         {viewMode === 'grid' ? (

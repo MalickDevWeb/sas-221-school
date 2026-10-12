@@ -1,6 +1,9 @@
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { useAuthStore } from '@/core/store/authStore';
+import { useRbacStore } from '@/core/store/rbacStore';
 
 interface Props {
   onLogout: () => void;
@@ -11,25 +14,39 @@ interface Props {
 }
 
 const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard CEO', icon: 'dashboard' },
-  { id: 'school', label: 'Gestion École', icon: 'school' },
-  { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today' },
-  { id: 'personnel', label: 'Gestion Personnel', icon: 'badge' },
-  { id: 'students', label: 'Gestion Élèves', icon: 'group' },
-  { id: 'admissions', label: 'Admissions', icon: 'person_add' },
-  { id: 'finances', label: 'Finances & Recouvre', icon: 'payments' },
-  { id: 'collaboration', label: 'Collaboration', icon: 'group_work' },
-  { id: 'billing', label: 'Mon Abonnement', icon: 'workspace_premium' },
-  { id: 'notifications', label: 'Notifications Hub', icon: 'mail' },
-  { id: 'ai', label: 'Assistant IA', icon: 'smart_toy' },
-  { id: 'security', label: 'Sécurité & Audit', icon: 'security' },
+  { id: 'dashboard', label: 'Dashboard CEO', icon: 'dashboard', requiredPerm: 'governance_settings_get' },
+  { id: 'promotions', label: 'Promotions & Classes', icon: 'account_tree', requiredPerm: 'planning_classes_get' },
+  { id: 'school', label: 'Gestion École', icon: 'school', requiredPerm: 'planning_classes_get' },
+  { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today', requiredPerm: 'planning_schedule_get' },
+  { id: 'personnel', label: 'Gestion Personnel', icon: 'badge', requiredPerm: 'hr_staff_get' },
+  { id: 'students', label: 'Gestion Élèves', icon: 'group', requiredPerm: 'students_list_get' },
+  { id: 'admissions', label: 'Admissions', icon: 'person_add', requiredPerm: 'admissions_candidatures_get' },
+  { id: 'finances', label: 'Finances & Recouvre', icon: 'payments', requiredPerm: 'finance_transactions_get' },
+  { id: 'collaboration', label: 'Collaboration', icon: 'group_work', requiredPerm: 'communication_chat_post' },
+  { id: 'billing', label: 'Mon Abonnement', icon: 'workspace_premium', requiredPerm: 'governance_settings_get' },
+  { id: 'notifications', label: 'Notifications Hub', icon: 'mail', requiredPerm: 'communication_notifs_get' },
+  { id: 'ai', label: 'Assistant IA', icon: 'smart_toy', requiredPerm: 'pedagogy_grades_get' },
+  { id: 'security', label: 'Sécurité & Audit', icon: 'security', requiredPerm: 'security_scans_get' },
 ];
 
 export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
   const navigate = useNavigate();
   const { currentTenant } = useTenantStore();
+  const { utilisateur } = useAuthStore();
+  const { hasPermission } = useRbacStore();
   const schoolName = currentTenant?.name || 'École 221';
   const primaryColor = currentTenant?.branding?.primaryColor || '#7C3AED';
+
+  const userRole = utilisateur?.role || 'Administrateur';
+  const visibleMenuItems = MENU_ITEMS.filter(item => {
+    return hasPermission(userRole as string, item.requiredPerm);
+  });
+
+  useEffect(() => {
+    if (visibleMenuItems.length > 0 && !visibleMenuItems.some(m => m.id === activeTab)) {
+      onSelectTab(visibleMenuItems[0].id);
+    }
+  }, [visibleMenuItems, activeTab, onSelectTab]);
 
   return (
     <aside
@@ -58,7 +75,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
       </div>
 
       <nav className="flex flex-col gap-1 flex-grow">
-        {MENU_ITEMS.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button

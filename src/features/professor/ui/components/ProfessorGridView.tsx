@@ -17,9 +17,9 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center bg-[#FFF5F5]/40 p-4 border border-neutral-200/50 rounded-2xl print:hidden">
+      <div className="flex justify-between items-center bg-primary-light/40 p-4 border border-neutral-200/50 rounded-2xl print:hidden">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#B3181C] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <p className="text-[10px] font-extrabold text-[#291715] uppercase tracking-wider">Support Tactile & Tablette</p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -31,12 +31,12 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
       <div ref={ref} className="overflow-x-auto rounded-3xl border border-neutral-gray-200/95 bg-white shadow-3xs select-none smooth-scroll leading-none">
         <table className="w-full border-collapse table-fixed min-w-[980px]">
           <thead>
-            <tr className="bg-[#FFF5F5]/40 border-b border-neutral-200">
+            <tr className="bg-primary-light/40 border-b border-neutral-200">
               <th className="w-[100px] h-14 text-center text-[10px] font-black text-neutral-500 tracking-widest uppercase border-r border-neutral-150">Horaire</th>
               {DAYS.map((day) => (
                 <th key={day} className="h-14 text-center border-r border-neutral-150 p-2">
                   <span className="block text-xs font-black text-[#291715] tracking-widest">{DAY_LABELS[day]}</span>
-                  <span className="block text-[10px] text-[#B3181C] font-semibold tracking-wider mt-1">{DAY_DATES[day]}</span>
+                  <span className="block text-[10px] text-primary font-semibold tracking-wider mt-1">{DAY_DATES[day]}</span>
                 </th>
               ))}
             </tr>
@@ -46,9 +46,9 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
               if (time === '12:00') {
                 return (
                   <tr key={time} className="bg-[#FAF8F6] border-y border-neutral-200/60">
-                    <td className="h-12 text-center font-black text-[10.5px] text-neutral-500 border-r border-neutral-150 flex items-center justify-center gap-1.5 bg-[#FFF5F5]/20"><Coffee className="h-3.5 w-3.5 text-[#B3181C]" /><span>12:00</span></td>
+                    <td className="h-12 text-center font-black text-[10.5px] text-neutral-500 border-r border-neutral-150 flex items-center justify-center gap-1.5 bg-primary-light/20"><Coffee className="h-3.5 w-3.5 text-primary" /><span>12:00</span></td>
                     <td colSpan={5} className="h-12 text-center bg-gradient-to-r from-transparent via-[#FFF5F5]/40 to-transparent">
-                      <div className="flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-[#B3181C] uppercase py-1">
+                      <div className="flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-primary uppercase py-1">
                         <Coffee className="h-4 w-4 animate-bounce shrink-0" /><span>Pause Déjeuner · Repos académique</span><Coffee className="h-4 w-4 animate-bounce shrink-0" />
                       </div>
                     </td>

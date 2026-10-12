@@ -10,6 +10,8 @@ import { useTenantStore } from '@/core/store/tenantStore';
 import type { SchoolRegistrationFormData, RegisteredSchool } from '../domain/OnboardingModels';
 import { sanitizeSchoolSlug } from '../domain/OnboardingModels';
 import { registerSchoolUseCase, draftManagementUseCase } from '../infrastructure/config/dependencies';
+import { safeApiCall } from '@/shared/lib/apiMiddleware';
+import { isServerError } from '@/shared/errors/httpStatus';
 
 export const DEFAULT_MY_SCHOOL_PALETTE: TenantPalette = generatePaletteFromHex('#7C3AED');
 
@@ -67,7 +69,6 @@ export function useSchoolRegistration(): UseSchoolRegistrationReturn {
   // Synchronisation du thème dans le store global de l'application
   useEffect(() => {
     useTenantStore.getState().applyTheme({ primaryColor: palette.primary, palette });
-    return () => useTenantStore.getState().rehydrateTheme();
   }, [palette]);
 
   const applyPalette = useCallback(
@@ -79,7 +80,14 @@ export function useSchoolRegistration(): UseSchoolRegistrationReturn {
       setPalette(p);
       setCustomHex(p.primary);
       setActivePreset(presetName ?? 'Personnalisée');
-      setFormData((prev) => ({ ...prev, primaryColor: p.primary }));
+      setFormData((prev) => {
+        if (prev.slug) {
+          try {
+            localStorage.setItem(`tenant_theme_${prev.slug}`, JSON.stringify({ primaryColor: p.primary, palette: p }));
+          } catch {}
+        }
+        return { ...prev, primaryColor: p.primary };
+      });
     },
     [isEcole221]
   );
@@ -149,63 +157,56 @@ export function useSchoolRegistration(): UseSchoolRegistrationReturn {
       primaryColor: palette.primary,
     };
 
-    try {
-      const result = await registerSchoolUseCase(submissionData);
-      setRegisteredOrg(result);
-      setShowSuccessModal(true);
-      draftManagementUseCase.clearDraft();
-
-      // Appliquer immédiatement la palette choisie dans le store tenant
-      useTenantStore.setState({
-        currentTenant: {
-          id: result.id || 'org-' + submissionData.slug,
-          name: result.name || submissionData.schoolName,
-          slug: submissionData.slug,
-          branding: {
-            primaryColor: submissionData.primaryColor,
-            palette,
-          },
-        },
-      });
-      useTenantStore.getState().applyTheme({
-        primaryColor: submissionData.primaryColor,
-        palette,
-      });
-
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: [palette.primary, palette.accent, '#6366f1', '#10b981'],
-      });
-
-      toast.success('🎉 Inscription réussie !', {
-        description: 'Votre cockpit établissement est prêt avec votre identité visuelle.',
-      });
-    } catch (err: any) {
-      const status = err?.response?.status;
-      const data = err?.response?.data;
-      const errorMsg = data?.error || data?.message || (typeof data === 'string' ? data : err?.message);
-
-      if (status === 400 || status === 409) {
-        toast.error("Information déjà enregistrée", {
-          description: errorMsg || 'Cet email ou numéro de téléphone est déjà associé à un compte.',
-          duration: 7000,
-        });
-      } else if (status === 500) {
-        draftManagementUseCase.saveDraft(submissionData);
-        toast.warning('Serveur indisponible — données sauvegardées localement', {
-          description: errorMsg || 'Réessayez quand le backend sera prêt.',
-          duration: 8000,
-        });
-      } else {
-        toast.error(`Erreur ${status || 'réseau'}`, {
-          description: errorMsg || 'Vérifiez votre connexion.',
-        });
+    const { data: result, isSuccess, status } = await safeApiCall<RegisteredSchool>(
+      registerSchoolUseCase(submissionData),
+      {
+        context: "Inscription Établissement",
+        successMessage: '🎉 Inscription réussie !',
       }
-    } finally {
-      setIsLoading(false);
+    );
+
+    setIsLoading(false);
+
+    if (!isSuccess || !result) {
+      if (isServerError(status)) {
+        draftManagementUseCase.saveDraft(submissionData);
+      }
+      return;
     }
+
+    setRegisteredOrg(result);
+    setShowSuccessModal(true);
+    draftManagementUseCase.clearDraft();
+
+    // Appliquer immédiatement la palette choisie dans le store tenant et le stockage persistant
+    const tenantBranding = {
+      primaryColor: submissionData.primaryColor,
+      palette,
+    };
+
+    try {
+      localStorage.setItem(`tenant_theme_${submissionData.slug}`, JSON.stringify(tenantBranding));
+      if (submissionData.adminEmail) {
+        localStorage.setItem(`tenant_admin_${submissionData.slug}`, submissionData.adminEmail);
+      }
+    } catch {}
+
+    useTenantStore.setState({
+      currentTenant: {
+        id: result.id || 'org-' + submissionData.slug,
+        name: result.name || submissionData.schoolName,
+        slug: submissionData.slug,
+        branding: tenantBranding,
+      },
+    });
+    useTenantStore.getState().applyTheme(tenantBranding);
+
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: [palette.primary, palette.accent, '#6366f1', '#10b981'],
+    });
   };
 
   return {

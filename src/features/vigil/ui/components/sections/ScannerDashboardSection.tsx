@@ -23,13 +23,13 @@ export function ScannerDashboardSection({
       <div className="flex bg-neutral-100/80 p-1 rounded-2xl w-full border border-neutral-200/40">
         <button
           type="button" onClick={() => setScanMode('scan')}
-          className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'scan' ? 'bg-white text-[#ba0013] shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
+          className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'scan' ? 'bg-white text-primary shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
         >
           <QrCode className="h-4 w-4 stroke-[2.5]" />Scanner l'étudiant
         </button>
         <button
           type="button" onClick={() => setScanMode('showQR')}
-          className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'showQR' ? 'bg-white text-[#ba0013] shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
+          className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'showQR' ? 'bg-white text-primary shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
         >
           <User className="h-4 w-4 stroke-[2.5]" />Faire scanner l'étudiant
         </button>
@@ -43,7 +43,7 @@ export function ScannerDashboardSection({
           >
             <div className="absolute inset-0 bg-neutral-500/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             <RenderQRCode className="w-full h-full select-none" />
-            <div className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-xl border border-neutral-200/80 shadow-xs text-neutral-600 group-hover:text-[#ba0013] group-hover:scale-105 group-hover:bg-white transition-all">
+            <div className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-xl border border-neutral-200/80 shadow-xs text-neutral-600 group-hover:text-primary group-hover:scale-105 group-hover:bg-white transition-all">
               <Maximize2 className="h-4 w-4 stroke-[2.5]" />
             </div>
           </div>
@@ -79,11 +79,11 @@ export function ScannerDashboardSection({
               <input
                 type="text" required value={manualId} onChange={(e) => setManualId(e.target.value)}
                 placeholder="Entrez le matricule (ex: 221-5092-B)"
-                className="w-full bg-[#F8F9FA] border border-neutral-200/80 rounded-2xl pl-10 pr-12 py-3 text-xs font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#ba0013]/30 focus:border-[#ba0013] transition-all uppercase"
+                className="w-full bg-[#F8F9FA] border border-neutral-200/80 rounded-2xl pl-10 pr-12 py-3 text-xs font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all uppercase"
               />
               <button
                 type="submit"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-[#ba0013]/10 text-[#ba0013] rounded-xl hover:bg-[#ba0013] hover:text-white transition-colors duration-200 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer"
                 title="Valider le matricule"
               >
                 <Search className="h-4 w-4 stroke-[2.5]" />

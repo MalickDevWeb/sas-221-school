@@ -39,7 +39,7 @@ export function SequenceList({ sequences }: Props) {
       {sequences.map((seq, idx) => (
         <div key={seq.id} className="border border-neutral-150 bg-white hover:shadow-sm transition-all rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs font-semibold">
           <div className="flex items-start gap-3.5">
-            <div className="h-9 w-9 bg-[#FFF5F5] text-brand-red-deep font-mono font-black border border-brand-red-deep/15 rounded-xl flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 bg-primary-light text-brand-red-deep font-mono font-black border border-brand-red-deep/15 rounded-xl flex items-center justify-center shrink-0">
               {String(idx + 1).padStart(2, '0')}
             </div>
             <div className="space-y-1">
@@ -61,7 +61,7 @@ export function SequenceList({ sequences }: Props) {
 
           <div className="flex gap-2 items-center shrink-0 w-full md:w-auto md:justify-end">
             <a href={seq.pdf} target="_blank" rel="noopener noreferrer" className="p-2 border border-neutral-200 rounded-xl hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900 transition-all flex items-center gap-1 cursor-pointer">
-              <span className="material-symbols-outlined text-sm text-[#B3181C]">picture_as_pdf</span>
+              <span className="material-symbols-outlined text-sm text-primary">picture_as_pdf</span>
               <span className="text-[9px] uppercase font-extrabold">Support</span>
             </a>
             <a href={seq.code} target="_blank" rel="noopener noreferrer" className="p-2 border border-neutral-200 rounded-xl hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900 transition-all flex items-center gap-1 cursor-pointer">

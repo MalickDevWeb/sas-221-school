@@ -25,7 +25,7 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
       <div className="bg-[#FAF8F6] w-full max-w-sm rounded-2xl shadow-xl overflow-hidden border border-[#E2DCDA]">
         <div className="p-4 bg-white border-b border-[#E2DCDA] flex justify-between items-center">
           <h3 className="font-black text-base text-[#291715]">Alerte Globale</h3>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-[#B3181C] font-bold">[ Fermer ]</button>
+          <button onClick={onClose} className="text-[#8E7977] hover:text-primary font-bold">[ Fermer ]</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -34,7 +34,7 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
             <select
               value={category}
               onChange={(e: any) => setCategory(e.target.value)}
-              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-[#B3181C]"
+              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-primary"
             >
               <option value="Système">Système (Info)</option>
               <option value="Inscriptions">Inscriptions (Scolarité)</option>
@@ -49,7 +49,7 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
               onChange={(e) => setAlertText(e.target.value)}
               placeholder="Saisissez le message d'alerte à diffuser..."
               rows={4}
-              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-[#B3181C]"
+              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-primary"
               required
             />
           </div>
@@ -57,7 +57,7 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#B3181C] hover:bg-[#8F1316] text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#B3181C]/15 transition-all"
+            className="w-full bg-primary hover:bg-[#8F1316] text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#B3181C]/15 transition-all"
           >
             {loading ? 'Diffusion...' : 'Diffuser l\'Alerte'}
           </button>

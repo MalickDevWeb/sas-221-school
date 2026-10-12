@@ -33,7 +33,7 @@ export function ParentMobileNav({ unreadCount }: Props) {
           <div className="relative">
             <span translate="no" className="material-symbols-outlined text-[19px] sm:text-[21px]">{icon}</span>
             {badge && badge > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#B3181C] text-white text-[7px] font-black rounded-full w-3.5 h-3.5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-[7px] font-black rounded-full w-3.5 h-3.5 flex items-center justify-center">
                 {badge}
               </span>
             )}

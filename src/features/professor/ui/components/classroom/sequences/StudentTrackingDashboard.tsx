@@ -42,7 +42,7 @@ export function StudentTrackingDashboard({ students }: Props) {
         </div>
         <div className="border border-neutral-100 p-3 bg-neutral-50/50 rounded-2xl">
           <p className="text-[9px] text-neutral-400 font-bold uppercase">Temps d'apprentissage moyen</p>
-          <p className="text-[#B3181C] font-black text-sm mt-0.5">15.2 heures</p>
+          <p className="text-primary font-black text-sm mt-0.5">15.2 heures</p>
         </div>
         <div className="border border-neutral-100 p-3 bg-rose-50/40 rounded-2xl">
           <p className="text-[9px] text-rose-800 font-bold uppercase">Étudiants à risque détectés</p>

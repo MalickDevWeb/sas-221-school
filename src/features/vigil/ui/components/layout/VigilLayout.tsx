@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { 
   Shield
 } from 'lucide-react';
@@ -10,6 +11,8 @@ import { VigilMobileNav } from './nav/VigilMobileNav';
 export function VigilLayout() {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
   const guardAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80";
 
   return (
@@ -23,9 +26,9 @@ export function VigilLayout() {
             onClick={() => navigate(ROUTES.vigil.dashboard)}
             className="flex items-center gap-3 cursor-pointer select-none active:opacity-80"
           >
-            <Shield className="h-6 w-6 text-[#ba0013] stroke-[2.5]" />
-            <h1 className="font-extrabold text-xl text-[#ba0013] tracking-tight">
-              École 221 Portal
+            <Shield className="h-6 w-6 text-primary stroke-[2.5]" />
+            <h1 className="font-extrabold text-xl text-primary tracking-tight">
+              {schoolName} Portal
             </h1>
           </div>
           
@@ -34,7 +37,7 @@ export function VigilLayout() {
             {/* Active Guard Avatar Profile Badge */}
             <button 
               onClick={() => navigate('/vigile/profil')}
-              className="h-9 w-9 rounded-full overflow-hidden border border-[#ba0013]/20 cursor-pointer hover:opacity-80 active:scale-95 transition-transform duration-150 flex items-center justify-center p-0 focus:outline-none focus:ring-2 focus:ring-[#ba0013]/50 shadow-sm"
+              className="h-9 w-9 rounded-full overflow-hidden border border-primary/20 cursor-pointer hover:opacity-80 active:scale-95 transition-transform duration-150 flex items-center justify-center p-0 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm"
               title="Voir mon profil"
             >
               <img 

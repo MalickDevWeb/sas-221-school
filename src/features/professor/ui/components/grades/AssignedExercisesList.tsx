@@ -34,7 +34,7 @@ export function AssignedExercisesList({ exercises, onDelete }: Props) {
             <div className="flex items-center gap-1.5">
               <h5 className="text-xs font-black text-neutral-800">{ex.title}</h5>
               {ex.priority === 'haute' && (
-                <span className="bg-[#FFF5F5] border border-brand-red-deep/15 text-brand-red-deep text-[8px] font-black px-1.5 py-0.2 rounded uppercase">
+                <span className="bg-primary-light border border-brand-red-deep/15 text-brand-red-deep text-[8px] font-black px-1.5 py-0.2 rounded uppercase">
                   Urgent
                 </span>
               )}
@@ -48,7 +48,7 @@ export function AssignedExercisesList({ exercises, onDelete }: Props) {
           </div>
           <button
             onClick={() => onDelete(ex.id)}
-            className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-[#FFF5F5] border-0 bg-transparent cursor-pointer transition-colors"
+            className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-primary-light border-0 bg-transparent cursor-pointer transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>

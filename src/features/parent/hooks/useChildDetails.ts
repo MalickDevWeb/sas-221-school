@@ -55,10 +55,11 @@ export function useChildDetails(enfantId: string | null) {
       setAttendances(att);
       setGrades(gr);
       setSchedule(sch);
-    } catch {
-      setAttendances(MOCK_ATTENDANCES);
-      setGrades(MOCK_GRADES);
-      setSchedule(MOCK_SCHEDULE);
+    } catch (err: any) {
+      console.warn("Erreur lors de la récupération des détails de l'enfant depuis le backend:", err?.message);
+      setAttendances([]);
+      setGrades([]);
+      setSchedule([]);
     } finally {
       setLoading(false);
     }
@@ -67,9 +68,10 @@ export function useChildDetails(enfantId: string | null) {
   const fetchMessages = useCallback(async () => {
     try {
       const msgs = await parentApi.getMessages();
-      setMessages(msgs);
-    } catch {
-      setMessages(MOCK_MESSAGES);
+      setMessages(msgs || []);
+    } catch (err: any) {
+      console.warn("Erreur lors de la récupération des messages parent depuis le backend:", err?.message);
+      setMessages([]);
     }
   }, []);
 

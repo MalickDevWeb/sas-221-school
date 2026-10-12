@@ -49,7 +49,7 @@ export function AssistantIaTab({ onApplyIaSchedule }: Props) {
     <div className="space-y-4 text-xs font-bold text-[#4A5568]" id="assistant-ia-tab">
       <div className="pb-2 border-b border-neutral-100">
         <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-[#B3181C]">psychology</span>
+          <span translate="no" className="material-symbols-outlined text-primary">psychology</span>
           <span>Assistant IA & Optimisation des Horaires</span>
         </h3>
         <p className="text-[10px] text-neutral-400 font-semibold">Génération automatisée intelligente sous contraintes pédagogiques et logistiques.</p>

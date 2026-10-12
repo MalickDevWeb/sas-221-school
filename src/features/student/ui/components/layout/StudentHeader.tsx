@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { NotificationDropdown } from './header/NotificationDropdown';
 import { ProfileDropdown } from '@/shared/components';
 interface NotificationItem {
@@ -33,6 +34,9 @@ export function StudentHeader({
   onMarkAllRead, onNotifClick, onOpenSettings, onOpenSupport,
   triggerToast, onMoodSave,
 }: Props) {
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
+
   return (
     <header className="w-full top-0 sticky z-[100] bg-white/90 backdrop-blur-md border-b border-neutral-gray-200/80 shadow-sm animate-fade-in">
       {(showProfile || showNotifications) && (
@@ -40,18 +44,24 @@ export function StudentHeader({
       )}
       <div className="flex items-center justify-between px-6 md:px-8 w-full h-16 gap-4 relative z-[190]">
         <div className="flex items-center gap-3 shrink-0">
-          <span className="font-headline-md text-headline-md font-black text-brand-red-deep md:hidden tracking-tight">École 221</span>
-          <div className="hidden md:flex items-center text-neutral-gray-400 select-none">
-            <span translate="no" className="material-symbols-outlined text-brand-red-deep text-[22px] animate-pulse">school</span>
+          <span className="font-headline-md text-headline-md font-black text-primary md:hidden tracking-tight">{schoolName}</span>
+          <div className="hidden md:flex items-center gap-2 select-none">
+            <span translate="no" className="material-symbols-outlined text-primary text-[22px]">school</span>
+            <span className="font-bold text-xs text-on-surface">{schoolName}</span>
+            {currentTenant?.slug && (
+              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20" title={`URL dédiée : /t/${currentTenant.slug}`}>
+                /t/{currentTenant.slug}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Search trigger */}
         <div className="relative hidden sm:block cursor-pointer group flex-grow max-w-3xl">
-          <div className="relative pl-10 pr-12 py-2.5 bg-neutral-gray-50/95 border border-neutral-gray-200/80 rounded-2xl text-xs font-semibold overflow-hidden transition-all duration-300 w-full flex items-center justify-between shadow-3xs group-hover:border-brand-red-deep/45 group-hover:bg-white group-hover:shadow-sm">
-            <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-gray-400 group-hover:text-brand-red-deep transition-colors text-[18px]">search</span>
+          <div className="relative pl-10 pr-12 py-2.5 bg-neutral-gray-50/95 border border-neutral-gray-200/80 rounded-2xl text-xs font-semibold overflow-hidden transition-all duration-300 w-full flex items-center justify-between shadow-3xs group-hover:border-primary/45 group-hover:bg-white group-hover:shadow-sm">
+            <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-gray-400 group-hover:text-primary transition-colors text-[18px]">search</span>
             <span className="text-neutral-500 font-bold select-none truncate">Rechercher...</span>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] bg-neutral-gray-200/70 group-hover:bg-brand-red-light group-hover:text-brand-red-deep px-1.5 py-0.5 rounded font-black text-neutral-600 transition-colors">⌘K</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] bg-neutral-gray-200/70 group-hover:bg-primary-light group-hover:text-primary px-1.5 py-0.5 rounded font-black text-neutral-600 transition-colors">⌘K</span>
           </div>
         </div>
 
@@ -65,7 +75,7 @@ export function StudentHeader({
           />
 
           <div className="relative" ref={calendarPopRef}>
-            <button onClick={() => { setShowCalendar(!showCalendar); setShowNotifications(false); setShowProfile(false); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-brand-red-light text-secondary hover:text-brand-red-deep transition-all cursor-pointer group ${showCalendar ? 'bg-brand-red-light text-brand-red-deep border border-brand-red-deep/10' : ''}`} title="Calendrier Académique" aria-label="Calendrier">
+            <button onClick={() => { setShowCalendar(!showCalendar); setShowNotifications(false); setShowProfile(false); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-primary-light text-secondary hover:text-primary transition-all cursor-pointer group ${showCalendar ? 'bg-primary-light text-primary border border-primary/10' : ''}`} title="Calendrier Académique" aria-label="Calendrier">
               <span translate="no" className="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">calendar_month</span>
             </button>
           </div>

@@ -145,6 +145,18 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
         )}
       </AnimatePresence>
 
+      {!isDefaultSchool && (
+        <div className="flex items-center justify-between p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs animate-fade-in">
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 animate-pulse" />
+            <span className="font-black text-slate-800 truncate">{schoolDisplayName}</span>
+          </div>
+          <span className="font-mono text-[10px] font-bold text-primary bg-white/90 px-2 py-0.5 rounded-md border border-primary/20 shrink-0 shadow-xs">
+            /t/{activeSlug}/login
+          </span>
+        </div>
+      )}
+
       <div className="space-y-1">
         <label className={`text-[12px] font-bold block ${isMobile ? 'text-[#3E2927] mb-[2px]' : 'text-[#3E2927]'}`} htmlFor="email">
           Adresse e-mail <span className="text-[#DE4E3F] font-bold">*</span>

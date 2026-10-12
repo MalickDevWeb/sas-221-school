@@ -14,6 +14,7 @@ interface Props {
 export function RoomsTab({ rooms, onUpdateRooms, slots, onUpdateSlots }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const safeRooms = Array.isArray(rooms) ? rooms : [];
 
   const handleAddRoom = (roomData: { name: string; capacity: number; equipment: string[] }) => {
     const newRoom: Room = {
@@ -23,17 +24,17 @@ export function RoomsTab({ rooms, onUpdateRooms, slots, onUpdateSlots }: Props) 
       equipment: roomData.equipment,
       status: 'Disponible',
     };
-    onUpdateRooms([...rooms, newRoom]);
+    onUpdateRooms([...safeRooms, newRoom]);
     setShowAddModal(false);
   };
 
   const handleUpdateRoom = (updatedRoom: Room) => {
-    onUpdateRooms(rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r));
+    onUpdateRooms(safeRooms.map(r => r.id === updatedRoom.id ? updatedRoom : r));
     setSelectedRoom(updatedRoom);
   };
 
   const handleDeleteRoom = (roomId: string) => {
-    onUpdateRooms(rooms.filter(r => r.id !== roomId));
+    onUpdateRooms(safeRooms.filter(r => r.id !== roomId));
     setSelectedRoom(null);
   };
 
@@ -46,7 +47,7 @@ export function RoomsTab({ rooms, onUpdateRooms, slots, onUpdateSlots }: Props) 
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-3.5 py-2 bg-[#B3181C] text-white text-xs font-bold rounded-xl shadow-md hover:bg-[#921316] transition-all flex items-center gap-1.5 cursor-pointer"
+          className="px-3.5 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-md hover:bg-[#921316] transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-sm font-black">add</span>
           <span>Nouvelle Salle</span>
@@ -54,7 +55,7 @@ export function RoomsTab({ rooms, onUpdateRooms, slots, onUpdateSlots }: Props) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {rooms.map(room => (
+        {safeRooms.map(room => (
           <div key={room.id} className="min-h-[160px]">
             <RoomCard room={room} onSelect={setSelectedRoom} />
           </div>

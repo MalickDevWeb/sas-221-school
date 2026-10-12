@@ -28,37 +28,37 @@ export function AdminQuickActions({
     <section className="mb-8">
       <h3 className="text-lg font-black text-[#291715] mb-4">Actions Rapides Administration</h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-        <button onClick={() => setModal('users')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-[#FFF5F5] transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5F5] flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] font-bold">group</span>
+        <button onClick={() => setModal('users')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <span translate="no" className="material-symbols-outlined text-primary font-bold">group</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Membres</span>
         </button>
 
-        <button onClick={() => setModal('planning')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-[#FFF5F5] transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5F5] flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] font-bold">calendar_month</span>
+        <button onClick={() => setModal('planning')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <span translate="no" className="material-symbols-outlined text-primary font-bold">calendar_month</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Planning</span>
         </button>
 
-        <button onClick={() => setModal('payments')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-[#FFF5F5] transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5F5] flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] font-bold">credit_card</span>
+        <button onClick={() => setModal('payments')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <span translate="no" className="material-symbols-outlined text-primary font-bold">credit_card</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Paiements</span>
         </button>
 
-        <button onClick={() => setModal('candidatures')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-[#FFF5F5] transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5F5] flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] font-bold">how_to_reg</span>
+        <button onClick={() => setModal('candidatures')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <span translate="no" className="material-symbols-outlined text-primary font-bold">how_to_reg</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Candidatures</span>
         </button>
 
-        <button onClick={() => setModal('alerts')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-[#FFF5F5] transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5F5] flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] font-bold">campaign</span>
+        <button onClick={() => setModal('alerts')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
+          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <span translate="no" className="material-symbols-outlined text-primary font-bold">campaign</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Diffusion</span>
         </button>

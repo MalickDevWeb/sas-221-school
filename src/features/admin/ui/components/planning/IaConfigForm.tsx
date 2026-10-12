@@ -31,7 +31,7 @@ export function IaConfigForm({
             value={promptInput}
             onChange={(e) => setPromptInput(e.target.value)}
             placeholder="Ex : Organise le planning de Génie Civil en évitant les cours de Dr. Diallo le mercredi après-midi et priorise les amphis..."
-            className="w-full h-24 px-3.5 py-2.5 border border-neutral-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#B3181C] resize-none pr-8 bg-[#FAF8F6]"
+            className="w-full h-24 px-3.5 py-2.5 border border-neutral-200 rounded-xl font-bold text-xs focus:outline-none focus:border-primary resize-none pr-8 bg-[#FAF8F6]"
           />
           <span translate="no" className="material-symbols-outlined absolute right-2.5 bottom-2.5 text-neutral-300">
             chat_bubble
@@ -47,7 +47,7 @@ export function IaConfigForm({
               type="checkbox"
               checked={rules.noGaps}
               onChange={(e) => setRules({ ...rules, noGaps: e.target.checked })}
-              className="rounded text-[#B3181C] focus:ring-[#B3181C]"
+              className="rounded text-primary focus:ring-primary"
             />
             <span>Éviter les "trous" (heures creuses) pour les étudiants</span>
           </label>
@@ -56,7 +56,7 @@ export function IaConfigForm({
               type="checkbox"
               checked={rules.respectQuota}
               onChange={(e) => setRules({ ...rules, respectQuota: e.target.checked })}
-              className="rounded text-[#B3181C] focus:ring-[#B3181C]"
+              className="rounded text-primary focus:ring-primary"
             />
             <span>Respecter les quotas mensuels des professeurs vacataires</span>
           </label>
@@ -65,7 +65,7 @@ export function IaConfigForm({
               type="checkbox"
               checked={rules.prioritizeLargeAmphis}
               onChange={(e) => setRules({ ...rules, prioritizeLargeAmphis: e.target.checked })}
-              className="rounded text-[#B3181C] focus:ring-[#B3181C]"
+              className="rounded text-primary focus:ring-primary"
             />
             <span>Prioriser les grands amphis pour les fortes promotions</span>
           </label>

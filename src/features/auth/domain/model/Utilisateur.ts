@@ -6,4 +6,5 @@ export interface Utilisateur {
   readonly prenom: string;
   readonly email: string;
   readonly role: RoleUtilisateur;
+  readonly tenantSlug?: string;
 }

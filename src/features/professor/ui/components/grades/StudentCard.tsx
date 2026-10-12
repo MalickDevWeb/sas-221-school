@@ -23,7 +23,7 @@ export function StudentCard({ grade, onClick }: Props) {
       className="group bg-white rounded-2xl border border-neutral-100 hover:border-brand-red-deep/20 hover:shadow-md transition-all duration-300 p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer"
     >
       <div className="flex items-center gap-4">
-        <div className="h-11 w-11 rounded-2xl bg-neutral-100 group-hover:bg-[#FFF5F5] flex items-center justify-center text-xs font-black text-neutral-600 group-hover:text-brand-red-deep border border-neutral-200/40 group-hover:border-brand-red-deep/10 transition-colors shrink-0 shadow-3xs">
+        <div className="h-11 w-11 rounded-2xl bg-neutral-100 group-hover:bg-primary-light flex items-center justify-center text-xs font-black text-neutral-600 group-hover:text-brand-red-deep border border-neutral-200/40 group-hover:border-brand-red-deep/10 transition-colors shrink-0 shadow-3xs">
           {initials}
         </div>
         <div className="space-y-1">
@@ -64,7 +64,7 @@ export function StudentCard({ grade, onClick }: Props) {
             {isPass ? 'Validé' : 'Rattrapage'}
           </span>
 
-          <button className="h-8 w-8 rounded-xl bg-[#FFF5F5] group-hover:bg-brand-red-deep flex items-center justify-center text-brand-red-deep group-hover:text-white border border-[#B3181C]/10 group-hover:border-transparent transition-all duration-300">
+          <button className="h-8 w-8 rounded-xl bg-primary-light group-hover:bg-brand-red-deep flex items-center justify-center text-brand-red-deep group-hover:text-white border border-primary/10 group-hover:border-transparent transition-all duration-300">
             <ChevronRight className="h-4 w-4 stroke-[2.5]" />
           </button>
         </div>

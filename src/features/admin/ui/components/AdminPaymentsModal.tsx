@@ -34,7 +34,7 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
             <h3 className="font-black text-sm text-[#291715]">Gestion de la Scolarité & Paiements</h3>
             <p className="text-[10px] text-[#8E7977] font-semibold uppercase">École 221 • Contrôle Financier</p>
           </div>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-[#B3181C] text-xs font-bold">[ Fermer ]</button>
+          <button onClick={onClose} className="text-[#8E7977] hover:text-primary text-xs font-bold">[ Fermer ]</button>
         </div>
 
         <div className="p-3 bg-white border-b border-[#E2DCDA]">
@@ -42,7 +42,7 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
             value={filter}
             onChange={e => setFilter(e.target.value)}
             placeholder="Rechercher par nom ou matricule..."
-            className="w-full bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 text-xs outline-none focus:border-[#B3181C]"
+            className="w-full bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 text-xs outline-none focus:border-primary"
           />
         </div>
 
@@ -53,7 +53,7 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
             filteredStudents.map(student => {
               const isOk = student.statutFrais !== 'Paiement en retard';
               return (
-                <div key={student.id} className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-[#E2DCDA] shadow-sm hover:border-[#B3181C]/20 transition-all">
+                <div key={student.id} className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-[#E2DCDA] shadow-sm hover:border-primary/20 transition-all">
                   <div>
                     <h4 className="text-xs font-bold text-[#291715]">{student.name}</h4>
                     <p className="text-[10px] text-[#8E7977] font-medium">
@@ -63,7 +63,7 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
                   <button
                     onClick={() => handleToggle(student.id, student.statutFrais)}
                     disabled={updatingId === student.id}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${isOk ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9] hover:bg-[#D9F2E2]' : 'bg-[#FFF5F5] text-[#B3181C] border border-[#FFD1D1] hover:bg-[#FFE6E6]'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${isOk ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9] hover:bg-[#D9F2E2]' : 'bg-primary-light text-primary border border-[#FFD1D1] hover:bg-[#FFE6E6]'}`}
                   >
                     {updatingId === student.id ? 'Mise à jour...' : isOk ? 'À jour' : 'En retard'}
                   </button>

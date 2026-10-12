@@ -13,7 +13,12 @@ export function RoomInfoSection({ room, onUpdate }: Props) {
   const [name, setName] = useState(room.name);
   const [capacity, setCapacity] = useState(room.capacity);
   const [status, setStatus] = useState(room.status);
-  const [eqs, setEqs] = useState<string[]>(room.equipment);
+  const safeEquipment = Array.isArray(room.equipment)
+    ? room.equipment
+    : typeof room.equipment === 'string' && (room.equipment as string).trim().length > 0
+    ? (room.equipment as string).split(',').map((e: string) => e.trim()).filter(Boolean)
+    : [];
+  const [eqs, setEqs] = useState<string[]>(safeEquipment);
 
   const handleSave = () => {
     onUpdate({ ...room, name, capacity, status, equipment: eqs });
@@ -47,7 +52,7 @@ export function RoomInfoSection({ room, onUpdate }: Props) {
         <div className="space-y-3 bg-neutral-50/50 p-4 rounded-xl border border-neutral-200">
           <div>
             <label className="text-[9px] uppercase font-bold text-neutral-400">Nom de la salle</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full mt-1 px-2.5 py-1.5 border border-neutral-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#B3181C]" />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full mt-1 px-2.5 py-1.5 border border-neutral-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-primary" />
           </div>
           <div>
             <label className="text-[9px] uppercase font-bold text-neutral-400">Capacité (places)</label>
@@ -57,13 +62,13 @@ export function RoomInfoSection({ room, onUpdate }: Props) {
             <label className="text-[9px] uppercase font-bold text-neutral-400 block mb-1">Équipements</label>
             <div className="flex flex-wrap gap-1.5">
               {EQ_LIST.map(eq => (
-                <button key={eq} type="button" onClick={() => setEqs(p => p.includes(eq) ? p.filter(x => x !== eq) : [...p, eq])} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${eqs.includes(eq) ? 'bg-[#B3181C] text-white border-transparent' : 'bg-white text-neutral-500 border-neutral-200'}`}>{eq}</button>
+                <button key={eq} type="button" onClick={() => setEqs(p => p.includes(eq) ? p.filter(x => x !== eq) : [...p, eq])} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${eqs.includes(eq) ? 'bg-primary text-white border-transparent' : 'bg-white text-neutral-500 border-neutral-200'}`}>{eq}</button>
               ))}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => setIsEdit(false)} className="px-2.5 py-1 text-[10px] font-bold text-neutral-500 hover:bg-neutral-100 rounded-lg">Annuler</button>
-            <button onClick={handleSave} className="px-2.5 py-1 bg-[#B3181C] text-white text-[10px] font-bold rounded-lg hover:bg-[#921316]">Enregistrer</button>
+            <button onClick={handleSave} className="px-2.5 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-[#921316]">Enregistrer</button>
           </div>
         </div>
       ) : (
@@ -73,12 +78,12 @@ export function RoomInfoSection({ room, onUpdate }: Props) {
               <h4 className="font-extrabold text-neutral-800 text-sm">{room.name}</h4>
               <p className="text-[11px] text-neutral-500 font-semibold mt-0.5">Capacité de <strong className="text-neutral-700">{room.capacity} places</strong></p>
             </div>
-            <button onClick={() => setIsEdit(true)} className="px-2 py-1 bg-[#B3181C]/10 text-[#B3181C] hover:bg-[#B3181C]/20 text-[10px] font-extrabold rounded-lg flex items-center gap-1 cursor-pointer">
+            <button onClick={() => setIsEdit(true)} className="px-2 py-1 bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-extrabold rounded-lg flex items-center gap-1 cursor-pointer">
               <span translate="no" className="material-symbols-outlined text-xs">edit</span>Modifier
             </button>
           </div>
           <div className="flex flex-wrap gap-1">
-            {room.equipment.map(eq => (
+            {safeEquipment.map(eq => (
               <span key={eq} className="text-[8px] bg-neutral-100 text-neutral-500 font-bold px-1.5 py-0.5 rounded uppercase">{eq}</span>
             ))}
           </div>

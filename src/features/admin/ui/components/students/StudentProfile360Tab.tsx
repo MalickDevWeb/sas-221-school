@@ -25,7 +25,7 @@ export function StudentProfile360Tab({ selectedStudent, onUpdateStudent }: Props
   if (loading && !erpData) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-3" id="profile-main-loading">
-        <div className="w-10 h-10 border-4 border-[#B3181C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="text-xs text-neutral-500 font-extrabold uppercase tracking-widest animate-pulse">
           Chargement du profil 360°...
         </p>

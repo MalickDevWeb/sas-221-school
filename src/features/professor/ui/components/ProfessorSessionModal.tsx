@@ -48,13 +48,13 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
         </button>
 
         <div className="mb-4">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#B3181C] bg-[#FFF5F5] px-2.5 py-1 rounded-full">{session.type} · {session.room}</span>
+          <span className="text-[10px] uppercase font-black tracking-widest text-primary bg-primary-light px-2.5 py-1 rounded-full">{session.type} · {session.room}</span>
           <h3 className="mt-2 text-base font-black text-[#1E293B] leading-snug">{session.courseTitle}</h3>
           <p className="text-xs text-neutral-500 font-bold mt-1 font-sans">Planifié le {session.day} à {session.time}</p>
         </div>
 
         {session.status === 'annule' ? (
-          <div className="p-4 rounded-2xl bg-[#FFF5F5] border border-[#B3181C]/15 text-center text-xs font-black text-brand-red-deep">
+          <div className="p-4 rounded-2xl bg-primary-light border border-primary/15 text-center text-xs font-black text-brand-red-deep">
             Cette séance a été annulée. Motif : "{session.cancellationReason || 'Non spécifié'}"
           </div>
         ) : (
@@ -68,7 +68,7 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
             {action === 'none' && (
               <div className="grid grid-cols-2 gap-3">
                 <button type="button" onClick={() => setAction('reschedule')} className="flex items-center justify-center gap-2 py-3 bg-neutral-gray-100 hover:bg-neutral-200 text-neutral-700 rounded-2xl text-xs font-black cursor-pointer border-0"><RefreshCw className="w-4 h-4" /> Reprogrammer</button>
-                <button type="button" onClick={() => setAction('cancel')} className="flex items-center justify-center gap-2 py-3 bg-brand-red-light hover:bg-[#ffebeb] text-brand-red-deep rounded-2xl text-xs font-black cursor-pointer border-0"><Trash2 className="w-4 h-4" /> Annuler cours</button>
+                <button type="button" onClick={() => setAction('cancel')} className="flex items-center justify-center gap-2 py-3 bg-brand-red-light hover:bg-primary-light text-brand-red-deep rounded-2xl text-xs font-black cursor-pointer border-0"><Trash2 className="w-4 h-4" /> Annuler cours</button>
               </div>
             )}
 

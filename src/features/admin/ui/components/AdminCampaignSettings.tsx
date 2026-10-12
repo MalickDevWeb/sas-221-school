@@ -44,7 +44,7 @@ export function AdminCampaignSettings() {
           <h4 className="font-extrabold text-[#291715] uppercase tracking-wide text-[11px]">Configuration de la Campagne</h4>
           <p className="text-[9px] text-[#8E7977] font-semibold">Statut & Délais officiels des inscriptions</p>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${settings.ouvert ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9]' : 'bg-[#FFF5F5] text-[#B3181C] border border-[#FFD1D1]'}`}>
+        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${settings.ouvert ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9]' : 'bg-primary-light text-primary border border-[#FFD1D1]'}`}>
           {settings.ouvert ? 'Actif' : 'Désactivé'}
         </span>
       </div>
@@ -57,7 +57,7 @@ export function AdminCampaignSettings() {
         <button 
           type="button" 
           onClick={() => setSettings(prev => ({ ...prev, ouvert: !prev.ouvert }))}
-          className={`w-12 h-6 rounded-full p-0.5 transition-all relative cursor-pointer ${settings.ouvert ? 'bg-[#B3181C]' : 'bg-[#E2DCDA]'}`}
+          className={`w-12 h-6 rounded-full p-0.5 transition-all relative cursor-pointer ${settings.ouvert ? 'bg-primary' : 'bg-[#E2DCDA]'}`}
         >
           <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-all absolute top-0.5 ${settings.ouvert ? 'left-[26px]' : 'left-0.5'}`} />
         </button>
@@ -68,7 +68,7 @@ export function AdminCampaignSettings() {
           <label className="text-[9px] font-black text-[#8E7977] uppercase">Date d'Ouverture (Réouverture)</label>
           <input 
             type="date"
-            className="w-full h-10 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl px-2.5 outline-none text-xs font-semibold text-[#291715] focus:border-[#B3181C]"
+            className="w-full h-10 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl px-2.5 outline-none text-xs font-semibold text-[#291715] focus:border-primary"
             value={settings.dateOuverture}
             onChange={e => setSettings(prev => ({ ...prev, dateOuverture: e.target.value }))}
           />
@@ -77,7 +77,7 @@ export function AdminCampaignSettings() {
           <label className="text-[9px] font-black text-[#8E7977] uppercase">Date Limite (Clôture)</label>
           <input 
             type="date"
-            className="w-full h-10 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl px-2.5 outline-none text-xs font-semibold text-[#291715] focus:border-[#B3181C]"
+            className="w-full h-10 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl px-2.5 outline-none text-xs font-semibold text-[#291715] focus:border-primary"
             value={settings.dateFermeture}
             onChange={e => setSettings(prev => ({ ...prev, dateFermeture: e.target.value }))}
           />
@@ -89,7 +89,7 @@ export function AdminCampaignSettings() {
         <textarea 
           rows={2}
           placeholder="ex: Session d'été ouverte pour les filières GL et CD..."
-          className="w-full bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none text-xs text-[#291715] focus:border-[#B3181C] resize-none"
+          className="w-full bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none text-xs text-[#291715] focus:border-primary resize-none"
           value={settings.messageAvis}
           onChange={e => setSettings(prev => ({ ...prev, messageAvis: e.target.value }))}
         />
@@ -99,7 +99,7 @@ export function AdminCampaignSettings() {
         <button 
           type="submit" 
           disabled={loading}
-          className="flex-1 h-10 bg-[#B3181C] hover:bg-[#8F1316] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+          className="flex-1 h-10 bg-primary hover:bg-[#8F1316] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
         >
           <span translate="no" className="material-symbols-outlined text-[15px]">save</span>
           <span>{loading ? 'Sauvegarde...' : 'Sauvegarder les configurations'}</span>

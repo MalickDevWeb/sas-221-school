@@ -37,7 +37,7 @@ export function VisitorDashboard() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-primary/80 selection:text-white" id="visitor-dashboard">
       <header className="border-b border-white/5 py-4 px-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 bg-[#B3181C] rounded-full animate-ping" />
+          <span className="w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
           <h1 className="font-extrabold text-sm tracking-tight uppercase text-white">École 221 Admissions</h1>
         </div>
         <div className="flex items-center gap-4">

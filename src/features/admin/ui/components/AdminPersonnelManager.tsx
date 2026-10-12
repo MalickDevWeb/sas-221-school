@@ -51,12 +51,12 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
   return (
     <div className="bg-white p-3.5 border border-[#E2DCDA] rounded-xl text-xs space-y-3 animate-fade-in" id="admin-personnel-manager">
       <div className="flex justify-between items-center pb-1.5 border-b border-[#E2DCDA]/60">
-        <h5 className="font-extrabold text-[#B3181C] uppercase tracking-wider text-[10.5px]">Gestion Optimale du Personnel</h5>
+        <h5 className="font-extrabold text-primary uppercase tracking-wider text-[10.5px]">Gestion Optimale du Personnel</h5>
         <span className="text-[9px] text-[#8E7977] font-bold">Corps enseignant & encadrement</span>
       </div>
 
       <form onSubmit={handleCreate} className="space-y-2 bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/40">
-        <h6 className="font-bold text-[#B3181C] uppercase tracking-wide text-[9.5px]">Embaucher / Ajouter Personnel</h6>
+        <h6 className="font-bold text-primary uppercase tracking-wide text-[9.5px]">Embaucher / Ajouter Personnel</h6>
         <div className="grid grid-cols-2 gap-2">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Nom Complet" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
           <input value={email} type="email" onChange={e => setEmail(e.target.value)} placeholder="Email Professionnel" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
@@ -67,7 +67,7 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
           </select>
           <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Téléphone (ex: 77 121...)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" />
         </div>
-        <button type="submit" disabled={loading} className="w-full h-8 bg-[#B3181C] hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg text-[10px]">Ajouter au Personnel</button>
+        <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg text-[10px]">Ajouter au Personnel</button>
       </form>
 
       <div className="space-y-1.5 max-h-[150px] overflow-y-auto">

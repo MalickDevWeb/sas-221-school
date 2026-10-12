@@ -48,7 +48,7 @@ export function CalendarToolbar({
           <button
             key={mode}
             onClick={() => { setViewMode(mode); setActiveFilter('ALL'); }}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-all ${viewMode === mode ? 'bg-[#B3181C] text-white' : 'bg-white hover:bg-neutral-100 text-neutral-600 border border-neutral-200'}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer transition-all ${viewMode === mode ? 'bg-primary text-white' : 'bg-white hover:bg-neutral-100 text-neutral-600 border border-neutral-200'}`}
           >
             {mode === 'classe' ? 'Par Classe' : mode === 'salle' ? 'Par Salle' : 'Par Enseignant'}
           </button>
@@ -69,7 +69,7 @@ export function CalendarToolbar({
           className="px-3 py-1.5 text-xs font-bold bg-white border border-neutral-200 hover:bg-neutral-100 rounded-lg cursor-pointer flex items-center gap-1.5"
           title="Générer un lien de partage"
         >
-          <span translate="no" className="material-symbols-outlined text-sm text-[#B3181C]">share</span>
+          <span translate="no" className="material-symbols-outlined text-sm text-primary">share</span>
           <span>Partager</span>
         </button>
 

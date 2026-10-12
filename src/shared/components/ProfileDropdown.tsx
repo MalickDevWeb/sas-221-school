@@ -35,12 +35,12 @@ export function ProfileDropdown({
 
   return (
     <div className="relative" ref={profileRef}>
-      <button type="button" onClick={() => { setShowProfile(!showProfile); setShowCalendar?.(false); setShowNotifications?.(false); }} className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-brand-red-deep hover:bg-[#8C1014] text-white font-black text-sm tracking-wider transition-all cursor-pointer shadow-md border-2 border-white ring-2 ring-brand-red-light/70 overflow-hidden select-none hover:scale-105 active:scale-95">
+      <button type="button" onClick={() => { setShowProfile(!showProfile); setShowCalendar?.(false); setShowNotifications?.(false); }} className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary hover:bg-primary-dark text-white font-black text-sm tracking-wider transition-all cursor-pointer shadow-md border-2 border-white ring-2 ring-primary-light/70 overflow-hidden select-none hover:scale-105 active:scale-95">
         {initials}
       </button>
       {showProfile && (
         <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2 w-[min(92vw,24rem)] sm:w-84 bg-white border border-neutral-gray-200 rounded-3xl shadow-2xl z-[200] overflow-y-auto scrollbar-none animate-slide-up max-h-[min(88vh,40rem)]">
-          <div className="p-5 text-center bg-gradient-to-br from-brand-red-deep to-[#8C1014] text-white relative overflow-hidden">
+          <div className="p-5 text-center bg-gradient-to-br from-primary to-primary-dark text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent_50%)]" />
             <button aria-label="Fermer" onClick={() => setShowProfile(false)} className="absolute top-3 right-3 text-white/85 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer z-20 hover:scale-105 active:scale-95 flex items-center justify-center border-0">
               <X className="h-4 w-4" />

@@ -43,7 +43,7 @@ export function PlanningSubSidebar({ activeTab, onSelectTab, isCollapsed, onTogg
           {!isCollapsed && onClose && (
             <button
               onClick={onClose}
-              className="p-1 rounded-lg hover:bg-[#B3181C]/10 text-neutral-500 hover:text-[#B3181C] transition-colors flex items-center justify-center cursor-pointer"
+              className="p-1 rounded-lg hover:bg-primary/10 text-neutral-500 hover:text-primary transition-colors flex items-center justify-center cursor-pointer"
               title="Masquer le volet"
             >
               <span translate="no" className="material-symbols-outlined text-lg">

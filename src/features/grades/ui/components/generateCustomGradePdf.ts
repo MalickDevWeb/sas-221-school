@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { addEcole221Footer, addEcole221Header, ECOLE_221_LOGO_URL } from '@/shared/lib/pdfTheme';
+import { addEcole221Footer, addEcole221Header, getActiveTenantPdfTheme } from '@/shared/lib/pdfTheme';
 import { AcademicYear } from './GradesData';
 
 export interface CustomPdfOptions {
@@ -26,12 +26,13 @@ export function generateCustomGradePdf(
 ) {
   onProgress(15);
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const tenantTheme = getActiveTenantPdfTheme();
   const { primary, secondary } = PALETTES[opts.themeColor];
 
   const build = () => {
     onProgress(60);
     void addEcole221Header(doc, {
-      title: 'ÉCOLE 221 — BULLETIN DE NOTES',
+      title: `${tenantTheme.schoolName.toUpperCase()} — BULLETIN DE NOTES`,
       subtitle: `BULLETIN OFFICIEL DE FIN DE SEMESTRE / ANNÉE`,
       meta: `${opts.level} | ${opts.specialty} | ${opts.academicYear}`,
       generatedAt: new Date(),
@@ -116,14 +117,13 @@ export function generateCustomGradePdf(
     });
   };
 
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  img.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width; canvas.height = img.height;
-    const ctx = canvas.getContext("2d");
-    if (ctx && img.width > 0) { ctx.drawImage(img, 0, 0); build(); } else build();
-  };
-  img.onerror = () => build();
-  img.src = ECOLE_221_LOGO_URL;
+  if (tenantTheme.logoUrl) {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => build();
+    img.onerror = () => build();
+    img.src = tenantTheme.logoUrl;
+  } else {
+    build();
+  }
 }

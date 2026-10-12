@@ -32,7 +32,7 @@ export function StudentKeysCard() {
         />
         <button
           type="submit"
-          className="w-full py-2 bg-[#B3181C] hover:bg-[#921316] text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1"
+          className="w-full py-2 bg-primary hover:bg-[#921316] text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1"
         >
           <span translate="no" className="material-symbols-outlined text-sm">autorenew</span>
           <span>Générer Nouvelle Clé AES-256</span>

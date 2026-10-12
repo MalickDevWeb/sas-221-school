@@ -9,7 +9,7 @@ interface ChartProps {
 export function GradesChart({ chartData }: ChartProps) {
   return (
     <div className="border border-neutral-100 p-3 bg-neutral-50/50 rounded-2xl space-y-1.5" id="grades-chart">
-      <h4 className="font-extrabold text-[#1E293B] text-[11px] uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+      <h4 className="font-extrabold text-[#1E293B] text-[11px] uppercase tracking-wider text-primary flex items-center gap-1.5">
         <span translate="no" className="material-symbols-outlined text-sm">bar_chart</span>
         Comparatif Notes VS Moyenne de la Classe
       </h4>
@@ -48,7 +48,7 @@ export function PerformanceReport({ gpa, filteredGrades, studentName }: ReportPr
   return (
     <div className="border border-neutral-100 p-4 bg-white rounded-2xl space-y-3 flex flex-col justify-between" id="performance-report">
       <div className="space-y-2">
-        <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+        <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
           <span translate="no" className="material-symbols-outlined text-sm">assessment</span>
           Rapport de Performance ERP
         </h4>

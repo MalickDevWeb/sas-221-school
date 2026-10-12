@@ -8,17 +8,20 @@ import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 export const AdminPortalLoginPage: React.FC = () => {
+  const { currentTenant, resolveTenant } = useTenantStore();
+  const initialSlug = currentTenant?.slug || 'ecole221';
+  const initialName = currentTenant?.name || 'École 221';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [schoolSlug, setSchoolSlug] = useState('ecole221');
-  const [customSchoolName, setCustomSchoolName] = useState('École 221');
+  const [schoolSlug, setSchoolSlug] = useState(initialSlug);
+  const [customSchoolName, setCustomSchoolName] = useState(initialName);
 
   const { executer, etat, erreur } = useLogin();
   const loading = etat === 'CHARGEMENT';
   const success = etat === 'SUCCES';
   const { utilisateur } = useAuthStore();
-  const { currentTenant, resolveTenant } = useTenantStore();
   const navigate = useNavigate();
 
   // Motion values pour tilt 3D sur le mockup de gauche
@@ -42,8 +45,11 @@ export const AdminPortalLoginPage: React.FC = () => {
     mouseY.set(0);
   };
 
-  // Établissements prédéfinis
+  // Établissements prédéfinis (avec intégration du tenant actif)
   const PRESET_SCHOOLS = [
+    ...(currentTenant && currentTenant.slug !== 'ecole221' && currentTenant.slug !== 'ecole-221'
+      ? [{ slug: currentTenant.slug, name: `${currentTenant.name} (Mon Établissement)`, color: currentTenant.branding?.primaryColor || '#10B981', badge: 'Actif' }]
+      : []),
     { slug: 'ecole221', name: 'École 221 (Campus Dakar)', color: '#8B5CF6', badge: 'Standard' },
     { slug: 'lycee-excellence', name: 'Lycée d\'Excellence Moderne', color: '#6366F1', badge: 'Privé' },
     { slug: 'groupe-scolaire-avenir', name: 'Groupe Scolaire Avenir', color: '#06B6D4', badge: 'Bilingue' },
@@ -51,10 +57,10 @@ export const AdminPortalLoginPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (schoolSlug && schoolSlug !== 'custom') {
+    if (schoolSlug && schoolSlug !== 'custom' && currentTenant?.slug !== schoolSlug) {
       resolveTenant(schoolSlug);
     }
-  }, [schoolSlug, resolveTenant]);
+  }, [schoolSlug, currentTenant, resolveTenant]);
 
   useEffect(() => {
     if (etat === 'IDLE' && (utilisateur?.role === 'ADMIN' || utilisateur?.role === 'ADMINISTRATOR')) {
@@ -414,8 +420,8 @@ export const AdminPortalLoginPage: React.FC = () => {
                   success
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-600/40'
                     : loading
-                    ? 'bg-purple-900/60 text-purple-200 border border-purple-500/40 cursor-wait'
-                    : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:brightness-110 text-white shadow-purple-900/40 hover:shadow-purple-700/60'
+                    ? 'bg-primary-dark/60 text-white/80 border border-primary/40 cursor-wait'
+                    : 'bg-primary hover:bg-primary-dark hover:brightness-110 text-white shadow-primary/40 hover:shadow-primary/60'
                 }`}
               >
                 {loading ? (

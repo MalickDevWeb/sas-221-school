@@ -19,22 +19,22 @@ export function ProfessorWeeklyDayCard({ dayKey, sessions, enCoursId, prochainId
     <div 
       className={`p-3.5 sm:p-4 rounded-[22px] border flex flex-col justify-between transition-all duration-350 relative select-none h-full min-h-[225px] ${
         isEnCours 
-          ? 'bg-[#FFF5F5]/95 border-[#B3181C] shadow-lg shadow-[#B3181C]/10 ring-2 ring-[#B3181C]/30 scale-[1.03] z-10' 
+          ? 'bg-primary-light/95 border-primary shadow-lg shadow-[#B3181C]/10 ring-2 ring-primary/30 scale-[1.03] z-10' 
           : isProchain
             ? 'bg-amber-50/55 border-amber-500/55 shadow-md ring-2 ring-amber-500/20 scale-[1.01]'
             : isToday 
-              ? 'bg-gradient-to-b from-white to-[#FFF8F8] border-[#B3181C]/35 shadow-sm ring-1 ring-[#B3181C]/5' 
-              : 'bg-white border-neutral-200 hover:bg-[#FFF9F9]/40 hover:border-[#B3181C]/20 hover:shadow-md'
+              ? 'bg-gradient-to-b from-white to-[#FFF8F8] border-primary/35 shadow-sm ring-1 ring-primary/5' 
+              : 'bg-white border-neutral-200 hover:bg-[#FFF9F9]/40 hover:border-primary/20 hover:shadow-md'
       }`}
     >
       <div className="flex flex-col flex-grow h-full overflow-hidden">
         <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-neutral-100/75 shrink-0">
-          <span className={`text-[10px] font-black uppercase tracking-widest ${isEnCours || isToday ? 'text-[#B3181C]' : isProchain ? 'text-amber-600' : 'text-neutral-400'}`}>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${isEnCours || isToday ? 'text-primary' : isProchain ? 'text-amber-600' : 'text-neutral-400'}`}>
             {dayKey}
           </span>
           <div className="flex items-center gap-1">
             {isEnCours && (
-              <span className="flex items-center gap-1 text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-[#B3181C] text-white uppercase tracking-wider animate-pulse">
+              <span className="flex items-center gap-1 text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-primary text-white uppercase tracking-wider animate-pulse">
                 <span className="w-1 h-1 rounded-full bg-white inline-block animate-ping" />
                 Live
               </span>
@@ -45,7 +45,7 @@ export function ProfessorWeeklyDayCard({ dayKey, sessions, enCoursId, prochainId
               </span>
             )}
             {isToday && !isEnCours && !isProchain && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#B3181C] animate-ping" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
             )}
           </div>
         </div>
@@ -91,7 +91,7 @@ export function ProfessorWeeklyDayCard({ dayKey, sessions, enCoursId, prochainId
       )}
       {sessions.length > 1 && (
         <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-neutral-100/50 min-w-0 gap-1 shrink-0">
-          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md shrink-0 bg-[#FFF5F5] text-[#B3181C] border border-[#B3181C]/10">
+          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md shrink-0 bg-primary-light text-primary border border-primary/10">
             {sessions.length} Séances
           </span>
           <span className="text-[8px] font-bold text-neutral-400">Faire défiler</span>

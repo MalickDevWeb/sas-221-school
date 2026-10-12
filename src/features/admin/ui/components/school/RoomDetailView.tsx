@@ -22,7 +22,7 @@ export function RoomDetailView({ room, rooms, slots, onUpdateSlots, onClose, onU
       <div className="bg-white rounded-2xl shadow-2xl border border-neutral-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-neutral-50 px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C] text-xl">door_open</span>
+            <span translate="no" className="material-symbols-outlined text-primary text-xl">door_open</span>
             <h3 className="font-extrabold text-[#1E293B] text-sm">Dashboard : {room.name}</h3>
           </div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600 border-0 bg-transparent cursor-pointer">

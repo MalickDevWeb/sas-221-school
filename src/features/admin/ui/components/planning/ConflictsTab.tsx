@@ -51,7 +51,7 @@ export function ConflictsTab({ conflicts, onClearConflict, onClearAll }: Props) 
         </div>
 
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-4 flex items-center gap-3">
-          <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-[#B3181C]">
+          <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">school</span>
           </div>
           <div>

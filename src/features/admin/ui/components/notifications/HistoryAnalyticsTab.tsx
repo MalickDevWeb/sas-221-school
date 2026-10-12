@@ -39,7 +39,7 @@ export function HistoryAnalyticsTab({ campaigns }: Props) {
                 </td>
                 <td className="px-5 py-3.5 text-neutral-400">{camp.date}</td>
                 <td className="px-5 py-3.5 text-emerald-600 font-extrabold">{camp.deliveryRate}%</td>
-                <td className="px-5 py-3.5 text-[#B3181C] font-extrabold">{camp.openRate}%</td>
+                <td className="px-5 py-3.5 text-primary font-extrabold">{camp.openRate}%</td>
               </tr>
             ))}
           </tbody>

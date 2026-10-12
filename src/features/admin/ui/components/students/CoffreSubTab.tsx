@@ -52,7 +52,7 @@ export function CoffreSubTab({ studentId }: { studentId: string }) {
           docs.map((d) => (
             <div
               key={d.id || d.name}
-              className="flex items-center justify-between p-2 border border-neutral-150 rounded-xl bg-white hover:border-[#B3181C]/20 transition-all shadow-3xs"
+              className="flex items-center justify-between p-2 border border-neutral-150 rounded-xl bg-white hover:border-primary/20 transition-all shadow-3xs"
             >
               <div className="flex items-center gap-1.5 truncate max-w-[70%]">
                 <span translate="no" className="material-symbols-outlined text-neutral-400 text-xs">
@@ -66,7 +66,7 @@ export function CoffreSubTab({ studentId }: { studentId: string }) {
                   href={d.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-2 py-0.5 bg-[#B3181C]/10 text-[#B3181C] hover:bg-[#B3181C]/20 rounded-md font-black text-[9px] uppercase tracking-wider transition-colors inline-block"
+                  className="px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-md font-black text-[9px] uppercase tracking-wider transition-colors inline-block"
                 >
                   Ouvrir
                 </a>

@@ -67,7 +67,7 @@ export function ProfessorModuleList({ modules, students, onSelectModule }: Props
                 className="group relative rounded-2xl border border-neutral-150 bg-[#FAF9F6]/40 p-5 transition-all duration-300 hover:bg-white hover:shadow-md hover:border-brand-red-deep/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
               >
                 <div className="flex items-start gap-4">
-                  <div className="font-mono text-[13px] font-black text-brand-red-deep bg-[#FFF5F5] border border-brand-red-deep/10 rounded-xl h-10 w-10 shrink-0 flex items-center justify-center shadow-3xs group-hover:bg-brand-red-deep group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                  <div className="font-mono text-[13px] font-black text-brand-red-deep bg-primary-light border border-brand-red-deep/10 rounded-xl h-10 w-10 shrink-0 flex items-center justify-center shadow-3xs group-hover:bg-brand-red-deep group-hover:text-white group-hover:border-transparent transition-all duration-300">
                     {String(idx + 1).padStart(2, '0')}
                   </div>
                   <div className="space-y-1">
@@ -87,7 +87,7 @@ export function ProfessorModuleList({ modules, students, onSelectModule }: Props
                   </div>
                 </div>
                 <div className="sm:text-right shrink-0">
-                  <button className="px-3.5 py-1.5 rounded-xl border border-[#B3181C]/15 text-[#B3181C] text-[10px] font-black uppercase bg-white group-hover:bg-[#B3181C] group-hover:text-white group-hover:border-transparent transition-all shadow-3xs cursor-pointer flex items-center gap-1">
+                  <button className="px-3.5 py-1.5 rounded-xl border border-primary/15 text-primary text-[10px] font-black uppercase bg-white group-hover:bg-primary group-hover:text-white group-hover:border-transparent transition-all shadow-3xs cursor-pointer flex items-center gap-1">
                     <FolderOpen className="h-3.5 w-3.5" /> Entrer & Gérer
                   </button>
                 </div>

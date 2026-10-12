@@ -12,7 +12,7 @@ export function ProfessorClassroomHeader({ selectedCourse, isAddingModule, setIs
     <section className="rounded-3xl bg-white p-6 md:p-8 shadow-sm border border-neutral-100/80 hover:shadow-md transition-all duration-300">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 bg-[#FFF5F5] border border-[#B3181C]/10 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg text-brand-red-deep">
+          <div className="inline-flex items-center gap-1.5 bg-primary-light border border-primary/10 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg text-brand-red-deep">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-red-deep animate-pulse" />
             Espace Classe
           </div>

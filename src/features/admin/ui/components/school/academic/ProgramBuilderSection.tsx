@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
-import { INITIAL_MODULES } from './AcademicMockData';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../../../../../../api/client';
+
+export interface AcademicModule {
+  id: string;
+  code: string;
+  title: string;
+  credits: number;
+  minGrade: number;
+  competencies: string[];
+  teacherId?: string;
+  roomId?: string;
+}
 
 export function ProgramBuilderSection() {
-  const [modules, setModules] = useState(INITIAL_MODULES);
+  const [modules, setModules] = useState<AcademicModule[]>([]);
+  const [loading, setLoading] = useState(false);
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [credits, setCredits] = useState(6);
   const [minGrade, setMinGrade] = useState(10);
   const [comps, setComps] = useState('');
+
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      setLoading(true);
+      try {
+        const res = await apiClient.get<any[]>('/admin/planning/filieres');
+        if (res.data && Array.isArray(res.data)) {
+          const mapped: AcademicModule[] = res.data.map(f => ({
+            id: f.id || String(Math.random()),
+            code: f.code || 'MOD',
+            title: f.name || f.title || 'Filière / Module',
+            credits: f.credits || 6,
+            minGrade: 10,
+            competencies: f.competencies || ['Compétence académique', 'Pratique métier'],
+          }));
+          setModules(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement modules/filières:', err);
+        setModules([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPrograms();
+  }, []);
 
   const handleAddModule = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +74,7 @@ export function ProgramBuilderSection() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs font-semibold" id="program-builder-section">
       <form onSubmit={handleAddModule} className="lg:col-span-1 bg-neutral-50 p-4 rounded-2xl border border-neutral-100/80 space-y-3">
-        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1.5 text-[#B3181C]">
+        <h4 className="font-extrabold text-[#1E293B] uppercase tracking-wider flex items-center gap-1.5 text-primary">
           <span className="material-symbols-outlined text-sm">library_add</span> Créer un Module Académique
         </h4>
         <div className="space-y-2">
@@ -63,38 +101,46 @@ export function ProgramBuilderSection() {
             <textarea placeholder="Ex: Concevoir un schéma, Optimiser une requête" value={comps} onChange={e => setComps(e.target.value)} className="w-full mt-1 p-1.5 border border-neutral-200 rounded-lg text-xs font-bold h-12 resize-none" />
           </div>
         </div>
-        <button type="submit" className="w-full py-2 bg-[#B3181C] text-white font-extrabold uppercase tracking-wider text-[10px] rounded-xl">
+        <button type="submit" className="w-full py-2 bg-primary text-white font-extrabold uppercase tracking-wider text-[10px] rounded-xl">
           Définir le Module & Règles
         </button>
       </form>
 
       <div className="lg:col-span-2 space-y-3">
         <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-neutral-400">Modules Configurés & Règles de Validation</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto no-scrollbar">
-          {modules.map(m => (
-            <div key={m.id} className="bg-white border border-neutral-150 rounded-2xl p-3.5 space-y-2 flex flex-col justify-between">
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-600 font-mono text-[9px] font-black">{m.code}</span>
-                  <span className="font-black text-[#B3181C]">{m.credits} ECTS</span>
+        {loading ? (
+          <div className="p-8 text-center text-neutral-400">Chargement des modules...</div>
+        ) : modules.length === 0 ? (
+          <div className="p-8 text-center text-neutral-400 bg-white border border-neutral-150 rounded-2xl">
+            Aucun module configuré pour cette école. Utilisez le formulaire pour en ajouter.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto no-scrollbar">
+            {modules.map(m => (
+              <div key={m.id} className="bg-white border border-neutral-150 rounded-2xl p-3.5 space-y-2 flex flex-col justify-between">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-600 font-mono text-[9px] font-black">{m.code}</span>
+                    <span className="font-black text-primary">{m.credits} ECTS</span>
+                  </div>
+                  <h5 className="font-extrabold text-[#1E293B] text-[11px] leading-tight">{m.title}</h5>
+                  <div className="pt-1.5">
+                    <p className="text-[8px] text-neutral-400 font-bold uppercase">Compétences visées</p>
+                    <ul className="list-disc list-inside text-[9px] text-neutral-600 font-bold pl-0.5 space-y-0.5">
+                      {m.competencies.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <h5 className="font-extrabold text-[#1E293B] text-[11px] leading-tight">{m.title}</h5>
-                <div className="pt-1.5">
-                  <p className="text-[8px] text-neutral-400 font-bold uppercase">Compétences visées</p>
-                  <ul className="list-disc list-inside text-[9px] text-neutral-600 font-bold pl-0.5 space-y-0.5">
-                    {m.competencies.map((c, i) => (
-                      <li key={i}>{c}</li>
-                    ))}
-                  </ul>
+                <div className="border-t border-neutral-50 pt-2 flex justify-between items-center text-[10px]">
+                  <span className="text-neutral-400 font-bold">Règle de validation</span>
+                  <span className="font-black text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-lg">Note ≥ {m.minGrade}/20</span>
                 </div>
               </div>
-              <div className="border-t border-neutral-50 pt-2 flex justify-between items-center text-[10px]">
-                <span className="text-neutral-400 font-bold">Règle de validation</span>
-                <span className="font-black text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-lg">Note ≥ {m.minGrade}/20</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

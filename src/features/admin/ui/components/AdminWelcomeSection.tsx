@@ -20,7 +20,7 @@ export function AdminWelcomeSection() {
       </div>
       <h2 className="text-3xl font-black text-[#291715] tracking-tight">Bonjour, {userName}</h2>
       <p className="text-[#8E7977] text-sm mt-1">
-        Aujourd'hui est le <span className="font-bold text-[#B3181C]">{formattedDate}</span>. Voici un aperçu global de l'établissement École 221.
+        Aujourd'hui est le <span className="font-bold text-primary">{formattedDate}</span>. Voici un aperçu global de l'établissement École 221.
       </p>
     </section>
   );

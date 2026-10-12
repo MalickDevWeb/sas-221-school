@@ -76,7 +76,7 @@ export function AdminCommandPalette({ isOpen, onClose, onSelectTab }: Props) {
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[#FAF8F6] transition-colors text-left group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <span translate="no" className="material-symbols-outlined text-neutral-400 group-hover:text-[#B3181C] text-[18px]">{cmd.icon}</span>
+                    <span translate="no" className="material-symbols-outlined text-neutral-400 group-hover:text-primary text-[18px]">{cmd.icon}</span>
                     <span className="text-xs font-bold text-[#1E293B]">{cmd.label}</span>
                     <span className="text-[10px] bg-neutral-100 text-neutral-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">{cmd.cat}</span>
                   </div>

@@ -43,7 +43,8 @@ export function AdminPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':     return <AdminCEODashboard currency={tenant.currency} />;
-      case 'school':        return <AdminSchoolManager />;
+      case 'promotions':    return <AdminSchoolManager defaultTab="classes" />;
+      case 'school':        return <AdminSchoolManager defaultTab="classes" />;
       case 'schedule':      return <AdminGlobalScheduler />;
       case 'personnel':     return <AdminPersonnelRH />;
       case 'students':      return <AdminStudentManager />;

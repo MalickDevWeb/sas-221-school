@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function PlanningFiltersPanel({ filters, onChange, onReset }: Props) {
-  const selectClass = "px-2 py-1.5 border border-neutral-200 rounded-xl text-[10px] font-bold bg-white text-neutral-700 focus:outline-none focus:border-[#B3181C]";
+  const selectClass = "px-2 py-1.5 border border-neutral-200 rounded-xl text-[10px] font-bold bg-white text-neutral-700 focus:outline-none focus:border-primary";
 
   return (
     <div className="bg-white border border-neutral-200 rounded-2xl p-3.5 shadow-xs space-y-3" id="planning-filters-panel">
@@ -28,7 +28,7 @@ export function PlanningFiltersPanel({ filters, onChange, onReset }: Props) {
         </span>
         <button
           onClick={onReset}
-          className="text-[10px] font-black text-[#B3181C] hover:underline cursor-pointer"
+          className="text-[10px] font-black text-primary hover:underline cursor-pointer"
         >
           Réinitialiser
         </button>

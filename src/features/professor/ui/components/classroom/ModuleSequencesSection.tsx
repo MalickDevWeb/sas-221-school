@@ -49,7 +49,7 @@ export function ModuleSequencesSection({ moduleId, students }: Props) {
           <button
             onClick={() => setPanelTab('plan')}
             className={`px-3 py-1.5 rounded-lg uppercase tracking-wider text-[10px] font-black transition-all cursor-pointer ${
-              panelTab === 'plan' ? 'bg-white text-[#B3181C] shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
+              panelTab === 'plan' ? 'bg-white text-primary shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             Séquences Pédagogiques ({sequences.length})
@@ -57,7 +57,7 @@ export function ModuleSequencesSection({ moduleId, students }: Props) {
           <button
             onClick={() => setPanelTab('tracking')}
             className={`px-3 py-1.5 rounded-lg uppercase tracking-wider text-[10px] font-black transition-all cursor-pointer ${
-              panelTab === 'tracking' ? 'bg-white text-[#B3181C] shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
+              panelTab === 'tracking' ? 'bg-white text-primary shadow-3xs' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             Suivi des Étudiants & Diagnostics
@@ -67,7 +67,7 @@ export function ModuleSequencesSection({ moduleId, students }: Props) {
         {panelTab === 'plan' && !isFormOpen && (
           <button
             onClick={() => setIsFormOpen(true)}
-            className="px-3 py-1.5 bg-[#B3181C] text-white rounded-xl uppercase text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all hover:scale-102"
+            className="px-3 py-1.5 bg-primary text-white rounded-xl uppercase text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all hover:scale-102"
           >
             <span className="material-symbols-outlined text-[14px]">add</span> Ajouter Séquence
           </button>

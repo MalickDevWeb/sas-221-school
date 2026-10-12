@@ -57,7 +57,7 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                   <div
                     key={c.id}
                     onClick={() => setSelectedCandidate(c)}
-                    className="bg-white border border-neutral-200 hover:border-[#B3181C] p-3 rounded-xl shadow-xs hover:shadow-md cursor-pointer transition-all space-y-1.5"
+                    className="bg-white border border-neutral-200 hover:border-primary p-3 rounded-xl shadow-xs hover:shadow-md cursor-pointer transition-all space-y-1.5"
                   >
                     <div className="font-extrabold text-xs text-[#1E293B] leading-snug">{c.name}</div>
                     <div className="flex items-center justify-between gap-1 flex-wrap">

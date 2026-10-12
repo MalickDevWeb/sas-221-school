@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { loginUseCase } from '../infrastructure/config/dependencies';
 import type { LoginCommand } from '../usecases/LoginCommand';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES, ROLE_UTILISATEUR } from '@/shared/constants';
 
@@ -20,14 +21,33 @@ export function useLogin() {
     try {
       const { utilisateur, token } = await loginUseCase(cmd);
       
-      // Mettre à jour l'état global
+      // Synchroniser le token d'authentification
       connexionReussie({ utilisateur, token });
-      
-      // Stocker le token
       localStorage.setItem('access_token', token);
-      
+      localStorage.setItem('auth_token', token);
+
+      // Synchronisation automatique de l'école et de sa palette selon le tenant ou l'identifiant
+      const currentUrlMatch = window.location.pathname.match(/\/t\/([^/]+)/);
+      const urlSlug = currentUrlMatch ? currentUrlMatch[1] : null;
+      const emailParts = (utilisateur.email || cmd.email).toLowerCase().split('@');
+      const emailSlug = (emailParts.length === 2 && emailParts[1].endsWith('.sn'))
+        ? emailParts[1].replace(/\.sn$/, '').trim()
+        : null;
+
+      const targetSlug = utilisateur.tenantSlug
+        || urlSlug
+        || emailSlug
+        || useTenantStore.getState().currentTenant?.slug
+        || 'ecole221';
+
+      if (targetSlug) {
+        try {
+          await useTenantStore.getState().resolveTenant(targetSlug);
+        } catch {}
+      }
+
       setEtat('SUCCES');
-      
+
       // Laisser l'animation de succès se jouer pour un feedback utilisateur optimal
       await new Promise((resolve) => setTimeout(resolve, 750));
       

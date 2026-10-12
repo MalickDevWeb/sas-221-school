@@ -44,10 +44,10 @@ export function IaResultsDisplay({ isGenerating, generatedResult, handleApply }:
       {!isGenerating && generatedResult && (
         <div className="space-y-4 flex-1 flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="flex justify-between items-center bg-[#B3181C]/5 p-3 rounded-xl border border-[#B3181C]/20">
+            <div className="flex justify-between items-center bg-primary/5 p-3 rounded-xl border border-primary/20">
               <div>
                 <div className="text-[10px] text-neutral-400 font-black uppercase">Score d'Optimisation</div>
-                <div className="text-xl font-black text-[#B3181C]">{generatedResult.score}</div>
+                <div className="text-xl font-black text-primary">{generatedResult.score}</div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-neutral-400 font-black uppercase">Conflits Logistiques</div>

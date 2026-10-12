@@ -1,16 +1,52 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CalendarSlot, UnassignedCourse, ConflictAlert, TeacherSubjectAssociation, AuditLog } from '../domain/PlanningModels';
-import { INITIAL_SLOTS, INITIAL_UNASSIGNED, INITIAL_CONFLICTS } from '../domain/PlanningMockData';
 import { checkSchedulingConflicts, autoSuggestSubject } from '../domain/PlanningRulesEngine';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export function useAdminSchedulerState() {
-  const [slots, setSlots] = useState<CalendarSlot[]>(INITIAL_SLOTS);
-  const [unassigned, setUnassigned] = useState<UnassignedCourse[]>(INITIAL_UNASSIGNED);
-  const [conflicts, setConflicts] = useState<ConflictAlert[]>(INITIAL_CONFLICTS);
+  const [slots, setSlots] = useState<CalendarSlot[]>([]);
+  const [unassigned, setUnassigned] = useState<UnassignedCourse[]>([]);
+  const [conflicts, setConflicts] = useState<ConflictAlert[]>([]);
   const [associations, setAssociations] = useState<TeacherSubjectAssociation[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [week, setWeek] = useState(1);
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
+
+  useEffect(() => {
+    // Charger les créneaux et le planning réel depuis le backend
+    apiClient.get('/admin/planning/slots')
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          // Si le backend renvoie des créneaux formatés, les convertir
+          const mappedSlots: CalendarSlot[] = res.data.map((item: any) => ({
+            id: item.id || `slot-${Math.random()}`,
+            subject: item.subject || item.name || '',
+            prof: item.prof || item.professorName || 'Enseignant',
+            room: item.room || item.roomName || 'Salle non assignée',
+            classe: item.classe || item.className || 'Tronc Commun',
+            day: item.day || 'LUNDI',
+            slot: item.slot || item.startTime || '08:00 - 10:00',
+            type: item.type || 'CM',
+            faculte: item.faculte || 'Informatique',
+            departement: item.departement || 'Génie Logiciel',
+            filiere: item.filiere || 'Génie Logiciel',
+            niveau: item.niveau || 'Licence',
+            semestre: item.semestre || 'Semestre 1',
+            anneeAcademique: item.anneeAcademique || '2025-2026',
+            groupe: item.groupe || 'Aucun',
+            building: item.building || 'Bâtiment Central',
+            capacityRequired: item.capacityRequired || 30,
+            isPublished: Boolean(item.isPublished),
+            weekNumber: item.weekNumber || 1
+          }));
+          setSlots(mappedSlots);
+        }
+      })
+      .catch((err) => {
+        console.warn("Impossible de charger les créneaux réels depuis /admin/planning/slots:", err?.message);
+        setSlots([]);
+      });
+  }, []);
 
   const showToast = useCallback((msg: string, succ: boolean) => {
     setToast({ message: msg, success: succ });

@@ -24,7 +24,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setCommMode('timeline')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            commMode === 'timeline' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            commMode === 'timeline' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Timeline du Parcours
@@ -32,7 +32,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setCommMode('chat')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            commMode === 'chat' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            commMode === 'chat' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Messagerie administrative
@@ -43,7 +43,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
         <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-neutral-200">
           {finalErpData.timeline.map((evt: any, idx: number) => (
             <div key={idx} className="relative space-y-1">
-              <span className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full border-2 border-white ${idx === finalErpData.timeline.length - 1 ? 'bg-[#B3181C] ring-4 ring-[#B3181C]/25 animate-ping' : 'bg-neutral-400'}`} />
+              <span className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full border-2 border-white ${idx === finalErpData.timeline.length - 1 ? 'bg-primary ring-4 ring-primary/25 animate-ping' : 'bg-neutral-400'}`} />
               <p className="text-[10px] text-neutral-400 font-bold">{evt.year}</p>
               <h5 className="font-extrabold text-[#1E293B] text-[11px] uppercase tracking-wide flex items-center gap-2">
                 {evt.title}
@@ -63,7 +63,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
       {commMode === 'chat' && (
         <div className="space-y-4 bg-neutral-50/50 p-3 rounded-2xl border border-neutral-150">
           <div className="flex items-center justify-between border-b border-neutral-150 pb-2">
-            <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1">
+            <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1">
               <span translate="no" className="material-symbols-outlined text-sm">mail</span>
               Échanges Administrateurs / Enseignants
             </h4>
@@ -76,7 +76,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
             {finalErpData.extra.messages.map((msg: any, idx: number) => (
               <div key={idx} className="bg-white p-3 rounded-xl border border-neutral-100 shadow-sm space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-[#1E293B] text-[10px] uppercase text-[#B3181C]">{msg.sender}</span>
+                  <span className="font-extrabold text-[#1E293B] text-[10px] uppercase text-primary">{msg.sender}</span>
                   <span className="text-[9px] text-neutral-400 font-bold">{msg.date}</span>
                 </div>
                 <p className="text-neutral-700 font-bold text-[11px] leading-relaxed">{msg.text}</p>

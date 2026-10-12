@@ -23,7 +23,7 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
   return (
     <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between" id="profile-360-header">
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 bg-[#B3181C]/10 text-[#B3181C] font-black text-2xl rounded-full flex items-center justify-center border border-[#B3181C]/20 shadow-inner">
+        <div className="w-14 h-14 bg-primary/10 text-primary font-black text-2xl rounded-full flex items-center justify-center border border-primary/20 shadow-inner">
           {selectedStudent.name[0]}
         </div>
         <div>
@@ -45,7 +45,7 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
         <button
           onClick={onGenerateCert}
           disabled={certLoading}
-          className="px-3 py-1.5 bg-[#B3181C] hover:bg-[#921316] text-white rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition-colors cursor-pointer"
+          className="px-3 py-1.5 bg-primary hover:bg-[#921316] text-white rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition-colors cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-sm">print</span>
           <span>{certLoading ? 'Génération...' : 'Certificat Scolarité'}</span>

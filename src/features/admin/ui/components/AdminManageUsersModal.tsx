@@ -30,7 +30,7 @@ export function AdminManageUsersModal({
             <h3 className="font-black text-sm text-[#291715] uppercase tracking-wide">Panneau d'Organisation & Personnel</h3>
             <p className="text-[10px] text-[#8E7977] font-semibold">Classes, filières, enseignants et dossiers scolaires</p>
           </div>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-[#B3181C] font-black text-xs uppercase cursor-pointer bg-[#FAF8F6] hover:bg-[#FFF5F5] px-2 py-1 rounded-md border border-[#E2DCDA]/50 transition-all">[ Fermer ]</button>
+          <button onClick={onClose} className="text-[#8E7977] hover:text-primary font-black text-xs uppercase cursor-pointer bg-[#FAF8F6] hover:bg-primary-light px-2 py-1 rounded-md border border-[#E2DCDA]/50 transition-all">[ Fermer ]</button>
         </div>
 
         <div className="flex bg-[#E2DCDA]/30 p-1 border-b border-[#E2DCDA] overflow-x-auto gap-1">
@@ -41,7 +41,7 @@ export function AdminManageUsersModal({
             ['structure', 'Classes & Filières'],
             ['personnel', 'Personnel & Staff']
           ] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setTab(k)} className={`flex-1 py-1.5 px-2 text-[10px] font-black uppercase rounded-lg transition-all whitespace-nowrap ${tab === k ? 'bg-[#B3181C] text-white shadow-xs' : 'text-[#8E7977] hover:bg-white/50'}`}>
+            <button key={k} onClick={() => setTab(k)} className={`flex-1 py-1.5 px-2 text-[10px] font-black uppercase rounded-lg transition-all whitespace-nowrap ${tab === k ? 'bg-primary text-white shadow-xs' : 'text-[#8E7977] hover:bg-white/50'}`}>
               {label}
             </button>
           ))}
@@ -52,7 +52,7 @@ export function AdminManageUsersModal({
             <div className="space-y-2 animate-fade-in">
               <div className="flex justify-between items-center bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/60">
                 <span className="font-extrabold text-[#291715] text-[11px] uppercase">Roster de l'Établissement</span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#FFF5F5] text-[#B3181C] border border-[#FFD1D1]">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-primary-light text-primary border border-[#FFD1D1]">
                   {students.length} Élèves inscrits
                 </span>
               </div>
@@ -62,9 +62,9 @@ export function AdminManageUsersModal({
                     <div>
                       <p className="text-xs font-bold text-[#291715]">{s.name}</p>
                       <p className="text-[9px] text-[#8E7977] font-bold">Matricule : {s.matricule} • {promotions.find(p => p.id === s.promotion_id)?.name || 'Classe'}</p>
-                      <p className="text-[9px] font-semibold text-[#B3181C]">Moyenne : {s.average || 'N/A'}/20</p>
+                      <p className="text-[9px] font-semibold text-primary">Moyenne : {s.average || 'N/A'}/20</p>
                     </div>
-                    <button onClick={async () => { if (confirm(`Supprimer ${s.name} ?`)) { await onDeleteStudent(s.id); onRefreshData(); } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-[#FFF5F5] px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
+                    <button onClick={async () => { if (confirm(`Supprimer ${s.name} ?`)) { await onDeleteStudent(s.id); onRefreshData(); } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
                   </div>
                 ))}
               </div>

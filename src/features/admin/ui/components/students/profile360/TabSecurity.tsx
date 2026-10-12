@@ -18,7 +18,7 @@ export function TabSecurity({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setSecTab('connections')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            secTab === 'connections' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            secTab === 'connections' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Connexions Récentes
@@ -26,7 +26,7 @@ export function TabSecurity({ selectedStudent, erpData }: Props) {
         <button
           onClick={() => setSecTab('audit')}
           className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
-            secTab === 'audit' ? 'bg-[#B3181C] text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+            secTab === 'audit' ? 'bg-primary text-white' : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
           }`}
         >
           Journal d'activité (Audit Trail)

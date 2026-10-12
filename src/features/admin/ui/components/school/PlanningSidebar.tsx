@@ -28,7 +28,7 @@ export function PlanningSidebar({ rooms, classes }: Props) {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 pb-2 text-[10px] font-black uppercase text-center border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === tab ? 'border-[#B3181C] text-[#B3181C]' : 'border-transparent text-neutral-400'
+              activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-neutral-400'
             }`}
           >
             {tab === 'teachers' ? 'Profs' : tab === 'rooms' ? 'Salles' : 'Classes'}
@@ -52,7 +52,7 @@ export function PlanningSidebar({ rooms, classes }: Props) {
               <span translate="no" className="material-symbols-outlined text-neutral-400 text-md">school</span>
               <div>
                 <h5 className="text-[11px] font-black text-neutral-800">{t.name}</h5>
-                <span className="text-[9px] text-[#B3181C] font-semibold">{t.spec}</span>
+                <span className="text-[9px] text-primary font-semibold">{t.spec}</span>
               </div>
             </div>
           ))}
@@ -63,7 +63,7 @@ export function PlanningSidebar({ rooms, classes }: Props) {
               key={r.id}
               draggable
               onDragStart={(e) => handleDragStart(e, 'room', r.name)}
-              className="p-3 bg-neutral-50 hover:bg-[#B3181C]/5 border border-neutral-200/60 rounded-xl cursor-grab active:cursor-grabbing transition-all flex items-center gap-2"
+              className="p-3 bg-neutral-50 hover:bg-primary/5 border border-neutral-200/60 rounded-xl cursor-grab active:cursor-grabbing transition-all flex items-center gap-2"
             >
               <span translate="no" className="material-symbols-outlined text-neutral-400 text-md">meeting_room</span>
               <div>
@@ -79,7 +79,7 @@ export function PlanningSidebar({ rooms, classes }: Props) {
               key={c.id}
               draggable
               onDragStart={(e) => handleDragStart(e, 'class', c.name)}
-              className="p-3 bg-neutral-50 hover:bg-[#B3181C]/5 border border-neutral-200/60 rounded-xl cursor-grab active:cursor-grabbing transition-all flex items-center gap-2"
+              className="p-3 bg-neutral-50 hover:bg-primary/5 border border-neutral-200/60 rounded-xl cursor-grab active:cursor-grabbing transition-all flex items-center gap-2"
             >
               <span translate="no" className="material-symbols-outlined text-neutral-400 text-md">groups</span>
               <div>

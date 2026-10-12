@@ -2,6 +2,7 @@ import React from 'react';
 import { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
+import { TenantRouteSync } from './TenantRouteSync';
 import { ROUTES, ROLE_UTILISATEUR } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
 
@@ -153,6 +154,21 @@ export function AppRouter() {
               <Route path="/etudiant/notes"          element={<StudentGradesPage />} />
               <Route path="/etudiant/tuteur"         element={<StudentTutorPage />} />
               <Route path="/etudiant/collaboration"  element={<CollaborationPage />} />
+            </Route>
+
+            {/* Routes Étudiant avec URL dédiée contenant le slug de l'école (/t/:tenantSlug/...) */}
+            <Route path="/t/:tenantSlug" element={<TenantRouteSync />}>
+              <Route element={<StudentLayout />}>
+                <Route path="dashboard" element={<StudentDashboardPage />} />
+                <Route path="etudiant" element={<StudentDashboardPage />} />
+                <Route path="etudiant/cours" element={<StudentCoursesPage />} />
+                <Route path="etudiant/cours/:id" element={<CourseDetailPage />} />
+                <Route path="etudiant/devoirs" element={<StudentHomeworksPage />} />
+                <Route path="etudiant/planning" element={<StudentSchedulePage />} />
+                <Route path="etudiant/notes" element={<StudentGradesPage />} />
+                <Route path="etudiant/tuteur" element={<StudentTutorPage />} />
+                <Route path="etudiant/collaboration" element={<CollaborationPage />} />
+              </Route>
             </Route>
           </Route>
 

@@ -50,7 +50,7 @@ export function ModuleExerciseList({ exercises, students, onDelete, onToggleStud
               <button
                 type="button"
                 onClick={() => onDelete(ex.id)}
-                className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-[#FFF5F5] transition-colors cursor-pointer border-0 bg-transparent"
+                className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-primary-light transition-colors cursor-pointer border-0 bg-transparent"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

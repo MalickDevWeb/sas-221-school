@@ -54,8 +54,8 @@ export function ProfessorDashboardView({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="rounded-[28px] bg-white p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 text-[#B3181C]">
-            <div className="p-2 bg-[#FFF5F5] rounded-xl border border-[#B3181C]/10">
+          <div className="flex items-center gap-3 text-primary">
+            <div className="p-2 bg-primary-light rounded-xl border border-primary/10">
               <Award className="w-5 h-5 stroke-[2.2]" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Performance moyenne</span>
@@ -65,8 +65,8 @@ export function ProfessorDashboardView({
         </div>
 
         <div className="rounded-[28px] bg-white p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 text-[#B3181C]">
-            <div className="p-2 bg-[#FFF5F5] rounded-xl border border-[#B3181C]/10">
+          <div className="flex items-center gap-3 text-primary">
+            <div className="p-2 bg-primary-light rounded-xl border border-primary/10">
               <Users className="w-5 h-5 stroke-[2.2]" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Activité évaluations</span>
@@ -76,8 +76,8 @@ export function ProfessorDashboardView({
         </div>
 
         <div className="rounded-[28px] bg-white p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 text-[#B3181C]">
-            <div className="p-2 bg-[#FFF5F5] rounded-xl border border-[#B3181C]/10">
+          <div className="flex items-center gap-3 text-primary">
+            <div className="p-2 bg-primary-light rounded-xl border border-primary/10">
               <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Workflow</span>

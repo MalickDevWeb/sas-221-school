@@ -34,7 +34,7 @@ export function AttendanceHeatmap({ presenceRate, absenceRate, punctuality }: He
       </div>
 
       <div className="border border-neutral-100 p-3.5 bg-neutral-50/30 rounded-2xl">
-        <h4 className="font-extrabold text-[#1E293B] text-[11px] uppercase tracking-wider mb-2 text-[#B3181C] flex items-center gap-1.5">
+        <h4 className="font-extrabold text-[#1E293B] text-[11px] uppercase tracking-wider mb-2 text-primary flex items-center gap-1.5">
           <span translate="no" className="material-symbols-outlined text-sm">grid_on</span>
           Heatmap de Présence Mensuelle (Juillet 2026)
         </h4>

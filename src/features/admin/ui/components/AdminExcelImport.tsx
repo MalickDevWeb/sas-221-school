@@ -68,8 +68,8 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
   return (
     <div className="bg-white p-4 border border-[#E2DCDA] rounded-2xl text-xs space-y-3 shadow-xs" id="admin-excel-import">
       <div className="flex justify-between items-center pb-2.5 border-b border-[#E2DCDA]/60">
-        <h5 className="font-extrabold text-[#B3181C] uppercase tracking-wider text-[10px]">Importateur Excel / CSV</h5>
-        <span className="text-[8px] text-[#B3181C] bg-red-50 px-2 py-0.5 rounded-full font-black uppercase">CSV v1.0</span>
+        <h5 className="font-extrabold text-primary uppercase tracking-wider text-[10px]">Importateur Excel / CSV</h5>
+        <span className="text-[8px] text-primary bg-red-50 px-2 py-0.5 rounded-full font-black uppercase">CSV v1.0</span>
       </div>
 
       {isTablet && step === 2 && (
@@ -81,7 +81,7 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
       {step === 1 ? (
         <div className="space-y-2">
           <textarea rows={3} className="w-full font-mono text-[10px] bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none" value={csvText} onChange={e => setCsvText(e.target.value)} />
-          <button type="button" onClick={parseCsv} className="w-full h-9 bg-[#B3181C] hover:bg-[#B3181C]/90 text-white font-black uppercase rounded-xl tracking-wider cursor-pointer">Analyse des Colonnes</button>
+          <button type="button" onClick={parseCsv} className="w-full h-9 bg-primary hover:bg-primary/90 text-white font-black uppercase rounded-xl tracking-wider cursor-pointer">Analyse des Colonnes</button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -100,7 +100,7 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={() => setStep(1)} className="flex-1 h-9 border border-[#E2DCDA] rounded-xl font-bold uppercase hover:bg-neutral-50">Retour</button>
-            <button type="button" onClick={handleImport} disabled={loading} className="flex-[2] h-9 bg-[#B3181C] text-white font-black uppercase rounded-xl hover:bg-[#B3181C]/90">{loading ? 'Importation...' : 'Valider & Importer'}</button>
+            <button type="button" onClick={handleImport} disabled={loading} className="flex-[2] h-9 bg-primary text-white font-black uppercase rounded-xl hover:bg-primary/90">{loading ? 'Importation...' : 'Valider & Importer'}</button>
           </div>
         </div>
       )}

@@ -61,7 +61,7 @@ export function HomeworkSidebar({ homeworks, activeHomeworkId, onSelectHomework,
           <p className="text-[11px] text-neutral-400 text-center py-6 font-bold border border-dashed border-neutral-200 rounded-2xl bg-neutral-50/50">Aucun travail créé.</p>
         ) : (
           homeworks.map((hw) => (
-            <div key={hw.id} onClick={() => onSelectHomework(hw.id)} className={`group flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${activeHomeworkId === hw.id ? 'bg-[#FFF5F5] border-[#B3181C]/20 text-brand-red-deep font-black' : 'bg-white border-neutral-100 text-neutral-700 hover:bg-neutral-50'}`}>
+            <div key={hw.id} onClick={() => onSelectHomework(hw.id)} className={`group flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${activeHomeworkId === hw.id ? 'bg-primary-light border-primary/20 text-brand-red-deep font-black' : 'bg-white border-neutral-100 text-neutral-700 hover:bg-neutral-50'}`}>
               <div className="text-xs truncate max-w-[150px] flex flex-col">
                 <span className="text-[9px] uppercase font-black tracking-wider text-neutral-400 block -mb-0.5">
                   {hw.workType === 'td' ? 'TD' : hw.workType === 'test' ? 'Test' : hw.workType === 'quiz' ? 'Quiz' : 'Devoir'}

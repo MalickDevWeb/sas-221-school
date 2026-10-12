@@ -68,7 +68,7 @@ export function ProfessorClassroomView(props: ClassroomProps) {
     return (
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-sm flex items-center gap-4 select-none">
-          <div className="h-12 w-12 bg-[#FFF5F5] rounded-2xl flex items-center justify-center text-[#B3181C] border border-[#B3181C]/10 shrink-0">
+          <div className="h-12 w-12 bg-primary-light rounded-2xl flex items-center justify-center text-primary border border-primary/10 shrink-0">
             <GraduationCap className="h-6 w-6 stroke-[2.5]" />
           </div>
           <div>

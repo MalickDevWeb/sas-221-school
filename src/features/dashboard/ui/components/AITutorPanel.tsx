@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { Sparkles, MessageSquare, User, Brain } from 'lucide-react';
 import axios from 'axios';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 export function AITutorPanel() {
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || "l'École 221";
+
   const [isLoading, setIsLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [chatLog, setChatLog] = useState<Array<{ sender: 'ai' | 'user'; text: string }>>([
     { 
       sender: 'ai', 
-      text: "Bonjour ! J'ai analysé votre profil académique de l'Ecole 221. Je suis disponible pour répondre à vos questions sur les cours, vos performances, ou pour vous conseiller. En quoi puis-je vous aider ?" 
+      text: `Bonjour ! J'ai analysé votre profil académique de ${schoolName}. Je suis disponible pour répondre à vos questions sur les cours, vos performances, ou pour vous conseiller. En quoi puis-je vous aider ?` 
     }
   ]);
 
@@ -42,7 +46,7 @@ export function AITutorPanel() {
       setTimeout(() => {
         setChatLog(prev => [...prev, { 
           sender: 'ai' as const, 
-          text: `Je suis connecté au serveur de l'École 221. Vos notes et devoirs sont bien synchronisés.` 
+          text: `Je suis connecté au serveur de ${schoolName}. Vos notes et devoirs sont bien synchronisés.` 
         }]);
       }, 500);
     } finally {
@@ -55,11 +59,11 @@ export function AITutorPanel() {
       <div className="shrink-0 space-y-3">
         <div className="flex justify-between items-center gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C]">smart_toy</span>
+            <span translate="no" className="material-symbols-outlined text-primary">smart_toy</span>
             <h3 className="font-black text-xs text-[#291715] tracking-tight uppercase whitespace-nowrap">Conseiller Académique IA</h3>
           </div>
-          <span className="text-[9px] font-black uppercase bg-red-50 text-brand-red-deep border border-red-100 px-2.5 py-0.5 rounded-lg flex items-center gap-1.5 select-none whitespace-nowrap">
-            <Sparkles className="w-3 h-3 text-[#B3181C]" /> Assistant Actif
+          <span className="text-[9px] font-black uppercase bg-primary-light text-primary border border-primary/20 px-2.5 py-0.5 rounded-lg flex items-center gap-1.5 select-none whitespace-nowrap">
+            <Sparkles className="w-3 h-3 text-primary" /> Assistant Actif
           </span>
         </div>
       </div>
@@ -70,8 +74,8 @@ export function AITutorPanel() {
             {chatLog.map((log, i) => (
               <div key={i} className={`flex gap-2 items-start ${log.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {log.sender === 'ai' && (
-                  <div className="w-6 h-6 rounded-full bg-[#B3181C]/5 flex items-center justify-center shrink-0 border border-[#B3181C]/10">
-                    <Brain className="h-3.5 w-3.5 text-[#B3181C]" />
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                    <Brain className="h-3.5 w-3.5 text-primary" />
                   </div>
                 )}
                 <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[10.5px] font-bold leading-relaxed border ${

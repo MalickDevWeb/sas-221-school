@@ -97,7 +97,7 @@ export function AdminCEODashboard({ currency }: Props) {
           <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">EBITDA Opérationnel</span>
           <h3 className="text-lg font-extrabold text-[#1E293B]">{ebitda}%</h3>
           <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-[#B3181C] h-full rounded-full" style={{ width: `${ebitda}%` }}></div>
+            <div className="bg-primary h-full rounded-full" style={{ width: `${ebitda}%` }}></div>
           </div>
         </div>
 
@@ -138,7 +138,7 @@ export function AdminCEODashboard({ currency }: Props) {
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm space-y-3">
           <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Origine Régionale</h4>
           <div className="space-y-2 pt-1">
-            {[['Dakar Centre', '65%', 'bg-[#B3181C]'], ['Thiès & Mbour', '20%', 'bg-amber-500'], ['Saint-Louis / Nord', '15%', 'bg-red-300']].map(([label, val, col]) => (
+            {[['Dakar Centre', '65%', 'bg-primary'], ['Thiès & Mbour', '20%', 'bg-amber-500'], ['Saint-Louis / Nord', '15%', 'bg-red-300']].map(([label, val, col]) => (
               <div key={label}>
                 <div className="flex justify-between text-[10px] font-bold text-neutral-600 mb-0.5">
                   <span>{label}</span>

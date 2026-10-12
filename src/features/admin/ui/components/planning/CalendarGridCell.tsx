@@ -48,7 +48,7 @@ export function CalendarGridCell({
       onDrop={handleDrop}
       className={`mx-1 p-2 rounded-xl border border-dashed flex flex-col justify-between transition-all select-none ${
         current
-          ? 'bg-[#B3181C]/5 border-[#B3181C]/30 text-neutral-800'
+          ? 'bg-primary/5 border-primary/30 text-neutral-800'
           : dragOver
           ? 'bg-emerald-50 border-emerald-400 scale-[1.02]'
           : 'bg-neutral-50/40 border-neutral-200 hover:bg-neutral-100/50'
@@ -67,7 +67,7 @@ export function CalendarGridCell({
                 {current.subject}
               </div>
               <span className={`text-[7px] font-black px-1 rounded uppercase shrink-0 ${
-                current.type === 'CM' ? 'bg-[#B3181C]/10 text-[#B3181C]' :
+                current.type === 'CM' ? 'bg-primary/10 text-primary' :
                 current.type === 'TD' ? 'bg-amber-100 text-amber-800' :
                 'bg-emerald-100 text-emerald-800'
               }`}>

@@ -62,7 +62,7 @@ export function ConflictModal({ conflict, onClose, onForce }: Props) {
             <button
               type="button"
               onClick={onForce}
-              className="px-3 py-2.5 bg-[#B3181C] hover:bg-[#921316] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+              className="px-3 py-2.5 bg-primary hover:bg-[#921316] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
             >
               <span translate="no" className="material-symbols-outlined text-xs">done_all</span>
               <span>Forcer l'affectation</span>

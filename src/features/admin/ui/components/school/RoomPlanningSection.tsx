@@ -95,7 +95,7 @@ export function RoomPlanningSection({ room, rooms, slots, onUpdateSlots }: Props
                 </p>
                 <p className="text-[9px] text-neutral-400 font-semibold">{slot.prof} • Classe {slot.classeId}</p>
               </div>
-              <span className="text-[9px] bg-red-50 text-[#B3181C] font-extrabold px-2 py-0.5 rounded-md border border-red-100">{slot.day} ({slot.slot})</span>
+              <span className="text-[9px] bg-red-50 text-primary font-extrabold px-2 py-0.5 rounded-md border border-red-100">{slot.day} ({slot.slot})</span>
             </div>
           ))}
         </div>

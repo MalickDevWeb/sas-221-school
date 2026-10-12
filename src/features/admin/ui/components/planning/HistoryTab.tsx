@@ -22,7 +22,7 @@ export function HistoryTab({ logs, onRestore }: Props) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2 border-b border-neutral-100">
         <div>
           <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-2">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C]">history</span>
+            <span translate="no" className="material-symbols-outlined text-primary">history</span>
             <span>Historique des Modifications & Registre d'Audit</span>
           </h3>
           <p className="text-[10px] text-neutral-400 font-semibold">Traçabilité complète des actions de planification et retour arrière en temps réel.</p>
@@ -32,7 +32,7 @@ export function HistoryTab({ logs, onRestore }: Props) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher une action, un motif..."
-          className="px-3 py-1.5 border border-neutral-200 rounded-xl text-xs font-bold w-64 focus:outline-none focus:border-[#B3181C]"
+          className="px-3 py-1.5 border border-neutral-200 rounded-xl text-xs font-bold w-64 focus:outline-none focus:border-primary"
         />
       </div>
 
@@ -81,7 +81,7 @@ export function HistoryTab({ logs, onRestore }: Props) {
                     </td>
                     <td className="p-3 font-semibold text-neutral-500 max-w-xs truncate">
                       <span className="text-neutral-400">De :</span> {log.oldValue} <br />
-                      <span className="text-[#B3181C] font-black">À :</span> {log.newValue}
+                      <span className="text-primary font-black">À :</span> {log.newValue}
                     </td>
                     <td className="p-3 italic text-neutral-400 font-medium">
                       {log.motif}
@@ -89,7 +89,7 @@ export function HistoryTab({ logs, onRestore }: Props) {
                     <td className="p-3 text-right whitespace-nowrap">
                       <button
                         onClick={() => onRestore(log)}
-                        className="px-2 py-1 border border-[#B3181C]/30 text-[#B3181C] hover:bg-[#B3181C]/5 rounded-lg text-[10px] font-black transition-all cursor-pointer inline-flex items-center gap-1"
+                        className="px-2 py-1 border border-primary/30 text-primary hover:bg-primary/5 rounded-lg text-[10px] font-black transition-all cursor-pointer inline-flex items-center gap-1"
                         title="Restaurer l'état précédent"
                       >
                         <span translate="no" className="material-symbols-outlined text-[11px]">restore</span>

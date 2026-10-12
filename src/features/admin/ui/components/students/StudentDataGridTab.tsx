@@ -124,7 +124,7 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
                     </button>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => onViewProfile(s)} className="text-[#B3181C] hover:underline cursor-pointer">Profil 360°</button>
+                    <button onClick={() => onViewProfile(s)} className="text-primary hover:underline cursor-pointer">Profil 360°</button>
                   </td>
                 </tr>
               ))}

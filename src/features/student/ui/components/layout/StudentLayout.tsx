@@ -22,7 +22,7 @@ export function StudentLayout() {
   }
 
   return (
-    <div className="bg-surface text-on-surface font-body-md min-h-screen flex selection:bg-brand-red-light selection:text-brand-red-deep overflow-x-hidden">
+    <div className="bg-surface text-on-surface font-body-md min-h-screen flex selection:bg-primary-light selection:text-primary overflow-x-hidden">
 
       {/* Real-time alert pop-up for schedule updates */}
       {state.alertNotif && (

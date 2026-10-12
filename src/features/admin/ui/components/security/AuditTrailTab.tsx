@@ -66,7 +66,7 @@ export function AuditTrailTab({ logs }: Props) {
                       <span className="bg-neutral-100 text-neutral-500 text-[8px] font-black uppercase px-1.5 py-0.5 rounded">{log.role}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-[#B3181C] uppercase font-black">{log.action}</td>
+                  <td className="px-4 py-3.5 text-primary uppercase font-black">{log.action}</td>
                   <td className="px-4 py-3.5 font-medium max-w-[250px] truncate" title={log.details}>{log.details}</td>
                   <td className="px-4 py-3.5 font-mono text-neutral-400">{log.ip}</td>
                   <td className="px-4 py-3.5 font-mono text-neutral-400 truncate max-w-[120px]">{log.agent}</td>

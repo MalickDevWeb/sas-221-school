@@ -9,7 +9,7 @@ export function AdmissionsRulesEngine() {
       <div className="lg:col-span-1 bg-[#FAF8F6] border border-neutral-200 rounded-xl p-4 flex flex-col gap-1.5 max-h-[360px] overflow-y-auto">
         <span className="text-[9px] font-black uppercase tracking-wider text-[#1E293B] mb-1">Moteurs de Règles</span>
         {rules.map((rule, idx) => (
-          <button key={rule.type} onClick={() => setSelectedRuleIndex(idx)} className={`w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between border cursor-pointer ${selectedRuleIndex === idx ? 'bg-[#B3181C] text-white border-[#B3181C]' : 'bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200'}`}>
+          <button key={rule.type} onClick={() => setSelectedRuleIndex(idx)} className={`w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between border cursor-pointer ${selectedRuleIndex === idx ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-neutral-50 text-neutral-700 border-neutral-200'}`}>
             <span className="truncate">{rule.label}</span>
             <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-black/10">{rule.type}</span>
           </button>
@@ -24,28 +24,28 @@ export function AdmissionsRulesEngine() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="flex items-center gap-2.5 p-3 border border-neutral-100 rounded-xl cursor-pointer hover:bg-neutral-50/50">
-            <input type="checkbox" checked={active.requiresTranscripts} onChange={e => updateRule(selectedRuleIndex, { requiresTranscripts: e.target.checked })} className="w-4 h-4 rounded text-[#B3181C] accent-[#B3181C]" />
+            <input type="checkbox" checked={active.requiresTranscripts} onChange={e => updateRule(selectedRuleIndex, { requiresTranscripts: e.target.checked })} className="w-4 h-4 rounded text-primary accent-[#B3181C]" />
             <div>
               <span className="block text-[#1E293B]">Exiger relevés de notes originaux</span>
               <span className="text-[9px] text-neutral-400 font-semibold">Bloquant si non téléversé</span>
             </div>
           </label>
           <label className="flex items-center gap-2.5 p-3 border border-neutral-100 rounded-xl cursor-pointer hover:bg-neutral-50/50">
-            <input type="checkbox" checked={active.requiresPassportAndVisa} onChange={e => updateRule(selectedRuleIndex, { requiresPassportAndVisa: e.target.checked })} className="w-4 h-4 rounded text-[#B3181C] accent-[#B3181C]" />
+            <input type="checkbox" checked={active.requiresPassportAndVisa} onChange={e => updateRule(selectedRuleIndex, { requiresPassportAndVisa: e.target.checked })} className="w-4 h-4 rounded text-primary accent-[#B3181C]" />
             <div>
               <span className="block text-[#1E293B]">Contrôle Passeport + Visa d'étude</span>
               <span className="text-[9px] text-neutral-400 font-semibold">Exigé pour les internationaux</span>
             </div>
           </label>
           <label className="flex items-center gap-2.5 p-3 border border-neutral-100 rounded-xl cursor-pointer hover:bg-neutral-50/50">
-            <input type="checkbox" checked={active.autoCheckPastEnrollment} onChange={e => updateRule(selectedRuleIndex, { autoCheckPastEnrollment: e.target.checked })} className="w-4 h-4 rounded text-[#B3181C] accent-[#B3181C]" />
+            <input type="checkbox" checked={active.autoCheckPastEnrollment} onChange={e => updateRule(selectedRuleIndex, { autoCheckPastEnrollment: e.target.checked })} className="w-4 h-4 rounded text-primary accent-[#B3181C]" />
             <div>
               <span className="block text-[#1E293B]">Vérification automatique scolarité</span>
               <span className="text-[9px] text-neutral-400 font-semibold">Contrôle dettes, sanctions, validation N-1</span>
             </div>
           </label>
           <label className="flex items-center gap-2.5 p-3 border border-neutral-100 rounded-xl cursor-pointer hover:bg-neutral-50/50">
-            <input type="checkbox" checked={active.requiresOfficialDecision} onChange={e => updateRule(selectedRuleIndex, { requiresOfficialDecision: e.target.checked })} className="w-4 h-4 rounded text-[#B3181C] accent-[#B3181C]" />
+            <input type="checkbox" checked={active.requiresOfficialDecision} onChange={e => updateRule(selectedRuleIndex, { requiresOfficialDecision: e.target.checked })} className="w-4 h-4 rounded text-primary accent-[#B3181C]" />
             <div>
               <span className="block text-[#1E293B]">Décision officielle requise (Dérogatoire)</span>
               <span className="text-[9px] text-neutral-400 font-semibold">Nécessite avis du Recteur / Ministère</span>

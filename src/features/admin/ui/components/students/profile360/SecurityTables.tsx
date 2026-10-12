@@ -77,7 +77,7 @@ export function AuditTrailTable({ activityTrail, studentName }: AuditProps) {
           {activityTrail.map((act: any, idx: number) => (
             <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
               <td className="p-2.5 font-bold text-neutral-800">{act.timestamp}</td>
-              <td className="p-2.5 text-[#B3181C] font-black uppercase tracking-wider text-[10px]">{act.module}</td>
+              <td className="p-2.5 text-primary font-black uppercase tracking-wider text-[10px]">{act.module}</td>
               <td className="p-2.5 font-bold text-neutral-700">{act.action}</td>
               <td className="p-2.5 text-center">
                 <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${act.result === 'SUCCÈS' ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>{act.result}</span>

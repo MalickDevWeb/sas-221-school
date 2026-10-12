@@ -22,7 +22,7 @@ export function CandidateAdmissionBadge({ type }: Props) {
     INT: { label: 'International', style: 'bg-sky-50 text-sky-700 border-sky-200' },
     VAE: { label: 'VAE', style: 'bg-slate-50 text-slate-700 border-slate-200' },
     PRO: { label: 'Form. Continue', style: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
-    EXCEPT: { label: 'Admission Exceptionnelle', style: 'bg-[#B3181C]/10 text-[#B3181C] border-[#B3181C]/20' }
+    EXCEPT: { label: 'Admission Exceptionnelle', style: 'bg-primary/10 text-primary border-primary/20' }
   };
 
   const badge = mapping[type] || { label: type, style: 'bg-neutral-100 text-neutral-700 border-neutral-200' };

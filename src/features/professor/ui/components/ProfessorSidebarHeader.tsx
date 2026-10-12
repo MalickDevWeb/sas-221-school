@@ -1,10 +1,14 @@
 import React from 'react';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface HeaderProps {
   readonly onSelectTab: (tab: string) => void;
 }
 
 export function ProfessorSidebarHeader({ onSelectTab }: HeaderProps) {
+  const currentTenant = useTenantStore((s) => s.currentTenant);
+  const schoolName = currentTenant?.name || 'École 221';
+
   return (
     <div className="mb-4 px-4 pt-5 flex flex-col items-start select-none">
       <div 
@@ -24,7 +28,7 @@ export function ProfessorSidebarHeader({ onSelectTab }: HeaderProps) {
         <span translate="no" className="material-symbols-outlined text-[20px] font-bold">school</span>
       </div>
       <div className="flex flex-col mt-3">
-        <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">École 221</h1>
+        <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
         <p className="text-[10px] font-black text-brand-red-deep uppercase tracking-widest mt-0.5">Espace Enseignant</p>
       </div>
       <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2023-24</p>

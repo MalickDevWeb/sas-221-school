@@ -19,7 +19,7 @@ export function ClassSelectRow({ selectedClass, onSelectClass, students }: Props
             onClick={() => onSelectClass(classe)}
             className={`p-3.5 border rounded-xl text-left transition-all cursor-pointer shrink-0 min-w-[155px] md:min-w-0 select-none ${
               isSelected
-                ? 'bg-[#B3181C]/5 border-[#B3181C] shadow-xs'
+                ? 'bg-primary/5 border-primary shadow-xs'
                 : 'bg-white border-neutral-200 hover:bg-neutral-50'
             }`}
           >

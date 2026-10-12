@@ -55,7 +55,7 @@ export function TabGrades({ selectedStudent, erpData }: Props) {
                   <p className="font-extrabold text-neutral-800">{g.module}</p>
                   <p className="text-[10px] text-neutral-400 font-bold">{g.ue}</p>
                 </td>
-                <td className="p-2.5 text-center font-black text-[#B3181C]">{g.grade}/20</td>
+                <td className="p-2.5 text-center font-black text-primary">{g.grade}/20</td>
                 <td className="p-2.5 text-center">
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[9px] font-black">{g.status}</span>
                 </td>

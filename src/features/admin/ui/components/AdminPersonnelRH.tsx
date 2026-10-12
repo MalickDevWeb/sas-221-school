@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PersonnelSubSidebar } from './personnel/PersonnelSubSidebar';
 import { AccountsTab } from './personnel/AccountsTab';
 import { RbacTab } from './personnel/RbacTab';
 import { AttendanceTab } from './personnel/AttendanceTab';
 import { StaffMember, INITIAL_STAFF } from '../../domain/PersonnelModels';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export function AdminPersonnelRH() {
   const [activeTab, setActiveTab] = useState('accounts');
@@ -17,23 +18,70 @@ export function AdminPersonnelRH() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleAddStaff = (newMember: Omit<StaffMember, 'id'>) => {
+  useEffect(() => {
+    async function loadStaff() {
+      try {
+        const res = await apiClient.get('/admin/staff');
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setStaff(res.data);
+        }
+      } catch (err) {
+        console.warn("API staff indisponible, fallback local:", err);
+      }
+    }
+    loadStaff();
+  }, []);
+
+  const handleAddStaff = async (newMember: Omit<StaffMember, 'id'>) => {
     const id = `EMP-2026-0${Math.floor(10 + Math.random() * 89)}`;
-    setStaff([...staff, { id, ...newMember }]);
+    const full = { id, ...newMember };
+    setStaff(prev => [...prev, full]);
     showToast(`Compte pour ${newMember.firstName} créé.`, true);
+    try {
+      await apiClient.post('/admin/staff', full);
+    } catch (err) {
+      console.warn("Erreur POST staff backend:", err);
+    }
   };
 
-  const handleToggleStatus = (id: string) => {
-    setStaff(
-      staff.map((s) => {
+  const handleUpdateStaff = async (updated: StaffMember, originalId?: string) => {
+    const targetId = originalId || updated.id;
+    setStaff(prev => prev.map(s => s.id === targetId ? updated : s));
+    showToast(`Identifiants de ${updated.firstName} ${updated.lastName} mis à jour avec succès.`, true);
+    try {
+      await apiClient.put(`/admin/staff/${targetId}`, { ...updated, newId: updated.id });
+    } catch (err) {
+      console.warn("Erreur PUT staff backend:", err);
+    }
+  };
+
+  const handleToggleStatus = async (id: string) => {
+    let nextStatus = 'Actif';
+    setStaff(prev =>
+      prev.map((s) => {
         if (s.id === id) {
-          const nextStatus = s.status === 'Actif' ? 'Suspendu' : 'Actif';
-          showToast(`Le statut de ${s.firstName} est maintenant : ${nextStatus}`, true);
-          return { ...s, status: nextStatus };
+          nextStatus = s.status === 'Actif' ? 'Suspendu' : 'Actif';
+          return { ...s, status: nextStatus as any };
         }
         return s;
       })
     );
+    showToast(`Le statut du collaborateur est maintenant : ${nextStatus}`, true);
+    try {
+      await apiClient.patch(`/admin/staff/${id}/toggle-status`);
+    } catch (err) {
+      console.warn("Erreur PATCH staff toggle status:", err);
+    }
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    setStaff(prev => prev.filter(s => s.id !== id));
+    showToast("Collaborateur supprimé avec succès.", true);
+    try {
+      await apiClient.delete(`/admin/staff/${id}`);
+    } catch (err) {
+      console.warn("Erreur DELETE staff:", err);
+    }
   };
 
   return (
@@ -47,7 +95,7 @@ export function AdminPersonnelRH() {
         />
       </TabletDrawerWrapper>
 
-      <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden" style={{ width: '657px', marginLeft: '-15px' }}>
+      <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden">
         {toast && (
           <div
             className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
@@ -67,13 +115,15 @@ export function AdminPersonnelRH() {
           <AccountsTab
             staff={staff}
             onAddStaff={handleAddStaff}
+            onUpdateStaff={handleUpdateStaff}
+            onDeleteStaff={handleDeleteStaff}
             onToggleStatus={handleToggleStatus}
           />
         )}
 
         {activeTab === 'rbac' && <RbacTab onShowToast={showToast} />}
 
-        {activeTab === 'attendance' && <AttendanceTab />}
+        {activeTab === 'attendance' && <AttendanceTab onShowToast={showToast} />}
       </div>
     </div>
   );

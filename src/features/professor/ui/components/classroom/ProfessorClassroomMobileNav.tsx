@@ -47,7 +47,7 @@ export function ProfessorClassroomMobileNav({
             zIndex: 1000,
             position: 'relative',
           }}
-          className="relative flex items-center gap-2 text-xs font-black text-[#B3181C] hover:text-[#6B0E10] transition-all cursor-pointer bg-[#FFF5F5] px-4 py-2.5 rounded-xl border border-[#B3181C]/10 hover:border-[#B3181C]/30 hover:scale-102 active:scale-98"
+          className="relative flex items-center gap-2 text-xs font-black text-primary hover:text-[#6B0E10] transition-all cursor-pointer bg-primary-light px-4 py-2.5 rounded-xl border border-primary/10 hover:border-primary/30 hover:scale-102 active:scale-98"
         >
           <ArrowLeft className="h-4 w-4" /> Changer de classe
         </button>

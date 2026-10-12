@@ -39,7 +39,7 @@ export function AdminEditPlanningModal({ onClose }: { onClose: () => void }) {
       <div className="bg-[#FAF8F6] w-full max-w-sm rounded-2xl shadow-xl overflow-hidden border border-[#E2DCDA]">
         <div className="p-4 bg-white border-b border-[#E2DCDA] flex justify-between items-center">
           <h3 className="font-black text-sm text-[#291715]">Éditer le Planning</h3>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-[#B3181C] text-xs font-bold">[ Fermer ]</button>
+          <button onClick={onClose} className="text-[#8E7977] hover:text-primary text-xs font-bold">[ Fermer ]</button>
         </div>
         <div className="p-4 space-y-3">
           <select 
@@ -48,7 +48,7 @@ export function AdminEditPlanningModal({ onClose }: { onClose: () => void }) {
               const f = sessions.find(s => s.id === e.target.value); 
               if (f) selectSession(f); 
             }} 
-            className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2 text-xs outline-none focus:border-[#B3181C]"
+            className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2 text-xs outline-none focus:border-primary"
           >
             {sessions.map(s => (
               <option key={s.id} value={s.id}>{s.nom} ({s.jourComplet} {s.heureStr})</option>
@@ -69,7 +69,7 @@ export function AdminEditPlanningModal({ onClose }: { onClose: () => void }) {
               <label className="text-[10px] font-bold text-[#8E7977] block">Salle</label>
               <input value={room} onChange={e => setRoom(e.target.value)} className="w-full bg-[#FAF8F6] border border-[#E2DCDA] rounded-lg p-1.5 text-xs outline-none" required />
             </div>
-            <button type="submit" disabled={saving} className="w-full bg-[#B3181C] text-white font-bold py-1.5 rounded-lg text-xs uppercase mt-2">
+            <button type="submit" disabled={saving} className="w-full bg-primary text-white font-bold py-1.5 rounded-lg text-xs uppercase mt-2">
               {saving ? 'Enregistrement...' : 'Confirmer'}
             </button>
           </form>

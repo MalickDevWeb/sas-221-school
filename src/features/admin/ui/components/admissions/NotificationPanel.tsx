@@ -38,7 +38,7 @@ export function NotificationPanel({ notifications, onSendNotification }: Props) 
           notifications.map(n => (
             <div key={n.id} className="p-2 bg-neutral-50 rounded-lg flex flex-col gap-0.5 border border-neutral-100">
               <div className="flex justify-between items-center text-[9px]">
-                <span className="font-black uppercase text-[#B3181C]">{n.type.replace('_', ' ')}</span>
+                <span className="font-black uppercase text-primary">{n.type.replace('_', ' ')}</span>
                 <span className="text-neutral-400">{new Date(n.sentAt).toLocaleTimeString()}</span>
               </div>
               <p className="text-[10px] text-neutral-600 font-semibold leading-relaxed">{n.message}</p>
@@ -61,7 +61,7 @@ export function NotificationPanel({ notifications, onSendNotification }: Props) 
           </select>
           <button
             onClick={handleSend}
-            className="px-3 py-1.5 bg-[#B3181C] hover:bg-[#8F1316] text-white rounded-lg text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer transition-all"
+            className="px-3 py-1.5 bg-primary hover:bg-[#8F1316] text-white rounded-lg text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer transition-all"
           >
             <span translate="no" className="material-symbols-outlined text-xs">send</span>
             <span>Notifier</span>

@@ -83,7 +83,7 @@ export function EnrollTransferStudentModal({ isOpen, onClose, onSuccess }: Props
                 value={studentId}
                 onChange={e => setStudentId(e.target.value)}
                 placeholder="Ex: user-id-123"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-[#B3181C]"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-primary"
               />
             </div>
 

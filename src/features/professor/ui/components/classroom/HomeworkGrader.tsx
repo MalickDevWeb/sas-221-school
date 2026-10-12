@@ -60,7 +60,7 @@ export function HomeworkGrader({ homework, students, grades, onSaveGrade }: Prop
                 <div className="flex items-center gap-2.5 shrink-0">
                   <span className="text-xs font-black text-neutral-800">{matched && matched.grade !== '' ? `${matched.grade}` : '--'}<span className="text-[10px] text-neutral-400 font-bold">/{homework.maxPoints}</span></span>
                   {!isEditing ? (
-                    <button onClick={() => startEdit(student.id)} className="px-2 py-1 text-[10px] font-black uppercase text-brand-red-deep bg-[#FFF5F5] hover:bg-brand-red-deep hover:text-white rounded-lg cursor-pointer border-0 transition-colors">Noter</button>
+                    <button onClick={() => startEdit(student.id)} className="px-2 py-1 text-[10px] font-black uppercase text-brand-red-deep bg-primary-light hover:bg-brand-red-deep hover:text-white rounded-lg cursor-pointer border-0 transition-colors">Noter</button>
                   ) : <span className="text-[10px] font-bold text-neutral-400">Édition...</span>}
                 </div>
               </div>

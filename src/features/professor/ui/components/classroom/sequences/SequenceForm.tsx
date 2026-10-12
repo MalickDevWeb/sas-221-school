@@ -35,7 +35,7 @@ export function SequenceForm({ onAddSequence, onClose }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5 bg-neutral-50 p-4 rounded-2xl border border-neutral-100 text-xs font-semibold" id="sequence-form">
       <div className="flex justify-between items-center pb-2 border-b border-neutral-200/50">
-        <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-[#B3181C]">
+        <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider flex items-center gap-1.5 text-primary">
           <span className="material-symbols-outlined text-sm">post_add</span> Planifier une Séquence
         </h4>
         <button type="button" onClick={onClose} className="text-neutral-400 hover:text-neutral-600">Fermer</button>
@@ -77,7 +77,7 @@ export function SequenceForm({ onAddSequence, onClose }: Props) {
         </div>
       </div>
 
-      <button type="submit" className="w-full mt-2 py-2 bg-[#B3181C] hover:bg-[#921316] text-white font-extrabold uppercase tracking-wider text-[10px] rounded-xl transition-all">
+      <button type="submit" className="w-full mt-2 py-2 bg-primary hover:bg-[#921316] text-white font-extrabold uppercase tracking-wider text-[10px] rounded-xl transition-all">
         Publier & Versionner la Séquence
       </button>
     </form>

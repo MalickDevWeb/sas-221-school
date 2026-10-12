@@ -101,25 +101,32 @@ export const AdminAccountStepForm: React.FC<AdminAccountStepFormProps> = ({
         />
       </div>
 
-      {/* Récapitulatif visuel rapide */}
-      <div className="p-3.5 rounded-2xl border border-slate-800 bg-slate-950/80">
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-          Branding configuré
-        </p>
-        <div className="flex items-center gap-3">
+      {/* Récapitulatif visuel et identifiant d'école */}
+      <div className="p-3.5 rounded-2xl border border-slate-800 bg-slate-950/80 space-y-2.5">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Établissement</span>
+          <span className="text-xs font-black text-white">{formData.schoolName || 'Mon Établissement'}</span>
+        </div>
+        <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">URL / Slug Dédié</span>
+          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700/80 text-cyan-300">
+            /t/{formData.slug || 'mon-ecole'}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 pt-0.5">
           <div className="flex gap-1.5">
             {[palette.primary, palette.accent, palette.primaryDark].map((c, i) => (
-              <div key={i} className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: c }} />
+              <div key={i} className="w-5 h-5 rounded-full shadow-sm border border-white/10" style={{ backgroundColor: c }} />
             ))}
           </div>
           <div>
             <p className="text-xs font-bold text-white">{activePreset || 'Personnalisée'}</p>
-            <p className="text-[10px] text-purple-400 font-mono">{palette.primary}</p>
+            <p className="text-[10px] font-mono" style={{ color: palette.primary }}>{palette.primary}</p>
           </div>
           <button
             type="button"
             onClick={onModifyPalette}
-            className="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all cursor-pointer"
+            className="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg text-white/90 bg-white/10 hover:bg-white/20 border border-white/20 transition-all cursor-pointer"
           >
             Modifier
           </button>
@@ -139,7 +146,8 @@ export const AdminAccountStepForm: React.FC<AdminAccountStepFormProps> = ({
           whileTap={{ scale: 0.99 }}
           type="submit"
           disabled={isLoading}
-          className="flex-[2] py-4 rounded-xl text-sm font-black uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 shadow-xl shadow-purple-900/40 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+          style={{ backgroundColor: palette.primary }}
+          className="flex-[2] py-4 rounded-xl text-sm font-black uppercase tracking-wider text-white hover:brightness-110 shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
         >
           {isLoading ? (
             <>

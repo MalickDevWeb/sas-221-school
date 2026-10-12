@@ -29,7 +29,7 @@ export function UnassignedList({ unassigned, setDraggedId }: Props) {
                 setDraggedId(course.id);
               }}
               onDragEnd={() => setDraggedId(null)}
-              className="bg-white border border-neutral-200 hover:border-[#B3181C] p-3 rounded-xl cursor-grab active:cursor-grabbing hover:shadow-md transition-all space-y-1.5"
+              className="bg-white border border-neutral-200 hover:border-primary p-3 rounded-xl cursor-grab active:cursor-grabbing hover:shadow-md transition-all space-y-1.5"
             >
               <div className="flex justify-between items-start">
                 <span className="font-extrabold text-xs text-[#1E293B] leading-tight">

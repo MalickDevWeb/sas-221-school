@@ -46,7 +46,7 @@ export function ModuleExerciseForm({ students, onExerciseAdded }: Props) {
           {students.map((student) => {
             const isAssigned = assignedIds.includes(student.id);
             return (
-              <label key={student.id} className={`flex items-center justify-between p-1.5 rounded-lg text-[10px] font-semibold cursor-pointer transition-colors ${isAssigned ? 'bg-[#FFF5F5] text-brand-red-deep' : 'hover:bg-neutral-50 text-neutral-600'}`}>
+              <label key={student.id} className={`flex items-center justify-between p-1.5 rounded-lg text-[10px] font-semibold cursor-pointer transition-colors ${isAssigned ? 'bg-primary-light text-brand-red-deep' : 'hover:bg-neutral-50 text-neutral-600'}`}>
                 <span>{student.prenom} {student.nom}</span>
                 <input type="checkbox" checked={isAssigned} onChange={() => toggleStudent(student.id)} className="rounded text-brand-red-deep focus:ring-brand-red-deep h-3.5 w-3.5 border-neutral-300" />
               </label>

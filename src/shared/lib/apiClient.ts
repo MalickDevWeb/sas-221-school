@@ -74,16 +74,27 @@ apiClient.interceptors.response.use(
       || currentPath === '/candidature'
       || currentPath.startsWith('/t/');
     
-    // Auth redirect — only if NOT on a public/login page (prevents unwanted redirects & infinite loops)
-    if (status === 401 && !isPublicOrLoginPage) {
+    // Auth redirect — only if NOT on a public/login page and NOT inside active dashboard (prevents unwanted kickouts during navigation)
+    if (status === 401 && !isPublicOrLoginPage && !currentPath.includes('/dashboard')) {
       // Vider toute la session
       localStorage.removeItem('auth_token');
       localStorage.removeItem('access_token');
       localStorage.removeItem('ecole-221-auth-storage'); // Vider le store Zustand persisté
 
+      let tenantSlug = '';
+      try {
+        const stored = localStorage.getItem('tenant-storage');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          tenantSlug = parsed?.state?.currentTenant?.slug || '';
+        }
+      } catch {}
+
       // Rediriger vers le bon portail de connexion selon la page actuelle
       if (currentPath.startsWith('/super-admin')) {
         window.location.href = '/super-admin';
+      } else if (tenantSlug && tenantSlug !== 'ecole221' && tenantSlug !== 'ecole-221') {
+        window.location.href = `/t/${tenantSlug}/login`;
       } else if (currentPath.startsWith('/admin')) {
         window.location.href = '/admin';
       } else {

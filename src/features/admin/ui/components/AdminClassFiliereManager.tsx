@@ -45,12 +45,12 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
   return (
     <div className="bg-white p-3.5 border border-[#E2DCDA] rounded-xl text-xs space-y-4" id="admin-class-filiere-manager">
       <div className="pb-1.5 border-b border-[#E2DCDA]/60 flex justify-between items-center">
-        <h5 className="font-extrabold text-[#B3181C] uppercase tracking-wider text-[10.5px]">Création Classes & Filières</h5>
+        <h5 className="font-extrabold text-primary uppercase tracking-wider text-[10.5px]">Création Classes & Filières</h5>
         <span className="text-[9px] text-[#8E7977] font-bold">Structure pédagogique</span>
       </div>
 
       <form onSubmit={handleCreatePromo} className="space-y-2 bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/40 animate-fade-in">
-        <h6 className="font-bold text-[#B3181C] uppercase tracking-wide text-[9.5px]">1. Créer une Classe / Promotion</h6>
+        <h6 className="font-bold text-primary uppercase tracking-wide text-[9.5px]">1. Créer une Classe / Promotion</h6>
         <div className="grid grid-cols-2 gap-2">
           <input value={promoName} onChange={e => setPromoName(e.target.value)} placeholder="Nom (ex: 221-CD)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
           <input value={filiere} onChange={e => setFiliere(e.target.value)} placeholder="Spécialité / Filière" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
@@ -59,7 +59,7 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
       </form>
 
       <form onSubmit={handleCreateCourse} className="space-y-2 bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/40 animate-fade-in">
-        <h6 className="font-bold text-[#B3181C] uppercase tracking-wide text-[9.5px]">2. Créer une Matière & Assigner Enseignant</h6>
+        <h6 className="font-bold text-primary uppercase tracking-wide text-[9.5px]">2. Créer une Matière & Assigner Enseignant</h6>
         <div className="space-y-1.5">
           <input value={courseTitre} onChange={e => setCourseTitre(e.target.value)} placeholder="Nom du Cours (ex: Intelligence Artificielle)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
           <div className="grid grid-cols-3 gap-1.5">
@@ -74,7 +74,7 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
             <input value={coef} type="number" onChange={e => setCoef(e.target.value)} placeholder="Coef" className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-2" min="1" max="10" />
           </div>
         </div>
-        <button type="submit" disabled={loading} className="w-full h-8 bg-[#B3181C] hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg tracking-wider text-[10px]">Ajouter la Matière</button>
+        <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg tracking-wider text-[10px]">Ajouter la Matière</button>
       </form>
     </div>
   );

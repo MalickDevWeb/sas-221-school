@@ -23,7 +23,7 @@ export function FormattedText({ text }: Props) {
         const content = parts.map((part, index) => {
           if (index % 2 === 1) {
             return (
-              <strong key={index} className="font-extrabold text-[#B3181C]">
+              <strong key={index} className="font-extrabold text-primary">
                 {part}
               </strong>
             );
@@ -43,7 +43,7 @@ export function FormattedText({ text }: Props) {
           const titleText = line.trim().replace(/^#{2,3}\s+/, '');
           return (
             <h4 key={i} className="font-black text-[#1E293B] text-[11px] uppercase tracking-wider mt-4 mb-2 border-b border-neutral-100 pb-1 flex items-center gap-1.5">
-              <span className="w-1.5 h-3 bg-[#B3181C] rounded-full" />
+              <span className="w-1.5 h-3 bg-primary rounded-full" />
               {titleText}
             </h4>
           );

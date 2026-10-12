@@ -28,7 +28,7 @@ export function GateAssignmentForm() {
   return (
     <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-4 space-y-3">
       <div className="flex items-center gap-2 text-neutral-800 text-xs font-extrabold uppercase">
-        <Shield className="h-4 w-4 text-[#B3181C]" />
+        <Shield className="h-4 w-4 text-primary" />
         <span>Affecter un Vigile à une Porte de Contrôle</span>
       </div>
       <form onSubmit={handleAssign} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
@@ -51,7 +51,7 @@ export function GateAssignmentForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#B3181C] hover:bg-[#ba0013] text-white py-2.5 px-4 rounded-xl font-black uppercase text-[10px] tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+          className="w-full bg-primary hover:bg-primary text-white py-2.5 px-4 rounded-xl font-black uppercase text-[10px] tracking-wider transition-colors cursor-pointer disabled:opacity-50"
         >
           {loading ? 'Assignation...' : 'Assigner la porte'}
         </button>

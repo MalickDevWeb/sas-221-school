@@ -9,10 +9,10 @@ interface Props {
 
 export function SchoolSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
   const menuItems = [
+    { id: 'classes', label: 'Promotions & Classes 360°', icon: 'account_tree' },
     { id: 'academic', label: 'Cadre Académique', icon: 'menu_book' },
     { id: 'rooms', label: 'Gestion des Salles', icon: 'room' },
     { id: 'filieres', label: 'Filières & Spécialités', icon: 'folder_open' },
-    { id: 'classes', label: 'Classes & Niveaux', icon: 'class' },
     { id: 'planning', label: 'Planning & Affectations', icon: 'event_note' },
   ];
 

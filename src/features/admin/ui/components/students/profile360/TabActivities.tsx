@@ -14,7 +14,7 @@ export function TabActivities({ selectedStudent, erpData }: Props) {
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-activities">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2">
-          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
             <span translate="no" className="material-symbols-outlined text-sm">groups</span>
             Clubs & Associations
           </h4>
@@ -24,7 +24,7 @@ export function TabActivities({ selectedStudent, erpData }: Props) {
         </div>
 
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2">
-          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
             <span translate="no" className="material-symbols-outlined text-sm">work</span>
             Stage & Mémoire Professionnel
           </h4>
@@ -43,7 +43,7 @@ export function TabActivities({ selectedStudent, erpData }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2">
-          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
             <span translate="no" className="material-symbols-outlined text-sm">assignment_turned_in</span>
             Projets & Certifications
           </h4>
@@ -60,7 +60,7 @@ export function TabActivities({ selectedStudent, erpData }: Props) {
         </div>
 
         <div className="border border-neutral-100 p-3.5 rounded-2xl bg-neutral-50/50 space-y-2">
-          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-[#B3181C] flex items-center gap-1.5">
+          <h4 className="font-extrabold text-[#1E293B] text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
             <span translate="no" className="material-symbols-outlined text-sm">library_books</span>
             Services Annexes (Bibliothèque & RDV)
           </h4>

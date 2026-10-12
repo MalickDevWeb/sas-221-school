@@ -53,7 +53,7 @@ export function PlanningGrid({ slots, viewMode, selectedId, onDropItem, onClearC
                       onDragOver={e => { e.preventDefault(); if (dragOverCell?.day !== day || dragOverCell?.slot !== time) setDragOverCell({ day, slot: time }); }}
                       onDragLeave={() => setDragOverCell(null)}
                       onDrop={e => handleDrop(e, day, time)}
-                      className={`p-2 transition-all relative group ${isOver ? 'bg-[#B3181C]/5 ring-2 ring-dashed ring-[#B3181C]' : 'border-r border-neutral-100/50'}`}
+                      className={`p-2 transition-all relative group ${isOver ? 'bg-primary/5 ring-2 ring-dashed ring-primary' : 'border-r border-neutral-100/50'}`}
                     >
                       {cellSlot ? (
                         <div
@@ -78,7 +78,7 @@ export function PlanningGrid({ slots, viewMode, selectedId, onDropItem, onClearC
                               )}
                             </div>
                             <div className="text-[9px] text-neutral-500 font-bold truncate mt-0.5">👨‍🏫 {cellSlot.prof || 'Non assigné'}</div>
-                            {viewMode === 'class' && <div className="text-[9px] text-[#B3181C] font-extrabold truncate">📍 {cellSlot.roomName || 'Sans salle'}</div>}
+                            {viewMode === 'class' && <div className="text-[9px] text-primary font-extrabold truncate">📍 {cellSlot.roomName || 'Sans salle'}</div>}
                             {(cellSlot.status === 'annule' || cellSlot.isAbsent || (cellSlot as any).isCancelled) && cellSlot.cancellationReason && (
                               <div className="text-[8px] text-red-600 font-bold italic truncate mt-0.5">📝 {cellSlot.cancellationReason}</div>
                             )}
@@ -88,7 +88,7 @@ export function PlanningGrid({ slots, viewMode, selectedId, onDropItem, onClearC
                               e.stopPropagation();
                               onClearCell(day, time);
                             }}
-                            className="absolute -top-1.5 -right-1.5 bg-neutral-900 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#B3181C] cursor-pointer shadow-sm flex items-center justify-center z-10"
+                            className="absolute -top-1.5 -right-1.5 bg-neutral-900 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary cursor-pointer shadow-sm flex items-center justify-center z-10"
                           >
                             <span translate="no" className="material-symbols-outlined text-[10px] font-black">close</span>
                           </button>

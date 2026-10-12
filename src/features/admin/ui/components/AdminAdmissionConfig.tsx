@@ -58,7 +58,7 @@ export function AdminAdmissionConfig() {
           <h4 className="font-extrabold text-[#291715] uppercase tracking-wide text-[11px]">Configuration de l'Admission (API)</h4>
           <p className="text-[9px] text-[#8E7977] font-semibold">Statut, dates et documents exigés</p>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${config.ouvert ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9]' : 'bg-[#FFF5F5] text-[#B3181C] border border-[#FFD1D1]'}`}>
+        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${config.ouvert ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9]' : 'bg-primary-light text-primary border border-[#FFD1D1]'}`}>
           {config.ouvert ? 'Actif' : 'Désactivé'}
         </span>
       </div>
@@ -68,7 +68,7 @@ export function AdminAdmissionConfig() {
           <span className="font-bold text-[#291715] block">Campagne ouverte aux dépôts</span>
           <span className="text-[9.5px] text-[#8E7977]">Contrôle le formulaire public en temps réel</span>
         </div>
-        <button type="button" onClick={() => setConfig(p => ({ ...p, ouvert: !p.ouvert }))} className={`w-12 h-6 rounded-full p-0.5 transition-all relative ${config.ouvert ? 'bg-[#B3181C]' : 'bg-[#E2DCDA]'}`}>
+        <button type="button" onClick={() => setConfig(p => ({ ...p, ouvert: !p.ouvert }))} className={`w-12 h-6 rounded-full p-0.5 transition-all relative ${config.ouvert ? 'bg-primary' : 'bg-[#E2DCDA]'}`}>
           <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-all absolute top-0.5 ${config.ouvert ? 'left-[26px]' : 'left-0.5'}`} />
         </button>
       </div>
@@ -89,7 +89,7 @@ export function AdminAdmissionConfig() {
         <div className="grid grid-cols-2 gap-2">
           {([['cni', 'Copie CNI / Passeport'], ['bulletin', 'Bulletins de Notes'], ['diplome', 'Dernier Diplôme'], ['motivation', 'Motivation']] as const).map(([k, label]) => (
             <label key={k} className="flex items-center gap-2 cursor-pointer font-bold text-[#3E2927]" id={`checkbox-label-${k}`}>
-              <input type="checkbox" checked={config.docsRequis[k]} onChange={() => toggleDoc(k)} className="w-3.5 h-3.5 text-[#B3181C] accent-[#B3181C]" />
+              <input type="checkbox" checked={config.docsRequis[k]} onChange={() => toggleDoc(k)} className="w-3.5 h-3.5 text-primary accent-[#B3181C]" />
               <span>{label}</span>
             </label>
           ))}
@@ -102,7 +102,7 @@ export function AdminAdmissionConfig() {
       </div>
 
       <div className="flex gap-2 items-center pt-1.5">
-        <button type="submit" disabled={loading} className="flex-1 h-10 bg-[#B3181C] hover:bg-[#8F1316] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5" id="save-admission-config-btn">
+        <button type="submit" disabled={loading} className="flex-1 h-10 bg-primary hover:bg-[#8F1316] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5" id="save-admission-config-btn">
           <span translate="no" className="material-symbols-outlined text-[15px]">save</span>
           <span>{loading ? 'Sauvegarde...' : 'Sauvegarder'}</span>
         </button>

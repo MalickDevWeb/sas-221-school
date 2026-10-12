@@ -47,7 +47,7 @@ export function AdminGlobalScheduler() {
         </TabletDrawerWrapper>
       ) : (
         <button onClick={() => setIsClosed(false)} className="bg-white border border-[#E2DCDA] hover:bg-neutral-50 px-3.5 py-4 rounded-2xl shadow-xs cursor-pointer shrink-0 w-16 text-center font-black">
-          <span translate="no" className="material-symbols-outlined text-lg text-[#B3181C]">visibility</span>
+          <span translate="no" className="material-symbols-outlined text-lg text-primary">visibility</span>
           <div className="text-[8px] text-neutral-400 mt-1 uppercase">Menu</div>
         </button>
       )}
@@ -76,7 +76,7 @@ export function AdminGlobalScheduler() {
               <span translate="no" className="material-symbols-outlined text-sm text-emerald-600">magic_button</span>
               <span>Génération Auto</span>
             </button>
-            <button onClick={handlePublish} className="px-3.5 py-1.5 text-xs font-black bg-[#B3181C] hover:bg-[#9E1418] text-white rounded-lg flex items-center gap-1 cursor-pointer">
+            <button onClick={handlePublish} className="px-3.5 py-1.5 text-xs font-black bg-primary hover:bg-[#9E1418] text-white rounded-lg flex items-center gap-1 cursor-pointer">
               <span translate="no" className="material-symbols-outlined text-sm">publish</span>
               <span>{isPublished ? 'Republier les changements' : 'Publier le planning'}</span>
             </button>

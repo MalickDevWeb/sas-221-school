@@ -23,22 +23,22 @@ export function GradesHeader({ onDownload, averageMoyenne }: GradesHeaderProps) 
   return (
     <div className="w-full flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-6 gap-4 select-none">
       <div className="w-full sm:max-w-xl flex items-center gap-4 bg-white sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-neutral-gray-200/45 sm:border-none shadow-xs sm:shadow-none">
-        <div className="w-10 h-10 rounded-full bg-brand-red-light/30 flex items-center justify-center text-[#B3181C] shrink-0">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <span translate="no" className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
         </div>
         <div>
           <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">Rang Promotionnel Actuel</span>
-          <h1 className="text-lg md:text-xl text-on-surface font-black tracking-tight text-[#291715] flex items-baseline gap-1.5 mt-0.5">
+          <h1 className="text-lg md:text-xl text-on-surface font-black tracking-tight flex items-baseline gap-1.5 mt-0.5">
             {rankInfo.rank} <span className="text-[10px] md:text-xs font-bold text-neutral-400">sur 142 étudiants</span>
           </h1>
-          <p className="text-[10px] md:text-xs font-bold text-[#E3A857] uppercase tracking-wide mt-0.5">
+          <p className="text-[10px] md:text-xs font-bold text-accent uppercase tracking-wide mt-0.5">
             {rankInfo.top}
           </p>
         </div>
       </div>
       <button 
         onClick={onDownload}
-        className="w-full sm:w-auto justify-center flex items-center gap-1.5 bg-[#B3181C] text-white px-4 py-2.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider hover:bg-[#8c1215] transition-all active:scale-95 shadow-sm cursor-pointer border border-[#B3181C]/20 shrink-0"
+        className="w-full sm:w-auto justify-center flex items-center gap-1.5 bg-primary text-text-on-primary px-4 py-2.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider hover:opacity-90 transition-all active:scale-95 shadow-sm cursor-pointer border border-primary/20 shrink-0"
       >
         <span translate="no" className="material-symbols-outlined text-xs">download</span>
         Télécharger le relevé officiel

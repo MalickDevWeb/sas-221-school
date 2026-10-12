@@ -30,7 +30,7 @@ export function SlotEditModal({ slot, rooms, onClose, onSave, onDelete }: Props)
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl p-6 border border-neutral-200 w-full max-w-md space-y-4">
         <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
           <h3 className="font-extrabold text-[#1E293B] text-sm flex items-center gap-1.5">
-            <span translate="no" className="material-symbols-outlined text-[#B3181C]">edit_calendar</span>
+            <span translate="no" className="material-symbols-outlined text-primary">edit_calendar</span>
             <span>{isLive ? 'Détails du Créneau (En Direct)' : 'Modifier le Créneau'}</span>
           </h3>
           <button type="button" onClick={onClose} className="text-neutral-400 hover:text-neutral-600 border-0 bg-transparent cursor-pointer">
@@ -47,7 +47,7 @@ export function SlotEditModal({ slot, rooms, onClose, onSave, onDelete }: Props)
 
         <div className="bg-neutral-50 p-2.5 rounded-xl text-[11px] font-semibold text-neutral-600 space-y-1">
           <div>Classe : <span className="font-black text-[#1E293B]">{slot.classeId}</span></div>
-          <div>Créneau : <span className="font-bold text-[#B3181C]">{slot.day} - {slot.slot}</span></div>
+          <div>Créneau : <span className="font-bold text-primary">{slot.day} - {slot.slot}</span></div>
         </div>
 
         {!isConfirmingDelete && (
@@ -100,7 +100,7 @@ export function SlotEditModal({ slot, rooms, onClose, onSave, onDelete }: Props)
               {!isLive && (
                 <button
                   type="submit"
-                  className="px-3.5 py-1.5 bg-[#B3181C] text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0"
+                  className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0"
                 >
                   Enregistrer
                 </button>

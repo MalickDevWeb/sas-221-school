@@ -10,7 +10,7 @@ export function ProfessorClassroomSessions({ classSessions }: { classSessions: a
         {classSessions.map((session) => (
           <div key={session.id} className="p-2.5 bg-white border border-neutral-200/60 rounded-xl flex flex-col justify-between shadow-3xs">
             <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="text-[8px] font-black text-brand-red-deep bg-[#FFF5F5] px-1 rounded">{session.day}</span>
+              <span className="text-[8px] font-black text-brand-red-deep bg-primary-light px-1 rounded">{session.day}</span>
               <span className="text-[8px] font-black uppercase text-neutral-400">{session.type}</span>
             </div>
             <h4 className="text-[9.5px] font-black text-neutral-700 truncate">{session.courseTitle}</h4>

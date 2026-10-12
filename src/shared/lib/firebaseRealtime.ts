@@ -10,9 +10,11 @@ let lastStateStr: string | null = null;
 async function pollState() {
   try {
     // In a real Firebase RTDB, this would be a WebSocket listener.
-    // We simulate this real-time sync with high-frequency HTTP polling.
+    // We simulate this real-time sync with low-frequency HTTP polling.
     const res = await apiClient.get('/student/live-sessions');
-    const sessions = Array.isArray(res.data) ? res.data : [];
+    const sessions = Array.isArray(res.data?.content ?? res.data) 
+      ? (res.data?.content ?? res.data) 
+      : [];
     const active = sessions.find((s: any) => s && s.status === 'active') || null;
     
     const stateStr = JSON.stringify(active);
@@ -20,8 +22,8 @@ async function pollState() {
       lastStateStr = stateStr;
       notifyListeners('meet/active', active);
     }
-  } catch (err) {
-    console.warn("Firebase Realtime DB sync error:", err);
+  } catch {
+    // Silently fail — live sessions sont optionnelles
   }
 }
 
@@ -42,8 +44,8 @@ export function getDatabase() {
   if (!isPolling && typeof window !== 'undefined') {
     isPolling = true;
     pollState();
-    // Low-frequency polling to prevent 429 rate limits (every 10 seconds)
-    setInterval(pollState, 10000);
+    // Polling toutes les 30 s pour ne pas saturer le backend
+    setInterval(pollState, 30000);
   }
   return { name: "FirebaseRealtimeDatabase" };
 }

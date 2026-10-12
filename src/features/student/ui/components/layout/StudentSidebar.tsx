@@ -38,7 +38,14 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
           <span translate="no" className="material-symbols-outlined text-[20px] font-bold">school</span>
         </div>
         <div className="flex flex-col mt-3">
-          <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
+            {currentTenant?.slug && (
+              <span className="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20" title={`URL dédiée : /t/${currentTenant.slug}`}>
+                /t/{currentTenant.slug}
+              </span>
+            )}
+          </div>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Étudiant</p>
         </div>
         <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2023-24</p>
@@ -57,7 +64,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
             key={to}
             to={to}
             end
-            className={({ isActive }) => `flex flex-row items-center gap-3 px-3 py-2.5 font-label-md text-label-md rounded-lg transition-transform ${isActive ? 'bg-primary-container text-on-primary-container font-black' : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'}`}
+            className={({ isActive }) => `flex flex-row items-center gap-3 px-3 py-2.5 font-label-md text-label-md rounded-lg transition-transform ${isActive ? 'bg-primary text-text-on-primary shadow-md shadow-primary/25 font-black' : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'}`}
           >
             <span translate="no" className="material-symbols-outlined text-center text-[22px]">{icon}</span>
             <span className="leading-none">{label}</span>
@@ -70,7 +77,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
           to={ROUTES.student.tuteur}
           className={({ isActive }) =>
             `w-full flex flex-row items-center justify-start gap-3 px-3 py-3 text-white rounded-lg font-label-md text-label-md active:opacity-80 transition-all cursor-pointer ${
-              isActive ? 'bg-[#5c2d2d] ring-2 ring-white/20' : 'bg-[#3f1e1e] hover:bg-[#522727]'
+              isActive ? 'bg-primary ring-2 ring-white/20' : 'bg-primary-dark/85 hover:bg-primary-dark'
             }`
           }
         >
@@ -90,7 +97,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
               triggerToast('Déconnexion réussie !');
               setTimeout(() => navigate(ROUTES.login), 800);
             }}
-            className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-secondary hover:bg-brand-red-light/50 hover:text-brand-red-deep font-label-md text-label-md rounded-lg cursor-pointer"
+            className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-secondary hover:bg-primary-light/50 hover:text-primary font-label-md text-label-md rounded-lg cursor-pointer"
           >
             <span translate="no" className="material-symbols-outlined text-[20px]">logout</span>
             <span>Déconnexion</span>

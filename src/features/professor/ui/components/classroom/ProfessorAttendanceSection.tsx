@@ -81,7 +81,7 @@ export function ProfessorAttendanceSection({ students, attendance, onMarkAttenda
               type="button"
               onClick={() => students.forEach((s) => onMarkAttendance(s.id, 'present'))}
               disabled={students.length === 0}
-              className="flex items-center justify-center gap-1.5 bg-[#FFF5F5] hover:bg-[#FFEBEB] text-[#B3181C] border border-[#B3181C]/15 font-black text-xs px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 active:scale-97 cursor-pointer whitespace-nowrap border-0"
+              className="flex items-center justify-center gap-1.5 bg-primary-light hover:bg-primary-light text-primary border border-primary/15 font-black text-xs px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 active:scale-97 cursor-pointer whitespace-nowrap border-0"
             >
               <CheckSquare className="h-4 w-4 shrink-0" /> Tout marquer Présent
             </button>

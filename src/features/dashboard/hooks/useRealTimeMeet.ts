@@ -10,15 +10,15 @@ export function useRealTimeMeet() {
     const fetchMeetStatus = async () => {
       try {
         const res = await apiClient.get('/meet/active');
-        setActiveMeet(res.data);
-      } catch (err) {
-        // Silently fail if meet is inactive or network issues
+        setActiveMeet(res.data ?? null);
+      } catch {
+        // Silently fail — endpoint optionnel (meet non actif = null)
       }
     };
-    
+
     fetchMeetStatus();
-    // Simulation of real-time by polling the backend (which uses Redis for speed)
-    timer = setInterval(fetchMeetStatus, 3000);
+    // Polling toutes les 15 s pour limiter la charge réseau
+    timer = setInterval(fetchMeetStatus, 15000);
 
     return () => {
       clearInterval(timer);

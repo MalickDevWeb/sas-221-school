@@ -2,42 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 
-// ─── Mock Data ────────────────────────────────────────────────
-const MOCK_DOSSIERS = [
-  {
-    id: 'd1',
-    enfant: 'Aminata Diallo',
-    filiere: 'Informatique & Réseaux',
-    niveau: 'L2',
-    dateDepot: '2026-08-12',
-    statut: 'EN_ATTENTE' as const,
-    commentaire: null,
-    etape: 'Vérification des documents',
-    progress: 40,
-  },
-  {
-    id: 'd2',
-    enfant: 'Moussa Diallo',
-    filiere: 'Génie Logiciel',
-    niveau: 'L1',
-    dateDepot: '2026-07-28',
-    statut: 'VALIDE' as const,
-    commentaire: "Dossier complet. Bienvenue à École 221 ! L'étudiant peut récupérer sa carte au secrétariat.",
-    etape: 'Inscription confirmée',
-    progress: 100,
-  },
-  {
-    id: 'd3',
-    enfant: 'Fatou Diallo',
-    filiere: 'Finance & Comptabilité',
-    niveau: 'M1',
-    dateDepot: '2026-07-15',
-    statut: 'REFUSE' as const,
-    commentaire: "Le relevé de notes fourni est illisible. Merci de soumettre un document clair et signé par l'établissement.",
-    etape: 'Dossier incomplet',
-    progress: 20,
-  },
-];
+import { parentApi } from '../api';
 
 const STATUT_CFG = {
   EN_ATTENTE: {
@@ -65,13 +30,30 @@ const STATUT_CFG = {
 
 export function ParentApplicationTrackingPage() {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState<string | null>('d1');
+  const [dossiers, setDossiers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    parentApi.getApplications()
+      .then((data) => {
+        setDossiers(data || []);
+        if (data && data.length > 0) {
+          setExpanded(data[0].id);
+        }
+      })
+      .catch((err) => {
+        console.warn("Erreur chargement candidatures:", err);
+        setDossiers([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const counts = {
-    total: MOCK_DOSSIERS.length,
-    valide: MOCK_DOSSIERS.filter((d) => d.statut === 'VALIDE').length,
-    attente: MOCK_DOSSIERS.filter((d) => d.statut === 'EN_ATTENTE').length,
-    refuse: MOCK_DOSSIERS.filter((d) => d.statut === 'REFUSE').length,
+    total: dossiers.length,
+    valide: dossiers.filter((d) => d.statut === 'VALIDE' || d.statut === 'ACCEPTE').length,
+    attente: dossiers.filter((d) => d.statut === 'EN_ATTENTE' || !d.statut).length,
+    refuse: dossiers.filter((d) => d.statut === 'REFUSE').length,
   };
 
   return (
@@ -115,11 +97,23 @@ export function ParentApplicationTrackingPage() {
 
       {/* Liste dossiers */}
       <div className="flex flex-col gap-4">
-        {MOCK_DOSSIERS.map((d) => {
-          const cfg = STATUT_CFG[d.statut];
-          const isOpen = expanded === d.id;
-          return (
-            <div key={d.id} className={`bg-white rounded-3xl border border-solid shadow-sm overflow-hidden transition-all ${cfg.bg}`}>
+        {loading ? (
+          <div className="p-8 text-center text-xs text-neutral-400 font-bold">
+            Chargement de vos dossiers de candidature...
+          </div>
+        ) : dossiers.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-neutral-100 p-12 text-center shadow-xs">
+            <span translate="no" className="material-symbols-outlined text-4xl text-neutral-300 mb-2">folder_open</span>
+            <p className="font-bold text-neutral-600 text-sm">Aucun dossier d'inscription soumis pour le moment.</p>
+            <p className="text-xs text-neutral-400 mt-1">Cliquez sur « Nouveau dossier » pour inscrire un enfant.</p>
+          </div>
+        ) : (
+          dossiers.map((d) => {
+            const statutKey = (d.statut || 'EN_ATTENTE') as keyof typeof STATUT_CFG;
+            const cfg = STATUT_CFG[statutKey] || STATUT_CFG.EN_ATTENTE;
+            const isOpen = expanded === d.id;
+            return (
+              <div key={d.id} className={`bg-white rounded-3xl border border-solid shadow-sm overflow-hidden transition-all ${cfg.bg}`}>
               {/* En-tête dossier */}
               <button
                 onClick={() => setExpanded(isOpen ? null : d.id)}

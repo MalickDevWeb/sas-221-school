@@ -16,11 +16,11 @@ export function StudentGradesPage() {
       <main className="flex-1 p-4 md:p-8 bg-surface-container-lowest animate-fade-in min-h-screen flex items-center justify-center font-sans">
         {isLoading ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-4 border-brand-red-deep/20 border-t-brand-red-deep rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
             <p className="text-xs font-bold text-secondary">Chargement de votre relevé de notes...</p>
           </div>
         ) : (
-          <div className="bg-red-50 text-brand-red-deep p-6 rounded-2xl border border-red-100 text-center border-solid">
+          <div className="bg-red-50 text-error p-6 rounded-2xl border border-red-100 text-center border-solid">
             <span className="material-symbols-outlined text-[32px] mb-2">error</span>
             <h3 className="font-bold">Erreur</h3><p className="text-sm">{error}</p>
           </div>
@@ -32,7 +32,7 @@ export function StudentGradesPage() {
   return (
     <main className="flex-1 p-4 md:p-8 bg-surface-container-lowest animate-fade-in relative min-h-screen pb-24 md:pb-8 font-sans">
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#291715] text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-2 border border-white/10 animate-slide-up text-xs font-bold border-solid">
+        <div className="fixed bottom-6 right-6 z-50 bg-primary-dark text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-2 border border-white/10 animate-slide-up text-xs font-bold border-solid">
           <span translate="no" className="material-symbols-outlined text-success-green">check_circle</span><span>{showToast}</span>
         </div>
       )}
@@ -50,9 +50,9 @@ export function StudentGradesPage() {
           <GradesTable grades={calculatedGrades} onShowPreviousYearClick={handleShowPreviousYears} />
         </div>
         <div className="lg:col-span-4">
-          <div className="bg-gradient-to-br from-[#291715] to-[#1a0e0c] text-white p-6 rounded-3xl border border-white/5 shadow-md h-full flex flex-col justify-between border-solid">
+          <div className="bg-gradient-to-br from-primary-dark to-[#0F172A] text-white p-6 rounded-3xl border border-white/5 shadow-md h-full flex flex-col justify-between border-solid">
             <div>
-              <div className="flex items-center gap-2 mb-3 bg-white/10 w-fit px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-extrabold text-[#E3A857]">
+              <div className="flex items-center gap-2 mb-3 bg-white/10 w-fit px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-extrabold text-accent">
                 <span className="material-symbols-outlined text-xs animate-pulse">auto_awesome</span> ANALYSE DES CRÉDITS ECTS
               </div>
               <p className="text-xs text-white/80 leading-relaxed mb-4">Consultez la répartition et la validation officielle de vos crédits ECTS par rapport au barème de réussite de votre promotion.</p>

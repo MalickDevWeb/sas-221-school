@@ -83,11 +83,11 @@ export function StudentDetailModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-neutral-400">CC</label>
-                    <input type="number" min={0} max={20} step={0.5} value={editCC} onChange={(e) => setEditCC(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 bg-white border border-neutral-200 focus:border-[#B3181C] text-sm font-black rounded-xl outline-none" />
+                    <input type="number" min={0} max={20} step={0.5} value={editCC} onChange={(e) => setEditCC(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 bg-white border border-neutral-200 focus:border-primary text-sm font-black rounded-xl outline-none" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-neutral-400">Examen</label>
-                    <input type="number" min={0} max={20} step={0.5} value={editExam} onChange={(e) => setEditExam(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 bg-white border border-neutral-200 focus:border-[#B3181C] text-sm font-black rounded-xl outline-none" />
+                    <input type="number" min={0} max={20} step={0.5} value={editExam} onChange={(e) => setEditExam(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 bg-white border border-neutral-200 focus:border-primary text-sm font-black rounded-xl outline-none" />
                   </div>
                 </div>
                 <button onClick={handleSaveGrades} className="w-full py-2.5 bg-brand-red-deep text-white text-xs font-black rounded-xl flex items-center justify-center gap-2 hover:bg-brand-red-deep/90 transition-all active:scale-98 cursor-pointer shadow-3xs">

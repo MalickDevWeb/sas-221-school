@@ -37,15 +37,15 @@ export function FiliereFormModal({ filiere, onClose, onSave, onDelete }: Props) 
           <div className="space-y-3">
             <div>
               <label className="text-[10px] uppercase font-black text-neutral-400">Nom de la Filière</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]" placeholder="ex: Génie logiciel" />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary" placeholder="ex: Génie logiciel" />
             </div>
             <div>
               <label className="text-[10px] uppercase font-black text-neutral-400">Code (Court)</label>
-              <input type="text" value={code} onChange={e => setCode(e.target.value)} required className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]" placeholder="ex: GL" />
+              <input type="text" value={code} onChange={e => setCode(e.target.value)} required className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary" placeholder="ex: GL" />
             </div>
             <div>
               <label className="text-[10px] uppercase font-black text-neutral-400">Description</label>
-              <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} className="w-full mt-1 p-3 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#B3181C]" placeholder="Présentation rapide de la filière..." />
+              <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} className="w-full mt-1 p-3 border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary" placeholder="Présentation rapide de la filière..." />
             </div>
           </div>
         )}
@@ -78,7 +78,7 @@ export function FiliereFormModal({ filiere, onClose, onSave, onDelete }: Props) 
               <button type="button" onClick={onClose} className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-500 hover:bg-neutral-50 bg-white cursor-pointer">
                 Annuler
               </button>
-              <button type="submit" className="px-4 py-2 bg-[#B3181C] text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0">
+              <button type="submit" className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#921316] cursor-pointer border-0">
                 Enregistrer
               </button>
             </div>

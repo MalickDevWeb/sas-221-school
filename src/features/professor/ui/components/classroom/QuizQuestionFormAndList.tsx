@@ -92,7 +92,7 @@ export function QuizQuestionFormAndList({ quizId, questions, onAddQuestion, onDe
             <div key={q.id} className="p-3.5 bg-white border border-neutral-150 rounded-xl space-y-2">
               <div className="flex justify-between items-start gap-2">
                 <h5 className="text-xs font-black text-neutral-800 leading-snug">{qIdx + 1}. {q.questionText} <span className="text-[10px] text-brand-red-deep">({q.points} pts)</span></h5>
-                <button type="button" onClick={() => onDeleteQuestion(q.id)} className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-[#FFF5F5] border-0 bg-transparent cursor-pointer transition-colors shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => onDeleteQuestion(q.id)} className="text-neutral-300 hover:text-brand-red-deep p-1.5 rounded-lg hover:bg-primary-light border-0 bg-transparent cursor-pointer transition-colors shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {q.options.map((opt, oIdx) => (

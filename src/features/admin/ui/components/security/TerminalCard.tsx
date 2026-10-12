@@ -36,7 +36,7 @@ export function TerminalCard({ terminal, onToggle, onRevoke }: TerminalCardProps
             </button>
             <button
               onClick={onRevoke}
-              className="px-2.5 py-1.5 bg-[#FFF5F5] border border-red-200 text-[#B3181C] hover:bg-red-50 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer"
+              className="px-2.5 py-1.5 bg-primary-light border border-red-200 text-primary hover:bg-red-50 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer"
             >
               Révoquer
             </button>

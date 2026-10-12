@@ -38,7 +38,7 @@ export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
-          <div className="flex items-center gap-2 text-[#B3181C]">
+          <div className="flex items-center gap-2 text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">sms</span>
             <span className="text-[10px] font-black uppercase tracking-wider">Étape 1 : Campagne de Relances (Le 1er du mois)</span>
           </div>
@@ -48,14 +48,14 @@ export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
           <button
             onClick={() => launchCampaign('Envoi des Relances SMS/WhatsApp', onTriggerRelances)}
             disabled={runningCampaign !== null}
-            className="w-full py-2.5 bg-[#B3181C] hover:bg-[#B3181C]/90 disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
+            className="w-full py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
           >
             Déclencher la Campagne du 1er
           </button>
         </div>
 
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
-          <div className="flex items-center gap-2 text-[#B3181C]">
+          <div className="flex items-center gap-2 text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">no_accounts</span>
             <span className="text-[10px] font-black uppercase tracking-wider">Étape 2 : Suspension de l'accès (Le 5 du mois)</span>
           </div>
@@ -65,7 +65,7 @@ export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
           <button
             onClick={() => launchCampaign('Verrouillage des QR Codes Débiteurs', onTriggerBlocage)}
             disabled={runningCampaign !== null}
-            className="w-full py-2.5 bg-[#B3181C] hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
+            className="w-full py-2.5 bg-primary hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
           >
             Appliquer les Blocages du 5
           </button>
@@ -79,7 +79,7 @@ export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
             <span>{campaignProgress}%</span>
           </div>
           <div className="w-full bg-neutral-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-[#B3181C] h-full transition-all duration-200" style={{ width: `${campaignProgress}%` }} />
+            <div className="bg-primary h-full transition-all duration-200" style={{ width: `${campaignProgress}%` }} />
           </div>
         </div>
       )}

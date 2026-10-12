@@ -45,9 +45,30 @@ export const useTenantStore = create<TenantState>()(
       error: null,
 
       resolveTenant: async (slug: string) => {
-        if (get().currentTenant?.slug === slug) {
+        // 1. Si le tenant en mémoire correspond déjà et a un branding, réappliquer
+        if (get().currentTenant?.slug === slug && get().currentTenant?.branding?.primaryColor) {
           get().applyTheme(get().currentTenant!.branding);
           return;
+        }
+
+        // 2. Vérifier si un thème local a été persisté pour ce slug (localStorage cache)
+        let localCachedBranding: TenantBranding | null = null;
+        try {
+          const cached = localStorage.getItem(`tenant_theme_${slug}`);
+          if (cached) {
+            localCachedBranding = JSON.parse(cached);
+          }
+        } catch {}
+
+        if (localCachedBranding) {
+          const tenantInfo: TenantInfo = {
+            id: 'local-' + slug,
+            name: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '),
+            slug,
+            branding: localCachedBranding,
+          };
+          set({ currentTenant: tenantInfo });
+          get().applyTheme(localCachedBranding);
         }
 
         set({ isLoading: true, error: null });
@@ -55,7 +76,7 @@ export const useTenantStore = create<TenantState>()(
         try {
           const { data } = await publicApiClient.get(`/public/tenants/${slug}`);
           const branding = data.branding || {};
-          const primaryColor = branding.primaryColor || '#7C3AED';
+          const primaryColor = branding.primaryColor || localCachedBranding?.primaryColor || '#7C3AED';
           const palette = branding.palette || generatePaletteFromHex(primaryColor);
 
           const tenantInfo: TenantInfo = {
@@ -69,6 +90,10 @@ export const useTenantStore = create<TenantState>()(
             },
           };
 
+          try {
+            localStorage.setItem(`tenant_theme_${slug}`, JSON.stringify(tenantInfo.branding));
+          } catch {}
+
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
         } catch {
@@ -76,6 +101,11 @@ export const useTenantStore = create<TenantState>()(
           const existing = get().currentTenant;
           if (existing && existing.slug === slug) {
             get().applyTheme(existing.branding);
+            set({ isLoading: false });
+            return;
+          }
+
+          if (localCachedBranding) {
             set({ isLoading: false });
             return;
           }
@@ -106,6 +136,18 @@ export const useTenantStore = create<TenantState>()(
         const root = document.documentElement;
         const palette = branding.palette ?? generatePaletteFromHex(branding.primaryColor);
 
+        // Sauvegarder dans le cache local du slug actif si disponible
+        const currentSlug = get().currentTenant?.slug;
+        if (currentSlug && currentSlug !== 'ecole221' && currentSlug !== 'ecole-221') {
+          try {
+            localStorage.setItem(`tenant_theme_${currentSlug}`, JSON.stringify({
+              primaryColor: branding.primaryColor,
+              palette,
+              logoUrl: branding.logoUrl,
+            }));
+          } catch {}
+        }
+
         const inject = (varName: string, hex: string) => {
           root.style.setProperty(varName, hex);
           const [r, g, b] = hex.replace('#', '')
@@ -131,11 +173,24 @@ export const useTenantStore = create<TenantState>()(
 
         // ── Texte sur fond primaire ───────────────────────────────────────
         root.style.setProperty('--color-text-on-primary', palette.textOnPrimary);
+
+        // ── Compatibilité brand-red ──────────────────────────────────────
+        root.style.setProperty('--color-brand-red-deep', palette.primary);
+        root.style.setProperty('--color-brand-red-light', palette.primaryLight);
       },
 
       rehydrateTheme: () => {
-        const tenant = get().currentTenant;
-        if (tenant) {
+        let tenant = get().currentTenant;
+        if (!tenant) {
+          try {
+            const raw = localStorage.getItem('tenant-storage');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              tenant = parsed?.state?.currentTenant;
+            }
+          } catch {}
+        }
+        if (tenant?.branding) {
           get().applyTheme(tenant.branding);
         } else {
           get().applyTheme(MOCK_ECOLE_221.branding);
@@ -145,6 +200,13 @@ export const useTenantStore = create<TenantState>()(
     {
       name: 'tenant-storage',
       partialize: (state) => ({ currentTenant: state.currentTenant }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.currentTenant) {
+          state.applyTheme(state.currentTenant.branding);
+        } else {
+          state?.applyTheme(MOCK_ECOLE_221.branding);
+        }
+      },
     }
   )
 );
