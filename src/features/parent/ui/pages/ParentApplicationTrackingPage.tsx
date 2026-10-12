@@ -1,39 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/shared/constants';
+import {
+  ROUTES,
+  STATUT_CANDIDATURE,
+  STATUT_CANDIDATURE_CONFIG,
+  computeCandidatureCounts,
+  isCandidatureValidee,
+  isCandidatureRefusee,
+} from '@/shared/constants';
 import { parentApi } from '@/features/parent/api';
 import type { ParentApplication } from '@/features/parent/types';
-
-const STATUT_CFG: Record<string, { label: string; color: string; bg: string; icon: string; dot: string }> = {
-  EN_ATTENTE: {
-    label: 'En attente',
-    color: 'text-amber-700',
-    bg: 'bg-amber-50 border-amber-200',
-    icon: 'schedule',
-    dot: 'bg-amber-500',
-  },
-  VALIDE: {
-    label: 'Validé',
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50 border-emerald-200',
-    icon: 'check_circle',
-    dot: 'bg-emerald-500',
-  },
-  ACCEPTE: {
-    label: 'Accepté',
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50 border-emerald-200',
-    icon: 'check_circle',
-    dot: 'bg-emerald-500',
-  },
-  REFUSE: {
-    label: 'Refusé',
-    color: 'text-red-700',
-    bg: 'bg-red-50 border-red-200',
-    icon: 'cancel',
-    dot: 'bg-red-500',
-  },
-};
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return 'Date non spécifiée';
@@ -64,12 +40,7 @@ export function ParentApplicationTrackingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const counts = {
-    total: dossiers.length,
-    valide: dossiers.filter((d) => d.statut === 'VALIDE' || d.statut === 'ACCEPTE').length,
-    attente: dossiers.filter((d) => d.statut === 'EN_ATTENTE' || !d.statut).length,
-    refuse: dossiers.filter((d) => d.statut === 'REFUSE').length,
-  };
+  const counts = computeCandidatureCounts(dossiers);
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-28 md:pb-8">
@@ -124,8 +95,8 @@ export function ParentApplicationTrackingPage() {
           </div>
         ) : (
           dossiers.map((d) => {
-            const statutKey = (d.statut || 'EN_ATTENTE') as keyof typeof STATUT_CFG;
-            const cfg = STATUT_CFG[statutKey] || STATUT_CFG.EN_ATTENTE;
+            const statutKey = (d.statut || STATUT_CANDIDATURE.EN_ATTENTE).toUpperCase();
+            const cfg = STATUT_CANDIDATURE_CONFIG[statutKey] || STATUT_CANDIDATURE_CONFIG[STATUT_CANDIDATURE.EN_ATTENTE];
             const isOpen = expanded === d.id;
             return (
               <div key={d.id} className={`bg-white rounded-3xl border border-solid shadow-sm overflow-hidden transition-all ${cfg.bg}`}>
@@ -135,7 +106,7 @@ export function ParentApplicationTrackingPage() {
                 className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/60 transition-colors"
               >
                 <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                  d.statut === 'VALIDE' ? 'bg-emerald-100' : d.statut === 'REFUSE' ? 'bg-red-100' : 'bg-amber-100'
+                  statutKey === STATUT_CANDIDATURE.VALIDE || statutKey === STATUT_CANDIDATURE.ACCEPTE ? 'bg-emerald-100' : statutKey === STATUT_CANDIDATURE.REFUSE ? 'bg-red-100' : 'bg-amber-100'
                 }`}>
                   <span translate="no" className={`material-symbols-outlined text-[22px] ${cfg.color}`}>{cfg.icon}</span>
                 </div>
@@ -170,7 +141,7 @@ export function ParentApplicationTrackingPage() {
                     <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          d.statut === 'VALIDE' ? 'bg-emerald-500' : d.statut === 'REFUSE' ? 'bg-red-400' : 'bg-amber-400'
+                          isCandidatureValidee(d.statut) ? 'bg-emerald-500' : isCandidatureRefusee(d.statut) ? 'bg-red-400' : 'bg-amber-400'
                         }`}
                         style={{ width: `${d.progress}%` }}
                       />
@@ -200,8 +171,8 @@ export function ParentApplicationTrackingPage() {
                   {/* Commentaire admin */}
                   {d.commentaire && (
                     <div className={`rounded-2xl p-4 border border-solid ${
-                      d.statut === 'VALIDE' ? 'bg-emerald-50 border-emerald-200' :
-                      d.statut === 'REFUSE' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+                      isCandidatureValidee(d.statut) ? 'bg-emerald-50 border-emerald-200' :
+                      isCandidatureRefusee(d.statut) ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
                     }`}>
                       <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${cfg.color}`}>
                         Commentaire de l'administration
@@ -211,7 +182,7 @@ export function ParentApplicationTrackingPage() {
                   )}
 
                   {/* Actions */}
-                  {d.statut === 'REFUSE' && (
+                  {isCandidatureRefusee(d.statut) && (
                     <button
                       onClick={() => navigate(ROUTES.parent.inscrireEnfant)}
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black hover:bg-[#0D47A1] transition-all"
@@ -220,7 +191,7 @@ export function ParentApplicationTrackingPage() {
                       Resoumettre le dossier
                     </button>
                   )}
-                  {d.statut === 'VALIDE' && (
+                  {isCandidatureValidee(d.statut) && (
                     <div className="flex gap-2 flex-wrap">
                       <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition-all">
                         <span translate="no" className="material-symbols-outlined text-[14px]">download</span>
