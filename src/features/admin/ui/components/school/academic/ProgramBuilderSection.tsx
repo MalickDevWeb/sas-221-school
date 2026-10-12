@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '../../../../../../api/client';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export interface AcademicModule {
   id: string;
@@ -27,7 +27,7 @@ export function ProgramBuilderSection() {
       try {
         const res = await apiClient.get<any[]>('/admin/planning/filieres');
         if (res.data && Array.isArray(res.data)) {
-          const mapped: AcademicModule[] = res.data.map(f => ({
+          const mapped: AcademicModule[] = res.data.map((f: any) => ({
             id: f.id || String(Math.random()),
             code: f.code || 'MOD',
             title: f.name || f.title || 'Filière / Module',

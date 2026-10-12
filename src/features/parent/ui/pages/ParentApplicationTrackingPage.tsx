@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 
-import { parentApi } from '../api';
+import { parentApi } from '@/features/parent/api';
 
 const STATUT_CFG = {
   EN_ATTENTE: {
@@ -36,13 +36,13 @@ export function ParentApplicationTrackingPage() {
 
   React.useEffect(() => {
     parentApi.getApplications()
-      .then((data) => {
+      .then((data: any) => {
         setDossiers(data || []);
         if (data && data.length > 0) {
           setExpanded(data[0].id);
         }
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.warn("Erreur chargement candidatures:", err);
         setDossiers([]);
       })
@@ -217,22 +217,8 @@ export function ParentApplicationTrackingPage() {
               )}
             </div>
           );
-        })}
+        }))}
       </div>
-
-      {MOCK_DOSSIERS.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <span translate="no" className="material-symbols-outlined text-[56px] text-neutral-200 mb-4">folder_open</span>
-          <p className="font-black text-neutral-400 text-base">Aucun dossier soumis</p>
-          <p className="text-xs text-neutral-400 mt-1 mb-5">Inscrivez votre premier enfant en cliquant ci-dessous</p>
-          <button
-            onClick={() => navigate(ROUTES.parent.inscrireEnfant)}
-            className="px-6 py-3 bg-primary text-white rounded-xl text-sm font-black hover:bg-[#0D47A1] shadow-md shadow-blue-200 transition-all"
-          >
-            Inscrire un enfant
-          </button>
-        </div>
-      )}
     </div>
   );
 }

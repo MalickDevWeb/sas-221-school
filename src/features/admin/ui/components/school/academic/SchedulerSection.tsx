@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiClient } from '../../../../../../api/client';
+import { apiClient } from '@/shared/lib/apiClient';
 
 interface Teacher {
   id: string;

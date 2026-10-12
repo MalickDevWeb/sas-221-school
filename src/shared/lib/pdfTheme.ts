@@ -76,22 +76,30 @@ export function getActiveTenantPdfTheme() {
   const logoUrl = tenant?.branding?.logoUrl || (isEcole221 ? ECOLE_221_LOGO_URL : null);
 
   const hexPrimary = tenant?.branding?.primaryColor || (isEcole221 ? '#B3181C' : '#102943');
-  const palette = tenant?.branding?.palette || (isEcole221 ? ECOLE_221_PALETTE : generatePaletteFromHex(hexPrimary));
+  const palette = (tenant?.branding?.palette as any) || (isEcole221 ? null : generatePaletteFromHex(hexPrimary));
 
-  const primary = hexToRgb(palette.primary);
-  const primaryDark = hexToRgb(palette.primaryDark);
+  const primary: [number, number, number] = isEcole221
+    ? ECOLE_221_PALETTE.primary
+    : (palette?.primary ? hexToRgb(palette.primary) : hexToRgb(hexPrimary));
+
+  const primaryDark: [number, number, number] = isEcole221
+    ? [143, 19, 22]
+    : (palette?.primaryDark ? hexToRgb(palette.primaryDark) : hexToRgb(hexPrimary));
 
   // Pour le PDF, "secondary" doit être un texte très sombre et lisible :
   // - Pour Ecole 221 : [41, 23, 21] (#291715)
   // - Pour une autre école : un ton sombre élégant dérivé du primaryDark ou ardoise [30, 41, 59]
-  const secondary = isEcole221
-    ? ([41, 23, 21] as [number, number, number])
-    : ([30, 41, 59] as [number, number, number]);
+  const secondary: [number, number, number] = isEcole221
+    ? ECOLE_221_PALETTE.secondary
+    : [30, 41, 59];
 
-  const accent = hexToRgb(palette.accent);
-  const lightBg = isEcole221
-    ? ([250, 248, 246] as [number, number, number])
-    : ([248, 250, 252] as [number, number, number]);
+  const accent: [number, number, number] = isEcole221
+    ? [227, 168, 87]
+    : (palette?.accent ? hexToRgb(palette.accent) : [37, 99, 235]);
+
+  const lightBg: [number, number, number] = isEcole221
+    ? ECOLE_221_PALETTE.lightBg
+    : [248, 250, 252];
 
   return {
     schoolName,
