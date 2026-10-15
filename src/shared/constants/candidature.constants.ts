@@ -85,3 +85,4 @@ export function computeCandidatureCounts<T extends { statut?: string | null }>(c
 
   return { total, valide, attente, refuse };
 }
+

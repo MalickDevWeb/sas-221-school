@@ -101,6 +101,17 @@ export function getActiveTenantPdfTheme() {
     ? ECOLE_221_PALETTE.lightBg
     : [248, 250, 252];
 
+  const textOnPrimary: [number, number, number] = isEcole221
+    ? [255, 255, 255]
+    : (palette?.textOnPrimary ? hexToRgb(palette.textOnPrimary) : [255, 255, 255]);
+
+  // Table header : Si la couleur primaire est trop claire (contraste avec blanc < 3.8),
+  // utiliser primaryDark pour garantir un en-tête net et lisible.
+  const [prR, prG, prB] = primary;
+  const isPrimaryTooLight = (0.2126 * prR + 0.7152 * prG + 0.0722 * prB) / 255 > 0.42;
+  const tableHeaderBg: [number, number, number] = isPrimaryTooLight ? primaryDark : primary;
+  const tableHeaderText: [number, number, number] = [255, 255, 255];
+
   return {
     schoolName,
     slug,
@@ -111,6 +122,9 @@ export function getActiveTenantPdfTheme() {
       secondary,
       accent,
       lightBg,
+      textOnPrimary,
+      tableHeaderBg,
+      tableHeaderText,
       border: [226, 232, 240] as [number, number, number],
       neutral: [71, 85, 105] as [number, number, number],
     },
@@ -152,7 +166,7 @@ export async function addEcole221Header(
   const headerHeight = options?.height ?? 30;
 
   const tenantTheme = getActiveTenantPdfTheme();
-  const { primary, secondary, neutral, lightBg, border } = tenantTheme.palette;
+  const { primary, secondary, neutral, lightBg, border, textOnPrimary } = tenantTheme.palette;
   const schoolTitle = config.title || `${tenantTheme.schoolName.toUpperCase()} — PORTAIL ACADÉMIQUE`;
 
   doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
@@ -183,7 +197,7 @@ export async function addEcole221Header(
     doc.ellipse(logoX + 8, logoY + 8, 8, 8, 'F');
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(8);
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(textOnPrimary[0], textOnPrimary[1], textOnPrimary[2]);
     const initial = tenantTheme.schoolName.substring(0, 3).toUpperCase();
     doc.text(initial, logoX + 8, logoY + 11, { align: 'center' });
   }

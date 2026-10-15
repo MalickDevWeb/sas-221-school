@@ -131,14 +131,24 @@ export function getContrastRatio(hex1: string, hex2: string): number {
   return (brightest + 0.05) / (darkest + 0.05);
 }
 
+export function ensureAccessibleDark(h: number, s: number, initialL: number): string {
+  let l = Math.max(initialL - 25, 12);
+  let hex = hslToHex(h, Math.min(s * 1.1, 100), l);
+  while (getContrastRatio(hex, '#FFFFFF') < 4.5 && l > 10) {
+    l -= 2;
+    hex = hslToHex(h, Math.min(s * 1.1, 100), l);
+  }
+  return hex;
+}
+
 /**
  * Génère une palette complète depuis une couleur primaire hex.
  * - primaryLight : version très claire (fond léger)
- * - primaryDark  : version foncée (hover)
+ * - primaryDark  : version foncée garantie accessible WCAG AA (>= 4.5:1 sur blanc)
  * - secondary    : fond neutre légèrement teinté (très faible saturation)
- * - accent       : couleur complémentaire (hue +60°) saturée
+ * - accent       : couleur complémentaire (hue +50°) saturée
  * - surfaceWarm  : fond chaud léger basé sur la teinte primaire
- * - textOnPrimary: blanc ou noir selon contraste WCAG
+ * - textOnPrimary: blanc ou noir selon contraste réel WCAG
  */
 export function generatePaletteFromHex(primaryHex: string): TenantPalette {
   const [r, g, b] = hexToRgb(primaryHex);
@@ -147,23 +157,25 @@ export function generatePaletteFromHex(primaryHex: string): TenantPalette {
   // Variante claire : même teinte, saturation réduite, luminosité très haute
   const primaryLight = hslToHex(h, Math.max(s * 0.3, 10), 96);
 
-  // Variante foncée : même teinte, luminosité -20%
-  const primaryDark = hslToHex(h, s, Math.max(l - 20, 15));
+  // Variante foncée : même teinte, luminosité ajustée pour être 100% lisible sur fond blanc
+  const primaryDark = ensureAccessibleDark(h, s, l);
 
   // Fond neutre légèrement teinté (saturation très faible)
   const secondary = hslToHex(h, Math.min(s * 0.08, 8), 97.5);
 
-  // Accent : hue complémentaire (180°) ou analogique (+60°), bien saturé
-  // On choisit analogique car plus harmonieux
+  // Accent : hue complémentaire/analogique (+50°), bien saturé
   const accentHue = (h + 50) % 360;
   const accent = hslToHex(accentHue, Math.min(s * 0.9, 75), Math.min(l + 5, 62));
 
   // Surface warm : fond légèrement teinté (très doux)
   const surfaceWarm = hslToHex(h, Math.min(s * 0.06, 6), 98);
 
-  // Texte sur fond primaire : blanc si luminance < 0.35, noir sinon
-  const lum = calculateLuminance(r, g, b);
-  const textOnPrimary = lum < 0.35 ? '#FFFFFF' : '#1E293B';
+  // Texte sur fond primaire : choix objectif basé sur le ratio de contraste WCAG maximal
+  const contrastWithWhite = getContrastRatio(primaryHex, '#FFFFFF');
+  const contrastWithDark = getContrastRatio(primaryHex, '#0F172A');
+  const textOnPrimary = contrastWithWhite >= 4.5
+    ? '#FFFFFF'
+    : (contrastWithDark >= 4.5 ? '#0F172A' : (contrastWithWhite >= contrastWithDark ? '#FFFFFF' : '#0F172A'));
 
   return {
     primary: primaryHex,

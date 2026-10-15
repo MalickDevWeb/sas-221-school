@@ -43,7 +43,7 @@ export function ThemePreview({ schoolName, colors }: Props) {
             </div>
             <div>
               <div className="text-xs font-black text-text-body">{schoolName}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.primary }}>
+              <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.primaryDark }}>
                 Portail Direction
               </div>
             </div>
@@ -73,7 +73,7 @@ export function ThemePreview({ schoolName, colors }: Props) {
             style={{ backgroundColor: colors.surfaceWarm }}
           >
             <div className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Élèves Inscrits</div>
-            <div className="text-xl font-black mt-1" style={{ color: colors.primary }}>
+            <div className="text-xl font-black mt-1" style={{ color: colors.primaryDark }}>
               1 420
             </div>
             <div className="text-[10px] font-semibold text-emerald-600 mt-1 flex items-center gap-1">
@@ -107,7 +107,7 @@ export function ThemePreview({ schoolName, colors }: Props) {
           </button>
           <span
             className="px-2.5 py-1 text-[10px] font-black rounded-lg ml-auto uppercase tracking-wider"
-            style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
+            style={{ backgroundColor: colors.primaryLight, color: colors.primaryDark }}
           >
             Badge Actif
           </span>

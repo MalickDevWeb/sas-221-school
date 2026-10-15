@@ -21,7 +21,7 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
   let currentY = 15;
 
   const tenantTheme = getActiveTenantPdfTheme();
-  const { primary: primaryColor, secondary: secondaryColor, neutral: neutralDark, lightBg, border: borderLight } = tenantTheme.palette;
+  const { primary: primaryColor, primaryDark, secondary: secondaryColor, neutral: neutralDark, lightBg, border: borderLight } = tenantTheme.palette;
 
   const { currentY: headerY } = await addEcole221Header(doc, {
     title: `${tenantTheme.schoolName.toUpperCase()} — PORTAIL ACADÉMIQUE`,
@@ -36,15 +36,15 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
 
   currentY = headerY;
 
-  // --- TITRE PRINCIPAL ---
+  // --- TITRE PRINCIPAL (Garantie contraste WCAG sur fond blanc) ---
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(16);
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2]);
   doc.text('PLANNING DE LA SEMAINE', marginX, currentY);
   
   currentY += 3;
   // Ligne de séparation fine sous le titre principal
-  doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setDrawColor(primaryDark[0], primaryDark[1], primaryDark[2]);
   doc.setLineWidth(0.5);
   doc.line(marginX, currentY, pageWidth - marginX, currentY);
 
@@ -76,7 +76,7 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
       // Petit entête de rappel sur la nouvelle page
       doc.setFont('Helvetica', 'bold');
       doc.setFontSize(9);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2]);
       doc.text('ÉCOLE 221 — EMPLOI DU TEMPS (Suite)', marginX, currentY);
       currentY += 3;
       doc.setDrawColor(borderLight[0], borderLight[1], borderLight[2]);
@@ -184,7 +184,7 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
       // 5. Salle
       doc.setFont('Helvetica', 'bold');
       doc.setFontSize(8.5);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2]);
       doc.text(s.salle, marginX + 162, currentY + 7);
 
       currentY += 11;

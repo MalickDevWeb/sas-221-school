@@ -7,7 +7,10 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const tenantTheme = getActiveTenantPdfTheme();
   const [pr, pg, pb] = tenantTheme.palette.primary;
+  const [pdr, pdg, pdb] = tenantTheme.palette.primaryDark;
   const [sr, sg, sb] = tenantTheme.palette.secondary;
+  const [thBr, thBg, thBb] = tenantTheme.palette.tableHeaderBg;
+  const [thTr, thTg, thTb] = tenantTheme.palette.tableHeaderText;
 
   const build = () => {
     onProgress(60);
@@ -25,7 +28,8 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
       doc.text(`Établissement : ${tenantTheme.schoolName}`, 20, 60).text(`Parcours : ${year.specialty}`, 20, 65).text(`Niveau : ${year.level}`, 20, 70);
       doc.text(`Décision : ${year.status}`, 120, 60).text(`Année d'étude : ${year.year}`, 120, 65);
 
-      doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(pr, pg, pb).text("SYNTHÈSE DES RÉSULTATS", 15, 85);
+      // Titre toujours contrasté sur fond blanc
+      doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(pdr, pdg, pdb).text("SYNTHÈSE DES RÉSULTATS", 15, 85);
       const metrics = [
         { l: "MOYENNE", v: `${year.average.toFixed(2)}/20`, n: `Mention ${year.mention}` },
         { l: "GPA", v: `${year.gpa.toFixed(1)}/4.0`, n: "Excellent" },
@@ -38,12 +42,13 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
         doc.roundedRect(x, 89, 42, 19, 2, 2, "S");
         doc.setFontSize(7).setTextColor(120).text(m.l, x + 21, 93, { align: "center" });
         doc.setFontSize(10).setTextColor(sr, sg, sb).text(m.v, x + 21, 99, { align: "center" });
-        doc.setFontSize(6.5).setTextColor(pr, pg, pb).text(m.n, x + 21, 104, { align: "center" });
+        doc.setFontSize(6.5).setTextColor(pdr, pdg, pdb).text(m.n, x + 21, 104, { align: "center" });
       });
 
-      doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(pr, pg, pb).text("DÉTAIL DES MODULES", 15, 117);
-      doc.setFillColor(pr, pg, pb).rect(15, 121, 180, 8, "F");
-      doc.setFontSize(8).setTextColor(255).text("Module & Professeur", 18, 126.5);
+      // Table Header contrasté
+      doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(pdr, pdg, pdb).text("DÉTAIL DES MODULES", 15, 117);
+      doc.setFillColor(thBr, thBg, thBb).rect(15, 121, 180, 8, "F");
+      doc.setFontSize(8).setTextColor(thTr, thTg, thTb).text("Module & Professeur", 18, 126.5);
       doc.text("Crédits", 110, 126.5).text("Note", 140, 126.5).text("Moy. Promo", 165, 126.5).text("Statut", 191, 126.5, { align: "right" });
 
       let currY = 129;
@@ -52,7 +57,7 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
         doc.setFontSize(8).setTextColor(sr, sg, sb).setFont("helvetica", "bold").text(m.module, 18, currY + 4.5);
         doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(120).text(m.prof, 18, currY + 8);
         doc.setFontSize(8).setTextColor(80).text(`${m.ects} ECTS`, 110, currY + 6);
-        doc.setFont("helvetica", "bold").setTextColor(pr, pg, pb).text(m.note.toFixed(2), 140, currY + 6);
+        doc.setFont("helvetica", "bold").setTextColor(pdr, pdg, pdb).text(m.note.toFixed(2), 140, currY + 6);
         doc.setFont("helvetica", "normal").setTextColor(115).text(m.moyPromo.toFixed(2), 165, currY + 6);
         doc.setFont("helvetica", "bold").setTextColor(16, 124, 65).text("VALIDÉ", 191, currY + 6, { align: "right" });
         currY += 9.5;
@@ -60,16 +65,16 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
 
       const sY = 215;
       doc.setDrawColor(210).line(15, sY - 12, 195, sY - 12);
-      doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(pr, pg, pb).text("SIGNATURE & HOMOLOGATION", 15, sY - 6);
+      doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(pdr, pdg, pdb).text("SIGNATURE & HOMOLOGATION", 15, sY - 6);
       doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(115);
       doc.text(`Le Conseil de Direction Académique de ${tenantTheme.schoolName}`, 15, sY);
       doc.text("Ce relevé est certifié authentique.", 15, sY + 4);
       doc.text(`ID : ${tenantTheme.slug.toUpperCase()}-ID-${year.id}-${Math.floor(Math.random() * 89999 + 10000)}`, 15, sY + 8);
 
-      doc.setDrawColor(pr, pg, pb).setLineWidth(0.8).roundedRect(140, sY - 8, 55, 23, 1.5, 1.5, "S");
-      doc.setFillColor(pr, pg, pb).rect(140, sY - 8, 55, 4.5, "F");
+      doc.setDrawColor(pdr, pdg, pdb).setLineWidth(0.8).roundedRect(140, sY - 8, 55, 23, 1.5, 1.5, "S");
+      doc.setFillColor(pdr, pdg, pdb).rect(140, sY - 8, 55, 4.5, "F");
       doc.setFont("helvetica", "bold").setFontSize(6.5).setTextColor(255).text("DIRECTION DES ÉTUDES - CERTIFIÉ", 167.5, sY - 4.8, { align: "center" });
-      doc.setTextColor(pr, pg, pb).setFontSize(8).text(`${tenantTheme.schoolName.toUpperCase()} - SÉNÉGAL`, 167.5, sY + 2.5, { align: "center" });
+      doc.setTextColor(pdr, pdg, pdb).setFontSize(8).text(`${tenantTheme.schoolName.toUpperCase()} - SÉNÉGAL`, 167.5, sY + 2.5, { align: "center" });
 
       addEcole221Footer(doc, [
         `${tenantTheme.schoolName}  -  Établissement d'Enseignement Supérieur Agréé`,
