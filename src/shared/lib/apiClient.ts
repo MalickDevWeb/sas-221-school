@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import { setupOfflineInterceptors } from './setupOfflineInterceptors';
 import { handleApiResponseError } from './apiErrorHandler';
 
@@ -16,10 +16,7 @@ export const publicApiClient = axios.create({
   withCredentials: false,
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-
+function injectTenantHeaders<T extends InternalAxiosRequestConfig>(config: T): T {
   const urlSlugMatch = window.location.pathname.match(/\/t\/([^/]+)/);
   if (urlSlugMatch && urlSlugMatch[1]) {
     const slug = urlSlugMatch[1].trim();
@@ -40,20 +37,20 @@ apiClient.interceptors.request.use((config) => {
   }
 
   const forcedTenant = localStorage.getItem('tenant_id');
-  if (forcedTenant && !config.headers['X-Tenant-ID']) {
-    config.headers['X-Tenant-ID'] = forcedTenant;
-  }
+  if (forcedTenant && !config.headers['X-Tenant-ID']) config.headers['X-Tenant-ID'] = forcedTenant;
   const forcedSlug = localStorage.getItem('tenant_slug');
-  if (forcedSlug && !config.headers['X-Tenant-Slug']) {
-    config.headers['X-Tenant-Slug'] = forcedSlug;
-  }
+  if (forcedSlug && !config.headers['X-Tenant-Slug']) config.headers['X-Tenant-Slug'] = forcedSlug;
 
   return config;
+}
+
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return injectTenantHeaders(config);
 });
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  handleApiResponseError
-);
+publicApiClient.interceptors.request.use(injectTenantHeaders);
 
+apiClient.interceptors.response.use((r) => r, handleApiResponseError);
 setupOfflineInterceptors(apiClient);

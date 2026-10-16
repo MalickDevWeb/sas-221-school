@@ -5,6 +5,7 @@ import {
 } from './admissionsDb';
 import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
 import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
+import { publicApiClient } from '@/shared/lib/apiClient';
 
 export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: ExtendedCandidate) => void) {
   const [step, setStep] = useState(1);
@@ -90,15 +91,11 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);
 
     try {
-      await fetch('/api/candidatures/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: candId, nom: personal.lastName, prenom: personal.firstName,
-          email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
-          niveau: academic.targetLevel, fraisPayes: payment.isPaid,
-          modePaiement: payment.method, referencePaiement: payment.transactionRef,
-        }),
+      await publicApiClient.post('/candidatures/submit', {
+        id: candId, nom: personal.lastName, prenom: personal.firstName,
+        email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
+        niveau: academic.targetLevel, fraisPayes: payment.isPaid,
+        modePaiement: payment.method, referencePaiement: payment.transactionRef,
       });
     } catch {
       // Synchronisation locale assurée
