@@ -33,21 +33,23 @@ export function AdminPersonnelRH() {
   }, []);
 
   const handleAddStaff = async (newMember: Omit<StaffMember, 'id'>) => {
-    const id = `EMP-2026-0${Math.floor(10 + Math.random() * 89)}`;
-    const full = { id, ...newMember };
-    setStaff(prev => [...prev, full]);
-    showToast(`Compte pour ${newMember.firstName} créé.`, true);
     try {
-      await apiClient.post('/admin/staff', full);
-    } catch (err) {
-      console.warn("Erreur POST staff backend:", err);
+      const res = await apiClient.post('/admin/staff', newMember);
+      const created = res.data?.id ? res.data : { id: `EMP-2026-${Date.now().toString().slice(-4)}`, ...newMember };
+      setStaff(prev => [...prev.filter(s => s.email !== newMember.email), created]);
+      showToast(`Compte pour ${newMember.firstName} créé avec succès.`, true);
+      return created;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Erreur lors de la création du compte.";
+      showToast(msg, false);
+      return null;
     }
   };
 
   const handleUpdateStaff = async (updated: StaffMember, originalId?: string) => {
     const targetId = originalId || updated.id;
     setStaff(prev => prev.map(s => s.id === targetId ? updated : s));
-    showToast(`Identifiants de ${updated.firstName} ${updated.lastName} mis à jour avec succès.`, true);
+    showToast(`Identifiants de ${updated.firstName} ${updated.lastName} mis à jour.`, true);
     try {
       await apiClient.put(`/admin/staff/${targetId}`, { ...updated, newId: updated.id });
     } catch (err) {
@@ -57,15 +59,13 @@ export function AdminPersonnelRH() {
 
   const handleToggleStatus = async (id: string) => {
     let nextStatus = 'Actif';
-    setStaff(prev =>
-      prev.map((s) => {
-        if (s.id === id) {
-          nextStatus = s.status === 'Actif' ? 'Suspendu' : 'Actif';
-          return { ...s, status: nextStatus as any };
-        }
-        return s;
-      })
-    );
+    setStaff(prev => prev.map(s => {
+      if (s.id === id) {
+        nextStatus = s.status === 'Actif' ? 'Suspendu' : 'Actif';
+        return { ...s, status: nextStatus as any };
+      }
+      return s;
+    }));
     showToast(`Le statut du collaborateur est maintenant : ${nextStatus}`, true);
     try {
       await apiClient.patch(`/admin/staff/${id}/toggle-status`);
@@ -97,16 +97,10 @@ export function AdminPersonnelRH() {
 
       <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden">
         {toast && (
-          <div
-            className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
-              toast.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
-            }`}
-          >
-            <span translate="no" className="material-symbols-outlined text-sm">
-              {toast.success ? 'check_circle' : 'error'}
-            </span>
+          <div className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
+            toast.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}>
+            <span translate="no" className="material-symbols-outlined text-sm">{toast.success ? 'check_circle' : 'error'}</span>
             <span>{toast.message}</span>
           </div>
         )}
@@ -120,9 +114,7 @@ export function AdminPersonnelRH() {
             onToggleStatus={handleToggleStatus}
           />
         )}
-
         {activeTab === 'rbac' && <RbacTab onShowToast={showToast} />}
-
         {activeTab === 'attendance' && <AttendanceTab onShowToast={showToast} />}
       </div>
     </div>
