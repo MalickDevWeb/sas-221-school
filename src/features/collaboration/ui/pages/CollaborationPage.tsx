@@ -48,13 +48,11 @@ export function CollaborationPage() {
         <div className="lg:col-span-4 space-y-6">
           <ActiveClassesList meets={state.meets} activeMeetId={activeMeetId} onSelectMeet={setActiveMeetId} onJoinMeet={handleJoinMeetSimulate} />
           <WorkgroupsList workgroups={state.workgroups} activeGroupId={activeGroupId} onSelectGroup={setActiveGroupId} />
-          {isTeacher && <MeetScheduler onSchedule={state.createVirtualClass} teacherName={utilisateur?.nom || 'Enseignant'} />}
-          {isTeacher && (
-            <GroupCreator
-              onAutoGenerate={state.generateAutoGroups}
-              onCreateManual={state.createManualGroup}
-            />
-          )}
+          {(isTeacher || isAdmin) && <MeetScheduler onSchedule={state.createVirtualClass} teacherName={utilisateur?.nom || 'Enseignant'} />}
+          <GroupCreator
+            onAutoGenerate={state.generateAutoGroups}
+            onCreateManual={state.createManualGroup}
+          />
         </div>
 
         <div className="lg:col-span-8 space-y-6">

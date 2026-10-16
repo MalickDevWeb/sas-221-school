@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { UserPlus, Star, Check } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { GroupMember } from '../../domain/CollaborationModels';
+import { COLLAB_STUDENTS_MOCK } from '../../domain/CollaborationMockData';
 import { StudentSelectionList } from './StudentSelectionList';
 import { LeaderSelectionDropdown } from './LeaderSelectionDropdown';
 import { apiClient } from '@/shared/lib/apiClient';
@@ -21,12 +22,16 @@ export function ManualGroupCreator({ onCreateManual }: Props) {
   const [classId, setClassId] = useState('L3-INFO');
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
   const [leaderId, setLeaderId] = useState('');
-  const [students, setStudents] = useState<readonly GroupMember[]>([]);
+  const [students, setStudents] = useState<readonly GroupMember[]>(COLLAB_STUDENTS_MOCK);
 
   React.useEffect(() => {
-    apiClient.get('/collaboration/students').then(res => {
-      setStudents(res.data);
-    }).catch(console.error);
+    apiClient.get('/collaboration/students').then((res) => {
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setStudents(res.data);
+      }
+    }).catch(() => {
+      setStudents(COLLAB_STUDENTS_MOCK);
+    });
   }, []);
 
   const handleToggleStudent = (studentId: string) => {
