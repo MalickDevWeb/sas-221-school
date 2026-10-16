@@ -68,6 +68,13 @@ export interface CandidateDetails {
   cniRejectReason?: string;
   cniVerifiedAt?: string;
 
+  // Paiement des frais de dossier
+  paymentMethod?: string;
+  paymentTransactionRef?: string;
+  paymentStatus?: 'pending' | 'paid' | 'rejected';
+  paymentValidatedAt?: string;
+  paymentValidatedBy?: string;
+
   // International
   passportNumber?: string;
   visaStatus?: string;

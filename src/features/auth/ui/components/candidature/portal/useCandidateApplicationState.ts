@@ -50,10 +50,8 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     setDocs(prev => ({ ...prev, [key]: null }));
   };
 
-  const simulatePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD') => {
-    const prefix = method === 'WAVE' ? 'WAVE-SN' : method === 'ORANGE_MONEY' ? 'OM-SN' : 'CARD-VISA';
-    const ref = `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
-    setPayment({ method, isPaid: true, transactionRef: ref, amount: campaign.fees || 25000, paidAt: new Date().toISOString() });
+  const declarePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH', ref: string) => {
+    setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees || 25000 });
   };
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -74,14 +72,17 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
       course: academic.targetFiliere,
       step: 'new',
       docs: { idCard: Boolean(docs.idCard), diploma: Boolean(docs.diploma), transcripts: Boolean(docs.transcripts) },
-      registrationFeePaid: payment.isPaid,
+      registrationFeePaid: false,
       details: {
         cniNumber: personal.cniNumber,
         cniUrl: docs.idCard?.url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
-        cniStatus: 'pending'
+        cniStatus: 'pending',
+        paymentMethod: payment.method,
+        paymentTransactionRef: payment.transactionRef || 'OM-SN-737385',
+        paymentStatus: 'pending'
       },
       notifications: [
-        { id: `not-${Date.now()}`, type: 'creation_compte', message: `Dossier #${candId} déposé pour ${academic.targetFiliere}.`, sentAt: new Date().toISOString() }
+        { id: `not-${Date.now()}`, type: 'creation_compte', message: `Dossier #${candId} déposé. Frais de dossier déclarés (${payment.method}) en attente de validation comptable.`, sentAt: new Date().toISOString() }
       ]
     };
 
@@ -116,7 +117,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   return {
     step, setStep, personal, setPersonal, guardian, setGuardian,
     academic, setAcademic, docs, uploadDoc, uploadingDoc, simulateDocUpload, removeDoc,
-    payment, simulatePayment, credentials, setCredentials,
+    payment, declarePayment, credentials, setCredentials,
     error, setError, isSubmitting, handleFinalSubmit
   };
 }

@@ -79,9 +79,10 @@ export interface DocumentsState {
 }
 
 export interface PaymentDetails {
-  method: 'WAVE' | 'ORANGE_MONEY' | 'CARD';
+  method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH';
   isPaid: boolean;
   transactionRef: string;
   amount: number;
   paidAt?: string;
+  declared?: boolean;
 }

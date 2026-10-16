@@ -72,6 +72,11 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                       }`}>
                         🪪 {c.details?.cniStatus === 'valid' ? 'CNI Conforme' : c.details?.cniStatus === 'rejected' ? 'CNI Rejetée' : 'CNI Déposée'}
                       </span>
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                        c.registrationFeePaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        💳 {c.registrationFeePaid ? 'Frais Réglés' : 'Frais en Attente'}
+                      </span>
                     </div>
                     {c.equivalence && (
                       <div className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 w-fit">

@@ -7,6 +7,7 @@ import { NotificationPanel } from './NotificationPanel';
 import { CandidateDetailsSection } from './CandidateDetailsSection';
 import { CandidateWorkflowPanel } from './CandidateWorkflowPanel';
 import { CandidateCniViewer } from './CandidateCniViewer';
+import { CandidatePaymentApprovalCard } from './CandidatePaymentApprovalCard';
 
 interface Props {
   candidate: ExtendedCandidate;
@@ -47,6 +48,7 @@ export function CandidateDetailModal({ candidate, onClose, onUpdateCandidate }: 
             <CandidateAlertsPanel candidate={candidate} />
           </div>
           <div className="space-y-3">
+            <CandidatePaymentApprovalCard candidate={candidate} onUpdateCandidate={onUpdateCandidate} />
             {['TRANSFER', 'VAE', 'L2', 'L3', 'M1', 'M2', 'DOC'].includes(candidate.type) && (
               <EquivalencePanel initialEquivalence={candidate.equivalence} onSave={handleSaveEquivalence} />
             )}
