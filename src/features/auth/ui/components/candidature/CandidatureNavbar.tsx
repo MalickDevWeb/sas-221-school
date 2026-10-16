@@ -43,3 +43,4 @@ export function CandidatureNavbar({ schoolDisplayName, onBack }: Props) {
     </header>
   );
 }
+

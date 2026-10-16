@@ -85,3 +85,4 @@ export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPr
     </motion.div>
   );
 }
+

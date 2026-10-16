@@ -69,3 +69,4 @@ export function StepPayment({ payment, simulatePayment, onNext, onPrev }: Props)
     </motion.div>
   );
 }
+

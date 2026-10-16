@@ -84,3 +84,4 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
     </motion.div>
   );
 }
+

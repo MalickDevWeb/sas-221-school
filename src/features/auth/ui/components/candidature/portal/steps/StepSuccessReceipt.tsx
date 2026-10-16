@@ -65,3 +65,4 @@ export function StepSuccessReceipt({ candidate, onGoToDashboard }: Props) {
     </motion.div>
   );
 }
+

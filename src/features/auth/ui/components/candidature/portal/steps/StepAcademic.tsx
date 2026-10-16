@@ -97,3 +97,4 @@ export function StepAcademic({ academic, setAcademic, onNext, onPrev }: Props) {
     </motion.div>
   );
 }
+
