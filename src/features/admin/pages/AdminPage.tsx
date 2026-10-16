@@ -16,6 +16,7 @@ import { AdminNotificationsHub } from '../ui/components/AdminNotificationsHub';
 import { AdminPredictiveAIEngine } from '../ui/components/AdminPredictiveAIEngine';
 import { AdminSecurityAuditTrail } from '../ui/components/AdminSecurityAuditTrail';
 import { AdminSubscriptionManager } from '../ui/components/AdminSubscriptionManager';
+import { AdminBrandingManager } from '../ui/components/branding/AdminBrandingManager';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
@@ -44,7 +45,7 @@ export function AdminPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':     return <AdminCEODashboard currency={tenant.currency} />;
-      case 'promotions':    return <AdminSchoolManager defaultTab="classes" />;
+      case 'promotions':
       case 'school':        return <AdminSchoolManager defaultTab="classes" />;
       case 'schedule':      return <AdminGlobalScheduler />;
       case 'personnel':     return <AdminPersonnelRH />;
@@ -54,6 +55,7 @@ export function AdminPage() {
       case 'collaboration': return <CollaborationPage />;
       case 'billing':       return <AdminSubscriptionManager />;
       case 'notifications': return <AdminNotificationsHub />;
+      case 'branding':      return <AdminBrandingManager />;
       case 'ai':            return <AdminPredictiveAIEngine />;
       case 'security':      return <AdminSecurityAuditTrail />;
       default:              return <AdminCEODashboard currency={tenant.currency} />;
@@ -83,12 +85,8 @@ export function AdminPage() {
               <span className="text-purple-200">Gestion de l'établissement <strong className="text-white">"{schoolName}"</strong></span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => navigate(currentTenant?.slug ? `/t/${currentTenant.slug}/admin/branding` : '/admin/branding')} className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[11px] font-bold cursor-pointer">
-                🎨 Charte Graphique
-              </button>
-              <button onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }} className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded-lg text-[11px] font-bold cursor-pointer">
-                ← Quitter l'école (Retour Super Admin)
-              </button>
+              <button onClick={() => setActiveTab('branding')} className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[11px] font-bold cursor-pointer">🎨 Personnalisation</button>
+              <button onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }} className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded-lg text-[11px] font-bold cursor-pointer">← Retour Super Admin</button>
             </div>
           </div>
         )}

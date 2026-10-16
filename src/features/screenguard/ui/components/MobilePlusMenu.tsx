@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LogOut, Award, Shield, Cpu, Calendar, Building2, Users } from 'lucide-react';
+import { X, LogOut, Award, Shield, Cpu, Calendar, Building2, Users, Palette } from 'lucide-react';
 
 export const SEC_TABS = [
   { id: 'school', label: 'Gestion École', icon: Building2 },
   { id: 'schedule', label: 'Emploi du Temps', icon: Calendar },
   { id: 'personnel', label: 'Gestion Personnel', icon: Award },
   { id: 'admissions', label: 'Admissions', icon: Users },
+  { id: 'branding', label: 'Personnalisation', icon: Palette },
   { id: 'ai', label: 'Assistant IA', icon: Cpu },
   { id: 'security', label: 'Sécurité & Audit', icon: Shield },
 ];

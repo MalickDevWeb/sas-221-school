@@ -25,6 +25,7 @@ const MENU_ITEMS = [
   { id: 'collaboration', label: 'Collaboration', icon: 'group_work', requiredPerm: 'communication_chat_post' },
   { id: 'billing', label: 'Mon Abonnement', icon: 'workspace_premium', requiredPerm: 'governance_settings_get' },
   { id: 'notifications', label: 'Notifications Hub', icon: 'mail', requiredPerm: 'communication_notifs_get' },
+  { id: 'branding', label: 'Personnalisation', icon: 'palette', requiredPerm: 'governance_settings_get' },
   { id: 'ai', label: 'Assistant IA', icon: 'smart_toy', requiredPerm: 'pedagogy_grades_get' },
   { id: 'security', label: 'Sécurité & Audit', icon: 'security', requiredPerm: 'security_scans_get' },
 ];
