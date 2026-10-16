@@ -9,6 +9,9 @@ export interface Campaign {
   fees: number;
   requirements: string[];
   imageUrl: string;
+  level?: string;
+  duration?: string;
+  intake?: string;
 }
 
 export interface AuditLog {
@@ -25,4 +28,58 @@ export interface Message {
   text: string;
   timestamp: string;
   role: "CANDIDAT" | "ADMIN" | "SECRETAIRE";
+}
+
+export interface PersonalDetails {
+  firstName: string;
+  lastName: string;
+  gender: 'M' | 'F';
+  birthDate: string;
+  birthPlace: string;
+  nationality: string;
+  cniNumber: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+}
+
+export interface GuardianDetails {
+  fullName: string;
+  relationship: 'Père' | 'Mère' | 'Tuteur Légal' | 'Autre';
+  phone: string;
+  email: string;
+  profession: string;
+}
+
+export interface AcademicDetails {
+  previousSchool: string;
+  bacSeries: string;
+  bacYear: string;
+  bacMention: string;
+  targetLevel: string;
+  targetFiliere: string;
+  intakeSession: string;
+}
+
+export interface UploadedDocInfo {
+  name: string;
+  size: string;
+  uploadedAt: string;
+  status: 'ready' | 'uploaded';
+}
+
+export interface DocumentsState {
+  idCard: UploadedDocInfo | null;
+  diploma: UploadedDocInfo | null;
+  transcripts: UploadedDocInfo | null;
+  photo: UploadedDocInfo | null;
+}
+
+export interface PaymentDetails {
+  method: 'WAVE' | 'ORANGE_MONEY' | 'CARD';
+  isPaid: boolean;
+  transactionRef: string;
+  amount: number;
+  paidAt?: string;
 }

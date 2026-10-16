@@ -1,8 +1,7 @@
 import { publicApiClient } from '@/shared/lib/apiClient';
 import { ExtendedCandidate } from "@/features/admin/domain/AdmissionsExtendedModels";
 import { Campaign, AuditLog, Message } from "./admissionsTypes";
-
-export type { Campaign, AuditLog, Message } from "./admissionsTypes";
+export * from "./admissionsTypes";
 
 let lastSyncTime = 0;
 const SYNC_INTERVAL_MS = 15000;

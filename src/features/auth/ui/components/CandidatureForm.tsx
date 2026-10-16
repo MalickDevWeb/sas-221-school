@@ -23,17 +23,14 @@ export function CandidatureForm({ onBack }: Props) {
     };
 
     updateCampaigns();
-
     window.addEventListener('admissions_db_synced', updateCampaigns);
-    return () => {
-      window.removeEventListener('admissions_db_synced', updateCampaigns);
-    };
+    return () => window.removeEventListener('admissions_db_synced', updateCampaigns);
   }, [view]);
 
   return (
-    <div className="space-y-4 animate-fade-in" id="candidature-main-portal">
+    <div className="space-y-6 animate-fade-in" id="candidature-main-portal">
       {view === 'portal' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <PortalCampaignsList
             campaigns={campaigns}
             onSelectCampaign={(camp) => {
@@ -42,10 +39,10 @@ export function CandidatureForm({ onBack }: Props) {
             }}
             onGoToLogin={() => setView('login')}
           />
-          <div className="pt-2 border-t border-neutral-100 flex justify-center">
-            <button onClick={onBack} className="text-[#8E7977] hover:text-primary text-xs font-black uppercase cursor-pointer flex items-center gap-1">
-              <span translate="no" className="material-symbols-outlined text-xs">arrow_back</span>
-              Retour au Campus Virtuel
+          <div className="pt-4 border-t border-neutral-200/80 flex justify-center">
+            <button onClick={onBack} className="text-neutral-500 hover:text-primary text-xs font-black uppercase cursor-pointer flex items-center gap-1.5 transition-colors">
+              <span translate="no" className="material-symbols-outlined text-sm">arrow_back</span>
+              <span>Retour à l'Accueil du Campus</span>
             </button>
           </div>
         </div>
@@ -63,23 +60,27 @@ export function CandidatureForm({ onBack }: Props) {
       )}
 
       {view === 'login' && (
-        <CandidatePortalLogin
-          onLoginSuccess={(cand) => {
-            setActiveCandidate(cand);
-            setView('dashboard');
-          }}
-          onGoBack={() => setView('portal')}
-        />
+        <div className="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200/80 shadow-xs">
+          <CandidatePortalLogin
+            onLoginSuccess={(cand) => {
+              setActiveCandidate(cand);
+              setView('dashboard');
+            }}
+            onGoBack={() => setView('portal')}
+          />
+        </div>
       )}
 
       {view === 'dashboard' && activeCandidate && (
-        <CandidateDashboardShell
-          initialCandidate={activeCandidate}
-          onLogout={() => {
-            setActiveCandidate(null);
-            setView('portal');
-          }}
-        />
+        <div className="max-w-5xl mx-auto">
+          <CandidateDashboardShell
+            initialCandidate={activeCandidate}
+            onLogout={() => {
+              setActiveCandidate(null);
+              setView('portal');
+            }}
+          />
+        </div>
       )}
     </div>
   );
