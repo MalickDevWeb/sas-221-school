@@ -30,8 +30,9 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
 
   const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const correctCode = localStorage.getItem('school_delete_security_code') || '221';
-    if (code === correctCode) {
+    const stored = localStorage.getItem('school_delete_security_code');
+    const upper = code.trim().toUpperCase();
+    if (upper === 'ANNULER' || upper === 'CONFIRMER' || (stored && code.trim() === stored)) {
       await onCancel(session.id, reason);
       onClose();
     } else {

@@ -11,8 +11,9 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const correctCode = localStorage.getItem('school_delete_security_code') || '221';
-    if (code === correctCode) {
+    const storedCode = localStorage.getItem('school_delete_security_code');
+    const inputUpper = code.trim().toUpperCase();
+    if (inputUpper === 'SUPPRIMER' || inputUpper === 'CONFIRMER' || (storedCode && code.trim() === storedCode)) {
       onConfirm();
     } else {
       setError(true);
@@ -34,7 +35,7 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
           type="password"
           value={code}
           onChange={e => setCode(e.target.value)}
-          placeholder="Code de sécurité"
+          placeholder="Tapez CONFIRMER ou code"
           className={`flex-grow px-2.5 py-1.5 border rounded-lg text-xs font-bold focus:outline-none focus:border-red-600 bg-white ${
             error ? 'border-red-500 text-red-600' : 'border-neutral-200 text-[#1E293B]'
           }`}
