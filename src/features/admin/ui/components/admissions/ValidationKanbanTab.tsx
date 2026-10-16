@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from '@iconify/react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { CandidateAdmissionBadge } from './CandidateAdmissionBadge';
 import { CandidateDetailPage } from './CandidateDetailPage';
@@ -25,11 +26,11 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
     );
   }
 
-  const columns: { id: ExtendedCandidate['step']; label: string; bg: string; border: string; text: string }[] = [
-    { id: 'new', label: 'Nouveau Dossier', bg: 'bg-neutral-50/50', border: 'border-neutral-200', text: 'text-neutral-500' },
-    { id: 'docs', label: 'Pièces Vérifiées', bg: 'bg-amber-50/20', border: 'border-amber-100', text: 'text-amber-600' },
-    { id: 'admitted', label: 'Admis d\'office', bg: 'bg-emerald-50/20', border: 'border-emerald-100', text: 'text-emerald-600' },
-    { id: 'rejected', label: 'Dossier Rejeté', bg: 'bg-rose-50/20', border: 'border-rose-100', text: 'text-rose-600' },
+  const columns: { id: ExtendedCandidate['step']; label: string; icon: string; bg: string; border: string; text: string }[] = [
+    { id: 'new', label: 'Nouveau Dossier', icon: 'solar:inbox-line-bold-duotone', bg: 'bg-neutral-50/50', border: 'border-neutral-200', text: 'text-neutral-500' },
+    { id: 'docs', label: 'Pièces Vérifiées', icon: 'solar:file-check-bold-duotone', bg: 'bg-amber-50/20', border: 'border-amber-100', text: 'text-amber-600' },
+    { id: 'admitted', label: 'Admis d\'office', icon: 'solar:diploma-verified-bold-duotone', bg: 'bg-emerald-50/20', border: 'border-emerald-100', text: 'text-emerald-600' },
+    { id: 'rejected', label: 'Dossier Rejeté', icon: 'solar:close-circle-bold-duotone', bg: 'bg-rose-50/20', border: 'border-rose-100', text: 'text-rose-600' },
   ];
 
   const filteredCandidates = filterType === 'ALL'
@@ -46,6 +47,7 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold">
+          <Icon icon="solar:filter-bold-duotone" className="text-sm text-neutral-500" />
           <span className="text-[#1E293B] text-[11px]">Filtre :</span>
           <select
             value={filterType}
@@ -69,7 +71,10 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
           return (
             <div key={col.id} className={`${col.bg} border ${col.border} rounded-2xl p-4 flex flex-col space-y-3 min-h-[420px]`}>
               <div className="flex items-center justify-between pb-1.5 border-b border-neutral-100">
-                <span className={`text-[10px] font-black uppercase tracking-wider ${col.text}`}>{col.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <Icon icon={col.icon} className={`text-sm ${col.text}`} />
+                  <span className={`text-[10px] font-black uppercase tracking-wider ${col.text}`}>{col.label}</span>
+                </div>
                 <span className="text-[10px] font-black bg-white border border-neutral-200 px-2 py-0.5 rounded text-neutral-500">{list.length}</span>
               </div>
 
@@ -82,7 +87,10 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                   >
                     <div className="flex items-start justify-between gap-1">
                       <div className="font-extrabold text-xs text-[#1E293B] leading-snug group-hover:text-primary transition-colors">{c.name}</div>
-                      <span className="text-[9px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">Voir la fiche →</span>
+                      <span className="text-[9px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                        <span>Voir</span>
+                        <Icon icon="solar:arrow-right-linear" />
+                      </span>
                     </div>
                     <div className="flex items-center justify-between gap-1 flex-wrap">
                       <span className="text-[9px] text-neutral-400 font-extrabold truncate uppercase">{c.course}</span>
@@ -94,12 +102,14 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                         c.details?.cniStatus === 'rejected' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
                         'bg-neutral-100 text-neutral-600 border border-neutral-200'
                       }`}>
-                        🪪 {c.details?.cniStatus === 'valid' ? 'CNI Conforme' : c.details?.cniStatus === 'rejected' ? 'CNI Rejetée' : 'CNI Déposée'}
+                        <Icon icon={c.details?.cniStatus === 'valid' ? 'solar:verified-check-bold' : 'solar:user-id-bold-duotone'} />
+                        <span>{c.details?.cniStatus === 'valid' ? 'CNI Conforme' : c.details?.cniStatus === 'rejected' ? 'CNI Rejetée' : 'CNI Déposée'}</span>
                       </span>
                       <span className={`text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 ${
                         c.registrationFeePaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
-                        💳 {c.registrationFeePaid ? 'Frais Réglés' : 'Frais en Attente'}
+                        <Icon icon={c.registrationFeePaid ? 'solar:check-circle-bold' : 'solar:clock-circle-bold'} />
+                        <span>{c.registrationFeePaid ? 'Frais Réglés' : 'Frais en Attente'}</span>
                       </span>
                     </div>
                   </div>

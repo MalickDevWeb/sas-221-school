@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@iconify/react';
 import { ExtendedCandidate, EquivalenceDetails } from '../../../domain/AdmissionsExtendedModels';
 import { CandidateAdmissionBadge } from './CandidateAdmissionBadge';
 import { EquivalencePanel } from './EquivalencePanel';
@@ -32,9 +33,9 @@ export function CandidateDetailPage({ candidate, onBack, onUpdateCandidate }: Pr
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-black transition-all cursor-pointer shadow-2xs hover:-translate-x-0.5"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-black transition-all cursor-pointer shadow-2xs hover:-translate-x-0.5"
           >
-            <span translate="no" className="material-symbols-outlined text-sm font-bold">arrow_back</span>
+            <Icon icon="solar:arrow-left-bold" className="text-base" />
             <span>Retour aux candidatures</span>
           </button>
           <div className="h-4 w-px bg-neutral-300 hidden sm:block" />
@@ -50,13 +51,19 @@ export function CandidateDetailPage({ candidate, onBack, onUpdateCandidate }: Pr
         </div>
 
         <div className="flex items-center gap-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-black uppercase border ${
+          <span className={`px-3 py-1 rounded-full text-xs font-black uppercase border flex items-center gap-1.5 ${
             candidate.step === 'admitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-300' :
             candidate.step === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-300' :
             candidate.step === 'docs' ? 'bg-amber-50 text-amber-700 border-amber-300' :
             'bg-indigo-50 text-indigo-700 border-indigo-200'
           }`}>
-            Étape : {candidate.step === 'admitted' ? 'Admis d\'office' : candidate.step === 'rejected' ? 'Dossier Rejeté' : candidate.step === 'docs' ? 'Pièces Vérifiées' : 'Nouveau Dossier'}
+            <Icon icon={
+              candidate.step === 'admitted' ? 'solar:diploma-verified-bold-duotone' :
+              candidate.step === 'rejected' ? 'solar:close-circle-bold-duotone' :
+              candidate.step === 'docs' ? 'solar:file-check-bold-duotone' :
+              'solar:inbox-line-bold-duotone'
+            } className="text-sm" />
+            <span>Étape : {candidate.step === 'admitted' ? 'Admis d\'office' : candidate.step === 'rejected' ? 'Dossier Rejeté' : candidate.step === 'docs' ? 'Pièces Vérifiées' : 'Nouveau Dossier'}</span>
           </span>
         </div>
       </div>

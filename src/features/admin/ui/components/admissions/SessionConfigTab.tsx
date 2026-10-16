@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from '@iconify/react';
 import { SessionConfigLevelItem } from './SessionConfigLevelItem';
 import { SessionGlobalControls } from './SessionGlobalControls';
 import { CampaignEditModal } from './CampaignEditModal';
@@ -20,7 +21,7 @@ export function SessionConfigTab({ onNavigateToValidation, candidateCount = 0 }:
     <div className="space-y-5 text-xs font-bold text-[#4A5568]" id="session-config-tab">
       {state.toast && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-xl flex items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-sm">check_circle</span>
+          <Icon icon="solar:check-circle-bold-duotone" className="text-base text-emerald-600" />
           <span>{state.toast}</span>
         </div>
       )}
@@ -28,8 +29,8 @@ export function SessionConfigTab({ onNavigateToValidation, candidateCount = 0 }:
       {/* Top Banner with Direct Access to Candidatures */}
       <div className="p-3.5 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 border border-rose-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <span translate="no" className="material-symbols-outlined text-base">how_to_reg</span>
+          <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Icon icon="solar:users-group-two-rounded-bold-duotone" className="text-xl" />
           </div>
           <div>
             <h4 className="font-extrabold text-neutral-900 text-xs">Espace Candidatures & Validation des Dossiers</h4>
@@ -40,10 +41,10 @@ export function SessionConfigTab({ onNavigateToValidation, candidateCount = 0 }:
         </div>
         <button
           onClick={() => onNavigateToValidation?.()}
-          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
+          className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer whitespace-nowrap"
         >
           <span>Ouvrir les Dossiers ({candidateCount})</span>
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>
+          <Icon icon="solar:arrow-right-linear" className="text-sm" />
         </button>
       </div>
 
@@ -56,7 +57,7 @@ export function SessionConfigTab({ onNavigateToValidation, candidateCount = 0 }:
           onClick={() => setEditingCampaign({})}
           className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
         >
-          <span translate="no" className="material-symbols-outlined text-sm">add</span>
+          <Icon icon="solar:add-circle-bold" className="text-base" />
           <span>Créer une Session</span>
         </button>
       </div>

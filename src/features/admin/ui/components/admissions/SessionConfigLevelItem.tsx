@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@iconify/react';
 import { Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsTypes';
 
 interface Props {
@@ -78,7 +79,7 @@ export function SessionConfigLevelItem({
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold transition-colors cursor-pointer"
           title="Consulter les candidatures pour cette session"
         >
-          <span translate="no" className="material-symbols-outlined text-xs">how_to_reg</span>
+          <Icon icon="solar:users-group-two-rounded-bold-duotone" className="text-sm" />
           <span>Dossiers Candidats</span>
         </button>
 
@@ -89,7 +90,7 @@ export function SessionConfigLevelItem({
             className="p-1.5 text-neutral-500 hover:text-primary hover:bg-neutral-50 rounded-lg transition-all cursor-pointer"
             title="Modifier la session"
           >
-            <span translate="no" className="material-symbols-outlined text-sm">edit</span>
+            <Icon icon="solar:pen-new-square-bold-duotone" className="text-base" />
           </button>
           <button
             type="button"
@@ -97,7 +98,7 @@ export function SessionConfigLevelItem({
             className="p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
             title="Supprimer la session"
           >
-            <span translate="no" className="material-symbols-outlined text-sm">delete</span>
+            <Icon icon="solar:trash-bin-trash-bold-duotone" className="text-base" />
           </button>
         </div>
       </div>

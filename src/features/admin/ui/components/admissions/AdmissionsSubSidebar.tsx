@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@iconify/react';
 
 interface Props {
   activeTab: string;
@@ -16,17 +17,17 @@ export function AdmissionsSubSidebar({
   candidateCount = 0
 }: Props) {
   const menuItems = [
-    { id: 'config', label: 'Configuration Sessions', icon: 'settings_overscan' },
+    { id: 'config', label: 'Configuration Sessions', icon: 'solar:settings-minimalistic-bold-duotone' },
     { 
       id: 'validation', 
       label: 'Espace Candidatures', 
       sublabel: 'Validation & Dossiers',
-      icon: 'how_to_reg', 
+      icon: 'solar:users-group-two-rounded-bold-duotone', 
       badge: candidateCount > 0 ? `${candidateCount}` : undefined,
       badgeColor: 'bg-rose-500 text-white'
     },
-    { id: 'rules', label: 'Moteur de Règles', icon: 'rule_folder' },
-    { id: 'matriculation', label: 'Paiements & Matricule', icon: 'credit_score' },
+    { id: 'rules', label: 'Moteur de Règles', icon: 'solar:document-filter-bold-duotone' },
+    { id: 'matriculation', label: 'Paiements & Matricule', icon: 'solar:card-recive-bold-duotone' },
   ];
 
   return (
@@ -44,12 +45,10 @@ export function AdmissionsSubSidebar({
         )}
         <button
           onClick={onToggleCollapse}
-          className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition-colors ml-auto flex items-center justify-center cursor-pointer"
+          className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition-colors ml-auto flex items-center justify-center cursor-pointer"
           title={isCollapsed ? 'Ouvrir' : 'Réduire'}
         >
-          <span translate="no" className="material-symbols-outlined text-lg font-bold">
-            {isCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left'}
-          </span>
+          <Icon icon={isCollapsed ? 'solar:alt-arrow-right-bold' : 'solar:alt-arrow-left-bold'} className="text-lg" />
         </button>
       </div>
 
@@ -68,9 +67,7 @@ export function AdmissionsSubSidebar({
               title={item.label}
             >
               <div className="flex items-center gap-3 truncate">
-                <span translate="no" className="material-symbols-outlined text-lg shrink-0">
-                  {item.icon}
-                </span>
+                <Icon icon={item.icon} className={`text-xl shrink-0 ${isActive ? 'text-rose-600' : 'text-neutral-400'}`} />
                 {!isCollapsed && (
                   <div className="truncate">
                     <p className="truncate leading-none">{item.label}</p>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@iconify/react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { getAdmissionsDb, saveAdmissionsDb, addAuditLog } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
 
@@ -16,11 +17,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
     const updated: ExtendedCandidate = {
       ...candidate,
       registrationFeePaid: true,
-      details: {
-        ...candidate.details,
-        paymentStatus: 'paid',
-        paymentValidatedAt: new Date().toLocaleTimeString('fr-FR')
-      },
+      details: { ...candidate.details, paymentStatus: 'paid', paymentValidatedAt: new Date().toLocaleTimeString('fr-FR') },
       notifications: [
         {
           id: `not-${Date.now()}`,
@@ -53,31 +50,38 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
   };
 
   return (
-    <div className="bg-neutral-50/90 rounded-2xl p-3.5 border border-neutral-200/90 space-y-3">
+    <div className="bg-white rounded-2xl p-4 border border-neutral-200/90 shadow-2xs space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-emerald-600 text-base">payments</span>
+          <Icon icon="solar:wallet-money-bold-duotone" className="text-emerald-600 text-xl" />
           <h4 className="text-xs font-black text-neutral-900 uppercase tracking-tight">Frais de Dossier & Paiement</h4>
         </div>
-        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
           isPaid ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'
         }`}>
-          {isPaid ? '✓ Encaissé / Payé' : '⏳ En attente validation'}
+          <Icon icon={isPaid ? 'solar:check-circle-bold-duotone' : 'solar:clock-circle-bold-duotone'} className="text-xs" />
+          <span>{isPaid ? 'Encaissé / Payé' : 'En attente validation'}</span>
         </span>
       </div>
 
-      <div className="bg-white rounded-xl p-2.5 border border-neutral-200/80 space-y-1.5 text-[11px]">
+      <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/80 space-y-2 text-xs">
         <div className="flex justify-between items-center">
           <span className="text-neutral-500 font-semibold">Montant exigé :</span>
-          <span className="font-mono font-black text-neutral-900">25 000 FCFA</span>
+          <span className="font-mono font-black text-neutral-900 text-sm">25 000 FCFA</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-neutral-500 font-semibold">Mode déclaré :</span>
-          <span className="font-bold text-neutral-800 uppercase">{method}</span>
+          <div className="flex items-center gap-1.5 font-bold text-neutral-800 uppercase">
+            <Icon icon={
+              method === 'WAVE' ? 'solar:smartphone-2-bold-duotone' :
+              method === 'ORANGE_MONEY' ? 'solar:smartphone-bold-duotone' : 'solar:banknote-2-bold-duotone'
+            } className="text-sm text-indigo-600" />
+            <span>{method}</span>
+          </div>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-neutral-500 font-semibold">Réf. Transaction :</span>
-          <span className="font-mono font-bold text-primary bg-primary/5 px-2 py-0.5 rounded">{ref}</span>
+          <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{ref}</span>
         </div>
       </div>
 
@@ -86,15 +90,15 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
           <button
             type="button"
             onClick={handleConfirmPayment}
-            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
           >
-            <span translate="no" className="material-symbols-outlined text-base">check_circle</span>
+            <Icon icon="solar:check-circle-bold" className="text-base" />
             <span>Confirmer le Paiement (Payer)</span>
           </button>
         ) : (
           <div className="flex items-center justify-between gap-2 pt-1">
-            <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-              <span translate="no" className="material-symbols-outlined text-sm">verified</span>
+            <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5">
+              <Icon icon="solar:verified-check-bold" className="text-base text-emerald-600" />
               <span>Paiement validé par la caisse</span>
             </span>
             <button
@@ -110,4 +114,3 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
     </div>
   );
 }
-
