@@ -63,8 +63,12 @@ export function useCandidatureSettings() {
   const updateSettings = async (next: Partial<CandidatureSettings>) => {
     const updated = { ...settings, ...next };
     setSettings(updated);
+    _cache = { data: updated, ts: Date.now() };
     try {
-      await apiClient.post('/admin/candidatures/settings', updated);
+      await Promise.allSettled([
+        apiClient.post('/admin/candidatures/settings', { ...updated, enabled: updated.ouvert }),
+        apiClient.post('/candidatures/settings', updated)
+      ]);
     } catch (err) {
       console.error('Erreur de sauvegarde des paramètres:', err);
     }
