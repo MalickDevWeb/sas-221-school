@@ -93,8 +93,9 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
                   <span>{isOpen ? 'Déposer ma Candidature' : 'Session Clôturée'}</span>
                   {isOpen && <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>}
                 </button>
-                <button onClick={() => setSelectedShare(camp)} className="px-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95">
-                  <span translate="no" className="material-symbols-outlined text-base">share</span>
+                <button type="button" title="Partager cette formation" onClick={() => setSelectedShare(camp)} className="px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 text-xs font-bold">
+                  <span translate="no" className="material-symbols-outlined text-base text-emerald-600">share</span>
+                  <span className="hidden sm:inline text-[11px] font-black">Partager</span>
                 </button>
               </div>
             </motion.div>

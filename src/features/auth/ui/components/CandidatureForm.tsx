@@ -20,12 +20,21 @@ export function CandidatureForm({ onBack }: Props) {
     const updateCampaigns = () => {
       const db = getAdmissionsDb();
       setCampaigns(db.campaigns);
+      const params = new URLSearchParams(window.location.search);
+      const targetId = params.get('campaignId');
+      if (targetId && db.campaigns.length > 0) {
+        const found = db.campaigns.find(c => c.id === targetId);
+        if (found) {
+          setSelectedCampaign(found);
+          setView('apply');
+        }
+      }
     };
 
     updateCampaigns();
     window.addEventListener('admissions_db_synced', updateCampaigns);
     return () => window.removeEventListener('admissions_db_synced', updateCampaigns);
-  }, [view]);
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in" id="candidature-main-portal">
