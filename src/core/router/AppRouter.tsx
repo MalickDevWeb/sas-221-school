@@ -47,6 +47,7 @@ import { PWAInstallBanner } from '@/shared/components/PWAInstallBanner';
 import { SchoolRegistrationPage } from '@/features/onboarding/ui/pages/SchoolRegistrationPage';
 import { TenantLoginPage } from '@/features/auth/ui/pages/TenantLoginPage';
 import { LandingPage } from '@/features/public/ui/pages/LandingPage';
+import { TenantFinderPage } from '@/features/public/ui/pages/TenantFinderPage';
 
 const PageSkeleton = () => (
   <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#FAF8F6] p-6 select-none animate-fadeIn">
@@ -125,7 +126,7 @@ export function AppRouter() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/accueil" element={<LandingPage />} />
-          <Route path={ROUTES.login} element={<LoginPage />} />
+          <Route path={ROUTES.login} element={<TenantFinderPage />} />
           <Route path="/register-school" element={<SchoolRegistrationPage />} />
           <Route path="/inscription-ecole" element={<SchoolRegistrationPage />} />
           <Route path="/t/:tenantSlug/login" element={<TenantLoginPage />} />

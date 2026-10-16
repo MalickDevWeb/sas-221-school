@@ -48,7 +48,7 @@ export const LandingNavbar: React.FC = () => {
           {/* Boutons d'action (Desktop & Mobile) */}
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Link
-              to="/admin"
+              to="/login"
               className="hidden sm:inline-flex items-center text-xs font-bold text-slate-300 hover:text-white px-4 py-2.5 rounded-xl hover:bg-white/10 transition-all cursor-pointer"
             >
               Se connecter

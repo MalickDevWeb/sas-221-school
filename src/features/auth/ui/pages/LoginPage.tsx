@@ -12,13 +12,13 @@ export function LoginPage() {
   const navigate = useNavigate();
   const currentTenant = useTenantStore((s) => s.currentTenant);
 
-  // Si on est sur /login sans slug dans l'URL mais qu'un tenant personnalisé est actif,
-  // on synchronise l'URL vers /t/:slug/login pour afficher clairement le slug
+  // Une école ne doit jamais être affichée sans son slug dans l'URL.
+  // Si aucun slug n'est présent, on redirige vers le portail de sélection /login
   useEffect(() => {
-    if (!tenantSlug && currentTenant?.slug && currentTenant.slug !== 'ecole221' && currentTenant.slug !== 'ecole-221') {
-      navigate(`/t/${currentTenant.slug}/login`, { replace: true });
+    if (!tenantSlug) {
+      navigate('/login', { replace: true });
     }
-  }, [tenantSlug, currentTenant, navigate]);
+  }, [tenantSlug, navigate]);
 
   const [tabletActiveTab, setTabletActiveTab] = useState<'login' | 'calendar'>('login');
   const [desktopShowCalendar, setDesktopShowCalendar] = useState(false);
