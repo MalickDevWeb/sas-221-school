@@ -11,6 +11,7 @@ import { IdentityStepForm } from '../components/IdentityStepForm';
 import { VisualIdentityStepForm } from '../components/VisualIdentityStepForm';
 import { AdminAccountStepForm } from '../components/AdminAccountStepForm';
 import { RegistrationSuccessModal } from '../components/RegistrationSuccessModal';
+import { RegistrationErrorModal } from '../components/RegistrationErrorModal';
 
 /**
  * SchoolRegistrationPage - Orchestrateur principal de l'onboarding d'établissement
@@ -44,6 +45,9 @@ export const SchoolRegistrationPage: React.FC = () => {
     showSuccessModal,
     setShowSuccessModal,
     registeredOrg,
+    fieldErrors,
+    errorModal,
+    closeErrorModal,
     handleSubmit,
   } = useSchoolRegistration();
 
@@ -213,6 +217,7 @@ export const SchoolRegistrationPage: React.FC = () => {
                   palette={palette}
                   activePreset={activePreset}
                   isLoading={isLoading}
+                  fieldErrors={fieldErrors}
                   onChange={handleChange}
                   onPrev={goToPrevStep}
                   onModifyPalette={() => setStep(2)}
@@ -240,6 +245,15 @@ export const SchoolRegistrationPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {/* Modal d'Avertissement / Erreur Inscription */}
+      <RegistrationErrorModal
+        isOpen={errorModal.isOpen}
+        title={errorModal.title}
+        message={errorModal.message}
+        field={errorModal.field}
+        onClose={closeErrorModal}
+      />
 
       {/* Modal de Félicitations & Accès au Portail */}
       {showSuccessModal && (

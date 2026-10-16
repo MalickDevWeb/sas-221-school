@@ -1,23 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
-import { ROUTES } from '@/shared/constants';
 import { SCHOOL_TENANTS, SchoolTenant } from '../domain/AdminTenants';
 import { AdminSidebar } from '../ui/components/AdminSidebar';
 import { AdminCommandPalette } from '../ui/components/AdminCommandPalette';
-import { AdminCEODashboard } from '../ui/components/AdminCEODashboard';
-import { AdminSchoolManager } from '../ui/components/AdminSchoolManager';
-import { AdminGlobalScheduler } from '../ui/components/AdminGlobalScheduler';
-import { AdminPersonnelRH } from '../ui/components/AdminPersonnelRH';
-import { AdminStudentManager } from '../ui/components/AdminStudentManager';
-import { AdminAdmissionsKanban } from '../ui/components/AdminAdmissionsKanban';
-import { AdminFinanceDashboard } from '../ui/components/AdminFinanceDashboard';
-import { AdminNotificationsHub } from '../ui/components/AdminNotificationsHub';
-import { AdminPredictiveAIEngine } from '../ui/components/AdminPredictiveAIEngine';
-import { AdminSecurityAuditTrail } from '../ui/components/AdminSecurityAuditTrail';
-import { AdminSubscriptionManager } from '../ui/components/AdminSubscriptionManager';
-import { AdminBrandingManager } from '../ui/components/branding/AdminBrandingManager';
-import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
+import { AdminTabViews } from '../ui/components/AdminTabViews';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
 import { useTenantStore } from '@/core/store/tenantStore';
@@ -28,40 +15,25 @@ export function AdminPage() {
   const { currentTenant } = useTenantStore();
   const isSuperAdmin = utilisateur?.role === 'SUPER_ADMIN' || utilisateur?.role === 'PLATFORM_OWNER' || !!originalSuperAdminRole;
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [tenant, setTenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
+  const [tenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { isMobile, isTablet } = useDeviceStore();
+  const { isMobile } = useDeviceStore();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('admin_sidebar_collapsed');
+    return saved !== null ? saved === 'true' : false;
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('admin_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   const schoolName = currentTenant?.name || tenant.name || 'École 221';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
-
-  useEffect(() => {
-    setIsSidebarCollapsed(isTablet || activeTab !== 'dashboard');
-  }, [activeTab, isTablet]);
-
   const handleLogout = () => { deconnexion(); localStorage.removeItem('access_token'); navigate('/admin'); };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':     return <AdminCEODashboard currency={tenant.currency} />;
-      case 'promotions':
-      case 'school':        return <AdminSchoolManager defaultTab="classes" />;
-      case 'schedule':      return <AdminGlobalScheduler />;
-      case 'personnel':     return <AdminPersonnelRH />;
-      case 'students':      return <AdminStudentManager />;
-      case 'admissions':    return <AdminAdmissionsKanban />;
-      case 'finances':      return <AdminFinanceDashboard />;
-      case 'collaboration': return <CollaborationPage />;
-      case 'billing':       return <AdminSubscriptionManager />;
-      case 'notifications': return <AdminNotificationsHub />;
-      case 'branding':      return <AdminBrandingManager />;
-      case 'ai':            return <AdminPredictiveAIEngine />;
-      case 'security':      return <AdminSecurityAuditTrail />;
-      default:              return <AdminCEODashboard currency={tenant.currency} />;
-    }
-  };
-
   const leftMarginClass = isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64';
 
   return (
@@ -72,7 +44,7 @@ export function AdminPage() {
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onToggleCollapse={toggleSidebar}
         />
       )}
 
@@ -110,7 +82,7 @@ export function AdminPage() {
         </header>
 
         <main className={`p-4 md:p-6 w-full space-y-6 flex-grow ${activeTab === 'schedule' ? 'max-w-none' : 'max-w-[1440px] mx-auto'}`}>
-          {renderContent()}
+          <AdminTabViews activeTab={activeTab} currency={tenant.currency} />
         </main>
       </div>
 

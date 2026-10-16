@@ -11,6 +11,8 @@ export interface SchoolRegistrationFormData {
   adminLastName: string;
   adminPhone: string;
   primaryColor: string;
+  adminPassword?: string;
+  adminPasswordConfirm?: string;
   savedAt?: string;
 }
 

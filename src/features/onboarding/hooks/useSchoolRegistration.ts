@@ -1,237 +1,121 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { toast } from 'sonner';
-import {
-  extractPaletteFromLogo,
-  generatePaletteFromHex,
-  type TenantPalette,
-} from '@/shared/utils/colorExtractor';
+import { generatePaletteFromHex } from '@/shared/utils/colorExtractor';
 import { useTenantStore } from '@/core/store/tenantStore';
 import type { SchoolRegistrationFormData, RegisteredSchool } from '../domain/OnboardingModels';
 import { sanitizeSchoolSlug } from '../domain/OnboardingModels';
 import { registerSchoolUseCase, draftManagementUseCase } from '../infrastructure/config/dependencies';
 import { safeApiCall } from '@/shared/lib/apiMiddleware';
 import { isServerError } from '@/shared/errors/httpStatus';
+import { normalizePhoneNumber } from '@/shared/utils/phoneUtils';
+import { useSchoolBrandingPicker, DEFAULT_MY_SCHOOL_PALETTE } from './useSchoolBrandingPicker';
+import { validateRegistrationStep3, mapRegistrationApiError } from './useSchoolRegistrationErrors';
 
-export const DEFAULT_MY_SCHOOL_PALETTE: TenantPalette = generatePaletteFromHex('#7C3AED');
+export { DEFAULT_MY_SCHOOL_PALETTE };
 
-export interface UseSchoolRegistrationReturn {
-  formData: SchoolRegistrationFormData;
-  setFormData: React.Dispatch<React.SetStateAction<SchoolRegistrationFormData>>;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  palette: TenantPalette;
-  applyPalette: (p: TenantPalette, presetName?: string) => void;
-  activePreset: string;
-  customHex: string;
-  setCustomHex: (hex: string) => void;
-  handleCustomHexChange: (hex: string) => void;
-  logoPreview: string | null;
-  isExtracting: boolean;
-  extractedColors: string[];
-  handleLogoUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  step: number;
-  setStep: (step: number) => void;
-  goToNextStep: () => void;
-  goToPrevStep: () => void;
-  isLoading: boolean;
-  showSuccessModal: boolean;
-  setShowSuccessModal: (show: boolean) => void;
-  registeredOrg: RegisteredSchool | null;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
-}
+const initialFormState: SchoolRegistrationFormData = {
+  schoolName: '', slug: '', adminEmail: '', adminFirstName: '',
+  adminLastName: '', adminPhone: '', adminPassword: '', adminPasswordConfirm: '',
+  primaryColor: DEFAULT_MY_SCHOOL_PALETTE.primary,
+};
 
-export function useSchoolRegistration(): UseSchoolRegistrationReturn {
-  const [formData, setFormData] = useState<SchoolRegistrationFormData>({
-    schoolName: '',
-    slug: '',
-    adminEmail: '',
-    adminFirstName: '',
-    adminLastName: '',
-    adminPhone: '',
-    primaryColor: DEFAULT_MY_SCHOOL_PALETTE.primary,
+export function useSchoolRegistration() {
+  const [formData, setFormData] = useState<SchoolRegistrationFormData>(initialFormState);
+  const branding = useSchoolBrandingPicker(formData.slug, formData.schoolName);
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredOrg, setRegisteredOrg] = useState<RegisteredSchool | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; title: string; message: string; field?: string }>({
+    isOpen: false, title: '', message: '',
   });
 
-  const [palette, setPalette] = useState<TenantPalette>(DEFAULT_MY_SCHOOL_PALETTE);
-  const [activePreset, setActivePreset] = useState<string>('Violet Prestige');
-  const [customHex, setCustomHex] = useState<string>('#7C3AED');
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [isExtracting, setIsExtracting] = useState<boolean>(false);
-  const [extractedColors, setExtractedColors] = useState<string[]>([]);
-  const [step, setStep] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
-  const [registeredOrg, setRegisteredOrg] = useState<RegisteredSchool | null>(null);
-
-  const isEcole221 =
-    formData.slug?.toLowerCase() === 'ecole221' ||
-    formData.schoolName?.toLowerCase().includes('ecole 221');
-
-  // Synchronisation du thème dans le store global de l'application
-  useEffect(() => {
-    useTenantStore.getState().applyTheme({ primaryColor: palette.primary, palette });
-  }, [palette]);
-
-  const applyPalette = useCallback(
-    (p: TenantPalette, presetName?: string) => {
-      if (isEcole221) {
-        toast.info('Palette officielle École 221 maintenue.');
-        return;
-      }
-      setPalette(p);
-      setCustomHex(p.primary);
-      setActivePreset(presetName ?? 'Personnalisée');
-      setFormData((prev) => {
-        if (prev.slug) {
-          try {
-            localStorage.setItem(`tenant_theme_${prev.slug}`, JSON.stringify({ primaryColor: p.primary, palette: p }));
-          } catch {}
-        }
-        return { ...prev, primaryColor: p.primary };
-      });
-    },
-    [isEcole221]
-  );
-
-  // Restauration automatique d'un brouillon sauvegardé en local
   useEffect(() => {
     const draft = draftManagementUseCase.loadDraft();
-    if (draft && (draft.schoolName || draft.adminEmail)) {
-      setFormData((prev) => ({
-        ...prev,
-        ...draft,
-      }));
-      if (draft.primaryColor) {
-        applyPalette(generatePaletteFromHex(draft.primaryColor));
-      }
+    if (draft?.schoolName || draft?.adminEmail) {
+      setFormData((prev) => ({ ...prev, ...draft }));
+      if (draft.primaryColor) branding.applyPalette(generatePaletteFromHex(draft.primaryColor));
     }
-  }, [applyPalette]);
-
-  const handleCustomHexChange = (hex: string) => {
-    setCustomHex(hex);
-    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-      applyPalette(generatePaletteFromHex(hex));
-    }
-  };
-
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoPreview(URL.createObjectURL(file));
-    setIsExtracting(true);
-    try {
-      const { colors, palette: extracted } = await extractPaletteFromLogo(file);
-      setExtractedColors(colors);
-      applyPalette(extracted);
-      toast.success(`${colors.length} couleurs détectées avec succès dans votre logo !`);
-    } catch {
-      toast.error("Impossible d'analyser le logo.");
-    } finally {
-      setIsExtracting(false);
-    }
-  };
+  }, [branding.applyPalette]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
-      if (name === 'schoolName') {
-        const prevAutoSlug = sanitizeSchoolSlug(prev.schoolName);
-        if (!prev.slug || prev.slug === prevAutoSlug) {
-          updated.slug = sanitizeSchoolSlug(value);
-        }
+      if (name === 'schoolName' && (!prev.slug || prev.slug === sanitizeSchoolSlug(prev.schoolName))) {
+        updated.slug = sanitizeSchoolSlug(value);
       }
       return updated;
     });
   };
 
-  const goToNextStep = () => setStep((s) => Math.min(s + 1, 3));
-  const goToPrevStep = () => setStep((s) => Math.max(s - 1, 1));
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    const submissionData: SchoolRegistrationFormData = {
-      ...formData,
-      slug: formData.slug?.trim() || sanitizeSchoolSlug(formData.schoolName) || `ecole-${Date.now()}`,
-      primaryColor: palette.primary,
-    };
-
-    const { data: result, isSuccess, status } = await safeApiCall<RegisteredSchool>(
-      registerSchoolUseCase(submissionData),
-      {
-        context: "Inscription Établissement",
-        successMessage: '🎉 Inscription réussie !',
-      }
-    );
-
-    setIsLoading(false);
-
-    if (!isSuccess || !result) {
-      if (isServerError(status)) {
-        draftManagementUseCase.saveDraft(submissionData);
-      }
+    const valErrors = validateRegistrationStep3(formData);
+    if (Object.keys(valErrors).length > 0) {
+      setFieldErrors(valErrors);
+      setErrorModal({ isOpen: true, title: 'Champs incomplets', message: 'Veuillez corriger les champs en rouge.' });
       return;
     }
 
-    setRegisteredOrg(result);
-    setShowSuccessModal(true);
-    draftManagementUseCase.clearDraft();
-
-    // Appliquer immédiatement la palette choisie dans le store tenant et le stockage persistant
-    const tenantBranding = {
-      primaryColor: submissionData.primaryColor,
-      palette,
+    setIsLoading(true);
+    setFieldErrors({});
+    const subData: SchoolRegistrationFormData = {
+      ...formData,
+      adminPhone: normalizePhoneNumber(formData.adminPhone),
+      slug: formData.slug?.trim() || sanitizeSchoolSlug(formData.schoolName) || `ecole-${Date.now()}`,
+      primaryColor: branding.palette.primary,
     };
 
-    try {
-      localStorage.setItem(`tenant_theme_${submissionData.slug}`, JSON.stringify(tenantBranding));
-      if (submissionData.adminEmail) {
-        localStorage.setItem(`tenant_admin_${submissionData.slug}`, submissionData.adminEmail);
-      }
-    } catch {}
+    const { data: res, isSuccess, error, errorCode, status } = await safeApiCall<RegisteredSchool>(
+      registerSchoolUseCase(subData),
+      { context: 'Inscription', successMessage: '🎉 Inscription réussie !', showToastOnError: false }
+    );
+    setIsLoading(false);
 
+    if (!isSuccess || !res) {
+      if (isServerError(status)) draftManagementUseCase.saveDraft(subData);
+      const mapped = mapRegistrationApiError(errorCode, error);
+      setFieldErrors(mapped.fieldErrors);
+      setErrorModal({ isOpen: true, title: mapped.modalTitle, message: mapped.modalMessage, field: mapped.modalField });
+      return;
+    }
+
+    setRegisteredOrg(res);
+    setShowSuccessModal(true);
+    draftManagementUseCase.clearDraft();
+    const theme = { primaryColor: subData.primaryColor, palette: branding.palette };
     useTenantStore.setState({
-      currentTenant: {
-        id: result.id || 'org-' + submissionData.slug,
-        name: result.name || submissionData.schoolName,
-        slug: submissionData.slug,
-        branding: tenantBranding,
-      },
+      currentTenant: { id: res.id, name: res.name || subData.schoolName, slug: subData.slug, branding: theme },
     });
-    useTenantStore.getState().applyTheme(tenantBranding);
-
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors: [palette.primary, palette.accent, '#6366f1', '#10b981'],
-    });
+    useTenantStore.getState().applyTheme(theme);
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
   };
 
   return {
     formData,
     setFormData,
     handleChange,
-    palette,
-    applyPalette,
-    activePreset,
-    customHex,
-    setCustomHex,
-    handleCustomHexChange,
-    logoPreview,
-    isExtracting,
-    extractedColors,
-    handleLogoUpload,
+    ...branding,
     step,
     setStep,
-    goToNextStep,
-    goToPrevStep,
+    goToNextStep: () => setStep((s) => Math.min(s + 1, 3)),
+    goToPrevStep: () => setStep((s) => Math.max(s - 1, 1)),
     isLoading,
     showSuccessModal,
     setShowSuccessModal,
     registeredOrg,
+    fieldErrors,
+    errorModal,
+    closeErrorModal: () => setErrorModal((prev) => ({ ...prev, isOpen: false })),
     handleSubmit,
   };
 }
-

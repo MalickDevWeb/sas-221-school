@@ -18,6 +18,8 @@ export class ApiOnboardingRepository implements OnboardingRepository {
       adminLastName: data.adminLastName,
       adminPhone: data.adminPhone,
       primaryColor: data.primaryColor,
+      adminPassword: data.adminPassword,
+      adminPasswordConfirm: data.adminPasswordConfirm,
     };
 
     const response = await publicApiClient.post<RegisteredSchool>('/register-school', payload);
@@ -26,8 +28,10 @@ export class ApiOnboardingRepository implements OnboardingRepository {
 
   savePendingDraft(data: SchoolRegistrationFormData): void {
     try {
-      const draft = { ...data, savedAt: new Date().toISOString() };
-      localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(draft));
+      const sanitizedDraft = { ...data, savedAt: new Date().toISOString() };
+      delete sanitizedDraft.adminPassword;
+      delete sanitizedDraft.adminPasswordConfirm;
+      localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(sanitizedDraft));
     } catch {
       // Ignorer si localStorage est inaccessible
     }
