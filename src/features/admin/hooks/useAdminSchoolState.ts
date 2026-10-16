@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Room, Filiere, Classe, PlanningSlot } from '../domain/SchoolModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { normalizeRooms, normalizeFilieres, normalizeClasses, normalizeSlots } from './schoolNormalizers';
 
 export function useAdminSchoolState() {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -13,83 +14,17 @@ export function useAdminSchoolState() {
     async function loadData() {
       try {
         const [resRooms, resFilieres, resClasses, resSlots] = await Promise.all([
-          apiClient.get('/planning/rooms'),
-          apiClient.get('/planning/filieres'),
-          apiClient.get('/planning/classes'),
-          apiClient.get('/planning/slots'),
+          apiClient.get('/admin/planning/rooms').catch(() => apiClient.get('/planning/rooms')),
+          apiClient.get('/admin/planning/filieres').catch(() => apiClient.get('/planning/filieres')),
+          apiClient.get('/admin/planning/classes').catch(() => apiClient.get('/planning/classes')),
+          apiClient.get('/admin/planning/slots').catch(() => apiClient.get('/planning/slots')),
         ]);
-        const rawRooms = resRooms.data;
-        const roomsList: any[] = Array.isArray(rawRooms)
-          ? rawRooms
-          : Array.isArray(rawRooms?.content)
-          ? rawRooms.content
-          : [];
-        const normalizedRooms: Room[] = roomsList.map((r: any) => ({
-          id: r.id || `room-${Math.random()}`,
-          name: r.name || 'Salle sans nom',
-          capacity: r.capacity || 40,
-          equipment: Array.isArray(r.equipment)
-            ? r.equipment
-            : typeof r.equipment === 'string' && r.equipment.trim().length > 0
-            ? r.equipment.split(',').map((e: string) => e.trim()).filter(Boolean)
-            : ['Projecteur'],
-          status: r.status || 'Disponible',
-        }));
-
-        const rawFilieres = resFilieres.data;
-        const filieresList: any[] = Array.isArray(rawFilieres)
-          ? rawFilieres
-          : Array.isArray(rawFilieres?.content)
-          ? rawFilieres.content
-          : [];
-        const normalizedFilieres: Filiere[] = filieresList.map((f: any) => ({
-          id: f.id || `fil-${Math.random()}`,
-          name: f.name || 'Filière sans nom',
-          code: f.code || 'GEN',
-          description: f.description || '',
-        }));
-
-        const rawClasses = resClasses.data;
-        const classesList: any[] = Array.isArray(rawClasses)
-          ? rawClasses
-          : Array.isArray(rawClasses?.content)
-          ? rawClasses.content
-          : [];
-        const normalizedClasses: Classe[] = classesList.map((c: any) => ({
-          id: c.id || `cls-${Math.random()}`,
-          name: c.name || 'Classe sans nom',
-          level: c.level || 'L1',
-          filiereId: c.filiereId || '',
-          capacityMax: c.capacityMax ?? c.capacity ?? 35,
-          price: c.price ?? 450000,
-        }));
-
-        const rawSlots = resSlots.data;
-        const slotsList: any[] = Array.isArray(rawSlots)
-          ? rawSlots
-          : Array.isArray(rawSlots?.content)
-          ? rawSlots.content
-          : [];
-        const normalizedSlots: PlanningSlot[] = slotsList.map((s: any) => ({
-          id: s.id || `slot-${Math.random()}`,
-          day: s.day || s.dayOfWeek || 'MONDAY',
-          slot: s.slot || `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
-          classeId: s.classeId || '',
-          subject: s.subject || s.matiere || 'Cours',
-          prof: s.prof || s.professeur || 'Enseignant',
-          roomName: s.roomName || s.room?.name || 'Salle Principale',
-          isLive: s.isLive ?? false,
-          status: s.status,
-          isAbsent: s.isAbsent ?? false,
-          cancellationReason: s.cancellationReason,
-        }));
-
-        setRooms(normalizedRooms);
-        setFilieres(normalizedFilieres);
-        setClasses(normalizedClasses);
-        setSlots(normalizedSlots);
+        setRooms(normalizeRooms(resRooms?.data));
+        setFilieres(normalizeFilieres(resFilieres?.data));
+        setClasses(normalizeClasses(resClasses?.data));
+        setSlots(normalizeSlots(resSlots?.data));
       } catch (err) {
-        console.error("Failed to load school management data from backend:", err);
+        console.warn("Failed to load school management data from backend:", err);
       } finally {
         setLoading(false);
       }
@@ -100,9 +35,9 @@ export function useAdminSchoolState() {
   const updateRooms = async (newRooms: Room[]) => {
     setRooms(newRooms);
     try {
-      await apiClient.put('/planning/rooms', newRooms);
+      await apiClient.put('/admin/planning/rooms', newRooms).catch(() => apiClient.put('/planning/rooms', newRooms));
     } catch (err) {
-      console.error(err);
+      console.warn("updateRooms sync warning:", err);
     }
   };
 
@@ -110,18 +45,18 @@ export function useAdminSchoolState() {
     const updated = [...filieres, filiere];
     setFilieres(updated);
     try {
-      await apiClient.put('/planning/filieres', updated);
+      await apiClient.put('/admin/planning/filieres', updated).catch(() => apiClient.put('/planning/filieres', updated));
     } catch (err) {
-      console.error(err);
+      console.warn("addFiliere sync warning:", err);
     }
   };
 
   const updateFilieres = async (newFilieres: Filiere[]) => {
     setFilieres(newFilieres);
     try {
-      await apiClient.put('/planning/filieres', newFilieres);
+      await apiClient.put('/admin/planning/filieres', newFilieres).catch(() => apiClient.put('/planning/filieres', newFilieres));
     } catch (err) {
-      console.error(err);
+      console.warn("updateFilieres sync warning:", err);
     }
   };
 
@@ -129,41 +64,32 @@ export function useAdminSchoolState() {
     const updated = [...classes, classe];
     setClasses(updated);
     try {
-      await apiClient.put('/planning/classes', updated);
+      await apiClient.put('/admin/planning/classes', updated).catch(() => apiClient.put('/planning/classes', updated));
     } catch (err) {
-      console.error(err);
+      console.warn("addClasse sync warning:", err);
     }
   };
 
   const updateClasses = async (newClasses: Classe[]) => {
     setClasses(newClasses);
     try {
-      await apiClient.put('/planning/classes', newClasses);
+      await apiClient.put('/admin/planning/classes', newClasses).catch(() => apiClient.put('/planning/classes', newClasses));
     } catch (err) {
-      console.error(err);
+      console.warn("updateClasses sync warning:", err);
     }
   };
 
   const updateSlots = async (newSlots: PlanningSlot[]) => {
     setSlots(newSlots);
     try {
-      await apiClient.put('/planning/slots', newSlots);
+      await apiClient.put('/admin/planning/slots', newSlots).catch(() => apiClient.put('/planning/slots', newSlots));
     } catch (err) {
-      console.error(err);
+      console.warn("updateSlots sync warning:", err);
     }
   };
 
   return {
-    rooms,
-    updateRooms,
-    filieres,
-    addFiliere,
-    updateFilieres,
-    classes,
-    addClasse,
-    updateClasses,
-    slots,
-    updateSlots,
-    loading,
+    rooms, updateRooms, filieres, addFiliere, updateFilieres,
+    classes, addClasse, updateClasses, slots, updateSlots, loading,
   };
 }
