@@ -21,11 +21,8 @@ export function AdminAdmissionsKanban() {
     };
 
     updateCandidates();
-
     window.addEventListener('admissions_db_synced', updateCandidates);
-    return () => {
-      window.removeEventListener('admissions_db_synced', updateCandidates);
-    };
+    return () => window.removeEventListener('admissions_db_synced', updateCandidates);
   }, [activeTab]);
 
   const showToast = (message: string, success: boolean) => {
@@ -68,6 +65,7 @@ export function AdminAdmissionsKanban() {
           onSelectTab={setActiveTab}
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          candidateCount={candidates.length}
         />
       </TabletDrawerWrapper>
 
@@ -75,32 +73,26 @@ export function AdminAdmissionsKanban() {
         {toast && (
           <div
             className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
-              toast.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+              toast.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
-            <span translate="no" className="material-symbols-outlined text-sm">
-              {toast.success ? 'check_circle' : 'error'}
-            </span>
+            <span translate="no" className="material-symbols-outlined text-sm">{toast.success ? 'check_circle' : 'error'}</span>
             <span>{toast.message}</span>
           </div>
         )}
 
-        {activeTab === 'config' && <SessionConfigTab />}
-
+        {activeTab === 'config' && (
+          <SessionConfigTab
+            onNavigateToValidation={() => setActiveTab('validation')}
+            candidateCount={candidates.length}
+          />
+        )}
         {activeTab === 'rules' && <AdmissionsRulesEngine />}
-
         {activeTab === 'validation' && (
           <ValidationKanbanTab candidates={candidates} onUpdateCandidate={handleUpdateCandidate} />
         )}
-
         {activeTab === 'matriculation' && (
-          <MatriculationTab
-            candidates={candidates}
-            onEnroll={handleEnroll}
-            onTogglePayment={handleTogglePayment}
-          />
+          <MatriculationTab candidates={candidates} onEnroll={handleEnroll} onTogglePayment={handleTogglePayment} />
         )}
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { publicApiClient } from '@/shared/lib/apiClient';
 import { ExtendedCandidate } from "@/features/admin/domain/AdmissionsExtendedModels";
+import { INITIAL_EXTENDED_CANDIDATES } from "@/features/admin/domain/AdmissionsExtendedMock";
 import { Campaign, AuditLog, Message } from "./admissionsTypes";
 export * from "./admissionsTypes";
 
@@ -13,8 +14,12 @@ export function getAdmissionsDb() {
     void syncAdmissionsWithBackend();
   }
 
+  const stored = localStorage.getItem("e221_candidates");
+  const parsed = stored ? JSON.parse(stored) : [];
+  const candidates = parsed && parsed.length > 0 ? parsed : INITIAL_EXTENDED_CANDIDATES;
+
   return {
-    candidates: JSON.parse(localStorage.getItem("e221_candidates") || "[]") as ExtendedCandidate[],
+    candidates: candidates as ExtendedCandidate[],
     campaigns: JSON.parse(localStorage.getItem("e221_campaigns") || "[]") as Campaign[],
     auditLogs: JSON.parse(localStorage.getItem("e221_audit_logs") || "[]") as AuditLog[],
     messages: JSON.parse(localStorage.getItem("e221_messages") || "[]") as Message[]
@@ -25,14 +30,15 @@ export async function syncAdmissionsWithBackend() {
   try {
     const { data } = await publicApiClient.get("/admissions/db");
     if (data) {
-      if (data.candidates) localStorage.setItem("e221_candidates", JSON.stringify(data.candidates));
+      if (data.candidates && data.candidates.length > 0) {
+        localStorage.setItem("e221_candidates", JSON.stringify(data.candidates));
+      }
       if (data.campaigns) localStorage.setItem("e221_campaigns", JSON.stringify(data.campaigns));
       if (data.auditLogs) localStorage.setItem("e221_audit_logs", JSON.stringify(data.auditLogs));
       if (data.messages) localStorage.setItem("e221_messages", JSON.stringify(data.messages));
       window.dispatchEvent(new Event("admissions_db_synced"));
     }
   } catch (err) {
-    // Graceful offline fallback: local storage data is already used
     console.warn("Admissions DB Sync offline fallback:", err);
   }
 }

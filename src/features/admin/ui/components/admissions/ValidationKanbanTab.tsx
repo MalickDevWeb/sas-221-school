@@ -25,21 +25,29 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
 
   return (
     <div className="space-y-4" id="validation-kanban-root">
-      <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-neutral-100 text-xs font-bold">
-        <span className="text-[#1E293B]">Filtrer par type de candidature :</span>
-        <select
-          value={filterType}
-          onChange={e => setFilterType(e.target.value)}
-          className="bg-[#FAF8F6] border border-neutral-200 rounded-lg px-2 py-1 outline-none text-neutral-700 cursor-pointer"
-        >
-          <option value="ALL">Tous les types ({candidates.length})</option>
-          <option value="BAC">Nouveau Bachelier (L1)</option>
-          <option value="TRANSFER">Transfert Universitaire</option>
-          <option value="REINSCRIPTION">Réinscription</option>
-          <option value="INT">Étudiant International</option>
-          <option value="VAE">Validation Acquis (VAE)</option>
-          <option value="EXCEPT">Admission Exceptionnelle</option>
-        </select>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-neutral-100">
+        <div>
+          <h3 className="font-extrabold text-sm text-[#1E293B]">Espace Candidatures & Validation des Dossiers</h3>
+          <p className="text-[10px] text-neutral-400 font-semibold">
+            Cliquez sur un candidat pour ouvrir son dossier, vérifier sa CNI, confirmer son paiement ou prononcer son admission.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <span className="text-[#1E293B] text-[11px]">Filtre :</span>
+          <select
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+            className="bg-[#FAF8F6] border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-700 cursor-pointer outline-none font-semibold"
+          >
+            <option value="ALL">Tous les types ({candidates.length})</option>
+            <option value="BAC">Nouveau Bachelier (L1)</option>
+            <option value="TRANSFER">Transfert Universitaire</option>
+            <option value="REINSCRIPTION">Réinscription</option>
+            <option value="INT">Étudiant International</option>
+            <option value="VAE">Validation Acquis (VAE)</option>
+            <option value="EXCEPT">Admission Exceptionnelle</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
@@ -57,9 +65,12 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                   <div
                     key={c.id}
                     onClick={() => setSelectedCandidate(c)}
-                    className="bg-white border border-neutral-200 hover:border-primary p-3 rounded-xl shadow-xs hover:shadow-md cursor-pointer transition-all space-y-1.5"
+                    className="bg-white border border-neutral-200 hover:border-primary p-3 rounded-xl shadow-xs hover:shadow-md cursor-pointer transition-all space-y-1.5 group"
                   >
-                    <div className="font-extrabold text-xs text-[#1E293B] leading-snug">{c.name}</div>
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="font-extrabold text-xs text-[#1E293B] leading-snug group-hover:text-primary transition-colors">{c.name}</div>
+                      <span className="text-[9px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">Ouvrir →</span>
+                    </div>
                     <div className="flex items-center justify-between gap-1 flex-wrap">
                       <span className="text-[9px] text-neutral-400 font-extrabold truncate uppercase">{c.course}</span>
                       <CandidateAdmissionBadge type={c.type} />
@@ -78,11 +89,6 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                         💳 {c.registrationFeePaid ? 'Frais Réglés' : 'Frais en Attente'}
                       </span>
                     </div>
-                    {c.equivalence && (
-                      <div className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 w-fit">
-                        Équivalence : {c.equivalence.status === 'approved' ? 'Mappée ✓' : 'En Étude...'}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

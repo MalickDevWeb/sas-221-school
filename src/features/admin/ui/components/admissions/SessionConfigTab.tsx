@@ -6,7 +6,12 @@ import { CampaignDeleteModal } from './CampaignDeleteModal';
 import { useSessionConfigState } from './useSessionConfigState';
 import { Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsTypes';
 
-export function SessionConfigTab() {
+interface SessionConfigTabProps {
+  onNavigateToValidation?: (courseFilter?: string) => void;
+  candidateCount?: number;
+}
+
+export function SessionConfigTab({ onNavigateToValidation, candidateCount = 0 }: SessionConfigTabProps) {
   const state = useSessionConfigState();
   const [editingCampaign, setEditingCampaign] = useState<Partial<Campaign> | null>(null);
   const [deletingCampaign, setDeletingCampaign] = useState<Campaign | null>(null);
@@ -19,6 +24,29 @@ export function SessionConfigTab() {
           <span>{state.toast}</span>
         </div>
       )}
+
+      {/* Top Banner with Direct Access to Candidatures */}
+      <div className="p-3.5 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 border border-rose-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <span translate="no" className="material-symbols-outlined text-base">how_to_reg</span>
+          </div>
+          <div>
+            <h4 className="font-extrabold text-neutral-900 text-xs">Espace Candidatures & Validation des Dossiers</h4>
+            <p className="text-[10px] text-neutral-500 font-semibold">
+              Consultez les pièces CNI, confirmez les paiements manuels et admettez les candidats en temps réel.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigateToValidation?.()}
+          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
+        >
+          <span>Ouvrir les Dossiers ({candidateCount})</span>
+          <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      </div>
+
       <div className="pb-1 border-b border-neutral-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h3 className="font-extrabold text-sm text-[#1E293B]">Portail Inscriptions & Configuration des Sessions</h3>
@@ -61,6 +89,7 @@ export function SessionConfigTab() {
               onQuickUpdate={fields => state.handleQuickUpdate(camp.id, fields)}
               onEdit={() => setEditingCampaign(camp)}
               onDelete={() => setDeletingCampaign(camp)}
+              onViewCandidates={() => onNavigateToValidation?.(camp.title)}
             />
           ))}
         </div>

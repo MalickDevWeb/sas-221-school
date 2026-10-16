@@ -7,9 +7,17 @@ interface Props {
   onQuickUpdate: (fields: Partial<Campaign>) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onViewCandidates?: () => void;
 }
 
-export function SessionConfigLevelItem({ campaign, onToggleStatus, onQuickUpdate, onEdit, onDelete }: Props) {
+export function SessionConfigLevelItem({
+  campaign,
+  onToggleStatus,
+  onQuickUpdate,
+  onEdit,
+  onDelete,
+  onViewCandidates
+}: Props) {
   const isOpen = campaign.state === 'Ouverte';
   const isSuspended = campaign.state === 'Suspendue';
 
@@ -64,7 +72,16 @@ export function SessionConfigLevelItem({ campaign, onToggleStatus, onQuickUpdate
       </div>
 
       <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-2">
-        <span className="text-[9.5px] text-neutral-400 font-semibold">Rentrée : {campaign.intake || 'Octobre 2026'}</span>
+        <button
+          type="button"
+          onClick={onViewCandidates}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold transition-colors cursor-pointer"
+          title="Consulter les candidatures pour cette session"
+        >
+          <span translate="no" className="material-symbols-outlined text-xs">how_to_reg</span>
+          <span>Dossiers Candidats</span>
+        </button>
+
         <div className="flex items-center gap-1.5">
           <button
             type="button"

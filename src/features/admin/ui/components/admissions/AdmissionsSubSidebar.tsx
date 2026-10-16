@@ -5,13 +5,27 @@ interface Props {
   onSelectTab: (tab: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  candidateCount?: number;
 }
 
-export function AdmissionsSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
+export function AdmissionsSubSidebar({
+  activeTab,
+  onSelectTab,
+  isCollapsed,
+  onToggleCollapse,
+  candidateCount = 0
+}: Props) {
   const menuItems = [
     { id: 'config', label: 'Configuration Sessions', icon: 'settings_overscan' },
+    { 
+      id: 'validation', 
+      label: 'Espace Candidatures', 
+      sublabel: 'Validation & Dossiers',
+      icon: 'how_to_reg', 
+      badge: candidateCount > 0 ? `${candidateCount}` : undefined,
+      badgeColor: 'bg-rose-500 text-white'
+    },
     { id: 'rules', label: 'Moteur de Règles', icon: 'rule_folder' },
-    { id: 'validation', label: 'Tunnel de Validation', icon: 'view_kanban' },
     { id: 'matriculation', label: 'Paiements & Matricule', icon: 'credit_score' },
   ];
 
@@ -46,17 +60,31 @@ export function AdmissionsSubSidebar({ activeTab, onSelectTab, isCollapsed, onTo
             <button
               key={item.id}
               onClick={() => onSelectTab(item.id)}
-              className={`flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
+              className={`flex items-center justify-between px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
                 isActive
-                  ? 'bg-primary/10 text-primary'
+                  ? 'bg-rose-50 text-rose-700 border border-rose-200 shadow-xs'
                   : 'text-[#4A5568] hover:bg-neutral-50 hover:text-neutral-900'
               }`}
               title={item.label}
             >
-              <span translate="no" className="material-symbols-outlined text-lg shrink-0">
-                {item.icon}
-              </span>
-              {!isCollapsed && <span className="truncate leading-none">{item.label}</span>}
+              <div className="flex items-center gap-3 truncate">
+                <span translate="no" className="material-symbols-outlined text-lg shrink-0">
+                  {item.icon}
+                </span>
+                {!isCollapsed && (
+                  <div className="truncate">
+                    <p className="truncate leading-none">{item.label}</p>
+                    {item.sublabel && (
+                      <span className="text-[9px] text-neutral-400 font-semibold block mt-0.5">{item.sublabel}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {!isCollapsed && item.badge && (
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${item.badgeColor || 'bg-neutral-200 text-neutral-700'}`}>
+                  {item.badge}
+                </span>
+              )}
             </button>
           );
         })}
