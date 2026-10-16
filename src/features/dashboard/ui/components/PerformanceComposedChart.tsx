@@ -17,8 +17,8 @@ export function PerformanceComposedChart({ performanceData, activeTab }: Props) 
       >
         <defs>
           <linearGradient id="colorNote" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#B3181C" stopOpacity={0.25}/>
-            <stop offset="95%" stopColor="#B3181C" stopOpacity={0.00}/>
+            <stop offset="5%" stopColor="var(--color-primary, #B3181C)" stopOpacity={0.25}/>
+            <stop offset="95%" stopColor="var(--color-primary, #B3181C)" stopOpacity={0.00}/>
           </linearGradient>
           <linearGradient id="colorPresence" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
@@ -74,13 +74,13 @@ export function PerformanceComposedChart({ performanceData, activeTab }: Props) 
 
         {activeTab === 'combined' && (
           <>
-            <Area yAxisId="left" type="monotone" dataKey="note" name="note" stroke="#B3181C" strokeWidth={2.5} fillOpacity={1} fill="url(#colorNote)" />
+            <Area yAxisId="left" type="monotone" dataKey="note" name="note" stroke="var(--color-primary, #B3181C)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorNote)" />
             <Line yAxisId="right" type="monotone" dataKey="presence" name="presence" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3, fill: '#10B981', strokeWidth: 1, stroke: '#fff' }} activeDot={{ r: 5 }} />
           </>
         )}
 
         {activeTab === 'notes' && (
-          <Area yAxisId="left" type="monotone" dataKey="note" name="note" stroke="#B3181C" strokeWidth={3} fillOpacity={1} fill="url(#colorNote)" />
+          <Area yAxisId="left" type="monotone" dataKey="note" name="note" stroke="var(--color-primary, #B3181C)" strokeWidth={3} fillOpacity={1} fill="url(#colorNote)" />
         )}
 
         {activeTab === 'presence' && (

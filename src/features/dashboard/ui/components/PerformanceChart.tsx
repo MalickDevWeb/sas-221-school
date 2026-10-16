@@ -33,7 +33,7 @@ export function PerformanceChart() {
       <div className="shrink-0 space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="font-title-lg text-xs font-black flex items-center gap-1.5 text-[#291715]">
-            <TrendingUp className="h-4 w-4 text-[#B3181C]" />
+            <TrendingUp className="h-4 w-4 text-primary" />
             Analytique Performance
           </h3>
           
@@ -50,7 +50,7 @@ export function PerformanceChart() {
             onClick={() => setActiveTab('combined')}
             className={`flex-1 py-1 text-center font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
               activeTab === 'combined'
-                ? 'bg-white text-[#B3181C] shadow-sm border border-neutral-250/20'
+                ? 'bg-white text-primary shadow-sm border border-neutral-250/20'
                 : 'text-neutral-400 hover:text-[#291715]'
             }`}
           >
@@ -60,7 +60,7 @@ export function PerformanceChart() {
             onClick={() => setActiveTab('notes')}
             className={`flex-1 py-1 text-center font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
               activeTab === 'notes'
-                ? 'bg-white text-[#B3181C] shadow-sm border border-neutral-250/20'
+                ? 'bg-white text-primary shadow-sm border border-neutral-250/20'
                 : 'text-neutral-400 hover:text-[#291715]'
             }`}
           >
@@ -70,7 +70,7 @@ export function PerformanceChart() {
             onClick={() => setActiveTab('presence')}
             className={`flex-1 py-1 text-center font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
               activeTab === 'presence'
-                ? 'bg-white text-[#B3181C] shadow-sm border border-neutral-250/20'
+                ? 'bg-white text-primary shadow-sm border border-neutral-250/20'
                 : 'text-neutral-400 hover:text-[#291715]'
             }`}
           >
@@ -88,11 +88,11 @@ export function PerformanceChart() {
       {/* Footer statistics benchmarks */}
       <div className="pt-3 border-t border-neutral-gray-150 flex justify-between items-center text-[10px] text-neutral-500 font-bold select-none">
         <div className="flex items-center gap-1">
-          <Award className="h-3.5 w-3.5 text-[#B3181C]" />
+          <Award className="h-3.5 w-3.5 text-primary" />
           <span>Moyenne Promo : 13.84</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#B3181C]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Note</span>
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] ml-1.5" />
           <span>Présence</span>

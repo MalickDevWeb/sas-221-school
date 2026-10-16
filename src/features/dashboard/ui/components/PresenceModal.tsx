@@ -32,7 +32,7 @@ export function PresenceModal({
         onClick={(e) => e.stopPropagation()}
         id="student-presence-modal-container"
       >
-        <div className="bg-gradient-to-br from-[#B3181C] to-[#291715] px-5 py-4 text-white relative">
+        <div className="bg-gradient-to-br from-primary to-primary-dark px-5 py-4 text-white relative">
           <button
             onClick={onClose}
             className="absolute top-3.5 right-3.5 text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all cursor-pointer border-none bg-transparent"

@@ -24,7 +24,7 @@ export function RecentAcademicPerformanceSummary() {
               <span className="w-2 h-2 rounded-full bg-[#E3A857]" />
               Statut global
             </span>
-            <span className="font-black text-[#B3181C] uppercase text-[9px] tracking-wider bg-[#FFF5F5] px-2 py-0.5 rounded-lg border border-[#B3181C]/5">
+            <span className="font-black text-primary uppercase text-[9px] tracking-wider bg-primary-light px-2 py-0.5 rounded-lg border border-primary/15">
               FÉLICITATIONS
             </span>
           </div>
@@ -32,7 +32,7 @@ export function RecentAcademicPerformanceSummary() {
       </div>
 
       <div className="p-3 bg-white border border-neutral-200/60 rounded-xl space-y-1">
-        <span className="text-[9px] font-black text-[#B3181C] uppercase tracking-widest flex items-center gap-1 leading-none">
+        <span className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1 leading-none">
           Prochain objectif
           <ArrowUpRight className="h-3 w-3" />
         </span>

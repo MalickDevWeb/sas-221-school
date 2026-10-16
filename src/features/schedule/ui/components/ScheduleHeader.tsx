@@ -1,19 +1,23 @@
 import React from 'react';
 import { Download, CalendarPlus, Sparkles } from 'lucide-react';
 import { exportToPDF } from '@/features/schedule/utils/pdfExport';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 export function ScheduleHeader({ state }: { state: any }) {
+  const { currentTenant } = useTenantStore();
+  const schoolName = currentTenant?.name || 'Université École 221';
+
   return (
     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-5">
       <div>
         <div className="flex items-center gap-2 mb-1 print:hidden">
-          <span className="bg-[#B3181C]/5 text-[#B3181C] border border-[#B3181C]/15 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1">
+          <span className="bg-primary/10 text-primary border border-primary/20 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1">
             <Sparkles className="h-2.5 w-2.5 animate-pulse" /> Portail Étudiant
           </span>
           <span className="text-neutral-300 text-xs select-none">•</span>
-          <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">Université École 221</span>
+          <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">{schoolName}</span>
         </div>
-        <h1 className="font-headline-lg text-[26px] md:text-[34px] text-[#291715] font-black tracking-tight leading-none mb-2">
+        <h1 className="font-headline-lg text-[26px] md:text-[34px] text-neutral-900 font-black tracking-tight leading-none mb-2">
           Emploi du Temps
         </h1>
         <p className="text-neutral-gray-500 font-bold text-xs md:text-sm">
@@ -34,7 +38,7 @@ export function ScheduleHeader({ state }: { state: any }) {
         
         <button 
           onClick={() => state.setIsSyncModalOpen(true)}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#B3181C] text-white px-4 h-11 rounded-2xl hover:bg-[#8c1215] transition-all font-black text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-[#B3181C]/10 whitespace-nowrap"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-text-on-primary px-4 h-11 rounded-2xl hover:bg-primary-dark transition-all font-black text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-primary/20 whitespace-nowrap"
         >
           <CalendarPlus className="h-4 w-4" /> Synchroniser Agenda
         </button>

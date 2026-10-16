@@ -60,11 +60,11 @@ export function StudentHomeworksPage() {
         ] as const).map(({ id, label, dot }) => {
           const isActive = activeTab === id;
           const badgeBg = isActive 
-            ? (id === 'a_faire' ? 'bg-[#B3181C]/10 text-[#B3181C]' : id === 'en_cours' ? 'bg-blue-50 text-blue-600' : 'bg-success-green/10 text-success-green')
+            ? (id === 'a_faire' ? 'bg-primary/10 text-primary' : id === 'en_cours' ? 'bg-blue-50 text-blue-600' : 'bg-success-green/10 text-success-green')
             : 'bg-neutral-200 text-neutral-600';
           const activeText = isActive 
-            ? (id === 'a_faire' ? 'text-[#B3181C]' : id === 'en_cours' ? 'text-blue-600' : 'text-success-green')
-            : 'text-neutral-500 hover:text-[#291715]';
+            ? (id === 'a_faire' ? 'text-primary' : id === 'en_cours' ? 'text-blue-600' : 'text-success-green')
+            : 'text-neutral-500 hover:text-neutral-900';
           return (
             <button
               key={id}

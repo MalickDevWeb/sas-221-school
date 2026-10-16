@@ -32,11 +32,11 @@ export function StudentSchedulePage() {
 
         <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-between mb-8 p-4 bg-white border border-neutral-gray-200 rounded-2xl shadow-3xs print:hidden">
           <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-[#B3181C]/10 text-[#B3181C]"><GraduationCap className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">CM : Cours Magistral</span></div>
+            <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-primary/10 text-primary"><GraduationCap className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">CM : Cours Magistral</span></div>
             <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-blue-50 text-blue-600"><FileText className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">TD : Travaux Dirigés</span></div>
             <div className="flex items-center gap-2"><span className="p-1 rounded-md bg-green-50 text-green-600"><Laptop className="h-3.5 w-3.5" /></span><span className="text-xs font-black text-neutral-700">TP : Travaux Pratiques</span></div>
           </div>
-          <div className="flex items-center gap-1.5 text-neutral-400"><Info className="h-3.5 w-3.5 text-[#B3181C] animate-pulse" /><span className="text-[10px] font-black italic tracking-wider uppercase">Cliquez sur un créneau pour voir le syllabus</span></div>
+          <div className="flex items-center gap-1.5 text-neutral-400"><Info className="h-3.5 w-3.5 text-primary animate-pulse" /><span className="text-[10px] font-black italic tracking-wider uppercase">Cliquez sur un créneau pour voir le syllabus</span></div>
         </div>
 
         {state.viewMode === 'timeline' && <TimelineView state={state} />}

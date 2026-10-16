@@ -16,7 +16,7 @@ export function CourseDetailModal({ state }: { state: any }) {
         className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-neutral-gray-200/60 flex flex-col transform transition-all duration-300 scale-100"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`px-5 py-3 text-white relative flex-shrink-0 ${course.type === 'CM' ? 'bg-[#B3181C]' : course.type === 'TP' ? 'bg-[#10B981]' : 'bg-[#B3181C]'}`}>
+        <div className={`px-5 py-3 text-white relative flex-shrink-0 ${course.type === 'CM' ? 'bg-primary' : course.type === 'TP' ? 'bg-[#10B981]' : 'bg-primary'}`}>
           <button onClick={() => setActivePlanCourse(null)} className="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all cursor-pointer flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -46,11 +46,11 @@ export function CourseDetailModal({ state }: { state: any }) {
 
           <div className="bg-white p-3.5 rounded-2xl border border-neutral-100 shadow-3xs space-y-3">
             <div className="flex items-start gap-2.5">
-              <div className="p-1.5 rounded-xl bg-orange-50 text-[#B3181C] flex-shrink-0"><Clock className="h-3.5 w-3.5" /></div>
+              <div className="p-1.5 rounded-xl bg-orange-50 text-primary flex-shrink-0"><Clock className="h-3.5 w-3.5" /></div>
               <div><h5 className="font-black text-[#291715]/40 text-[9px] uppercase tracking-widest">Horaire & Date</h5><p className="text-xs text-neutral-800 font-extrabold mt-0.5">{course.jourComplet} {course.dateStr} • {course.heureStr}</p></div>
             </div>
             <div className="flex items-start gap-2.5 border-t border-neutral-100 pt-3">
-              <div className="p-1.5 rounded-xl bg-red-50 text-[#B3181C] flex-shrink-0"><MapPin className="h-3.5 w-3.5" /></div>
+              <div className="p-1.5 rounded-xl bg-primary/10 text-primary flex-shrink-0"><MapPin className="h-3.5 w-3.5" /></div>
               <div><h5 className="font-black text-[#291715]/40 text-[9px] uppercase tracking-widest">Salle de cours</h5><p className="text-xs text-neutral-800 font-extrabold mt-0.5">{course.salle}</p></div>
             </div>
             <div className="flex items-start gap-2.5 border-t border-neutral-100 pt-3">
@@ -61,7 +61,7 @@ export function CourseDetailModal({ state }: { state: any }) {
 
           {course.description && (
             <div className="space-y-1">
-              <div className="flex items-center gap-1 text-[#291715]/50"><FileText className="h-3 w-3 text-[#B3181C]" /><h5 className="font-black text-[9px] uppercase tracking-widest">Descriptif du Module & Syllabus</h5></div>
+              <div className="flex items-center gap-1 text-[#291715]/50"><FileText className="h-3 w-3 text-primary" /><h5 className="font-black text-[9px] uppercase tracking-widest">Descriptif du Module & Syllabus</h5></div>
               <p className="text-[11px] text-neutral-600 leading-normal bg-white p-3 rounded-2xl border border-neutral-200/40 shadow-3xs font-medium">{course.description}</p>
             </div>
           )}
@@ -75,7 +75,7 @@ export function CourseDetailModal({ state }: { state: any }) {
               triggerToast(`Séance de ${course.nom} ouverte dans Google Calendar !`);
               setActivePlanCourse(null);
             }}
-            className="flex-1 py-2 bg-[#B3181C] hover:bg-[#8c1215] text-white rounded-xl font-extrabold text-[10px] uppercase tracking-wider transition-all shadow-md shadow-[#B3181C]/10 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-[10px] uppercase tracking-wider transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <CalendarPlus className="h-3 w-3" /> Synchroniser
           </button>

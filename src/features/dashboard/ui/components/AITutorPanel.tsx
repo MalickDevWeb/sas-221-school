@@ -92,8 +92,8 @@ export function AITutorPanel() {
             ))}
             {isLoading && (
               <div className="flex gap-2 items-start justify-start">
-                <div className="w-6 h-6 rounded-full bg-[#B3181C]/5 flex items-center justify-center shrink-0 border border-[#B3181C]/10">
-                  <Brain className="h-3.5 w-3.5 text-[#B3181C] animate-bounce" />
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                  <Brain className="h-3.5 w-3.5 text-primary animate-bounce" />
                 </div>
                 <div className="bg-[#FAF8F6] text-neutral-500 rounded-2xl px-3.5 py-2 rounded-tl-none border border-neutral-200/50 text-[10px] font-bold">
                   L'IA réfléchit...
@@ -110,9 +110,9 @@ export function AITutorPanel() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Posez votre question académique ici..."
-          className="flex-1 bg-[#FAF8F6] border border-neutral-250/70 rounded-xl px-4 py-2.5 text-xs font-bold text-neutral-800 focus:outline-none focus:border-[#B3181C] placeholder:text-neutral-400"
+          className="flex-1 bg-[#FAF8F6] border border-neutral-250/70 rounded-xl px-4 py-2.5 text-xs font-bold text-neutral-800 focus:outline-none focus:border-primary placeholder:text-neutral-400"
         />
-        <button type="submit" className="bg-[#B3181C] text-white rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider hover:opacity-90 active:opacity-80 transition-all cursor-pointer">
+        <button type="submit" className="bg-primary text-text-on-primary rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider hover:opacity-90 active:opacity-80 transition-all cursor-pointer">
           Envoyer
         </button>
       </form>

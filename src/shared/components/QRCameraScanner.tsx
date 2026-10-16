@@ -43,12 +43,12 @@ export function QRCameraScanner({ onScanComplete }: Props) {
         #${elementId} video { grid-area: 1 / 1 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
         #${elementId} canvas { grid-area: 1 / 1 !important; z-index: 5 !important; object-fit: contain !important; }
       `}</style>
-      <div className="relative aspect-square w-48 mx-auto rounded-2xl bg-neutral-950 border-2 border-[#ba0013]/40 overflow-hidden flex flex-col items-center justify-center text-white">
+      <div className="relative aspect-square w-48 mx-auto rounded-2xl bg-neutral-950 border-2 border-primary/40 overflow-hidden flex flex-col items-center justify-center text-white">
         <div id={elementId} className="absolute inset-0 w-full h-full" />
-        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#ba0013] z-10 pointer-events-none" />
-        <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#ba0013] z-10 pointer-events-none" />
-        <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#ba0013] z-10 pointer-events-none" />
-        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#ba0013] z-10 pointer-events-none" />
+        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-primary z-10 pointer-events-none" />
+        <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-primary z-10 pointer-events-none" />
+        <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-primary z-10 pointer-events-none" />
+        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-primary z-10 pointer-events-none" />
         {isScanning && (
           <button
             type="button"
@@ -65,7 +65,7 @@ export function QRCameraScanner({ onScanComplete }: Props) {
                 key={v}
                 type="button"
                 onClick={(e) => { e.stopPropagation(); void applyZoom(v); }}
-                className={`h-5 px-1.5 text-[8px] font-black rounded-full transition ${Math.abs(currentZoom - v) < 0.1 ? 'bg-[#ba0013] text-white' : 'text-neutral-300 hover:bg-white/10'}`}
+                className={`h-5 px-1.5 text-[8px] font-black rounded-full transition ${Math.abs(currentZoom - v) < 0.1 ? 'bg-primary text-text-on-primary' : 'text-neutral-300 hover:bg-white/10'}`}
               >
                 {v.toFixed(1)}x
               </button>
@@ -74,24 +74,24 @@ export function QRCameraScanner({ onScanComplete }: Props) {
         )}
         {!isScanning && !error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-950 text-neutral-400 p-4 z-15">
-            <Icon icon="lucide:loader" className="h-8 w-8 animate-spin text-[#ba0013] mb-2" />
+            <Icon icon="lucide:loader" className="h-8 w-8 animate-spin text-primary mb-2" />
             <span className="text-[10px] font-bold tracking-wider uppercase">Initialisation...</span>
           </div>
         )}
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-950 text-neutral-400 p-4 z-20 text-center">
-            <Icon icon="lucide:alert-circle" className="h-6 w-6 text-[#ba0013] mb-2" />
+            <Icon icon="lucide:alert-circle" className="h-6 w-6 text-primary mb-2" />
             <span className="text-[10px] font-bold leading-normal">{error}</span>
           </div>
         )}
         <motion.div 
           animate={{ y: [0, 180, 0] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-          className="absolute left-3 right-3 h-0.5 bg-[#ba0013] opacity-80 shadow-[0_0_8px_#ba0013] z-10 pointer-events-none"
+          className="absolute left-3 right-3 h-0.5 bg-primary opacity-80 shadow-[0_0_8px_var(--color-primary)] z-10 pointer-events-none"
         />
       </div>
       <div className="flex items-center justify-center gap-1.5 text-[10px] text-neutral-400 font-bold">
-        <span className="h-2 w-2 bg-[#ba0013] rounded-full animate-ping" />
+        <span className="h-2 w-2 bg-primary rounded-full animate-ping" />
         <span>Scanner actif...</span>
       </div>
     </div>

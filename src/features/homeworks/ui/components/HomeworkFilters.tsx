@@ -22,7 +22,7 @@ export function HomeworkFilters({
       {/* Course Filter */}
       <div className="flex items-center gap-3 w-full">
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#291715]/60 whitespace-nowrap">
-          <Icon icon="lucide:book-open" className="h-4 w-4 text-[#B3181C]" />
+          <Icon icon="lucide:book-open" className="h-4 w-4 text-primary" />
           <span>Cours :</span>
         </div>
         <div className="relative flex-1 lg:min-w-[220px]">
@@ -32,7 +32,7 @@ export function HomeworkFilters({
               setSelectedCours(e.target.value);
               triggerToast?.(`Filtré par cours : ${e.target.value}`);
             }}
-            className="appearance-none w-full pl-3 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-[#B3181C] cursor-pointer transition-all outline-none"
+            className="appearance-none w-full pl-3 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none"
           >
             <option value="Tous les cours">Tous les cours</option>
             <option value="Mobile iOS & Android">Mobile iOS & Android (Flutter)</option>
@@ -51,7 +51,7 @@ export function HomeworkFilters({
       {/* Priority Filter */}
       <div className="flex items-center gap-3 w-full">
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#291715]/60 whitespace-nowrap">
-          <Icon icon="lucide:sliders-horizontal" className="h-4 w-4 text-[#B3181C]" />
+          <Icon icon="lucide:sliders-horizontal" className="h-4 w-4 text-primary" />
           <span>Priorité :</span>
         </div>
         <div className="relative flex-1 lg:min-w-[180px]">
@@ -61,7 +61,7 @@ export function HomeworkFilters({
               setSelectedPriority(e.target.value);
               triggerToast?.(`Filtré par priorité : ${e.target.value === 'toutes' ? 'Toutes' : e.target.value}`);
             }}
-            className="appearance-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-[#B3181C] cursor-pointer transition-all outline-none"
+            className="appearance-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none"
           >
             <option value="toutes">Toutes les priorités</option>
             <option value="haute">🔴 Haute</option>
@@ -74,7 +74,7 @@ export function HomeworkFilters({
                 selectedPriority === 'normale' ? 'lucide:info' :
                 'lucide:sliders-horizontal'
               } 
-              className="h-4 w-4 text-[#B3181C]"
+              className="h-4 w-4 text-primary"
             />
           </div>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
