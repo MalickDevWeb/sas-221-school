@@ -1,101 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { SessionConfigLevelItem, LevelSessionConfig } from './SessionConfigLevelItem';
+import React, { useState } from 'react';
+import { SessionConfigLevelItem } from './SessionConfigLevelItem';
 import { SessionGlobalControls } from './SessionGlobalControls';
-import { getAdmissionsDb, saveAdmissionsDb, Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
-import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';
+import { CampaignEditModal } from './CampaignEditModal';
+import { CampaignDeleteModal } from './CampaignDeleteModal';
+import { useSessionConfigState } from './useSessionConfigState';
+import { Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsTypes';
 
 export function SessionConfigTab() {
-  const { settings, updateSettings } = useCandidatureSettings();
-  const [generalOpen, setGeneralOpen] = useState(true);
-  const [generalDeadline, setGeneralDeadline] = useState('2026-10-31');
-  const [generalFees, setGeneralFees] = useState(50000);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [toast, setToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCampaigns(getAdmissionsDb().campaigns);
-    setGeneralOpen(settings.ouvert);
-  }, [settings]);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleUpdateGlobal = async () => {
-    const updated = campaigns.map(c => ({
-      ...c,
-      state: (generalOpen ? 'Ouverte' : 'Fermée') as Campaign['state'],
-      deadline: generalDeadline,
-      fees: generalFees
-    }));
-    setCampaigns(updated);
-    saveAdmissionsDb({ campaigns: updated });
-    await updateSettings({ ouvert: generalOpen, dateFermeture: generalDeadline });
-    showToast("Paramètres globaux appliqués avec succès !");
-  };
-
-  const handleUpdateLevel = (code: string, updatedLvl: LevelSessionConfig) => {
-    const nextCampaigns = campaigns.map(c => {
-      if (c.code === code) {
-        return {
-          ...c,
-          state: (updatedLvl.isOpen ? 'Ouverte' : 'Fermée') as Campaign['state'],
-          deadline: updatedLvl.deadline,
-          fees: updatedLvl.fees
-        };
-      }
-      return c;
-    });
-    setCampaigns(nextCampaigns);
-    saveAdmissionsDb({ campaigns: nextCampaigns });
-    showToast(`Configuration pour ${code} sauvegardée !`);
-  };
+  const state = useSessionConfigState();
+  const [editingCampaign, setEditingCampaign] = useState<Partial<Campaign> | null>(null);
+  const [deletingCampaign, setDeletingCampaign] = useState<Campaign | null>(null);
 
   return (
     <div className="space-y-5 text-xs font-bold text-[#4A5568]" id="session-config-tab">
-      {toast && (
+      {state.toast && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-xl flex items-center gap-2">
           <span translate="no" className="material-symbols-outlined text-sm">check_circle</span>
-          <span>{toast}</span>
+          <span>{state.toast}</span>
         </div>
       )}
-      <div className="pb-1 border-b border-neutral-100 flex justify-between items-center">
+      <div className="pb-1 border-b border-neutral-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h3 className="font-extrabold text-sm text-[#1E293B]">Portail Inscriptions & Configuration</h3>
-          <p className="text-[10px] text-neutral-400 font-semibold">Gérez les paramètres et l'état de visibilité de l'inscription.</p>
+          <h3 className="font-extrabold text-sm text-[#1E293B]">Portail Inscriptions & Configuration des Sessions</h3>
+          <p className="text-[10px] text-neutral-400 font-semibold">Créez, activez, désactivez et gérez les cursus ouverts à l'inscription.</p>
         </div>
+        <button
+          onClick={() => setEditingCampaign({})}
+          className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+        >
+          <span translate="no" className="material-symbols-outlined text-sm">add</span>
+          <span>Créer une Session</span>
+        </button>
       </div>
 
       <SessionGlobalControls
-        generalOpen={generalOpen}
-        setGeneralOpen={setGeneralOpen}
-        generalDeadline={generalDeadline}
-        setGeneralDeadline={setGeneralDeadline}
-        generalFees={generalFees}
-        setGeneralFees={setGeneralFees}
-        onApply={handleUpdateGlobal}
+        generalOpen={state.generalOpen}
+        setGeneralOpen={state.setGeneralOpen}
+        generalDeadline={state.generalDeadline}
+        setGeneralDeadline={state.setGeneralDeadline}
+        generalFees={state.generalFees}
+        setGeneralFees={state.setGeneralFees}
+        onApply={state.handleUpdateGlobal}
       />
 
-      <div className="space-y-2">
-        <h4 className="font-extrabold text-[10px] text-[#1E293B] uppercase tracking-wide border-b border-neutral-100 pb-1">Cursus Académiques & Campagnes</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {campaigns.map(camp => (
+      <div className="space-y-3">
+        <div className="flex justify-between items-center border-b border-neutral-100 pb-1.5">
+          <h4 className="font-extrabold text-[10px] text-[#1E293B] uppercase tracking-wide">
+            Cursus Académiques & Campagnes ({state.campaigns.length})
+          </h4>
+          <span className="text-[9.5px] text-neutral-400 font-semibold">
+            {state.campaigns.filter(c => c.state === 'Ouverte').length} ouverte(s)
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {state.campaigns.map(camp => (
             <SessionConfigLevelItem
               key={camp.id}
-              config={{
-                code: camp.code,
-                label: camp.title,
-                isOpen: camp.state === 'Ouverte',
-                deadline: camp.deadline,
-                fees: camp.fees
-              }}
-              onUpdate={updatedLvl => handleUpdateLevel(camp.code, updatedLvl)}
+              campaign={camp}
+              onToggleStatus={() => state.handleToggleStatus(camp.id)}
+              onQuickUpdate={fields => state.handleQuickUpdate(camp.id, fields)}
+              onEdit={() => setEditingCampaign(camp)}
+              onDelete={() => setDeletingCampaign(camp)}
             />
           ))}
         </div>
       </div>
+
+      {editingCampaign && (
+        <CampaignEditModal
+          campaign={editingCampaign}
+          onSave={camp => { state.handleSaveCampaign(camp); setEditingCampaign(null); }}
+          onClose={() => setEditingCampaign(null)}
+        />
+      )}
+      {deletingCampaign && (
+        <CampaignDeleteModal
+          campaign={deletingCampaign}
+          onConfirm={() => { state.handleDeleteCampaign(deletingCampaign.id); setDeletingCampaign(null); }}
+          onClose={() => setDeletingCampaign(null)}
+        />
+      )}
     </div>
   );
 }
-
