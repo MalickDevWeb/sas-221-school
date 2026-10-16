@@ -8,6 +8,7 @@ const TOAST_THROTTLE_MS = 10_000;
 export function isBackgroundUrl(url?: string): boolean {
   if (!url) return false;
   return (
+    url.includes('/sync') ||
     url.includes('/wiki/') ||
     url.includes('/collaboration/') ||
     url.includes('/notifications/') ||

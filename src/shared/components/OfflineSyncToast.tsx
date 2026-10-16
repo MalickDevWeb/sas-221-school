@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { syncOfflineMutations } from '../lib/offlineSyncManager';
 import { sendPushNotification } from '../lib/pushNotifier';
-import { apiClient } from '../lib/apiClient';
+import { publicApiClient } from '../lib/apiClient';
 
 export function OfflineSyncToast() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -21,7 +21,7 @@ export function OfflineSyncToast() {
       
       try {
         const syncedCount = await syncOfflineMutations();
-        const { data: info } = await apiClient.get('/sync/check');
+        const { data: info } = await publicApiClient.get('/sync/check');
         const prevVersion = localStorage.getItem('cached_db_version');
           
           if (prevVersion && prevVersion !== info.version) {
@@ -53,7 +53,7 @@ export function OfflineSyncToast() {
     window.addEventListener('offline', handleOffline);
     
     if (navigator.onLine) {
-      apiClient.get('/sync/check')
+      publicApiClient.get('/sync/check')
         .then(r => {
           const info = r.data;
           const prev = localStorage.getItem('cached_db_version');
