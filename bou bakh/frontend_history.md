@@ -4,9 +4,17 @@
 
 ---
 
-- **Last Updated**: 2026-10-11
-- **Current Goal**: Intégration et validation des pages Frontend avec les endpoints réels du Backend.
+- **Last Updated**: 2026-10-16
+- **Current Goal**: Refactorisation modulaire RH (R9 < 125 lignes), Isolation Multi-Tenant & Silençage des Toasts Réseau
 - **Recent Changes**:
+  - ✅ **Gestion RH Découpée & Conforme R9 (< 125 lignes)** :
+    - `AccountsTab.tsx` (96 lignes) découpé en `AccountsFilterBar.tsx` (58 l.), `StaffTable.tsx` (102 l.), `AddStaffCard.tsx` (97 l.), `EditStaffModal.tsx` (105 l.), et `DeleteStaffModal.tsx` (41 l.).
+    - `RbacTab.tsx` (81 lignes) découpé en `RbacHeader.tsx` (60 l.), `RbacFilters.tsx` (84 l.), `RbacTable.tsx` (91 l.), et `RbacAddRoleModal.tsx` (70 l.).
+    - `AttendanceTab.tsx` (108 lignes) découpé en `AttendanceHeader.tsx` (45 l.), `AttendanceStatsCard.tsx` (82 l.), `AttendanceTable.tsx` (99 l.), `StaffAttendanceDetailModal.tsx` (92 l.), et `NewAttendanceModal.tsx` (94 l.).
+    - `AdminPersonnelRH.tsx` (122 lignes) : Création asynchrone sécurisée avec propagation des erreurs backend.
+  - ✅ **Silençage & Throttling Toasts Réseau (`apiErrorHandler.ts` - 113 lignes)** :
+    - Élimination des 4x toasts simultanés `Erreur de connexion - Veuillez vous connecter à un réseau` sur polling background (`/wiki/`, `/collaboration/`, `/notifications/`, `/checkpoint-status`, `/student/tutor/`, etc.).
+    - Throttling des toasts réseau génériques à 1 toast toutes les 10 secondes maximum.
   - ✅ **Backend Validé (A à Z)** : Les 15 blocs d'endpoints (130+ routes) sont 100% opérationnels sur le port 8090 reliés à Neon PostgreSQL.
   - ✅ **Proxy Vite opérationnel** : Redirection fluide des appels `/api` de Vite (port 5173) vers le backend Spring Boot (port 8090).
   - ✅ **Authentification Multi-Rôles Validée** : Les 6 rôles (Super-Admin, Admin, Professeur, Étudiant, Parent, Vigile) se connectent avec succès via l'API proxy (`http://localhost:5173/api/auth/login-token`).

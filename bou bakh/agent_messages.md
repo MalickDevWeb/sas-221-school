@@ -365,3 +365,52 @@ interface CreateTenantCommand {
 > - Prochaine étape : test et validation des formulaires et parcours utilisateur à travers l'interface web.
 
 ---
+
+---
+### [BE-012] Isolation Multi-Tenant du Personnel RH & Gestion Robuste des Doublons
+
+| Champ       | Valeur |
+|-------------|--------|
+| Date        | 2026-10-16 12:10 |
+| Status      | DONE ✅ |
+| Priorité    | CRITIQUE |
+
+#### Ce qui a été fait (backend)
+> Implémentation du service applicatif `AdminStaffService.java` (117 lignes, R9 validé) assurant la stricte isolation multi-tenant du personnel sur `GET /api/admin/staff` et `POST /api/admin/staff`.
+> Si l'email d'un collaborateur existe déjà dans la base (`users`), le système n'échoue plus avec 500 sur `utilisateurs_email_key` mais rattache proprement l'utilisateur à l'école courante dans `organization_users` (`status='ACTIVE'`, `scope_type='ORGANIZATION'`).
+
+#### Contrat d'API
+```http
+GET /api/admin/staff
+Headers: X-Tenant-Slug ou Referer /t/:tenantSlug
+
+Response 200:
+[
+  {
+    "id": "uuid",
+    "firstName": "string",
+    "lastName": "string",
+    "email": "string",
+    "phone": "string",
+    "role": "string",
+    "status": "Actif"
+  }
+]
+```
+
+---
+### [FE-012] Refactorisation Modulaire RH (< 125 lignes) & Silençage des Toasts Réseau
+
+| Champ       | Valeur |
+|-------------|--------|
+| Date        | 2026-10-16 12:10 |
+| Status      | DONE ✅ |
+| Priorité    | HAUTE |
+
+#### Ce qui a été fait (frontend)
+> 1. Découpage intégral des composants RH en sous-modules stricts (< 125 lignes, R9) :
+>    - `AccountsTab.tsx` + `AccountsFilterBar.tsx`, `StaffTable.tsx`, `AddStaffCard.tsx`, `EditStaffModal.tsx`, `DeleteStaffModal.tsx`
+>    - `RbacTab.tsx` + `RbacHeader.tsx`, `RbacFilters.tsx`, `RbacTable.tsx`, `RbacAddRoleModal.tsx`
+>    - `AttendanceTab.tsx` + `AttendanceHeader.tsx`, `AttendanceStatsCard.tsx`, `AttendanceTable.tsx`, `StaffAttendanceDetailModal.tsx`, `NewAttendanceModal.tsx`
+> 2. `apiErrorHandler.ts` : Silençage automatique des toasts 404/500 sur les endpoints de background polling et limitation (throttling) des alertes réseau répétitives à 1 toast toutes les 10s.
+> 3. Build Vite + TypeScript validé à 100% avec 0 erreur.

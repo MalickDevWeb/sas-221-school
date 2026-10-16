@@ -5,11 +5,14 @@
 ---
 
 ## Statut actuel
-- **Dernière mise à jour** : 2026-10-15 21:27
-- **Objectif en cours** : Persistance des Rendez-vous & Visioconférences Parents/Professeurs en PostgreSQL + Fix HikariCP Neon
+- **Dernière mise à jour** : 2026-10-16 12:05
+- **Objectif en cours** : Isolation Multi-Tenant du Personnel RH & Rattachement non-destructif des Collaborateurs
 - **Statut** : TERMINÉ ✅
 
 ## Changements récents
+- [2026-10-16] `AdminStaffService.java` — Service applicatif dédié (117 lignes, R9 validé) assurant l'isolation stricte des membres du personnel selon le tenant (`TenantContext.getCurrentOrganization()`). Récupération ciblée via `organization_users` + comptes du domaine institutionnel (`@<slug>.sn`).
+- [2026-10-16] `AdminStaffService.java` — Gestion sécurisée des doublons d'email : si un utilisateur existe déjà dans PostgreSQL (`users`), mise à jour de son profil et rattachement immédiat dans `organization_users` sans échec de contrainte `utilisateurs_email_key` ni erreur 500.
+- [2026-10-16] `AdminController.java` — Refactorisation des endpoints `/admin/staff` (GET et POST) pour déléguer à `AdminStaffService`.
 - [2026-10-15] `application.yaml` — Paramétrage HikariCP optimisé pour Neon serverless (keepalive 60s, max-lifetime 5min, idle-timeout 2min) pour éliminer les erreurs 500 "Connection has been closed"
 - [2026-10-15] `Appointment.java` — Modèle de domaine pour les rendez-vous et visioconférences Google Meet
 - [2026-10-15] `AppointmentRepositoryPort.java` — Port repository domaine (Architecture Hexagonale)
