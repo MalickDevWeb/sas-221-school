@@ -23,6 +23,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   });
   const [docs, setDocs] = useState<DocumentsState>({ idCard: null, diploma: null, transcripts: null, photo: null });
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [payment, setPayment] = useState<PaymentDetails>({
     method: 'WAVE', isPaid: false, transactionRef: '', amount: campaign.fees || 25000
   });
@@ -32,12 +33,14 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
 
   const uploadDoc = async (key: keyof DocumentsState, file: File) => {
     setUploadingDoc(key);
+    setUploadProgress(10);
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(file, (pct) => setUploadProgress(pct));
       const sizeStr = file.size > 1048576 ? `${(file.size / 1048576).toFixed(1)} Mo` : `${Math.round(file.size / 1024)} Ko`;
       setDocs(prev => ({ ...prev, [key]: { name: file.name, size: sizeStr, uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
     } finally {
       setUploadingDoc(null);
+      setUploadProgress(0);
     }
   };
 
@@ -47,7 +50,6 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   };
 
   const removeDoc = (key: keyof DocumentsState) => setDocs(prev => ({ ...prev, [key]: null }));
-
   const declarePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH', ref: string) => {
     setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees || 25000 });
   };
@@ -92,16 +94,10 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: candId,
-          nom: personal.lastName,
-          prenom: personal.firstName,
-          email: personal.email,
-          telephone: personal.phone,
-          filiere: academic.targetFiliere,
-          niveau: academic.targetLevel,
-          fraisPayes: payment.isPaid,
-          modePaiement: payment.method,
-          referencePaiement: payment.transactionRef,
+          id: candId, nom: personal.lastName, prenom: personal.firstName,
+          email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
+          niveau: academic.targetLevel, fraisPayes: payment.isPaid,
+          modePaiement: payment.method, referencePaiement: payment.transactionRef,
         }),
       });
     } catch {
@@ -114,8 +110,8 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
 
   return {
     step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, uploadDoc, uploadingDoc, simulateDocUpload, removeDoc,
-    payment, declarePayment, credentials, setCredentials,
-    error, setError, isSubmitting, handleFinalSubmit
+    academic, setAcademic, docs, uploadDoc, uploadingDoc, uploadProgress,
+    simulateDocUpload, removeDoc, payment, declarePayment,
+    credentials, setCredentials, error, setError, isSubmitting, handleFinalSubmit
   };
 }
