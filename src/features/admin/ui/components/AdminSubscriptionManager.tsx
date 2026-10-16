@@ -1,168 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Crown, CheckCircle2, AlertCircle, TrendingUp, Users, BookOpen, 
-  Zap, CreditCard, Receipt, Building2, ArrowRight, Star
-} from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
+import { Star, Sparkles } from 'lucide-react';
+import { motion } from 'motion/react';
+import { SubscriptionPlanCard } from './subscription/SubscriptionPlanCard';
+import { SubscriptionQuotaSection } from './subscription/SubscriptionQuotaSection';
+import { SubscriptionInvoicesTable } from './subscription/SubscriptionInvoicesTable';
+import { SubscriptionPaymentModal } from './subscription/SubscriptionPaymentModal';
+import { SubscriptionUpgradeModal } from './subscription/SubscriptionUpgradeModal';
+import { INITIAL_PLAN, INITIAL_INVOICES, INITIAL_PAYMENT_METHODS } from './subscription/subscriptionData';
+import { SubscriptionPlan, PaymentMethodInfo } from './subscription/subscriptionModels';
 
-// Mocks localisés (le temps d'avoir l'API côté Tenant)
-const MOCK_CURRENT_PLAN = {
-  id: '2',
-  name: 'Avancé',
-  priceMonthly: 50000,
-  status: 'ACTIVE',
-  endDate: '2026-01-01',
-  features: [
-    { code: 'MAX_STUDENTS', label: 'Élèves maximum', limit: 500, used: 420 },
-    { code: 'MAX_TEACHERS', label: 'Enseignants', limit: 50, used: 38 },
-    { code: 'MAX_CLASSES', label: 'Classes/Filières', limit: 25, used: 18 },
-  ]
-};
+export const AdminSubscriptionManager: React.FC = () => {
+  const [plan, setPlan] = useState<SubscriptionPlan>(INITIAL_PLAN);
+  const [invoices] = useState(INITIAL_INVOICES);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>(INITIAL_PAYMENT_METHODS);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
-const MOCK_INVOICES = [
-  { id: 'INV-2025-001', date: '2025-01-01', amount: 500000, status: 'PAYÉ', desc: 'Abonnement Annuel Avancé' },
-  { id: 'INV-2024-012', date: '2024-12-01', amount: 50000, status: 'PAYÉ', desc: 'Abonnement Mensuel Avancé' },
-];
+  const handleUpgradeSuccess = (newPlanName: string, newPrice: number) => {
+    setPlan((prev) => ({
+      ...prev,
+      name: newPlanName,
+      priceMonthly: newPrice,
+      features: prev.features.map(f => ({ ...f, limit: f.limit * 2 }))
+    }));
+  };
 
-export const AdminSubscriptionManager = () => {
-  const [loading, setLoading] = useState(false);
-
-  const usagePercent = (used: number, limit: number) => Math.round((used / limit) * 100);
-
-  const getProgressColor = (percent: number) => {
-    if (percent > 90) return 'bg-red-500';
-    if (percent > 75) return 'bg-amber-500';
-    return 'bg-emerald-500';
+  const handleSelectDefaultMethod = (type: string) => {
+    setPaymentMethods((prev) => prev.map(m => ({ ...m, isDefault: m.type === type })));
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 animate-fadeIn">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn">
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Mon Abonnement</h2>
-          <p className="text-sm text-gray-500">Gérez votre formule, vos quotas et vos factures</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Mon Abonnement</h2>
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
+              <Sparkles size={12} /> Établissement
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Gérez votre formule, vos quotas et l'ensemble de vos quittances de facturation
+          </p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
-          <Star size={18} />
-          Mettre à niveau (Premium)
+
+        <button
+          onClick={() => setIsUpgradeModalOpen(true)}
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white text-sm font-bold shadow-lg shadow-indigo-600/25 hover:shadow-xl hover:shadow-indigo-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+        >
+          <Star size={16} className="text-amber-300 fill-amber-300" />
+          <span>Mettre à niveau (Premium)</span>
         </button>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* ── COLONNE GAUCHE : Statut actuel ── */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-5">
-              <Crown size={120} />
-            </div>
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold mb-4">
-                <CheckCircle2 size={14} /> Actif
-              </div>
-              
-              <h3 className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Formule Actuelle</h3>
-              <div className="flex items-end gap-2 mt-1 mb-6">
-                <span className="text-4xl font-black text-gray-900">{MOCK_CURRENT_PLAN.name}</span>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Montant</p>
-                  <p className="text-sm font-semibold text-gray-800">{MOCK_CURRENT_PLAN.priceMonthly.toLocaleString()} FCFA / mois</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Prochain renouvellement</p>
-                  <p className="text-sm font-semibold text-gray-800">{new Date(MOCK_CURRENT_PLAN.endDate).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-100">
-                <button className="w-full py-2.5 rounded-xl border-2 border-indigo-100 text-indigo-600 font-bold hover:bg-indigo-50 transition-colors">
-                  Gérer le moyen de paiement
-                </button>
-              </div>
-            </div>
-          </div>
+      {/* ── MAIN GRID ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        {/* Left Column: Plan Card */}
+        <div className="lg:col-span-1">
+          <SubscriptionPlanCard
+            plan={plan}
+            onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
+            onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
+          />
         </div>
 
-        {/* ── COLONNE DROITE : Quotas & Factures ── */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Quotas */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <TrendingUp size={20} className="text-indigo-500" /> Utilisation des ressources
-            </h3>
-            
-            <div className="space-y-6">
-              {MOCK_CURRENT_PLAN.features.map(feat => {
-                const percent = usagePercent(feat.used, feat.limit);
-                return (
-                  <div key={feat.code}>
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-sm font-semibold text-gray-700">{feat.label}</span>
-                      <span className="text-sm text-gray-500">
-                        <strong className="text-gray-900">{feat.used}</strong> / {feat.limit}
-                      </span>
-                    </div>
-                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-1000 ${getProgressColor(percent)}`}
-                        style={{ width: `${Math.min(percent, 100)}%` }}
-                      />
-                    </div>
-                    {percent > 90 && (
-                      <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                        <AlertCircle size={12} /> Vous approchez de la limite.
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {/* Right Column: Quotas & Invoices */}
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          <SubscriptionQuotaSection
+            features={plan.features}
+            onUpgradeClick={() => setIsUpgradeModalOpen(true)}
+          />
 
-          {/* Factures */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Receipt size={20} className="text-indigo-500" /> Historique des factures
-            </h3>
-            
-            <div className="space-y-3">
-              {MOCK_INVOICES.map(inv => (
-                <div key={inv.id} className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors group cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                      <Receipt size={18} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{inv.desc}</p>
-                      <p className="text-xs text-gray-500">{new Date(inv.date).toLocaleDateString('fr-FR')} • {inv.id}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">{inv.amount.toLocaleString()} FCFA</p>
-                      <p className="text-xs text-emerald-600 font-semibold">{inv.status}</p>
-                    </div>
-                    <div className="text-gray-300 group-hover:text-indigo-500 transition-colors">
-                      <ArrowRight size={18} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <button className="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-              Voir tout l'historique →
-            </button>
-          </div>
-
+          <SubscriptionInvoicesTable invoices={invoices} />
         </div>
       </div>
+
+      {/* ── INTERACTIVE MODALS ── */}
+      <SubscriptionPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        methods={paymentMethods}
+        onSelectDefault={handleSelectDefaultMethod}
+      />
+
+      <SubscriptionUpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        onUpgradeSuccess={handleUpgradeSuccess}
+      />
     </div>
   );
 };
-
