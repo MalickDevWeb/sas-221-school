@@ -18,7 +18,8 @@ export function isBackgroundUrl(url?: string): boolean {
     url.includes('/notes') ||
     url.includes('/tasks') ||
     url.includes('/messages') ||
-    url.includes('/meets')
+    url.includes('/meets') ||
+    url.includes('/admissions/db')
   );
 }
 
