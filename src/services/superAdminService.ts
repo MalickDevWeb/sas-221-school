@@ -16,6 +16,10 @@ export const superAdminService = {
     return data;
   },
 
+  deleteGlobalUser: async (id: string): Promise<void> => {
+    await apiClient.delete(`/v1/super-admin/users/${id}`);
+  },
+
   // ── Tenants ────────────────────────────────────────────────────────────
   getTenants: async (status?: string): Promise<Tenant[]> => {
     const params = status && status !== 'ALL' ? { status } : {};

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 export function ApiKeyCard() {
   const [apiKey, setApiKey] = useState('ec_live_221_a83f...921x');
@@ -10,7 +11,7 @@ export function ApiKeyCard() {
       const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
       setApiKey(`ec_live_221_${rand}...921x`);
       setGenerating(false);
-      alert('Nouvelle clé API générée avec succès !');
+      toast.success('Nouvelle clé API générée avec succès !');
     }, 1200);
   };
 

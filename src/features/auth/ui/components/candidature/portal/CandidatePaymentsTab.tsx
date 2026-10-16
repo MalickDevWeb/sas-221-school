@@ -62,7 +62,7 @@ export function CandidatePaymentsTab({ candidate, onUpdate }: Props) {
             <button
               disabled={processing}
               onClick={handlePayRegistration}
-              className="w-full mt-3 h-10 bg-[#B3181C] hover:bg-[#8F1316] text-white rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              className="w-full mt-3 h-10 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               {processing ? 'Traitement en cours...' : 'Régler les 50,000 FCFA'}
             </button>

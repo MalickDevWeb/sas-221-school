@@ -1,16 +1,34 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CandidatureForm } from '../components/CandidatureForm';
 import { EcoleBadge } from '../components/EcoleBadge';
 import { EcoleLogo } from '../components/EcoleLogo';
 import { ROUTES } from '@/shared/constants';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 export function CandidaturePage() {
   const navigate = useNavigate();
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const { currentTenant, resolveTenant } = useTenantStore();
+
+  const activeSlug = tenantSlug || currentTenant?.slug || 'ecole221';
+  const isDefaultSchool = activeSlug === 'ecole221' || activeSlug === 'ecole-221';
+  const schoolDisplayName = isDefaultSchool ? "l'École 221" : (currentTenant?.name || activeSlug.toUpperCase());
+
+  useEffect(() => {
+    if (tenantSlug) {
+      resolveTenant(tenantSlug);
+    }
+  }, [tenantSlug, resolveTenant]);
+
   const bgImageUrl = "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80')";
 
   const handleBack = () => {
-    navigate(ROUTES.login);
+    if (!isDefaultSchool) {
+      navigate(`/t/${activeSlug}/login`);
+    } else {
+      navigate(ROUTES.login);
+    }
   };
 
   return (
@@ -28,11 +46,11 @@ export function CandidaturePage() {
           </div>
 
           <div className="absolute bottom-12 left-12 right-12 text-white select-none z-10 animate-fade-in space-y-3">
-            <span className="px-2.5 py-1 rounded-md bg-[#B3181C] text-[10px] font-black tracking-widest uppercase inline-block">
+            <span className="px-2.5 py-1 rounded-md bg-primary text-text-on-primary text-[10px] font-black tracking-widest uppercase inline-block shadow-sm">
               Admissions 2026/2027
             </span>
             <h1 className="font-sans font-[900] text-3xl tracking-tight leading-tight uppercase">
-              Rejoignez l'excellence <br />de l'École 221
+              Rejoignez l'excellence <br />de {schoolDisplayName}
             </h1>
             <p className="text-sm text-white/80 leading-relaxed font-medium">
               Déposez votre dossier de candidature en ligne en quelques étapes simples pour intégrer nos promotions de haut niveau en Génie Logiciel, Cloud, Réseaux et Cybersécurité au Sénégal.
@@ -52,7 +70,7 @@ export function CandidaturePage() {
           {/* Mobile Header Logo */}
           <div className="flex lg:hidden flex-col items-center text-center space-y-2 mb-2 select-none">
             <EcoleLogo size="md" />
-            <span className="px-2 py-0.5 rounded-md bg-[#B3181C]/10 text-[#B3181C] text-[9px] font-black uppercase tracking-widest">
+            <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/20">
               Portail de Candidature
             </span>
           </div>
@@ -64,7 +82,14 @@ export function CandidaturePage() {
           {/* Footer information */}
           <div className="text-center text-[#8E7977] text-[10px] space-y-2 pt-2 select-none">
             <p className="leading-relaxed font-semibold">
-              Des questions sur l'inscription ? Contactez notre secrétariat au <span className="text-[#B3181C] font-bold">+221 33 800 00 00</span> ou écrivez à <span className="text-[#B3181C] font-bold">admissions@ecole221.sn</span>
+              Des questions sur l'inscription ? Contactez notre secrétariat au{' '}
+              <span className="text-primary font-bold">
+                {isDefaultSchool ? '+221 33 800 00 00' : '+221 33 800 00 00'}
+              </span>{' '}
+              ou écrivez à{' '}
+              <span className="text-primary font-bold">
+                {isDefaultSchool ? 'admissions@ecole221.sn' : `admissions@${activeSlug}.sn`}
+              </span>
             </p>
           </div>
         </div>

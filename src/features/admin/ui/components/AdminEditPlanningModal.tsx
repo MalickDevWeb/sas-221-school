@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useAdminPlanning } from '../../hooks/useAdminPlanning';
 import type { AdminSession } from '../../domain/AdminModels';
 
@@ -30,7 +31,7 @@ export function AdminEditPlanningModal({ onClose }: { onClose: () => void }) {
     const ok = await reprogrammerSession(selectedId, { jourComplet: day, heureStr: time, salle: room });
     setSaving(false);
     if (ok) {
-      alert('Séance reprogrammée avec succès !');
+      toast.success('Séance reprogrammée avec succès !');
     }
   };
 

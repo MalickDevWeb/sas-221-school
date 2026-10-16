@@ -17,7 +17,8 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
   const fetchSessions = useCallback(async () => {
     try {
       const res = await apiClient.get('/student/live-sessions');
-      setSessions(Array.isArray(res.data) ? res.data : []);
+      const items = Array.isArray(res.data) ? res.data : (res.data?.content || []);
+      setSessions(items);
     } catch (err) {
       console.error(err);
     }

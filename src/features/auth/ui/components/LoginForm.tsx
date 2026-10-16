@@ -235,7 +235,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
       {settings.showRegisterButton !== false && (
         <button
           type="button"
-          onClick={() => navigate(ROUTES.candidature)}
+          onClick={() => navigate(isDefaultSchool ? ROUTES.candidature : `/t/${activeSlug}/candidature`)}
           className="w-full h-10 border border-primary text-primary hover:bg-primary/5 active:scale-[0.98] rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
         >
           <Icon icon="solar:user-plus-rounded-bold-duotone" className="text-base font-bold" />

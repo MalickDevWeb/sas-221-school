@@ -26,21 +26,36 @@ apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   
-  // Multi-tenant resolution: Extract subdomain and pass it as X-Tenant-ID
-  // e.g. "ecole1.plateforme.com" -> "ecole1"
+  // 1. Extraire le slug directement depuis l'URL active (/t/:tenantSlug/...)
+  const urlSlugMatch = window.location.pathname.match(/\/t\/([^/]+)/);
+  if (urlSlugMatch && urlSlugMatch[1]) {
+    const slug = urlSlugMatch[1].trim();
+    config.headers['X-Tenant-Slug'] = slug;
+    // Si c'est l'école 221
+    if (slug === 'ecole221' || slug === 'ecole-221') {
+      config.headers['X-Tenant-ID'] = 'default-tenant-id';
+    }
+  }
+
+  // 2. Extraire depuis le sous-domaine si applicable (ecole1.plateforme.com)
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
   if (parts.length > 2) {
     const subdomain = parts[0];
     if (subdomain !== 'www' && subdomain !== 'app') {
+       config.headers['X-Tenant-Slug'] = subdomain;
        config.headers['X-Tenant-ID'] = subdomain;
     }
   }
   
-  // Fallback check if tenant is forced in local storage (for testing)
+  // 3. Fallback sur le tenant actif stocké en session locale
   const forcedTenant = localStorage.getItem('tenant_id');
-  if (forcedTenant) {
+  if (forcedTenant && !config.headers['X-Tenant-ID']) {
      config.headers['X-Tenant-ID'] = forcedTenant;
+  }
+  const forcedSlug = localStorage.getItem('tenant_slug');
+  if (forcedSlug && !config.headers['X-Tenant-Slug']) {
+     config.headers['X-Tenant-Slug'] = forcedSlug;
   }
   
   return config;
@@ -107,7 +122,6 @@ apiClient.interceptors.response.use(
       toast.error('Accès refusé', {
         description: 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.'
       });
-      window.location.href = '/unauthorized';
       return Promise.reject(error);
     }
 
@@ -132,11 +146,16 @@ apiClient.interceptors.response.use(
         ? error.response.data.toLowerCase() 
         : JSON.stringify(error.response.data || '').toLowerCase();
         
+      if (status === 404 && responseData.includes('tenant not found')) {
+        localStorage.removeItem('tenant_slug');
+        localStorage.removeItem('tenant_id');
+        return Promise.reject(error);
+      }
+      
       if (status === 500 && (responseData.includes('proxy') || responseData.includes('econnrefused'))) {
         toast.error(`Erreur de connexion`, {
           description: `Veuillez vous connecter à un réseau`
         });
-        // Silent in console to avoid pollution
       } else if (status !== 404) {
         const serverMsg = error.response?.data?.message;
         if (serverMsg) {

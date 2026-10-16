@@ -72,8 +72,8 @@ export function CandidateMessagingTab({ candidate }: Props) {
           <p className="text-[10px] text-neutral-400">Échangez de manière sécurisée avec nos équipes pédagogiques.</p>
         </div>
         <div className="flex bg-neutral-100 p-0.5 rounded-lg border border-neutral-200">
-          <button onClick={() => setActiveChannel('ADMIN')} className={`px-2.5 py-1 text-[9px] font-black uppercase rounded ${activeChannel === 'ADMIN' ? 'bg-white text-[#B3181C] shadow-sm' : 'text-neutral-500'}`}>Admissions</button>
-          <button onClick={() => setActiveChannel('SECRETAIRE')} className={`px-2.5 py-1 text-[9px] font-black uppercase rounded ${activeChannel === 'SECRETAIRE' ? 'bg-white text-[#B3181C] shadow-sm' : 'text-neutral-500'}`}>Secrétariat</button>
+          <button onClick={() => setActiveChannel('ADMIN')} className={`px-2.5 py-1 text-[9px] font-black uppercase rounded ${activeChannel === 'ADMIN' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500'}`}>Admissions</button>
+          <button onClick={() => setActiveChannel('SECRETAIRE')} className={`px-2.5 py-1 text-[9px] font-black uppercase rounded ${activeChannel === 'SECRETAIRE' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500'}`}>Secrétariat</button>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export function CandidateMessagingTab({ candidate }: Props) {
           const isMe = m.role === 'CANDIDAT';
           return (
             <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-              <div className={`max-w-[80%] rounded-2xl p-3 shadow-xs space-y-1 ${isMe ? 'bg-[#B3181C] text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+              <div className={`max-w-[80%] rounded-2xl p-3 shadow-xs space-y-1 ${isMe ? 'bg-primary text-text-on-primary' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
                 <div className="flex justify-between gap-6 text-[9px] font-black uppercase opacity-75">
                   <span>{m.sender}</span>
                   <span>{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -103,9 +103,9 @@ export function CandidateMessagingTab({ candidate }: Props) {
           placeholder="Rédiger votre question ou réponse ici..."
           value={inputText}
           onChange={e => setInputText(e.target.value)}
-          className="flex-1 h-11 bg-white border border-neutral-200 rounded-xl px-3.5 outline-none font-semibold text-xs text-[#1E293B] focus:border-[#B3181C]"
+          className="flex-1 h-11 bg-white border border-neutral-200 rounded-xl px-3.5 outline-none font-semibold text-xs text-[#1E293B] focus:border-primary"
         />
-        <button type="submit" className="px-4 bg-[#B3181C] hover:bg-[#8F1316] text-white rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all">
+        <button type="submit" className="px-4 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all">
           <span translate="no" className="material-symbols-outlined text-xs">send</span>
           <span>Envoyer</span>
         </button>

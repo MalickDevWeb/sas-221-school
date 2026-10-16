@@ -38,29 +38,27 @@ textarea:-webkit-autofill {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Custom scrollbar for scrollable course lists */
-.custom-scrollbar {
-  scrollbar-width: thin !important;
-  -ms-overflow-style: auto !important;
+/* Global scrollbar suppression while preserving full mouse wheel and trackpad scroll */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  display: block !important;
-  width: 4px !important;
-  height: 4px !important;
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent !important;
+.no-scrollbar, .custom-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 0, 0, 0.2) !important;
-  border-radius: 9px !important;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 0, 0, 0.4) !important;
+.no-scrollbar::-webkit-scrollbar, .custom-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }
 
 @keyframes fadeIn {

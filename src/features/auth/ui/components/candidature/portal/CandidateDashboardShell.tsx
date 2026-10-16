@@ -57,7 +57,7 @@ export function CandidateDashboardShell({ initialCandidate, onLogout }: Props) {
             onClick={() => setActiveTab(t.id)}
             className={`px-3 py-1.5 rounded-xl uppercase font-black text-[9.5px] tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border ${
               activeTab === t.id
-                ? 'bg-[#B3181C] text-white border-[#B3181C] shadow-sm'
+                ? 'bg-primary text-text-on-primary border-primary shadow-sm'
                 : 'bg-white hover:bg-neutral-50 text-neutral-500 border-neutral-200'
             }`}
           >

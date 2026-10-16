@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   createReminderUseCase,
   createLessonUseCase,
@@ -19,10 +20,11 @@ export function useProfessorClassroomMutations(
     try {
       const newRem = await createReminderUseCase(selectedCourseId, content, isUrgent);
       setReminders(prev => [newRem, ...prev]);
+      toast.success('Rappel créé avec succès');
       return newRem;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de créer le rappel";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [selectedCourseId, setReminders]);
@@ -32,10 +34,11 @@ export function useProfessorClassroomMutations(
     try {
       const newLesson = await createLessonUseCase(selectedCourseId, title, description, attachmentName, attachmentUrl, moduleId);
       setLessons(prev => [newLesson, ...prev]);
+      toast.success('Leçon publiée avec succès');
       return newLesson;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de publier le cours";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [selectedCourseId, setLessons]);
@@ -45,10 +48,11 @@ export function useProfessorClassroomMutations(
     try {
       const newModule = await createModuleUseCase(selectedCourseId, title, description);
       setModules(prev => [...prev, newModule]);
+      toast.success('Module créé avec succès');
       return newModule;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de créer le module";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [selectedCourseId, setModules]);
@@ -57,10 +61,11 @@ export function useProfessorClassroomMutations(
     try {
       const newQuiz = await createQuizUseCase(moduleId, title, description, questions);
       setQuizzes(prev => [...prev, newQuiz]);
+      toast.success('Quiz créé avec succès');
       return newQuiz;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de créer le quiz";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [setQuizzes]);

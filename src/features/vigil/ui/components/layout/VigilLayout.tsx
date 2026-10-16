@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
@@ -10,10 +10,14 @@ import { VigilMobileNav } from './nav/VigilMobileNav';
 
 export function VigilLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { deconnexion } = useAuthStore();
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name || 'École 221';
   const guardAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80";
+
+  const match = location.pathname.match(/\/t\/([^/]+)/);
+  const basePath = match ? `/t/${match[1]}/vigile` : '/vigile';
 
   return (
     <div className="h-screen overflow-hidden bg-neutral-50/50 flex flex-col antialiased">
@@ -23,7 +27,7 @@ export function VigilLayout() {
         {/* Top Header of the Portal */}
         <header className="sticky top-0 z-[110] bg-white border-b border-neutral-100 flex items-center justify-between pl-[25px] pr-6 pt-[14px] pb-4.5 shadow-xs">
           <div 
-            onClick={() => navigate(ROUTES.vigil.dashboard)}
+            onClick={() => navigate(basePath)}
             className="flex items-center gap-3 cursor-pointer select-none active:opacity-80"
           >
             <Shield className="h-6 w-6 text-primary stroke-[2.5]" />
@@ -36,7 +40,7 @@ export function VigilLayout() {
           <div className="flex items-center gap-3.5">
             {/* Active Guard Avatar Profile Badge */}
             <button 
-              onClick={() => navigate('/vigile/profil')}
+              onClick={() => navigate(`${basePath}/profil`)}
               className="h-9 w-9 rounded-full overflow-hidden border border-primary/20 cursor-pointer hover:opacity-80 active:scale-95 transition-transform duration-150 flex items-center justify-center p-0 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm"
               title="Voir mon profil"
             >

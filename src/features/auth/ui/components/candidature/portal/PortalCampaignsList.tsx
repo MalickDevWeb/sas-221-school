@@ -22,7 +22,7 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
         </div>
         <button
           onClick={onGoToLogin}
-          className="px-3.5 py-1.5 border border-[#B3181C] text-[#B3181C] hover:bg-rose-50/50 rounded-xl transition-all cursor-pointer font-extrabold uppercase text-[9.5px] flex items-center gap-1.5 shrink-0"
+          className="px-3.5 py-1.5 border border-primary text-primary hover:bg-primary/10 rounded-xl transition-all cursor-pointer font-extrabold uppercase text-[9.5px] flex items-center gap-1.5 shrink-0"
         >
           <span translate="no" className="material-symbols-outlined text-xs">login</span>
           <span>Espace Candidat</span>
@@ -37,7 +37,7 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
           const isClosed = camp.state === 'Fermée';
 
           return (
-            <div key={camp.id} className="bg-white border border-neutral-200 hover:border-[#B3181C] rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+            <div key={camp.id} className="bg-white border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
               <div>
                 <div className="relative h-28 bg-neutral-100">
                   <img src={camp.imageUrl} alt={camp.title} className="w-full h-full object-cover" />
@@ -68,7 +68,7 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
                   onClick={() => onSelectCampaign(camp)}
                   className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer text-center ${
                     isOpen
-                      ? 'bg-[#B3181C] hover:bg-[#8F1316] text-white shadow-sm'
+                      ? 'bg-primary hover:bg-primary-dark text-text-on-primary shadow-sm'
                       : 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed'
                   }`}
                 >

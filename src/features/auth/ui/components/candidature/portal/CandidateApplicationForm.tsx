@@ -36,10 +36,10 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
       </div>
 
       <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
-        <div className="bg-[#B3181C] h-full transition-all duration-300" style={{ width: `${(step / 5) * 100}%` }} />
+        <div className="bg-primary h-full transition-all duration-300" style={{ width: `${(step / 5) * 100}%` }} />
       </div>
 
-      {error && <div className="p-2.5 text-[10px] text-[#B3181C] bg-rose-50 border border-rose-100 rounded-xl font-semibold leading-relaxed">{error}</div>}
+      {error && <div className="p-2.5 text-[10px] text-rose-700 bg-rose-50 border border-rose-100 rounded-xl font-semibold leading-relaxed">{error}</div>}
 
       {step === 1 && <Step1Personal personal={personal} setPersonal={setPersonal} setStep={setStep} />}
       {step === 2 && <Step2Academic academic={academic} setAcademic={setAcademic} setStep={setStep} />}

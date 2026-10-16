@@ -43,7 +43,7 @@ export function CandidatureForm({ onBack }: Props) {
             onGoToLogin={() => setView('login')}
           />
           <div className="pt-2 border-t border-neutral-100 flex justify-center">
-            <button onClick={onBack} className="text-[#8E7977] hover:text-[#B3181C] text-xs font-black uppercase cursor-pointer flex items-center gap-1">
+            <button onClick={onBack} className="text-[#8E7977] hover:text-primary text-xs font-black uppercase cursor-pointer flex items-center gap-1">
               <span translate="no" className="material-symbols-outlined text-xs">arrow_back</span>
               Retour au Campus Virtuel
             </button>

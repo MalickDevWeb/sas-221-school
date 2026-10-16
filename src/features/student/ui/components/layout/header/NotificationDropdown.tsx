@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { getPushPermission, requestPushPermission, testPushNotification } from '@/shared/lib/pushNotifier';
 
 interface NotificationItem {
   id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
 }
-
 
 interface Props {
   notifications: NotificationItem[];
@@ -23,6 +23,13 @@ export function NotificationDropdown({
   showNotifications, setShowNotifications, setShowProfile, setShowCalendar,
   onMarkAllRead, onNotifClick, notifRef
 }: Props) {
+  const [pushPerm, setPushPerm] = useState<NotificationPermission>(() => getPushPermission());
+
+  const handleTogglePush = async () => {
+    const res = await requestPushPermission();
+    setPushPerm(res);
+  };
+
   return (
     <div className="relative" ref={notifRef}>
       <button onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); setShowCalendar(false); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-brand-red-light text-secondary hover:text-brand-red-deep transition-all cursor-pointer group ${showNotifications ? 'bg-brand-red-light text-brand-red-deep' : ''}`}>
@@ -37,7 +44,7 @@ export function NotificationDropdown({
                 <h4 className="font-black text-xs text-[#291715] uppercase tracking-wider">Notifications</h4>
                 <span className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200/50 uppercase tracking-wider">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Temps Réel (Firestore)
+                  Push Direct
                 </span>
               </div>
               <p className="text-[10px] text-neutral-gray-400 font-bold mt-0.5">{unreadCount} non lue{unreadCount > 1 ? 's' : ''}</p>
@@ -49,6 +56,20 @@ export function NotificationDropdown({
               </button>
             </div>
           </div>
+
+          {/* Contrôle Push Notifications */}
+          <div className="px-4 py-2 bg-gradient-to-r from-amber-50/70 to-orange-50/70 border-b border-amber-100/80 flex items-center justify-between text-xs">
+            <span className="text-[10.5px] font-black text-amber-900 flex items-center gap-1.5">
+              <span translate="no" className="material-symbols-outlined text-[14px] text-amber-600">bolt</span>
+              {pushPerm === 'granted' ? 'Push Web Actif' : 'Recevoir les alertes Push'}
+            </span>
+            {pushPerm === 'granted' ? (
+              <button onClick={testPushNotification} className="px-2 py-0.5 bg-white text-amber-800 text-[9.5px] font-extrabold rounded-md border border-amber-200 hover:bg-amber-100/50">Tester</button>
+            ) : (
+              <button onClick={handleTogglePush} className="px-2.5 py-0.5 bg-amber-600 hover:bg-amber-700 text-white text-[9.5px] font-extrabold rounded-md shadow-xs">Activer</button>
+            )}
+          </div>
+
           <div className="flex gap-1.5 px-4 py-2 border-b border-neutral-gray-100 bg-neutral-50/50 overflow-x-auto no-scrollbar shrink-0 select-none">
             {(['all', 'unread'] as const).map((f) => (
               <button key={f} type="button" onClick={() => setNotifFilter(f)} className={`px-3 py-1.5 text-[10px] font-black rounded-lg transition-all whitespace-nowrap ${notifFilter === f ? 'bg-brand-red-deep text-white shadow-sm' : 'bg-white border border-neutral-200 text-secondary hover:bg-neutral-100'}`}>
@@ -56,7 +77,7 @@ export function NotificationDropdown({
               </button>
             ))}
           </div>
-          <div className="divide-y divide-neutral-gray-100 max-h-[320px] overflow-y-auto no-scrollbar">
+          <div className="divide-y divide-neutral-gray-100 max-h-[300px] overflow-y-auto no-scrollbar">
             {(notifFilter === 'all' ? notifications : notifications.filter(n => !n.read)).length === 0 ? (
               <div className="py-10 text-center text-neutral-450 select-none">
                 <span translate="no" className="material-symbols-outlined text-[32px] text-neutral-300">notifications_off</span>

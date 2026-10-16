@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { 
   updateGradeUseCase,
   createHomeworkUseCase
@@ -14,10 +15,11 @@ export function useProfessorWorkMutations(
     try {
       const updated = await updateGradeUseCase(selectedCourseId, studentId, cc, examen);
       setGrades(prev => prev.map(g => g.studentId === studentId ? updated : g));
+      toast.success('Note enregistrée avec succès');
       return updated;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de mettre à jour la note";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [selectedCourseId, setGrades]);
@@ -27,10 +29,11 @@ export function useProfessorWorkMutations(
     try {
       const newHw = await createHomeworkUseCase(selectedCourseId, titre, desc, prio, deadlineStr);
       setHomeworks(prev => [...prev, newHw]);
+      toast.success('Devoir assigné avec succès');
       return newHw;
     } catch (err) {
       const errorMsg = (err as Error).message || "Impossible de créer le devoir";
-      alert(errorMsg);
+      toast.error(errorMsg);
       throw err;
     }
   }, [selectedCourseId, setHomeworks]);

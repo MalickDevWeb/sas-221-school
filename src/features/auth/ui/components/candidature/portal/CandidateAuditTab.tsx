@@ -18,7 +18,7 @@ export function CandidateAuditTab({ candidate }: Props) {
       </div>
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3">
-        <span className="text-[9px] font-black uppercase text-[#B3181C] tracking-wider">Événements de Sécurité</span>
+        <span className="text-[9px] font-black uppercase text-primary tracking-wider">Événements de Sécurité</span>
         {logs.length > 0 ? (
           <div className="space-y-2.5">
             {logs.map((log, index) => (

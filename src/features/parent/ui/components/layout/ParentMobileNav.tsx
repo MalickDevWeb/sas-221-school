@@ -1,20 +1,24 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { ROUTES } from '@/shared/constants';
+import { NavLink, useLocation } from 'react-router-dom';
 
 interface Props {
   unreadCount: number;
 }
 
 export function ParentMobileNav({ unreadCount }: Props) {
+  const location = useLocation();
+  const match = location.pathname.match(/\/t\/([^/]+)/);
+  const activeSlug = match ? match[1] : 'ecole-221';
+  const base = `/t/${activeSlug}/parent`;
+
   const items = [
-    { to: ROUTES.parent.dashboard,      icon: 'dashboard',      label: 'Accueil' },
-    { to: ROUTES.parent.paiements,      icon: 'payment',        label: 'Paiements' },
-    { to: ROUTES.parent.planning,       icon: 'calendar_today', label: 'Planning' },
-    { to: ROUTES.parent.presences,      icon: 'how_to_reg',     label: 'Présences' },
-    { to: ROUTES.parent.notes,          icon: 'grade',          label: 'Notes' },
-    { to: ROUTES.parent.messages,       icon: 'mail',           label: 'Messages', badge: unreadCount },
-    { to: ROUTES.parent.inscrireEnfant, icon: 'person_add',     label: 'Inscrire' },
+    { to: base,                         icon: 'dashboard',      label: 'Accueil' },
+    { to: `${base}/paiements`,          icon: 'payment',        label: 'Paiements' },
+    { to: `${base}/planning`,           icon: 'calendar_today', label: 'Planning' },
+    { to: `${base}/presences`,          icon: 'how_to_reg',     label: 'Présences' },
+    { to: `${base}/notes`,              icon: 'grade',          label: 'Notes' },
+    { to: `${base}/messages`,           icon: 'mail',           label: 'Messages', badge: unreadCount },
+    { to: `${base}/inscrire-enfant`,    icon: 'person_add',     label: 'Inscrire' },
   ];
 
   return (
@@ -23,7 +27,7 @@ export function ParentMobileNav({ unreadCount }: Props) {
         <NavLink
           key={to}
           to={to}
-          end={to === ROUTES.parent.dashboard}
+          end={to === base}
           className={({ isActive }) =>
             `flex flex-col items-center justify-center transition-all duration-200 py-1.5 px-0.5 sm:px-2 rounded-xl flex-1 relative ${
               isActive ? 'text-primary font-bold bg-primary/10 scale-102' : 'text-neutral-500 hover:text-neutral-800'

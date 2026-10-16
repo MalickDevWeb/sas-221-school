@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 interface AdminAlertsModalProps {
   onClose: () => void;
@@ -15,7 +16,7 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('Alerte globale diffusée avec succès à tout l\'établissement !');
+      toast.success("Alerte globale diffusée avec succès à tout l'établissement !");
       onClose();
     }, 1000);
   };

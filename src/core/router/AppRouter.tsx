@@ -1,10 +1,11 @@
 import React from 'react';
 import { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { TenantRouteSync } from './TenantRouteSync';
 import { ROUTES, ROLE_UTILISATEUR } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 import { LoginPage, CandidaturePage } from '@/features/auth';
 import { AdminPage } from '@/features/admin';
@@ -76,24 +77,41 @@ const PageSkeleton = () => (
   </div>
 );
 
+const getActiveTenantSlug = () => {
+  const storedSlug = localStorage.getItem('tenant_slug');
+  const tenant = useTenantStore.getState().currentTenant;
+  const user = useAuthStore.getState().utilisateur;
+  return tenant?.slug || storedSlug || (user as any)?.tenantSlug || 'ecole-221';
+};
+
 const DashboardRedirect = () => {
   const { utilisateur } = useAuthStore();
+  const slug = getActiveTenantSlug();
+
   if (utilisateur?.role === ROLE_UTILISATEUR.SUPER_ADMIN || utilisateur?.role === ROLE_UTILISATEUR.PLATFORM_OWNER || (utilisateur?.role as string) === 'PLATFORM_ADMIN') {
     return <Navigate to="/super-admin/dashboard" replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.ADMIN || utilisateur?.role === ROLE_UTILISATEUR.ADMINISTRATOR) {
-    return <Navigate to={ROUTES.admin.dashboard} replace />;
+    return <Navigate to={`/t/${slug}/admin/dashboard`} replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.VIGIL) {
-    return <Navigate to={ROUTES.vigil.dashboard} replace />;
+    return <Navigate to={`/t/${slug}/vigile`} replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.PROFESSEUR || utilisateur?.role === ROLE_UTILISATEUR.TEACHER) {
-    return <Navigate to={ROUTES.professor.dashboard} replace />;
+    return <Navigate to={`/t/${slug}/professeur`} replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.PARENT) {
-    return <Navigate to={ROUTES.parent.dashboard} replace />;
+    return <Navigate to={`/t/${slug}/parent`} replace />;
   }
-  return <Navigate to={ROUTES.student.dashboard} replace />;
+  return <Navigate to={`/t/${slug}/etudiant`} replace />;
+};
+
+const TenantRedirect = ({ defaultTo }: { defaultTo?: string }) => {
+  const location = useLocation();
+  const slug = getActiveTenantSlug();
+  const rawPath = location.pathname.replace(/^\//, '');
+  const target = defaultTo || rawPath || 'dashboard';
+  return <Navigate to={`/t/${slug}/${target}${location.search}`} replace />;
 };
 
 export function AppRouter() {
@@ -115,12 +133,23 @@ export function AppRouter() {
           <Route path="/ecole221" element={<TenantLoginPage />} />
           <Route path="/ecole-221" element={<TenantLoginPage />} />
           <Route path={ROUTES.candidature} element={<CandidaturePage />} />
+          <Route path="/t/:tenantSlug/candidature" element={<CandidaturePage />} />
           
           {/* Portails de Connexion Spécifiques */}
           <Route path="/super-admin" element={React.createElement(React.lazy(() => import('@/features/super-admin/ui/pages/SuperAdminLoginPage').then(m => ({ default: m.SuperAdminLoginPage }))))} />
           <Route path="/admin" element={React.createElement(React.lazy(() => import('@/features/admin/ui/pages/AdminPortalLoginPage').then(m => ({ default: m.AdminPortalLoginPage }))))} />
           
-          <Route path="/unauthorized" element={<div className="p-10 text-center text-red-500 font-bold text-xl">403 - Accès Refusé</div>} />
+          <Route path="/unauthorized" element={
+            <div className="min-h-screen bg-[#070A13] flex flex-col items-center justify-center p-6 text-center text-white">
+              <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4 text-xl font-black">403</div>
+              <h1 className="text-xl font-bold mb-2">Accès Non Autorisé</h1>
+              <p className="text-xs text-slate-400 max-w-sm mb-6">Vous ne disposez pas des permissions requises pour accéder à cet établissement ou cette page.</p>
+              <div className="flex gap-3">
+                <a href="/super-admin/tenants" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md">Campus & Écoles</a>
+                <a href="/login" className="px-4 py-2 bg-white/10 hover:bg-white/15 text-slate-300 rounded-xl text-xs font-bold transition-all">Connexion</a>
+              </div>
+            </div>
+          } />
 
           <Route path={ROUTES.dashboard} element={<DashboardRedirect />} />
 
@@ -139,28 +168,68 @@ export function AppRouter() {
             </Route>
           </Route>
 
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>
-            <Route path={ROUTES.admin.dashboard} element={<AdminPage />} />
-            <Route path="/admin/branding" element={React.createElement(React.lazy(() => import('@/features/admin/ui/pages/BrandingSettingsPage').then(m => ({ default: m.BrandingSettingsPage }))))} />
-          </Route>
+          {/* ─── Redirections des URL génériques vers leur namespace d'école (/t/:tenantSlug/...) ─── */}
+          <Route path="/admin" element={<TenantRedirect defaultTo="admin/dashboard" />} />
+          <Route path="/admin/dashboard" element={<TenantRedirect defaultTo="admin/dashboard" />} />
+          <Route path="/admin/branding" element={<TenantRedirect defaultTo="admin/branding" />} />
+          <Route path="/professeur" element={<TenantRedirect defaultTo="professeur" />} />
+          <Route path="/professeur/dashboard" element={<TenantRedirect defaultTo="professeur" />} />
+          <Route path="/parent" element={<TenantRedirect defaultTo="parent" />} />
+          <Route path="/parent/*" element={<TenantRedirect />} />
+          <Route path="/vigile" element={<TenantRedirect defaultTo="vigile" />} />
+          <Route path="/vigile/*" element={<TenantRedirect />} />
+          <Route path="/etudiant" element={<TenantRedirect defaultTo="etudiant" />} />
+          <Route path="/etudiant/*" element={<TenantRedirect />} />
 
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ETUDIANT, ROLE_UTILISATEUR.STUDENT, ROLE_UTILISATEUR.PROFESSEUR, ROLE_UTILISATEUR.TEACHER, ROLE_UTILISATEUR.SECRETAIRE, ROLE_UTILISATEUR.VIGIL, ROLE_UTILISATEUR.VISITEUR]} />}>
-            <Route element={<StudentLayout />}>
-              <Route path={ROUTES.student.dashboard} element={<StudentDashboardPage />} />
-              <Route path="/etudiant/cours"          element={<StudentCoursesPage />} />
-              <Route path="/etudiant/cours/:id"      element={<CourseDetailPage />} />
-              <Route path="/etudiant/devoirs"        element={<StudentHomeworksPage />} />
-              <Route path="/etudiant/planning"       element={<StudentSchedulePage />} />
-              <Route path="/etudiant/notes"          element={<StudentGradesPage />} />
-              <Route path="/etudiant/tuteur"         element={<StudentTutorPage />} />
-              <Route path="/etudiant/collaboration"  element={<CollaborationPage />} />
+          {/* ─── Espaces Spécifiques d'un Établissement (/t/:tenantSlug/...) ─── */}
+          <Route path="/t/:tenantSlug" element={<TenantRouteSync />}>
+            {/* Administration de l'école */}
+            <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>
+              <Route path="admin" element={<AdminPage />} />
+              <Route path="admin/dashboard" element={<AdminPage />} />
+              <Route path="admin/branding" element={React.createElement(React.lazy(() => import('@/features/admin/ui/pages/BrandingSettingsPage').then(m => ({ default: m.BrandingSettingsPage }))))} />
             </Route>
 
-            {/* Routes Étudiant avec URL dédiée contenant le slug de l'école (/t/:tenantSlug/...) */}
-            <Route path="/t/:tenantSlug" element={<TenantRouteSync />}>
+            {/* Espace Enseignant de l'école */}
+            <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PROFESSEUR, ROLE_UTILISATEUR.TEACHER, ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
+              <Route path="professeur" element={<ProfessorDashboardPage />} />
+              <Route path="professeur/dashboard" element={<ProfessorDashboardPage />} />
+            </Route>
+
+            {/* Portail Parent de l'école */}
+            <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PARENT, ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
+              <Route element={<ParentLayout />}>
+                <Route path="parent" element={<ParentDashboardPage />} />
+                <Route path="parent/planning" element={<ParentSchedulePage />} />
+                <Route path="parent/presences" element={<ParentAttendancePage />} />
+                <Route path="parent/notes" element={<ParentGradesPage />} />
+                <Route path="parent/messages" element={<ParentMessagesPage />} />
+                <Route path="parent/inscrire-enfant" element={<ParentEnrollChildPage />} />
+                <Route path="parent/suivi-dossiers" element={<ParentApplicationTrackingPage />} />
+                <Route path="parent/paiements" element={<ParentPaymentsPage />} />
+                <Route path="parent/profil" element={<ParentProfilePage />} />
+              </Route>
+            </Route>
+
+            {/* Portail Sécurité Vigile de l'école */}
+            <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.VIGIL, ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
+              <Route element={<VigilLayout />}>
+                <Route path="vigile" element={<VigilPatrolPage />} />
+                <Route path="vigile/rondes" element={<VigilPatrolPage />} />
+                <Route path="vigile/rapports" element={<VigilPatrolPage />} />
+                <Route path="vigile/stats" element={<VigilPatrolPage />} />
+                <Route path="vigile/profil" element={<VigilPatrolPage />} />
+              </Route>
+            </Route>
+
+            {/* Redirection intelligente selon le profil de l'utilisateur */}
+            <Route path="dashboard" element={<DashboardRedirect />} />
+
+            {/* Espace Étudiant de l'école */}
+            <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ETUDIANT, ROLE_UTILISATEUR.STUDENT, ROLE_UTILISATEUR.PROFESSEUR, ROLE_UTILISATEUR.TEACHER, ROLE_UTILISATEUR.SECRETAIRE, ROLE_UTILISATEUR.VIGIL, ROLE_UTILISATEUR.VISITEUR, ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
               <Route element={<StudentLayout />}>
-                <Route path="dashboard" element={<StudentDashboardPage />} />
                 <Route path="etudiant" element={<StudentDashboardPage />} />
+                <Route path="etudiant/dashboard" element={<StudentDashboardPage />} />
                 <Route path="etudiant/cours" element={<StudentCoursesPage />} />
                 <Route path="etudiant/cours/:id" element={<CourseDetailPage />} />
                 <Route path="etudiant/devoirs" element={<StudentHomeworksPage />} />
@@ -169,35 +238,6 @@ export function AppRouter() {
                 <Route path="etudiant/tuteur" element={<StudentTutorPage />} />
                 <Route path="etudiant/collaboration" element={<CollaborationPage />} />
               </Route>
-            </Route>
-          </Route>
-
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.VIGIL]} />}>
-            <Route element={<VigilLayout />}>
-              <Route path={ROUTES.vigil.dashboard} element={<VigilPatrolPage />} />
-              <Route path={ROUTES.vigil.rondes} element={<VigilPatrolPage />} />
-              <Route path={ROUTES.vigil.rapports} element={<VigilPatrolPage />} />
-              <Route path="/vigile/stats" element={<VigilPatrolPage />} />
-              <Route path="/vigile/profil" element={<VigilPatrolPage />} />
-            </Route>
-          </Route>
-
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PROFESSEUR, ROLE_UTILISATEUR.TEACHER]} />}>
-            <Route path={ROUTES.professor.dashboard} element={<ProfessorDashboardPage />} />
-          </Route>
-
-          {/* ─── Portail Parent ─── */}
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PARENT]} />}>
-            <Route element={<ParentLayout />}>
-              <Route path={ROUTES.parent.dashboard}       element={<ParentDashboardPage />} />
-              <Route path={ROUTES.parent.planning}        element={<ParentSchedulePage />} />
-              <Route path={ROUTES.parent.presences}       element={<ParentAttendancePage />} />
-              <Route path={ROUTES.parent.notes}           element={<ParentGradesPage />} />
-              <Route path={ROUTES.parent.messages}        element={<ParentMessagesPage />} />
-              <Route path={ROUTES.parent.inscrireEnfant}  element={<ParentEnrollChildPage />} />
-              <Route path={ROUTES.parent.suiviDossiers}   element={<ParentApplicationTrackingPage />} />
-              <Route path={ROUTES.parent.paiements}       element={<ParentPaymentsPage />} />
-              <Route path={ROUTES.parent.profil}          element={<ParentProfilePage />} />
             </Route>
           </Route>
 

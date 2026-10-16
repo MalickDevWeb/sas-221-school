@@ -20,9 +20,14 @@ export function VigilPatrolPage() {
     checkCheckpoint, resetCheckpoints, clearScanLogs, activeCheckpoint
   } = useVigilLocalState();
 
+  const isRondes = currentPath.endsWith('/rondes');
+  const isRapports = currentPath.endsWith('/rapports');
+  const isProfil = currentPath.endsWith('/profil');
+  const isDashboard = !isRondes && !isRapports && !isProfil;
+
   return (
     <div className={`${APP_CONFIG.theme.classes.pageWrapper} h-[585px]`}>
-      {currentPath === ROUTES.vigil.dashboard && (
+      {isDashboard && (
         <ScannerDashboardSection
           scanMode={scanMode}
           setScanMode={setScanMode}
@@ -36,15 +41,15 @@ export function VigilPatrolPage() {
         />
       )}
 
-      {currentPath === ROUTES.vigil.rondes && (
+      {isRondes && (
         <PatrolRoundsSection checkpoints={checkpoints} onCheckCheckpoint={checkCheckpoint} onResetCheckpoints={resetCheckpoints} progressPercent={progressPercent} completedCheckpoints={completedCheckpoints} />
       )}
 
-      {currentPath === ROUTES.vigil.rapports && (
+      {isRapports && (
         <ScanReportsSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} showDateDropdown={showDateDropdown} setShowDateDropdown={setShowDateDropdown} dateFilter={dateFilter} setDateFilter={setDateFilter} scanLogs={scanLogs} onClearScanLogs={clearScanLogs} paginatedLogs={paginatedLogs} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       )}
 
-      {currentPath === '/vigile/profil' && <ProfileSection />}
+      {isProfil && <ProfileSection />}
 
       {feedback && (
         <div className={APP_CONFIG.theme.classes.feedbackOverlay}>

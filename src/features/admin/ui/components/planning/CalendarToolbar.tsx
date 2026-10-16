@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   readonly viewMode: 'classe' | 'salle' | 'prof';
@@ -36,7 +37,7 @@ export function CalendarToolbar({
   const handleShare = () => {
     const secureLink = `${window.location.origin}/etudiant/planning?shared=true&filter=${encodeURIComponent(activeFilter)}`;
     navigator.clipboard.writeText(secureLink).then(() => {
-      alert(`Lien sécurisé copié dans le presse-papier :\n${secureLink}`);
+      toast.success('Lien copié dans le presse-papier !', { description: secureLink });
     });
   };
 

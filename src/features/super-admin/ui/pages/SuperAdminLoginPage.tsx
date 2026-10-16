@@ -12,22 +12,13 @@ export const SuperAdminLoginPage = () => {
   const { utilisateur, deconnexion } = useAuthStore();
   const navigate = useNavigate();
 
-  // Vérifie que le token stocké est vraiment valide côté backend avant de rediriger
   React.useEffect(() => {
     if (!utilisateur) return;
     if (utilisateur.role !== 'SUPER_ADMIN' && utilisateur.role !== 'PLATFORM_OWNER') {
-      // Mauvais rôle — déconnecter et rester sur cette page
-      deconnexion();
-      return;
+      deconnexion(); return;
     }
-    // Valider le token en appelant /auth/me
     import('@/shared/lib/apiClient').then(({ apiClient }) => {
-      apiClient.get('/auth/me').then(() => {
-        navigate('/super-admin/dashboard');
-      }).catch(() => {
-        // Token invalide ou expiré → déconnecter et rester ici
-        deconnexion();
-      });
+      apiClient.get('/auth/me').then(() => navigate('/super-admin/dashboard')).catch(() => deconnexion());
     });
   }, [utilisateur, navigate, deconnexion]);
 

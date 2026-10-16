@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
 import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
 import { apiClient } from '@/shared/lib/apiClient';
@@ -556,7 +557,7 @@ export function ClasseDetail360Modal({
                   <span>Étudiants en Retard de Paiement ({lateCount})</span>
                   {lateCount > 0 && (
                     <button
-                      onClick={() => alert(`Rappels SMS et WhatsApp envoyés aux ${lateCount} étudiants de ${classe.name}.`)}
+                      onClick={() => toast.success(`Rappels SMS et WhatsApp envoyés aux ${lateCount} étudiants de ${classe.name}.`)}
                       className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-black uppercase cursor-pointer border-0 flex items-center gap-1 transition-all"
                     >
                       <span translate="no" className="material-symbols-outlined text-xs">send</span>

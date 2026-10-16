@@ -5,10 +5,10 @@ import { apiClient } from '@/shared/lib/apiClient';
 export class ApiDashboardRepository implements DashboardRepository {
   async getDashboardData(): Promise<DashboardData> {
     const [p, a, l] = await Promise.all([
-      apiClient.get('/student/profile'),
+      apiClient.get('/student/profile').catch(() => ({ data: null })),
       // Paginated: PageResponseDto — we only need the content array
-      apiClient.get('/student/attendances?page=0&size=20'),
-      apiClient.get('/student/live-sessions?page=0&size=10')
+      apiClient.get('/student/attendances?page=0&size=20').catch(() => ({ data: [] })),
+      apiClient.get('/student/live-sessions?page=0&size=10').catch(() => ({ data: [] }))
     ]);
     return {
       profile: p.data,

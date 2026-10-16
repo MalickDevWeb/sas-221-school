@@ -29,8 +29,8 @@ export function GroupEvaluationPanel({ group, isTeacher, evaluations, onSaveEval
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const indGrades: Record<string, number> = {};
-    group.members.forEach((m) => {
-      indGrades[m.id] = parseFloat(groupGrade) + (m.gpa > 3.5 ? 1 : -0.5);
+    (group.members || []).forEach((m) => {
+      indGrades[m.id] = parseFloat(groupGrade) + ((m.gpa ?? 3.0) > 3.5 ? 1 : -0.5);
     });
     onSaveEvaluation(group.id, parseFloat(groupGrade), indGrades, feedback, {
       quality: qual,

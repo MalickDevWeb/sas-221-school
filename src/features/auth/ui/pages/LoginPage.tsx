@@ -23,7 +23,8 @@ export function LoginPage() {
   const [tabletActiveTab, setTabletActiveTab] = useState<'login' | 'calendar'>('login');
   const [desktopShowCalendar, setDesktopShowCalendar] = useState(false);
   const [showMobileCalendarModal, setShowMobileCalendarModal] = useState(false);
-  const bgImageUrl = `url('${loginBg}')`;
+  const customBg = currentTenant?.branding?.backgroundUrl;
+  const bgImageUrl = `url('${customBg || loginBg}')`;
 
   return (
     <main className="h-screen w-full max-w-full bg-[#FAF8F6] flex items-stretch overflow-hidden select-none">

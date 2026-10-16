@@ -35,13 +35,13 @@ export function CandidatePortalLogin({ onLoginSuccess, onGoBack }: Props) {
           <h4 className="font-extrabold text-sm text-[#1E293B]">Connexion Espace Candidat</h4>
           <p className="text-[10px] text-neutral-400">Suivez l'état d'avancement de votre dossier universitaire.</p>
         </div>
-        <button onClick={onGoBack} className="text-neutral-400 hover:text-[#B3181C] uppercase font-black tracking-wider text-[9.5px] cursor-pointer">
+        <button onClick={onGoBack} className="text-neutral-400 hover:text-primary uppercase font-black tracking-wider text-[9.5px] cursor-pointer">
           [ Retour ]
         </button>
       </div>
 
       {error && (
-        <div className="p-3 text-[10px] text-[#B3181C] bg-rose-50 border border-rose-100 rounded-xl font-semibold leading-relaxed">
+        <div className="p-3 text-[10px] text-rose-700 bg-rose-50 border border-rose-100 rounded-xl font-semibold leading-relaxed">
           {error}
         </div>
       )}
@@ -55,7 +55,7 @@ export function CandidatePortalLogin({ onLoginSuccess, onGoBack }: Props) {
             placeholder="Ex: nafi.diallo@gmail.com"
             value={identifier}
             onChange={e => setIdentifier(e.target.value)}
-            className="w-full h-11 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 focus:border-[#B3181C] outline-none text-xs font-semibold text-[#1E293B]"
+            className="w-full h-11 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 focus:border-primary outline-none text-xs font-semibold text-[#1E293B]"
           />
         </div>
 
@@ -67,13 +67,13 @@ export function CandidatePortalLogin({ onLoginSuccess, onGoBack }: Props) {
             placeholder="••••••••"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full h-11 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 focus:border-[#B3181C] outline-none text-xs font-semibold text-[#1E293B]"
+            className="w-full h-11 bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 focus:border-primary outline-none text-xs font-semibold text-[#1E293B]"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full h-11 bg-[#B3181C] hover:bg-[#8F1316] text-white rounded-xl font-black uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center"
+          className="w-full h-11 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-black uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center"
         >
           Se Connecter à mon Espace
         </button>

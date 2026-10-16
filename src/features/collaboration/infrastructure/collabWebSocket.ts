@@ -5,8 +5,10 @@ export class CollabWebSocket {
   private client: Client | null = null;
   private wsUrl: string;
 
-  constructor(wsUrl = 'http://localhost:8080/api/ws') {
-    this.wsUrl = import.meta.env.VITE_WS_URL || wsUrl;
+  constructor() {
+    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost:5173';
+    this.wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${host}/api/ws`;
   }
 
   connect(onMessageReceived: (payload: any) => void) {

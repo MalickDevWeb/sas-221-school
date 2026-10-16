@@ -1,15 +1,20 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { ROUTES } from '@/shared/constants';
+import { NavLink, useLocation } from 'react-router-dom';
 
 export function VigilMobileNav() {
+  const location = useLocation();
+  const match = location.pathname.match(/\/t\/([^/]+)/);
+  const basePath = match ? `/t/${match[1]}/vigile` : '/vigile';
+
+  const items = [
+    { to: basePath, icon: 'qr_code_scanner', label: 'Scan' },
+    { to: `${basePath}/rapports`, icon: 'history', label: 'Historique' },
+    { to: `${basePath}/profil`, icon: 'account_circle', label: 'Profil' },
+  ];
+
   return (
     <nav className="w-full bg-white flex justify-around items-center h-16 px-2">
-      {[
-        { to: ROUTES.vigil.dashboard, icon: 'qr_code_scanner', label: 'Scan' },
-        { to: ROUTES.vigil.rapports, icon: 'history', label: 'Historique' },
-        { to: '/vigile/profil', icon: 'account_circle', label: 'Profil' },
-      ].map(({ to, icon, label }) => (
+      {items.map(({ to, icon, label }) => (
         <NavLink 
           key={to} 
           to={to} 

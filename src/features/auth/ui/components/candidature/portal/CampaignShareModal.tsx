@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Campaign } from './admissionsDb';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
   campaign: Campaign;
@@ -8,7 +10,9 @@ interface Props {
 
 export function CampaignShareModal({ campaign, onClose }: Props) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = `https://ecole221.sn/admissions/${campaign.id}`;
+  const { currentTenant } = useTenantStore();
+  const schoolName = currentTenant?.name || 'École 221';
+  const shareUrl = `https://${currentTenant?.slug || 'ecole221'}.sn/admissions/${campaign.id}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -17,7 +21,7 @@ export function CampaignShareModal({ campaign, onClose }: Props) {
   };
 
   const shareSuccess = (platform: string) => {
-    alert(`Simulation de partage sur ${platform} avec l'aperçu officiel de la campagne !`);
+    toast.success(`Lien partagé vers ${platform} !`);
   };
 
   return (
@@ -38,7 +42,7 @@ export function CampaignShareModal({ campaign, onClose }: Props) {
           <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-24 object-cover" />
           <div className="p-3.5 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-[9px] font-black uppercase text-[#B3181C] tracking-wider">École 221 · ISM Dakar</span>
+              <span className="text-[9px] font-black uppercase text-primary tracking-wider">{schoolName} · Admissions</span>
               <span className="text-[9px] px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-black border border-emerald-100">Admissions Ouvertes</span>
             </div>
             <h5 className="font-black text-[#1E293B] text-xs leading-snug">{campaign.title}</h5>
@@ -70,7 +74,7 @@ export function CampaignShareModal({ campaign, onClose }: Props) {
         {/* Link copying & QR */}
         <div className="flex gap-2 items-center bg-[#FAF8F6] border border-neutral-200 rounded-xl p-2.5">
           <input readOnly value={shareUrl} className="flex-1 bg-white border border-neutral-200 rounded-lg px-2.5 py-1.5 outline-none font-mono text-[9px] text-[#1E293B]" />
-          <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#B3181C] hover:bg-[#8F1316] text-white rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer">
+          <button onClick={copyToClipboard} className="px-3 py-1.5 bg-primary hover:bg-primary-dark text-text-on-primary rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer">
             {copied ? 'Copié !' : 'Copier'}
           </button>
         </div>

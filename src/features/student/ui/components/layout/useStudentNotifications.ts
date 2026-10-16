@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { notificationRepository } from '@/features/notifications/infrastructure/config/dependencies';
+import { sendPushNotification } from '@/shared/lib/pushNotifier';
 
 export const INITIAL_NOTIFICATIONS = [
   { id: 1, title: "Nouveau devoir planifié", desc: "Machine Learning Basics - TP1 à rendre", time: "Il y a 10 min", read: false, icon: "assignment", color: "text-brand-red-deep bg-brand-red-light" },
@@ -55,6 +56,7 @@ export function useStudentNotifications() {
         });
 
         if (newestNotif) {
+          sendPushNotification(newestNotif.title, newestNotif.desc, { tag: 'student-notification' });
           setAlertNotif({
             id: newestNotif.id,
             title: newestNotif.title,
@@ -89,6 +91,7 @@ export function useStudentNotifications() {
             const currentIds = new Set(notifications.map(n => String(n.id)));
             const newUnreads = parsed.filter(n => !n.read && !currentIds.has(String(n.id)));
             if (newUnreads.length > 0) {
+              sendPushNotification(newUnreads[0].title, newUnreads[0].desc, { tag: 'student-notification' });
               setAlertNotif(newUnreads[0]);
             }
             setNotifications(parsed);

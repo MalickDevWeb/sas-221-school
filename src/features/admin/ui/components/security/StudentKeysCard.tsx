@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 export function StudentKeysCard() {
   const [studentSearch, setStudentSearch] = useState('');
@@ -6,7 +7,7 @@ export function StudentKeysCard() {
   const handleStudentRegen = (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentSearch) return;
-    alert("Clé AES-256 régénérée pour l'élève. L'ancien QR code a été invalidé aux terminaux d'accès.");
+    toast.success("Clé AES-256 régénérée pour l'élève. L'ancien QR code a été invalidé aux terminaux d'accès.");
     setStudentSearch('');
   };
 

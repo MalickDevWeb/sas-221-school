@@ -23,8 +23,8 @@ export class ApiNotificationRepository implements NotificationRepository {
         if (Array.isArray(res.data)) {
           onUpdate(res.data);
         }
-      } catch (err) {
-        console.warn('[NotificationRepository] Polling failed, silent fallback:', err);
+      } catch {
+        // Fallback silencieux en attendant la configuration des notifications
       }
     };
 

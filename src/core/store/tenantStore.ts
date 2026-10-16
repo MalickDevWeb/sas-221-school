@@ -8,6 +8,7 @@ interface TenantBranding {
   primaryColor: string;
   palette?: TenantPalette;
   logoUrl?: string;
+  backgroundUrl?: string;
 }
 
 interface TenantInfo {
@@ -23,6 +24,8 @@ interface TenantState {
   error: string | null;
 
   resolveTenant: (slug: string) => Promise<void>;
+  setTenantContext: (tenant: { id: string; name: string; slug?: string | null }) => void;
+  updateBranding: (branding: Partial<TenantBranding>) => void;
   applyTheme: (branding: TenantBranding) => void;
   rehydrateTheme: () => void;
 }
@@ -43,6 +46,50 @@ export const useTenantStore = create<TenantState>()(
       currentTenant: null,
       isLoading: false,
       error: null,
+
+      setTenantContext: (tenant: { id: string; name: string; slug?: string | null }) => {
+        const slug = tenant.slug || tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        try {
+          localStorage.setItem('tenant_id', tenant.id);
+          localStorage.setItem('tenant_slug', slug);
+        } catch {}
+
+        let branding: TenantBranding = {
+          primaryColor: '#7C3AED',
+          palette: generatePaletteFromHex('#7C3AED'),
+        };
+        try {
+          const cached = localStorage.getItem(`tenant_theme_${slug}`);
+          if (cached) branding = JSON.parse(cached);
+        } catch {}
+
+        const tenantInfo: TenantInfo = {
+          id: tenant.id,
+          name: tenant.name,
+          slug,
+          branding,
+        };
+        set({ currentTenant: tenantInfo, isLoading: false });
+        get().applyTheme(branding);
+      },
+
+      updateBranding: (brandingUpdate: Partial<TenantBranding>) => {
+        const current = get().currentTenant;
+        if (!current) return;
+        const newBranding: TenantBranding = {
+          ...current.branding,
+          ...brandingUpdate,
+        };
+        if (brandingUpdate.primaryColor && !brandingUpdate.palette) {
+          newBranding.palette = generatePaletteFromHex(brandingUpdate.primaryColor);
+        }
+        const updated = { ...current, branding: newBranding };
+        set({ currentTenant: updated });
+        get().applyTheme(newBranding);
+        try {
+          localStorage.setItem(`tenant_theme_${current.slug}`, JSON.stringify(newBranding));
+        } catch {}
+      },
 
       resolveTenant: async (slug: string) => {
         // 1. Si le tenant en mémoire correspond déjà et a un branding, réappliquer
@@ -91,6 +138,8 @@ export const useTenantStore = create<TenantState>()(
           };
 
           try {
+            localStorage.setItem('tenant_id', tenantInfo.id);
+            localStorage.setItem('tenant_slug', tenantInfo.slug);
             localStorage.setItem(`tenant_theme_${slug}`, JSON.stringify(tenantInfo.branding));
           } catch {}
 

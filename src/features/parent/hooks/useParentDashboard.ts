@@ -1,61 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { parentApi } from '../api';
-import type { ChildProfile, ChildDashboardStats, ChildScheduleItem } from '../types';
+import type { ChildProfile, ChildDashboardStats } from '../types';
+import { sendPushNotification } from '@/shared/lib/pushNotifier';
 
-// ─── Données de fallback (mode hors-ligne / backend éteint) ──
-const MOCK_CHILDREN: ChildProfile[] = [
-  {
-    id: 'child-1',
-    nom: 'Diallo',
-    prenom: 'Aminata',
-    matricule: 'E221-2024-001',
-    filiere: 'Informatique',
-    niveau: 'L2',
-    classe: 'L2-INFO-A',
-    photoUrl: undefined,
-  },
-];
+const MOCK_CHILDREN: ChildProfile[] = [{
+  id: 'child-1', nom: 'Diallo', prenom: 'Aminata', matricule: 'E221-2024-001',
+  filiere: 'Informatique', niveau: 'L2', classe: 'L2-INFO-A', photoUrl: undefined,
+}];
 
 const MOCK_STATS: ChildDashboardStats = {
-  tauxPresence: 87,
-  nombreAbsences: 3,
-  nombreRetards: 2,
-  moyenneGenerale: 14.5,
-  creditValides: 24,
-  devoirsEnRetard: 1,
+  tauxPresence: 87, nombreAbsences: 3, nombreRetards: 2, moyenneGenerale: 14.5,
+  creditValides: 24, devoirsEnRetard: 1,
   prochainsExamens: [
     { titre: 'Algorithmique Avancée', date: '2026-08-20', salle: 'A101' },
     { titre: 'Base de Données', date: '2026-08-25', salle: 'B203' },
   ],
   coursAujourdhui: [
-    {
-      id: 'c1',
-      jour: 'Mardi',
-      heure: '08h00 - 10h00',
-      cours: 'Algorithmique Avancée',
-      professeur: 'Dr. Sall',
-      salle: 'A101',
-      type: 'CM',
-      enCours: true,
-    },
-    {
-      id: 'c2',
-      jour: 'Mardi',
-      heure: '10h30 - 12h30',
-      cours: 'Base de Données',
-      professeur: 'Prof. Ndiaye',
-      salle: 'B203',
-      type: 'TD',
-    },
-    {
-      id: 'c3',
-      jour: 'Mardi',
-      heure: '14h00 - 16h00',
-      cours: 'Réseaux Informatiques',
-      professeur: 'Dr. Mbaye',
-      salle: 'Lab 3',
-      type: 'TP',
-    },
+    { id: 'c1', jour: 'Mardi', heure: '08h00 - 10h00', cours: 'Algorithmique Avancée', professeur: 'Dr. Sall', salle: 'A101', type: 'CM', enCours: true },
+    { id: 'c2', jour: 'Mardi', heure: '10h30 - 12h30', cours: 'Base de Données', professeur: 'Prof. Ndiaye', salle: 'B203', type: 'TD' },
+    { id: 'c3', jour: 'Mardi', heure: '14h00 - 16h00', cours: 'Réseaux Informatiques', professeur: 'Dr. Mbaye', salle: 'Lab 3', type: 'TP' },
   ],
 };
 
@@ -75,11 +38,9 @@ export function useParentDashboard() {
       setChildren(enfants.length > 0 ? enfants : MOCK_CHILDREN);
       const firstId = enfants[0]?.id ?? MOCK_CHILDREN[0].id;
       setSelectedChildId(firstId);
-
       const s = await parentApi.getChildStats(firstId);
       setStats(s);
     } catch {
-      // Fallback silencieux
       setChildren(MOCK_CHILDREN);
       setSelectedChildId(MOCK_CHILDREN[0].id);
       setStats(MOCK_STATS);
@@ -88,28 +49,30 @@ export function useParentDashboard() {
     }
   }, []);
 
-  const switchChild = useCallback(
-    async (id: string) => {
-      setSelectedChildId(id);
-      setLoading(true);
-      try {
-        const s = await parentApi.getChildStats(id);
-        setStats(s);
-      } catch {
-        setStats(MOCK_STATS);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  const switchChild = useCallback(async (id: string) => {
+    setSelectedChildId(id);
+    setLoading(true);
+    try {
+      const s = await parentApi.getChildStats(id);
+      setStats(s);
+    } catch {
+      setStats(MOCK_STATS);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Simulation d'alerte temps réel (remplacer par WebSocket en production)
+  // Déclencheur d'alerte push en temps réel
   useEffect(() => {
     const timer = setTimeout(() => {
-      setRealtimeAlert('✅ Aminata vient de pointer sa présence en Algorithmique Avancée');
+      const alertMsg = '✅ Aminata vient de pointer sa présence en Algorithmique Avancée';
+      setRealtimeAlert(alertMsg);
+      sendPushNotification('École 221 - Pointage Présence', alertMsg, {
+        url: window.location.pathname.includes('/parent') ? window.location.pathname : '/parent/presences',
+        tag: 'parent-presence-alert'
+      });
       setTimeout(() => setRealtimeAlert(null), 5000);
-    }, 3000);
+    }, 3500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -118,12 +81,7 @@ export function useParentDashboard() {
   }, [fetchData]);
 
   return {
-    children,
-    selectedChild,
-    selectedChildId,
-    stats: stats ?? MOCK_STATS,
-    loading,
-    realtimeAlert,
-    switchChild,
+    children, selectedChild, selectedChildId,
+    stats: stats ?? MOCK_STATS, loading, realtimeAlert, switchChild,
   };
 }

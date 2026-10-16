@@ -23,8 +23,9 @@ import { useTenantStore } from '@/core/store/tenantStore';
 
 export function AdminPage() {
   const navigate = useNavigate();
-  const { deconnexion } = useAuthStore();
+  const { deconnexion, utilisateur, originalSuperAdminRole, leaveSchoolAdmin } = useAuthStore();
   const { currentTenant } = useTenantStore();
+  const isSuperAdmin = utilisateur?.role === 'SUPER_ADMIN' || utilisateur?.role === 'PLATFORM_OWNER' || !!originalSuperAdminRole;
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tenant, setTenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -74,6 +75,23 @@ export function AdminPage() {
       )}
 
       <div className={`flex-grow min-w-0 w-full overflow-x-hidden transition-all duration-300 bg-neutral-50 min-h-screen flex flex-col pb-20 ${leftMarginClass}`}>
+        {isSuperAdmin && (
+          <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border-b border-purple-500/30 px-6 py-2 flex items-center justify-between text-xs text-white sticky top-0 z-40">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="font-bold">Super Admin :</span>
+              <span className="text-purple-200">Gestion de l'établissement <strong className="text-white">"{schoolName}"</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate(currentTenant?.slug ? `/t/${currentTenant.slug}/admin/branding` : '/admin/branding')} className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[11px] font-bold cursor-pointer">
+                🎨 Charte Graphique
+              </button>
+              <button onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }} className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded-lg text-[11px] font-bold cursor-pointer">
+                ← Quitter l'école (Retour Super Admin)
+              </button>
+            </div>
+          </div>
+        )}
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-neutral-200 px-6 h-16 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
             <span translate="no" className="material-symbols-outlined text-xl" style={{ color: primaryColor }}>school</span>

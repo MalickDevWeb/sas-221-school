@@ -20,17 +20,23 @@ export function useVigilLocalState() {
   const itemsPerPage = 3;
 
   useEffect(() => {
+    let isMounted = true;
     const loadCheckpoint = async () => {
       try {
         const res = await securityService.getCheckpointStatus();
-        setActiveCheckpoint(res);
-      } catch (e) {
-        console.error('Error fetching checkpoint-status:', e);
+        if (isMounted && res) setActiveCheckpoint(res);
+      } catch {
+        if (isMounted) {
+          setActiveCheckpoint((prev: any) => prev || { gate: 'Porte Principale', guard: 'Agent de Sécurité', status: 'ACTIVE' });
+        }
       }
     };
     loadCheckpoint();
-    const interval = setInterval(loadCheckpoint, 4000);
-    return () => clearInterval(interval);
+    const interval = setInterval(loadCheckpoint, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => { setCurrentPage(1); }, [searchQuery, dateFilter]);

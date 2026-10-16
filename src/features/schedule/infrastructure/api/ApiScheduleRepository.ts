@@ -10,7 +10,11 @@ export class ApiScheduleRepository implements ScheduleRepository {
   }
 
   async getWeeklySchedule(): Promise<CourseSession[]> {
-    const { data } = await apiClient.get<CourseSession[]>(this.baseUrl);
-    return data;
+    try {
+      const { data } = await apiClient.get<CourseSession[]>(this.baseUrl);
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
   }
 }
