@@ -64,6 +64,11 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
       step: 'new',
       docs: { idCard: Boolean(docs.idCard), diploma: Boolean(docs.diploma), transcripts: Boolean(docs.transcripts) },
       registrationFeePaid: payment.isPaid,
+      details: {
+        cniNumber: personal.cniNumber,
+        cniUrl: docs.idCard?.url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+        cniStatus: 'pending'
+      },
       notifications: [
         { id: `not-${Date.now()}`, type: 'creation_compte', message: `Dossier #${candId} déposé pour ${academic.targetFiliere}.`, sentAt: new Date().toISOString() }
       ]

@@ -60,6 +60,14 @@ export interface CandidateDetails {
   unpaidDues?: number;
   sanctionsCount?: number;
   
+  // Pièce d'identité (CNI / Passeport)
+  cniNumber?: string;
+  cniUrl?: string;
+  cniBackUrl?: string;
+  cniStatus?: 'pending' | 'valid' | 'rejected';
+  cniRejectReason?: string;
+  cniVerifiedAt?: string;
+
   // International
   passportNumber?: string;
   visaStatus?: string;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsTypes';
 import { AdmissionType } from '@/features/admin/domain/AdmissionsExtendedModels';
+import { CampaignDocSelector } from './CampaignDocSelector';
 
 interface Props {
   campaign: Partial<Campaign> | null;
@@ -17,7 +18,8 @@ export function CampaignEditModal({ campaign, onSave, onClose }: Props) {
   const [fees, setFees] = useState(campaign?.fees || 25000);
   const [level, setLevel] = useState(campaign?.level || 'Licence 1');
   const [intake, setIntake] = useState(campaign?.intake || 'Octobre 2026');
-  const [imageUrl, setImageUrl] = useState(campaign?.imageUrl || 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80');
+  const [imageUrl] = useState(campaign?.imageUrl || 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80');
+  const [requiredDocs, setRequiredDocs] = useState<string[]>(campaign?.requiredDocs || ['CNI', 'BAC_DIPLOME', 'RELEVES_NOTES']);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +34,7 @@ export function CampaignEditModal({ campaign, onSave, onClose }: Props) {
       level,
       intake,
       imageUrl,
+      requiredDocs,
       requirements: campaign?.requirements || ['Baccalauréat ou diplôme équivalent', 'Dossier académique complet']
     };
     onSave(finalCamp);
@@ -39,7 +42,7 @@ export function CampaignEditModal({ campaign, onSave, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-fade-in border border-neutral-100">
+      <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-fade-in border border-neutral-100 max-h-[92vh] overflow-y-auto">
         <div className="flex justify-between items-center border-b border-neutral-100 pb-3">
           <div>
             <h3 className="font-black text-sm text-neutral-900">{isNew ? 'Créer une Session d’Inscription' : 'Modifier la Session'}</h3>
@@ -92,6 +95,8 @@ export function CampaignEditModal({ campaign, onSave, onClose }: Props) {
               <input type="text" placeholder="Ex: Octobre 2026" value={intake} onChange={e => setIntake(e.target.value)} className="w-full h-10 px-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none font-bold text-neutral-800" />
             </div>
           </div>
+
+          <CampaignDocSelector selectedDocs={requiredDocs} onChange={setRequiredDocs} />
 
           <div className="pt-2 border-t border-neutral-100 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl font-black uppercase text-[10px] cursor-pointer">Annuler</button>

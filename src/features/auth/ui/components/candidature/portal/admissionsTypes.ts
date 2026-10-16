@@ -12,6 +12,7 @@ export interface Campaign {
   level?: string;
   duration?: string;
   intake?: string;
+  requiredDocs?: string[];
 }
 
 export interface AuditLog {
@@ -67,6 +68,7 @@ export interface UploadedDocInfo {
   size: string;
   uploadedAt: string;
   status: 'ready' | 'uploaded';
+  url?: string;
 }
 
 export interface DocumentsState {

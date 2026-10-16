@@ -6,6 +6,7 @@ import { CandidateAlertsPanel } from './CandidateAlertsPanel';
 import { NotificationPanel } from './NotificationPanel';
 import { CandidateDetailsSection } from './CandidateDetailsSection';
 import { CandidateWorkflowPanel } from './CandidateWorkflowPanel';
+import { CandidateCniViewer } from './CandidateCniViewer';
 
 interface Props {
   candidate: ExtendedCandidate;
@@ -41,6 +42,7 @@ export function CandidateDetailModal({ candidate, onClose, onUpdateCandidate }: 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-3">
+            <CandidateCniViewer candidate={candidate} onUpdateCandidate={onUpdateCandidate} />
             <CandidateDetailsSection candidate={candidate} />
             <CandidateAlertsPanel candidate={candidate} />
           </div>
