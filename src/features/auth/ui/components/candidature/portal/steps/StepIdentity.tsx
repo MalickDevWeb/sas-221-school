@@ -9,7 +9,9 @@ interface Props {
 }
 
 export function StepIdentity({ personal, setPersonal, onNext }: Props) {
-  const isComplete = personal.firstName && personal.lastName && personal.phone && personal.email && personal.cniNumber;
+  const isComplete = Boolean(
+    personal.firstName && personal.lastName && personal.phone && personal.email && personal.cniNumber
+  );
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
@@ -21,11 +23,11 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Prénom(s) *</label>
-          <input required type="text" placeholder="Ex: Moussa" value={personal.firstName} onChange={e => setPersonal(p => ({ ...p, firstName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <input required type="text" placeholder="Ex: Moussa" value={personal.firstName} onChange={e => setPersonal(p => ({ ...p, firstName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Nom de famille *</label>
-          <input required type="text" placeholder="Ex: Diop" value={personal.lastName} onChange={e => setPersonal(p => ({ ...p, lastName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <input required type="text" placeholder="Ex: Diop" value={personal.lastName} onChange={e => setPersonal(p => ({ ...p, lastName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
         </div>
       </div>
 
@@ -34,7 +36,7 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Genre</label>
           <div className="flex gap-2">
             {(['M', 'F'] as const).map(g => (
-              <button key={g} type="button" onClick={() => setPersonal(p => ({ ...p, gender: g }))} className={`flex-1 h-11 rounded-xl text-xs font-black transition-all border ${personal.gender === g ? 'bg-primary text-white border-primary shadow-xs' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'}`}>
+              <button key={g} type="button" onClick={() => setPersonal(p => ({ ...p, gender: g }))} className={`flex-1 h-11 rounded-xl text-xs font-black transition-all border cursor-pointer ${personal.gender === g ? 'bg-primary text-white border-primary shadow-xs' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'}`}>
                 {g === 'M' ? 'Masculin' : 'Féminin'}
               </button>
             ))}
@@ -42,36 +44,39 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Date de naissance</label>
-          <input type="date" value={personal.birthDate} onChange={e => setPersonal(p => ({ ...p, birthDate: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
+          <input type="date" value={personal.birthDate} onChange={e => setPersonal(p => ({ ...p, birthDate: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Lieu de naissance</label>
-          <input type="text" placeholder="Ex: Dakar" value={personal.birthPlace} onChange={e => setPersonal(p => ({ ...p, birthPlace: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
+          <input type="text" placeholder="Ex: Dakar" value={personal.birthPlace} onChange={e => setPersonal(p => ({ ...p, birthPlace: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Téléphone & WhatsApp *</label>
-          <div className="relative">
-            <span className="absolute left-3 top-3 text-emerald-600 text-[11px] font-extrabold">🇸🇳 +221</span>
-            <input required type="tel" placeholder="77 123 45 67" value={personal.phone} onChange={e => setPersonal(p => ({ ...p, phone: e.target.value }))} className="w-full h-11 pl-18 pr-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 focus-within:border-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 transition-all overflow-hidden h-11">
+            <div className="flex items-center gap-1.5 px-3 bg-neutral-100/80 border-r border-neutral-200 text-neutral-700 text-xs font-bold select-none shrink-0">
+              <span className="text-sm">🇸🇳</span>
+              <span className="font-mono font-bold text-neutral-800">+221</span>
+            </div>
+            <input required type="tel" placeholder="77 123 45 67" value={personal.phone} onChange={e => setPersonal(p => ({ ...p, phone: e.target.value }))} className="w-full h-full px-3.5 bg-transparent text-xs font-semibold text-neutral-800 placeholder-neutral-400 outline-none" />
           </div>
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Email personnel *</label>
-          <input required type="email" placeholder="moussa.diop@gmail.com" value={personal.email} onChange={e => setPersonal(p => ({ ...p, email: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <input required type="email" placeholder="moussa.diop@gmail.com" value={personal.email} onChange={e => setPersonal(p => ({ ...p, email: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">N° CNI (NIN) ou Passeport *</label>
-          <input required type="text" placeholder="Ex: 1 751 2005 02841" value={personal.cniNumber} onChange={e => setPersonal(p => ({ ...p, cniNumber: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold font-mono text-neutral-800 outline-none" />
+          <input required type="text" placeholder="Ex: 1 751 2005 02841" value={personal.cniNumber} onChange={e => setPersonal(p => ({ ...p, cniNumber: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold font-mono text-neutral-800 outline-none" />
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Ville & Quartier de résidence</label>
-          <input type="text" placeholder="Ex: Sacré-Cœur 3, Dakar" value={personal.address} onChange={e => setPersonal(p => ({ ...p, address: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
+          <input type="text" placeholder="Ex: Sacré-Cœur 3, Dakar" value={personal.address} onChange={e => setPersonal(p => ({ ...p, address: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
         </div>
       </div>
 
@@ -84,4 +89,3 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
     </motion.div>
   );
 }
-

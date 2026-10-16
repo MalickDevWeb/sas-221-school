@@ -44,9 +44,12 @@ export function StepGuardian({ guardian, setGuardian, onNext, onPrev }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Téléphone portable du garant *</label>
-          <div className="relative">
-            <span className="absolute left-3 top-3 text-emerald-600 text-[11px] font-extrabold">🇸🇳 +221</span>
-            <input required type="tel" placeholder="77 654 32 10" value={guardian.phone} onChange={e => setGuardian(g => ({ ...g, phone: e.target.value }))} className="w-full h-11 pl-18 pr-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 focus-within:border-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 transition-all overflow-hidden h-11">
+            <div className="flex items-center gap-1.5 px-3 bg-neutral-100/80 border-r border-neutral-200 text-neutral-700 text-xs font-bold select-none shrink-0">
+              <span className="text-sm">🇸🇳</span>
+              <span className="font-mono font-bold text-neutral-800">+221</span>
+            </div>
+            <input required type="tel" placeholder="77 654 32 10" value={guardian.phone} onChange={e => setGuardian(g => ({ ...g, phone: e.target.value }))} className="w-full h-full px-3.5 bg-transparent text-xs font-semibold text-neutral-800 placeholder-neutral-400 outline-none" />
           </div>
         </div>
         <div>
