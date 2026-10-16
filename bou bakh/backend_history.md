@@ -5,11 +5,12 @@
 ---
 
 ## Statut actuel
-- **Dernière mise à jour** : 2026-10-16 12:05
-- **Objectif en cours** : Isolation Multi-Tenant du Personnel RH & Rattachement non-destructif des Collaborateurs
+- **Dernière mise à jour** : 2026-10-16 12:28
+- **Objectif en cours** : Nettoyage intégral des écoles de test — Conservation unique d'École 221 (/ecole-221)
 - **Statut** : TERMINÉ ✅
 
 ## Changements récents
+- [2026-10-16] Nettoyage complet de la base PostgreSQL : suppression définitive (Hard Delete) des 27 écoles de test créées lors des essais, ainsi que des 26 comptes utilisateurs synthétiques associés. Seul l'établissement officiel **École 221** (`id: default-tenant-id`, `slug: ecole-221`, `status: ACTIVE`) est conservé.
 - [2026-10-16] `AdminStaffService.java` — Service applicatif dédié (117 lignes, R9 validé) assurant l'isolation stricte des membres du personnel selon le tenant (`TenantContext.getCurrentOrganization()`). Récupération ciblée via `organization_users` + comptes du domaine institutionnel (`@<slug>.sn`).
 - [2026-10-16] `AdminStaffService.java` — Gestion sécurisée des doublons d'email : si un utilisateur existe déjà dans PostgreSQL (`users`), mise à jour de son profil et rattachement immédiat dans `organization_users` sans échec de contrainte `utilisateurs_email_key` ni erreur 500.
 - [2026-10-16] `AdminController.java` — Refactorisation des endpoints `/admin/staff` (GET et POST) pour déléguer à `AdminStaffService`.
