@@ -4,6 +4,7 @@ import {
   PersonalDetails, GuardianDetails, AcademicDetails, DocumentsState, PaymentDetails
 } from './admissionsDb';
 import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
 
 export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: ExtendedCandidate) => void) {
   const [step, setStep] = useState(1);
@@ -21,6 +22,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     targetFiliere: campaign.title, intakeSession: campaign.intake || 'Octobre 2026'
   });
   const [docs, setDocs] = useState<DocumentsState>({ idCard: null, diploma: null, transcripts: null, photo: null });
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [payment, setPayment] = useState<PaymentDetails>({
     method: 'WAVE', isPaid: false, transactionRef: '', amount: campaign.fees || 25000
   });
@@ -28,15 +30,24 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const uploadDoc = async (key: keyof DocumentsState, file: File) => {
+    setUploadingDoc(key);
+    try {
+      const url = await uploadToCloudinary(file);
+      const sizeStr = file.size > 1048576 ? `${(file.size / 1048576).toFixed(1)} Mo` : `${Math.round(file.size / 1024)} Ko`;
+      setDocs(prev => ({ ...prev, [key]: { name: file.name, size: sizeStr, uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
   const simulateDocUpload = (key: keyof DocumentsState, label: string) => {
-    setDocs((prev: DocumentsState) => ({
-      ...prev,
-      [key]: { name: `${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}_2026.pdf`, size: '1.4 Mo', uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded' }
-    }));
+    const url = key === 'idCard' ? 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80' : 'https://res.cloudinary.com/demo/image/upload/v1570979139/sample.jpg';
+    setDocs(prev => ({ ...prev, [key]: { name: `${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}_2026.pdf`, size: '1.4 Mo', uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
   };
 
   const removeDoc = (key: keyof DocumentsState) => {
-    setDocs((prev: DocumentsState) => ({ ...prev, [key]: null }));
+    setDocs(prev => ({ ...prev, [key]: null }));
   };
 
   const simulatePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD') => {
@@ -104,7 +115,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
 
   return {
     step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, simulateDocUpload, removeDoc,
+    academic, setAcademic, docs, uploadDoc, uploadingDoc, simulateDocUpload, removeDoc,
     payment, simulatePayment, credentials, setCredentials,
     error, setError, isSubmitting, handleFinalSubmit
   };

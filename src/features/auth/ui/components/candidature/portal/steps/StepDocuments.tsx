@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'motion/react';
 import { DocumentsState } from '../admissionsTypes';
 
 interface Props {
   docs: DocumentsState;
+  uploadDoc: (key: keyof DocumentsState, file: File) => Promise<void>;
+  uploadingDoc?: string | null;
   simulateDocUpload: (key: keyof DocumentsState, label: string) => void;
   removeDoc: (key: keyof DocumentsState) => void;
   onNext: () => void;
   onPrev: () => void;
 }
 
-export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPrev }: Props) {
+export function StepDocuments({ docs, uploadDoc, uploadingDoc, simulateDocUpload, removeDoc, onNext, onPrev }: Props) {
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
   const docList = [
     { key: 'idCard' as const, label: "Carte Nationale d'Identité (Recto/Verso) ou Passeport", required: true, icon: 'badge' },
     { key: 'diploma' as const, label: 'Attestation de Réussite ou Diplôme du Baccalauréat', required: true, icon: 'school' },
@@ -21,12 +25,17 @@ export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPr
   const uploadedCount = Object.values(docs).filter(Boolean).length;
   const progressPercent = Math.round((uploadedCount / docList.length) * 100);
 
+  const handleFileChange = (key: keyof DocumentsState, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) void uploadDoc(key, file);
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div>
           <h3 className="text-base font-black text-neutral-900 tracking-tight">4. Dépôt des Pièces Justificatives</h3>
-          <p className="text-xs text-neutral-500 font-medium">Formats acceptés : PDF, PNG, JPG (maximum 5 Mo par fichier).</p>
+          <p className="text-xs text-neutral-500 font-medium">Formats acceptés : PDF, PNG, JPG (stockage certifié Cloudinary).</p>
         </div>
         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
           <span translate="no" className="material-symbols-outlined text-emerald-600 text-sm">cloud_done</span>
@@ -37,18 +46,25 @@ export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPr
       <div className="space-y-2.5">
         {docList.map(item => {
           const doc = docs[item.key];
+          const isUploading = uploadingDoc === item.key;
           return (
             <div key={item.key} className={`p-3 rounded-2xl border transition-all ${doc ? 'bg-emerald-50/40 border-emerald-300' : 'bg-neutral-50/70 border-neutral-200 hover:border-neutral-300'}`}>
+              <input ref={el => { fileInputRefs.current[item.key] = el; }} type="file" accept="image/*,application/pdf" className="hidden" onChange={e => handleFileChange(item.key, e)} />
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${doc ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600'}`}>
-                    <span translate="no" className="material-symbols-outlined text-base">{doc ? 'check_circle' : item.icon}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${doc ? 'bg-emerald-600 text-white' : isUploading ? 'bg-primary text-white animate-pulse' : 'bg-neutral-200 text-neutral-600'}`}>
+                    <span translate="no" className="material-symbols-outlined text-base">{doc ? 'check_circle' : isUploading ? 'cloud_upload' : item.icon}</span>
                   </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-neutral-800 leading-snug">{item.label}</h5>
-                    {doc ? (
-                      <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1.5 mt-0.5">
-                        <span className="font-mono">{doc.name}</span> · {doc.size} · Validé ✓
+                  <div className="min-w-0">
+                    <h5 className="text-xs font-bold text-neutral-800 leading-snug truncate">{item.label}</h5>
+                    {isUploading ? (
+                      <span className="text-[10px] text-primary font-bold flex items-center gap-1 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                        <span>Téléversement Cloudinary en cours...</span>
+                      </span>
+                    ) : doc ? (
+                      <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1.5 mt-0.5 truncate">
+                        <span className="font-mono truncate">{doc.name}</span> · {doc.size} · Cloudinary ☁️ ✓
                       </span>
                     ) : (
                       <span className="text-[10px] text-neutral-400 font-medium">{item.required ? 'Obligatoire' : 'Facultatif'}</span>
@@ -56,16 +72,30 @@ export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPr
                   </div>
                 </div>
 
-                {doc ? (
-                  <button type="button" onClick={() => removeDoc(item.key)} className="px-2.5 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer">
-                    Remplacer
-                  </button>
-                ) : (
-                  <button type="button" onClick={() => simulateDocUpload(item.key, item.label)} className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
-                    <span translate="no" className="material-symbols-outlined text-xs">upload_file</span>
-                    <span>Téléverser</span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {doc ? (
+                    <>
+                      {doc.url && (
+                        <a href={doc.url} target="_blank" rel="noreferrer" className="px-2 py-1 text-[10px] font-bold text-neutral-600 hover:bg-neutral-100 rounded-lg">
+                          Voir
+                        </a>
+                      )}
+                      <button type="button" onClick={() => removeDoc(item.key)} className="px-2 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer">
+                        Remplacer
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <button disabled={isUploading} type="button" onClick={() => fileInputRefs.current[item.key]?.click()} className="px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
+                        <span translate="no" className="material-symbols-outlined text-xs">upload_file</span>
+                        <span>{isUploading ? 'Envoi...' : 'Téléverser'}</span>
+                      </button>
+                      <button type="button" title="Simulation rapide" onClick={() => simulateDocUpload(item.key, item.label)} className="p-1.5 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 cursor-pointer">
+                        <span translate="no" className="material-symbols-outlined text-xs">magic_button</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -85,4 +115,3 @@ export function StepDocuments({ docs, simulateDocUpload, removeDoc, onNext, onPr
     </motion.div>
   );
 }
-
