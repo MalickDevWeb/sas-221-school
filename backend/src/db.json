@@ -3746,6 +3746,10 @@
       "date": "Lundi 20 Juillet",
       "time": "10h - 12h",
       "restrictToGoogleAccount": true
+    },
+    {
+      "id": "meet-1785417435647",
+      "time": "14h00 - 16h00"
     }
   ],
   "adminMeetings": [
@@ -3789,6 +3793,39 @@
         "Classification d'imagerie médicale"
       ],
       "classId": "p-1"
+    },
+    {
+      "id": "group-1785417419718-0",
+      "name": "Projet Annuel 1",
+      "description": "Groupe équilibré automatiquement par critère : gpa",
+      "creationDate": "30/07/2026",
+      "classId": "L3-INFO",
+      "members": [],
+      "projects": [],
+      "leaderId": "",
+      "leaderName": ""
+    },
+    {
+      "id": "group-1785417419771-1",
+      "name": "Projet Annuel 2",
+      "description": "Groupe équilibré automatiquement par critère : gpa",
+      "creationDate": "30/07/2026",
+      "classId": "L3-INFO",
+      "members": [],
+      "projects": [],
+      "leaderId": "",
+      "leaderName": ""
+    },
+    {
+      "id": "group-1785417419771-2",
+      "name": "Projet Annuel 3",
+      "description": "Groupe équilibré automatiquement par critère : gpa",
+      "creationDate": "30/07/2026",
+      "classId": "L3-INFO",
+      "members": [],
+      "projects": [],
+      "leaderId": "",
+      "leaderName": ""
     }
   ],
   "collabMessages": [

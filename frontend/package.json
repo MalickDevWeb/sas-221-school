@@ -15,6 +15,7 @@
   "dependencies": {
     "@google/genai": "^2.10.0",
     "@iconify/react": "^6.0.2",
+    "@stomp/stompjs": "^7.3.0",
     "@tanstack/react-query": "^5.101.0",
     "axios": "^1.18.0",
     "firebase": "^12.15.0",
@@ -29,6 +30,7 @@
     "react-is": "^19.2.7",
     "react-router-dom": "^7.18.0",
     "recharts": "^3.8.1",
+    "sockjs-client": "^1.6.1",
     "sonner": "^2.0.7",
     "zustand": "^5.0.14"
   },
@@ -42,6 +44,7 @@
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.5.0",
     "babel-plugin-react-compiler": "^1.0.0",

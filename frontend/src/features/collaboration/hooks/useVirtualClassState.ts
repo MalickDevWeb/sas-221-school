@@ -92,7 +92,11 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       participationScore: Math.floor(Math.random() * 5) + 1,
       isAuthorizedAccount: isAuthorized,
     };
-    await saveAttendance(newAttendance);
+    try {
+      await saveAttendance(newAttendance);
+    } catch (e) {
+      console.error('Attendance API not ready yet:', e);
+    }
   }, []);
 
   return { meets, adminMeets, attendances, createVirtualClass, createAdminMeeting, recordAttendance };

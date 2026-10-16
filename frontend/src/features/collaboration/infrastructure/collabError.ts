@@ -1,5 +1,3 @@
-import { auth } from '@/core/firebase/firebase';
-
 export const OperationType = {
   CREATE: 'create',
   UPDATE: 'update',
@@ -11,40 +9,27 @@ export const OperationType = {
 
 export type OperationType = typeof OperationType[keyof typeof OperationType];
 
-export interface FirestoreErrorInfo {
+export interface ApiErrorInfo {
   error: string;
   operationType: OperationType;
   path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-  };
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
   const errMsg = error instanceof Error ? error.message : String(error);
-  const isPermissionError = errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient');
+  const isPermissionError = errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient') || errMsg.toLowerCase().includes('401') || errMsg.toLowerCase().includes('403');
 
-  const errInfo: FirestoreErrorInfo = {
+  const errInfo: ApiErrorInfo = {
     error: errMsg,
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-    },
     operationType,
     path,
   };
 
   if (isPermissionError) {
-    console.warn(`[Firestore Offline Fallback] ${operationType} on ${path} failed due to permissions. Local workspace cache is active:`, errMsg);
+    console.warn(`[API Fallback] ${operationType} on ${path} failed due to permissions. Local cache is active:`, errMsg);
   } else {
-    console.error('Firestore Error: ', JSON.stringify(errInfo));
+    console.error('[API Error]: ', JSON.stringify(errInfo));
   }
   throw new Error(JSON.stringify(errInfo));
 }
+

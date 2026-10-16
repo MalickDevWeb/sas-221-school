@@ -5,6 +5,9 @@ export const ROUTES = {
   admin: {
     dashboard: '/admin',
   },
+  superadmin: {
+    dashboard: '/superadmin',
+  },
   student: {
     dashboard: '/etudiant',
     cours:     '/etudiant/cours',
@@ -21,5 +24,17 @@ export const ROUTES = {
   },
   professor: {
     dashboard: '/professeur',
-  }
+  },
+  parent: {
+    dashboard:      '/parent',
+    planning:       '/parent/planning',
+    presences:      '/parent/presences',
+    notes:          '/parent/notes',
+    messages:       '/parent/messages',
+    inscrireEnfant: '/parent/inscrire-enfant',
+    suiviDossiers:  '/parent/suivi-dossiers',
+    paiements:      '/parent/paiements',
+    profil:         '/parent/profil',
+  },
 } as const;
+

@@ -35,14 +35,17 @@ export class ApiAuthRepository implements AuthRepository {
     }
 
     try {
-      const { data } = await this.http.post('/auth/login', { email, password: motDePasse });
+      const { data } = await this.http.post('/auth/login-token', { email, password: motDePasse });
+      
+      const role = typeof data.role === 'object' && data.role !== null ? data.role.value : data.role;
+      
       const result = {
         utilisateur: {
-          id: data.user.id,
-          nom: data.user.nom,
-          prenom: data.user.prenom,
-          email: data.user.email,
-          role: data.user.role,
+          id: data.id,
+          nom: data.nom,
+          prenom: data.prenom,
+          email: data.email,
+          role: role,
         },
         token: data.token,
       };

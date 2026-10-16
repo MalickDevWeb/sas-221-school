@@ -15,6 +15,7 @@ import { AdminFinanceDashboard } from '../ui/components/AdminFinanceDashboard';
 import { AdminNotificationsHub } from '../ui/components/AdminNotificationsHub';
 import { AdminPredictiveAIEngine } from '../ui/components/AdminPredictiveAIEngine';
 import { AdminSecurityAuditTrail } from '../ui/components/AdminSecurityAuditTrail';
+import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
 
@@ -35,17 +36,18 @@ export function AdminPage() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <AdminCEODashboard currency={tenant.currency} />;
-      case 'school': return <AdminSchoolManager />;
-      case 'schedule': return <AdminGlobalScheduler />;
-      case 'personnel': return <AdminPersonnelRH />;
-      case 'students': return <AdminStudentManager />;
-      case 'admissions': return <AdminAdmissionsKanban />;
-      case 'finances': return <AdminFinanceDashboard />;
+      case 'dashboard':     return <AdminCEODashboard currency={tenant.currency} />;
+      case 'school':        return <AdminSchoolManager />;
+      case 'schedule':      return <AdminGlobalScheduler />;
+      case 'personnel':     return <AdminPersonnelRH />;
+      case 'students':      return <AdminStudentManager />;
+      case 'admissions':    return <AdminAdmissionsKanban />;
+      case 'finances':      return <AdminFinanceDashboard />;
+      case 'collaboration': return <CollaborationPage />;
       case 'notifications': return <AdminNotificationsHub />;
-      case 'ai': return <AdminPredictiveAIEngine />;
-      case 'security': return <AdminSecurityAuditTrail />;
-      default: return <AdminCEODashboard currency={tenant.currency} />;
+      case 'ai':            return <AdminPredictiveAIEngine />;
+      case 'security':      return <AdminSecurityAuditTrail />;
+      default:              return <AdminCEODashboard currency={tenant.currency} />;
     }
   };
 

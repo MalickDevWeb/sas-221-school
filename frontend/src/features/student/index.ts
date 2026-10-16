@@ -5,3 +5,4 @@ export { StudentHomeworksPage } from '../homeworks/ui/pages/StudentHomeworksPage
 export { StudentSchedulePage } from '../schedule/ui/pages/StudentSchedulePage';
 export { StudentGradesPage } from '../grades/ui/pages/StudentGradesPage';
 export { StudentTutorPage } from './ui/pages/StudentTutorPage';
+export * from './api';

@@ -1,0 +1,25 @@
+--- ecole/src/main/java/ecole_221/sn/ecole/modules/superadmin/application/service/TenantService.java
++++ ecole/src/main/java/ecole_221/sn/ecole/modules/superadmin/application/service/TenantService.java
+@@ -60,7 +60,11 @@
+     public TenantDto createTenant(CreateTenantCommand command) {
+         // 1. Vérifier l'unicité email de l'établissement
+         if (organizationRepositoryPort.existsByEmail(command.email())) {
+-            throw new TenantEmailAlreadyExistsException(command.email());
++            throw new IllegalArgumentException("L'email de l'établissement (" + command.email() + ") est déjà enregistré.");
++        }
++        
++        if (userRepositoryPort.findByEmail(command.adminEmail()).isPresent()) {
++            throw new IllegalArgumentException("L'email de l'administrateur (" + command.adminEmail() + ") est déjà enregistré.");
+         }
+ 
+         // 2. Créer l'établissement (statut PENDING par défaut)
+@@ -107,7 +111,7 @@
+         if (command.email() != null) {
+             // Vérifie unicité seulement si l'email change
+             if (!command.email().equals(org.getEmail())
+                     && organizationRepositoryPort.existsByEmail(command.email())) {
+-                throw new TenantEmailAlreadyExistsException(command.email());
++                throw new IllegalArgumentException("L'email de l'établissement (" + command.email() + ") est déjà enregistré.");
+             }
+             org.setEmail(command.email());
+         }

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/core/store/authStore';
 
 import { LoginPage, CandidaturePage } from '@/features/auth';
 import { AdminPage } from '@/features/admin';
+import { SuperAdminPage } from '@/features/superadmin';
 import {
   StudentDashboardPage,
   StudentCoursesPage,
@@ -24,6 +25,20 @@ import {
 } from '@/features/vigil';
 import { ProfessorDashboardPage } from '@/features/professor';
 
+// ─── Module Parent ────────────────────────────────────────────
+import {
+  ParentLayout,
+  ParentDashboardPage,
+  ParentSchedulePage,
+  ParentGradesPage,
+  ParentAttendancePage,
+  ParentMessagesPage,
+  ParentEnrollChildPage,
+  ParentProfilePage,
+  ParentApplicationTrackingPage,
+  ParentPaymentsPage,
+} from '@/features/parent';
+
 import { useDeviceInitializer } from '@/features/screenguard/hooks/useDeviceInitializer';
 import { GatekeeperModal } from '@/features/screenguard/ui/components/GatekeeperModal';
 import { OfflineSyncToast } from '@/shared/components/OfflineSyncToast';
@@ -33,7 +48,10 @@ const PageSkeleton = () => <div className="p-8 text-center text-gray-500 font-bo
 
 const DashboardRedirect = () => {
   const { utilisateur } = useAuthStore();
-  if (utilisateur?.role === ROLE_UTILISATEUR.ADMIN || utilisateur?.role === ROLE_UTILISATEUR.SUPER_ADMIN) {
+  if (utilisateur?.role === ROLE_UTILISATEUR.SUPER_ADMIN) {
+    return <Navigate to={ROUTES.superadmin.dashboard} replace />;
+  }
+  if (utilisateur?.role === ROLE_UTILISATEUR.ADMIN) {
     return <Navigate to={ROUTES.admin.dashboard} replace />;
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.VIGIL) {
@@ -41,6 +59,9 @@ const DashboardRedirect = () => {
   }
   if (utilisateur?.role === ROLE_UTILISATEUR.PROFESSEUR) {
     return <Navigate to={ROUTES.professor.dashboard} replace />;
+  }
+  if (utilisateur?.role === ROLE_UTILISATEUR.PARENT) {
+    return <Navigate to={ROUTES.parent.dashboard} replace />;
   }
   return <Navigate to={ROUTES.student.dashboard} replace />;
 };
@@ -60,8 +81,12 @@ export function AppRouter() {
 
           <Route path={ROUTES.dashboard} element={<DashboardRedirect />} />
 
-          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
+          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN]} />}>
             <Route path={ROUTES.admin.dashboard} element={<AdminPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.SUPER_ADMIN]} />}>
+            <Route path={ROUTES.superadmin.dashboard} element={<SuperAdminPage />} />
           </Route>
 
           <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ETUDIANT, ROLE_UTILISATEUR.PROFESSEUR, ROLE_UTILISATEUR.SECRETAIRE, ROLE_UTILISATEUR.VIGIL, ROLE_UTILISATEUR.VISITEUR]} />}>
@@ -89,6 +114,21 @@ export function AppRouter() {
 
           <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PROFESSEUR]} />}>
             <Route path={ROUTES.professor.dashboard} element={<ProfessorDashboardPage />} />
+          </Route>
+
+          {/* ─── Portail Parent ─── */}
+          <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.PARENT]} />}>
+            <Route element={<ParentLayout />}>
+              <Route path={ROUTES.parent.dashboard}       element={<ParentDashboardPage />} />
+              <Route path={ROUTES.parent.planning}        element={<ParentSchedulePage />} />
+              <Route path={ROUTES.parent.presences}       element={<ParentAttendancePage />} />
+              <Route path={ROUTES.parent.notes}           element={<ParentGradesPage />} />
+              <Route path={ROUTES.parent.messages}        element={<ParentMessagesPage />} />
+              <Route path={ROUTES.parent.inscrireEnfant}  element={<ParentEnrollChildPage />} />
+              <Route path={ROUTES.parent.suiviDossiers}   element={<ParentApplicationTrackingPage />} />
+              <Route path={ROUTES.parent.paiements}       element={<ParentPaymentsPage />} />
+              <Route path={ROUTES.parent.profil}          element={<ParentProfilePage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to={ROUTES.login} replace />} />

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getDashboardComplete, getActivities } from '../../../dashboard/infrastructure/api/dashboardService';
 
 interface Props { currency: string; }
-const ACTIVITIES = [
+
+const DEFAULT_ACTIVITIES = [
   { id: 1, text: 'Nouveau inscrit : Amadou Diallo (Master IA)', time: 'À l\'instant', type: 'inscription' },
   { id: 2, text: 'Paiement validé : Fatou Sow (221-MOBI)', time: 'Il y a 5 min', type: 'paiement' },
   { id: 3, text: 'Alerte : scan avec badge SUSPENDU', time: 'Il y a 14 min', type: 'securite' },
@@ -9,6 +11,48 @@ const ACTIVITIES = [
 ];
 
 export function AdminCEODashboard({ currency }: Props) {
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [activities, setActivities] = useState<any[]>(DEFAULT_ACTIVITIES);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [completeRes, activitiesRes] = await Promise.all([
+          getDashboardComplete().catch(() => null),
+          getActivities(5).catch(() => null)
+        ]);
+        
+        if (completeRes) setDashboardData(completeRes);
+        if (activitiesRes && Array.isArray(activitiesRes) && activitiesRes.length > 0) {
+           const mapped = activitiesRes.map((act: any) => ({
+             id: act.id || Math.random(),
+             text: act.description || `Action ${act.activityType}`,
+             time: act.timestamp ? new Date(act.timestamp).toLocaleTimeString() : 'Récent',
+             type: act.activityType?.toLowerCase() === 'auth' ? 'securite' : 'info'
+           }));
+           setActivities(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const recoveryRate = dashboardData?.kpis?.find?.((k: any) => k.name === 'Taux Recouvrement' || k.kpiKey === 'RECOVERY_RATE')?.value || '94.2';
+  const cashFlow = dashboardData?.kpis?.find?.((k: any) => k.name === 'Cash Flow' || k.kpiKey === 'CASH_FLOW')?.value || '14 850 000';
+  const ebitda = dashboardData?.kpis?.find?.((k: any) => k.name === 'EBITDA' || k.kpiKey === 'EBITDA')?.value || '64.8';
+  
+  const qrBlocked = dashboardData?.alerts?.filter?.((a: any) => a.isActive && (a.title?.includes('QR') || a.alertType === 'SECURITY'))?.length ?? 12;
+  const urgentTickets = dashboardData?.alerts?.filter?.((a: any) => a.isActive && (a.severity === 'HIGH' || a.severity === 'CRITICAL'))?.length ?? 3;
+
+  if (loading) {
+    return <div className="p-8 text-center text-xs font-bold text-neutral-500 animate-pulse tracking-widest uppercase">Synchronisation API...</div>;
+  }
+
   return (
     <div className="space-y-4" id="ceo-dashboard-root">
       {/* Weather & Logistics Alert Banner */}
@@ -29,7 +73,7 @@ export function AdminCEODashboard({ currency }: Props) {
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-0.5">
             <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Taux Recouvrement</span>
-            <h3 className="text-lg font-extrabold text-[#1E293B]">94.2%</h3>
+            <h3 className="text-lg font-extrabold text-[#1E293B]">{recoveryRate}%</h3>
             <span className="text-[9px] text-emerald-500 font-bold">▲ +2.4% vs mois dernier</span>
           </div>
           <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
@@ -37,23 +81,23 @@ export function AdminCEODashboard({ currency }: Props) {
               <circle cx="24" cy="24" r="20" stroke="#F1EFEF" strokeWidth="3" fill="transparent" />
               <circle cx="24" cy="24" r="20" stroke="#10B981" strokeWidth="3" fill="transparent" strokeDasharray={125} strokeDashoffset={10} />
             </svg>
-            <span className="absolute text-[9px] font-black">94%</span>
+            <span className="absolute text-[9px] font-black">{Math.round(Number(recoveryRate) || 94)}%</span>
           </div>
         </div>
 
         {/* Cash Flow */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm space-y-0.5">
           <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Cash Flow</span>
-          <h3 className="text-lg font-extrabold text-[#1E293B]">14 850 000 {currency}</h3>
+          <h3 className="text-lg font-extrabold text-[#1E293B]">{cashFlow} {currency}</h3>
           <p className="text-[9px] text-neutral-400 font-semibold">Solde disponible en temps réel</p>
         </div>
 
         {/* EBITDA */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm space-y-0.5">
           <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">EBITDA Opérationnel</span>
-          <h3 className="text-lg font-extrabold text-[#1E293B]">64.8%</h3>
+          <h3 className="text-lg font-extrabold text-[#1E293B]">{ebitda}%</h3>
           <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-[#B3181C] h-full rounded-full" style={{ width: '64.8%' }}></div>
+            <div className="bg-[#B3181C] h-full rounded-full" style={{ width: `${ebitda}%` }}></div>
           </div>
         </div>
 
@@ -61,11 +105,11 @@ export function AdminCEODashboard({ currency }: Props) {
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm flex flex-col justify-center gap-1">
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-neutral-500 text-[10px]">QR Suspendus</span>
-            <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-black">12 actifs</span>
+            <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-black">{qrBlocked} actifs</span>
           </div>
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-neutral-500 text-[10px]">Tickets ouverts</span>
-            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-black">3 urgents</span>
+            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-black">{urgentTickets} urgents</span>
           </div>
         </div>
       </div>
@@ -73,9 +117,11 @@ export function AdminCEODashboard({ currency }: Props) {
       {/* Real-time feed and map visual */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm lg:col-span-2 space-y-3">
-          <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Activité en Direct</h4>
+          <div className="flex justify-between items-center">
+            <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Activité en Direct (API)</h4>
+          </div>
           <div className="space-y-2">
-            {ACTIVITIES.map(act => (
+            {activities.map(act => (
               <div key={act.id} className="flex items-center gap-3 text-xs p-2 hover:bg-[#FAF8F6] rounded-xl transition-all border border-neutral-50">
                 <span translate="no" className="material-symbols-outlined text-[16px] p-1 bg-neutral-100 rounded text-neutral-600">
                   {act.type === 'inscription' ? 'person_add' : act.type === 'paiement' ? 'payments' : act.type === 'securite' ? 'gpp_maybe' : 'schedule'}
@@ -109,3 +155,4 @@ export function AdminCEODashboard({ currency }: Props) {
     </div>
   );
 }
+

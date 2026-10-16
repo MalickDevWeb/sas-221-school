@@ -83,10 +83,12 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
       <div className="mt-4 pt-3 border-t border-[#E2DCDA]/60 space-y-2">
         <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">Identifiants Rapides :</p>
         <div className="flex flex-wrap gap-1.5">
+          <button type="button" onClick={() => { setEmail('superadmin@gmail.com'); setPassword('superadmin123'); }} className="px-2.5 py-1 bg-violet-50 hover:bg-violet-100 text-violet-800 text-[9.5px] font-black rounded-lg border border-violet-200 transition-all cursor-pointer">Super Admin</button>
           <button type="button" onClick={() => { setEmail('admin221@gmail.com'); setPassword('ecole221'); }} className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-[9.5px] font-black rounded-lg border border-rose-200 transition-all cursor-pointer">Admin</button>
           <button type="button" onClick={() => { setEmail('etudiant221@gmail.com'); setPassword('ecole221'); }} className="px-2.5 py-1 bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] text-[9.5px] font-black rounded-lg border border-[#1E5E3A]/20 transition-all cursor-pointer">Étudiant</button>
           <button type="button" onClick={() => { setEmail('professeur221@gmail.com'); setPassword('ecole221'); }} className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[9.5px] font-black rounded-lg border border-blue-200 transition-all cursor-pointer">Prof</button>
           <button type="button" onClick={() => { setEmail('vigile221@gmail.com'); setPassword('ecole221'); }} className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[9.5px] font-black rounded-lg border border-amber-200 transition-all cursor-pointer">Vigile</button>
+          <button type="button" onClick={() => { setEmail('parent221@gmail.com'); setPassword('ecole221'); }} className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 text-[9.5px] font-black rounded-lg border border-purple-200 transition-all cursor-pointer">Parent</button>
         </div>
       </div>
     </form>

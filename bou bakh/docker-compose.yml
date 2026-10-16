@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./ecole
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      # You can override database variables here if needed
+      # - DATABASE_URL=jdbc:postgresql://...
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: "./frontend (Copie)"
+      dockerfile: Dockerfile
+    ports:
+      - "8082:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

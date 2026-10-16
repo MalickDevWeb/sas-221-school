@@ -7,6 +7,8 @@ export const ROLE_UTILISATEUR = {
   COMPTABLE:   'COMPTABLE',
   VIGIL:       'VIGIL',
   VISITEUR:    'VISITEUR',
+  PARENT:      'PARENT',
 } as const;
 
 export type RoleUtilisateur = typeof ROLE_UTILISATEUR[keyof typeof ROLE_UTILISATEUR];
+

@@ -6,7 +6,8 @@ import { COURS_CATALOGUE } from '../../ui/components/types';
 export class ApiCourseRepository implements CourseRepository {
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string = '/courses') {
+  // Correct backend path per README: GET /student/courses
+  constructor(baseUrl: string = '/student/courses') {
     this.baseUrl = baseUrl;
   }
 
@@ -39,5 +40,11 @@ export class ApiCourseRepository implements CourseRepository {
         prochainCours: c.prochainCours || c.prochain_cours || localCourse.prochainCours
       };
     });
+  }
+
+  /** GET /student/courses/{courseId}/details */
+  async getCourseDetails(courseId: string): Promise<Record<string, unknown>> {
+    const { data } = await apiClient.get(`${this.baseUrl}/${courseId}/details`);
+    return data;
   }
 }

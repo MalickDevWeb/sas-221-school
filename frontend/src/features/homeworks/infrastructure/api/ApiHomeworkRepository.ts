@@ -5,7 +5,8 @@ import type { HomeworkRepository } from '../../domain/HomeworkRepository';
 export class ApiHomeworkRepository implements HomeworkRepository {
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string = '/homeworks') {
+  // Correct backend path per README: GET /student/homeworks
+  constructor(baseUrl: string = '/student/homeworks') {
     this.baseUrl = baseUrl;
   }
 
@@ -26,13 +27,18 @@ export class ApiHomeworkRepository implements HomeworkRepository {
     await apiClient.post(`${this.baseUrl}/${homeworkId}/progress`, { addedProgress });
   }
 
-  async submitHomework(homeworkId: string, fileData: File | Blob): Promise<void> {
-    const base64Str = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(fileData);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (err) => reject(err);
+  /**
+   * POST /student/courses/{courseId}/homeworks/{homeworkId}/submit
+   * Uses multipart/form-data with field "file" as required by the backend README.
+   */
+  async submitHomework(homeworkId: string, fileData: File | Blob, courseId?: string): Promise<void> {
+    const form = new FormData();
+    form.append('file', fileData);
+    const url = courseId
+      ? `/student/courses/${courseId}/homeworks/${homeworkId}/submit`
+      : `${this.baseUrl}/${homeworkId}/submit`;
+    await apiClient.post(url, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-    await apiClient.post(`${this.baseUrl}/${homeworkId}/submit`, { fileStr: base64Str });
   }
 }

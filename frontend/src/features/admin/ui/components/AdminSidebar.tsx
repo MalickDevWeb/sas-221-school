@@ -18,6 +18,7 @@ const MENU_ITEMS = [
   { id: 'students', label: 'Gestion Élèves', icon: 'group' },
   { id: 'admissions', label: 'Admissions', icon: 'person_add' },
   { id: 'finances', label: 'Finances & Recouvre', icon: 'payments' },
+  { id: 'collaboration', label: 'Collaboration', icon: 'group_work' },
   { id: 'notifications', label: 'Notifications Hub', icon: 'mail' },
   { id: 'ai', label: 'Assistant IA', icon: 'smart_toy' },
   { id: 'security', label: 'Sécurité & Audit', icon: 'security' },

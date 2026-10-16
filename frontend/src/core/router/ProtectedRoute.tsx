@@ -9,11 +9,8 @@ interface Props {
 export function ProtectedRoute({ rolesAutorises }: Props) {
   const { estConnecte, utilisateur } = useAuthStore();
 
-  // Redirection temporaire désactivée pour faciliter le développement/test
-  // Normalement: if (!estConnecte) return <Navigate to={ROUTES.login} replace />;
-  if (!estConnecte) {
-    console.warn("Accès bloqué, utilisateur non connecté. (Simulé)");
-    // return <Navigate to={ROUTES.login} replace />; 
+  if (!estConnecte || !utilisateur) {
+    return <Navigate to={ROUTES.login} replace />;
   }
 
   if (rolesAutorises && utilisateur) {

@@ -8,13 +8,18 @@ interface Props {
   readonly onSelectGroup: (id: string) => void;
 }
 
-export function WorkgroupsList({ workgroups, activeGroupId, onSelectGroup }: Props) {
+export function WorkgroupsList({ workgroups = [], activeGroupId, onSelectGroup }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-neutral-gray-200 p-4 shadow-sm space-y-3">
       <h3 className="font-bold text-xs text-gray-900 flex items-center gap-2 uppercase tracking-wide">
         <Users className="w-4 h-4 text-neutral-900" /> Groupes de Travail Actifs
       </h3>
       <div className="space-y-2">
+        {workgroups.length === 0 && (
+          <p className="text-[10px] text-neutral-400 font-semibold text-center py-2">
+            Aucun groupe disponible
+          </p>
+        )}
         {workgroups.map((g) => (
           <div
             key={g.id}
@@ -27,7 +32,7 @@ export function WorkgroupsList({ workgroups, activeGroupId, onSelectGroup }: Pro
           >
             <span className="font-bold text-xs text-gray-800 block">{g.name}</span>
             <span className="text-[9px] text-neutral-500 font-bold block mt-0.5">
-              Chef : {g.leaderName} • {g.members.length} membres
+              Chef : {g.leaderName} • {g.members?.length ?? 0} membres
             </span>
           </div>
         ))}
@@ -36,3 +41,4 @@ export function WorkgroupsList({ workgroups, activeGroupId, onSelectGroup }: Pro
   );
 }
 export default WorkgroupsList;
+

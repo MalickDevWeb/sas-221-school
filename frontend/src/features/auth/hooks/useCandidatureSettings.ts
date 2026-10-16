@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/core/firebase/firebase';
 import { apiClient } from '@/shared/lib/apiClient';
 
 export interface CandidatureSettings {
@@ -29,28 +27,18 @@ export function useCandidatureSettings() {
 
   const fetchSettings = async () => {
     try {
-      try {
-        const snap = await getDoc(doc(db, 'admission_config', 'settings'));
-        if (snap.exists()) {
-          const data = snap.data() as CandidatureSettings;
-          setSettings({
-            ...data,
-            showRegisterButton: data.showRegisterButton !== false
-          });
-          setLoading(false);
-          return;
-        }
-      } catch (fsErr) {
-        console.warn('Firestore settings unavailable, falling back to API:', fsErr);
-      }
-      
       const { data } = await apiClient.get('/candidatures/settings');
       setSettings({
         ...data,
         showRegisterButton: data.showRegisterButton !== false
       });
-    } catch (err) {
-      console.error('Erreur de chargement des paramètres de candidature:', err);
+    } catch (err: any) {
+      // Don't pollute console if it's just the backend being offline (proxy error/network error)
+      const status = err.response?.status;
+      const isOfflineError = !err.response || (status === 500 && String(err.response?.data).includes('proxy'));
+      if (!isOfflineError) {
+        console.error('Erreur de chargement des paramètres de candidature:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -60,11 +48,6 @@ export function useCandidatureSettings() {
     const updated = { ...settings, ...next };
     setSettings(updated);
     try {
-      try {
-        await setDoc(doc(db, 'admission_config', 'settings'), updated, { merge: true });
-      } catch (fsErr) {
-        console.warn('Firestore write failed, updating backend API instead:', fsErr);
-      }
       await apiClient.post('/admin/candidatures/settings', updated);
     } catch (err) {
       console.error('Erreur de sauvegarde des paramètres:', err);

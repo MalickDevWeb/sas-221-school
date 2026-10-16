@@ -1,17 +1,13 @@
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/core/firebase/firebase';
+import { apiClient } from '@/shared/lib/apiClient';
 import { WikiPage, CollabNote, AuditLog } from '../domain/TaskWikiModels';
-import { handleFirestoreError, OperationType } from './collabError';
+import { collabSocket } from './collabWebSocket';
 import {
-  COLL_WIKIS,
-  COLL_NOTES,
-  COLL_AUDITS,
-  DEFAULT_WIKI,
-  DEFAULT_NOTE,
-  DEFAULT_AUDIT,
   KEYS,
   getLocalItems,
-  saveLocalItems
+  saveLocalItems,
+  DEFAULT_WIKI,
+  DEFAULT_NOTE,
+  DEFAULT_AUDIT
 } from './wikiLocalStorage';
 
 export async function saveWiki(w: WikiPage): Promise<void> {
@@ -19,13 +15,10 @@ export async function saveWiki(w: WikiPage): Promise<void> {
   const next = current.filter(x => x.id !== w.id).concat(w);
   saveLocalItems(KEYS.WIKIS, next);
   try {
-    await setDoc(doc(db, COLL_WIKIS, w.id), w);
+    await apiClient.post(`/wiki/pages`, w);
+    collabSocket.sendMessage('/app/wiki.update', w);
   } catch (err) {
-    try {
-      handleFirestoreError(err, OperationType.WRITE, `${COLL_WIKIS}/${w.id}`);
-    } catch (loggedErr) {
-      console.warn('Firestore wiki write failed, local cache preserved:', loggedErr);
-    }
+    console.error('Failed to save wiki to backend:', err);
   }
 }
 
@@ -34,13 +27,10 @@ export async function saveNote(n: CollabNote): Promise<void> {
   const next = current.filter(x => x.id !== n.id).concat(n);
   saveLocalItems(KEYS.NOTES, next);
   try {
-    await setDoc(doc(db, COLL_NOTES, n.id), n);
+    await apiClient.post(`/wiki/notes`, n);
+    collabSocket.sendMessage('/app/wiki.note.update', n);
   } catch (err) {
-    try {
-      handleFirestoreError(err, OperationType.WRITE, `${COLL_NOTES}/${n.id}`);
-    } catch (loggedErr) {
-      console.warn('Firestore note write failed, local cache preserved:', loggedErr);
-    }
+    console.error('Failed to save note to backend:', err);
   }
 }
 
@@ -49,12 +39,8 @@ export async function saveAudit(a: AuditLog): Promise<void> {
   const next = current.filter(x => x.id !== a.id).concat(a);
   saveLocalItems(KEYS.AUDITS, next);
   try {
-    await setDoc(doc(db, COLL_AUDITS, a.id), a);
+    await apiClient.post(`/wiki/audits`, a);
   } catch (err) {
-    try {
-      handleFirestoreError(err, OperationType.WRITE, `${COLL_AUDITS}/${a.id}`);
-    } catch (loggedErr) {
-      console.warn('Firestore audit write failed, local cache preserved:', loggedErr);
-    }
+    console.error('Failed to save audit to backend:', err);
   }
 }

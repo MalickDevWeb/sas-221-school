@@ -1,0 +1,41 @@
+--- ecole/src/main/java/ecole_221/sn/ecole/infrastructure/aspect/ActionLoggingAspect.java
++++ ecole/src/main/java/ecole_221/sn/ecole/infrastructure/aspect/ActionLoggingAspect.java
+@@ -23,17 +23,18 @@
+      */
+     @Around("execution(* ecole_221.sn.ecole.modules..application..*(..)) || " +
+             "execution(* ecole_221.sn.ecole.modules..domain..*(..)) || " +
++            "execution(* ecole_221.sn.ecole.modules..infrastructure.web..*(..)) || " +
+             "execution(* ecole_221.sn.ecole.modules..infrastructure..persistence..*(..))")
+     public Object logServiceMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+         long startTime = System.currentTimeMillis();
+         
+         String className = joinPoint.getTarget().getClass().getSimpleName();
+         String methodName = joinPoint.getSignature().getName();
+         String packageName = joinPoint.getTarget().getClass().getPackage().getName();
+         
+         // Logger l'entrée dans la méthode
+-        logger.debug("\n" + 
++        logger.info("\n" + 
+                 "┌─────────────────────────────────────────────────────────────────┐\n" +
+                 "│ SERVICE/ACTION METHOD CALL                                    │\n" +
+                 "├─────────────────────────────────────────────────────────────────┤\n" +
+@@ -43,14 +44,14 @@
+                 packageName, className, methodName);
+         
+         // Logger les paramètres
+         Object[] args = joinPoint.getArgs();
+         if (args != null && args.length > 0) {
+-            logger.debug("Method parameters: {}", Arrays.toString(args));
++            logger.info("Method parameters: {}", Arrays.toString(args));
+         }
+         
+         try {
+             Object result = joinPoint.proceed();
+             long duration = System.currentTimeMillis() - startTime;
+             
+             // Logger la sortie
+-            logger.debug("\n" + 
++            logger.info("\n" + 
+                 "┌─────────────────────────────────────────────────────────────────┐\n" +
+                 "│ SERVICE/ACTION METHOD RETURN                                  │\n" +
+                 "├─────────────────────────────────────────────────────────────────┤\n" +

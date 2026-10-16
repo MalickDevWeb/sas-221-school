@@ -29,7 +29,9 @@ export function useLogin() {
       setEtat('SUCCES');
       
       // Redirection sécurisée selon le rôle
-      if (utilisateur.role === ROLE_UTILISATEUR.ADMIN || utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN) {
+      if (utilisateur.role === ROLE_UTILISATEUR.SUPER_ADMIN) {
+        navigate(ROUTES.superadmin.dashboard);
+      } else if (utilisateur.role === ROLE_UTILISATEUR.ADMIN) {
         navigate(ROUTES.admin.dashboard);
       } else if (utilisateur.role === ROLE_UTILISATEUR.VIGIL) {
         navigate(ROUTES.vigil.dashboard);

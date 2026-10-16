@@ -1,3 +1,4 @@
-import { FirebaseNotificationRepository } from '../firebase/FirebaseNotificationRepository';
+import { ApiNotificationRepository } from '../firebase/FirebaseNotificationRepository';
 
-export const notificationRepository = new FirebaseNotificationRepository();
+export const notificationRepository = new ApiNotificationRepository();
+

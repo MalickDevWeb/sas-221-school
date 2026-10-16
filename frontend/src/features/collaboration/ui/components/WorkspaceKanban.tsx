@@ -15,7 +15,7 @@ interface Props {
 
 const COLUMNS: readonly TaskStatus[] = ['A faire', 'En cours', 'En révision', 'Validé', 'Bloqué', 'Terminé'];
 
-export function WorkspaceKanban({ tasks, groupId, onAddTask, onUpdateStatus, onToggleCheck, members }: Props) {
+export function WorkspaceKanban({ tasks = [], groupId, onAddTask, onUpdateStatus, onToggleCheck, members = [] }: Props) {
   const [newTitle, setNewTitle] = useState('');
   const [assigned, setAssigned] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -47,7 +47,7 @@ export function WorkspaceKanban({ tasks, groupId, onAddTask, onUpdateStatus, onT
           <input type="text" placeholder="Nom de la tâche..." value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="w-full text-xs px-2.5 py-1.5 border border-neutral-300 rounded-lg bg-white" required />
           <div className="flex gap-2">
             <select value={assigned} onChange={(e) => setAssigned(e.target.value)} className="flex-grow text-xs px-2 py-1.5 border border-neutral-300 rounded-lg bg-white">
-              {members.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
+              {(members || []).map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
             </select>
             <button type="submit" className="px-3 bg-brand-red-deep text-white font-bold text-xs rounded-lg">Assigner</button>
           </div>

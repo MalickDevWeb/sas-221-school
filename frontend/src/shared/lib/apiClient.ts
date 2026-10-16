@@ -4,12 +4,13 @@ import { setupOfflineInterceptors } from './setupOfflineInterceptors';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 10_000,
+  timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -21,11 +22,19 @@ apiClient.interceptors.response.use(
   async (error) => {
     const status = error.response?.status;
     const isLoginRequest = error.config?.url?.includes('auth/login');
+    const isAlreadyOnLoginPage = window.location.pathname === ROUTES.login || window.location.pathname === '/';
     
-    // Auth redirect
-    if (status === 401 && !isLoginRequest) {
+    // Auth redirect — only if NOT already on the login page (prevents infinite loop)
+    if (status === 401 && !isLoginRequest && !isAlreadyOnLoginPage) {
+      localStorage.removeItem('auth_token');
       localStorage.removeItem('access_token');
       window.location.href = ROUTES.login;
+      return Promise.reject(error);
+    }
+
+    // Do not show toast for 401 — normal behavior when user is not authenticated
+    if (status === 401) {
+      return Promise.reject(error);
     }
 
     // Display clear error notification for debugging
@@ -34,21 +43,33 @@ apiClient.interceptors.response.use(
     
     if (!error.response) {
       // Network error or timeout
-      toast.error(`Erreur réseau (${method})`, {
-        description: `Impossible de contacter l'API sur ${url}. Vérifiez que le serveur Backend est allumé.`
+      toast.error(`Erreur de connexion`, {
+        description: `Veuillez vous connecter à un réseau`
       });
-      console.error(`[API ERROR] ${method} ${url} - Network Error / Unreachable`);
+      // Silent in console to avoid pollution
     } else {
-      // HTTP error (500, 404, etc.)
-      toast.error(`Erreur ${status} (${method})`, {
-        description: `L'appel API vers ${url} a échoué.`
-      });
-      console.error(`[API ERROR] ${method} ${url} - Status ${status}`, error.response.data);
+      // HTTP error (500, 404, etc.) — but not 401
+      const responseData = typeof error.response.data === 'string' 
+        ? error.response.data.toLowerCase() 
+        : JSON.stringify(error.response.data || '').toLowerCase();
+        
+      if (status === 500 && (responseData.includes('proxy') || responseData.includes('econnrefused'))) {
+        toast.error(`Erreur de connexion`, {
+          description: `Veuillez vous connecter à un réseau`
+        });
+        // Silent in console to avoid pollution
+      } else if (status !== 404) {
+        toast.error(`Erreur ${status} (${method})`, {
+          description: `L'appel API vers ${url} a échoué.`
+        });
+        console.error(`[API ERROR] ${method} ${url} - Status ${status}`, error.response.data);
+      }
     }
 
     return Promise.reject(error);
   },
 );
+
 
 setupOfflineInterceptors(apiClient);
 
