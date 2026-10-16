@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { syncOfflineMutations } from '../lib/offlineSyncManager';
-import { requestPushPermission, sendPushNotification } from '../lib/pushNotifier';
+import { sendPushNotification } from '../lib/pushNotifier';
 import { apiClient } from '../lib/apiClient';
 
 export function OfflineSyncToast() {
@@ -9,7 +9,9 @@ export function OfflineSyncToast() {
   const [showSyncing, setShowSyncing] = useState(false);
 
   useEffect(() => {
-    requestPushPermission();
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
 
     const handleOnline = async () => {
       setIsOnline(true);

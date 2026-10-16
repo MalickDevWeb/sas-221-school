@@ -17,21 +17,14 @@ export function playPushChime(): void {
     const playTone = (freq: number, start: number, dur: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.08, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + dur);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.08, start); gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(start); osc.stop(start + dur);
     };
-    const now = ctx.currentTime;
-    playTone(587.33, now, 0.25);
-    playTone(880.0, now + 0.1, 0.35);
-  } catch {
-    // Audio non disponible
-  }
+    playTone(587.33, ctx.currentTime, 0.25);
+    playTone(880.0, ctx.currentTime + 0.1, 0.35);
+  } catch { /* Audio non disponible */ }
 }
 
 export function vibrateDevice(pattern: number[] = [150, 75, 150]): void {
@@ -44,9 +37,18 @@ export function vibrateDevice(pattern: number[] = [150, 75, 150]): void {
   }
 }
 
-export async function requestPushPermission(): Promise<NotificationPermission> {
+export async function requestPushPermission(silent = false): Promise<NotificationPermission> {
   if (!isPushSupported()) {
-    toast.error('Notifications non supportées sur ce navigateur');
+    if (!silent) toast.error('Notifications non supportées sur ce navigateur');
+    return 'denied';
+  }
+
+  if (Notification.permission === 'denied') {
+    if (!silent) {
+      toast.error('Notifications bloquées', {
+        description: 'Veuillez autoriser les notifications dans les paramètres de votre navigateur.'
+      });
+    }
     return 'denied';
   }
 
@@ -61,7 +63,7 @@ export async function requestPushPermission(): Promise<NotificationPermission> {
       toast.success('🔔 Notifications push activées !', {
         description: 'Vous recevrez les alertes scolaires et messages en temps réel sur cet appareil.'
       });
-    } else if (permission === 'denied') {
+    } else if (permission === 'denied' && !silent) {
       toast.error('Notifications bloquées', {
         description: 'Veuillez autoriser les notifications dans les paramètres de votre navigateur.'
       });
