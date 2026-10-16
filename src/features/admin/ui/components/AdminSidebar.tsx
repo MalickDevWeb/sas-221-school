@@ -14,7 +14,7 @@ interface Props {
 }
 
 const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard CEO', icon: 'dashboard', requiredPerm: 'governance_settings_get' },
+  { id: 'dashboard', label: 'Tableau de Bord', icon: 'dashboard', requiredPerm: 'governance_settings_get' },
   { id: 'promotions', label: 'Promotions & Classes', icon: 'account_tree', requiredPerm: 'planning_classes_get' },
   { id: 'school', label: 'Gestion École', icon: 'school', requiredPerm: 'planning_classes_get' },
   { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today', requiredPerm: 'planning_schedule_get' },
@@ -37,9 +37,11 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
   const schoolName = currentTenant?.name || 'École 221';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
 
-  const userRole = utilisateur?.role || 'Administrateur';
+  const userRole = (utilisateur?.role || 'ADMIN').toUpperCase();
+  const isAdmin = !utilisateur?.role || userRole.includes('ADMIN') || userRole.includes('DIRECTEUR');
   const visibleMenuItems = MENU_ITEMS.filter(item => {
-    return hasPermission(userRole as string, item.requiredPerm);
+    if (isAdmin) return true;
+    return hasPermission(utilisateur?.role as string, item.requiredPerm);
   });
 
   useEffect(() => {
