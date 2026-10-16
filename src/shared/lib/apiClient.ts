@@ -157,15 +157,12 @@ apiClient.interceptors.response.use(
           description: `Veuillez vous connecter à un réseau`
         });
       } else if (status !== 404) {
-        const serverMsg = error.response?.data?.message;
-        if (serverMsg) {
-          toast.error(`Erreur ${status}`, { description: serverMsg });
-        } else {
-          toast.error(`Erreur ${status} (${method})`, {
-            description: `L'appel API vers ${url} a échoué.`
-          });
+        const isBackground = url.includes('/wiki/') || url.includes('/collaboration/') || url.includes('/notifications/');
+        if (!isBackground) {
+          const serverMsg = error.response?.data?.message;
+          toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
         }
-        console.error(`[API ERROR] ${method} ${url} - Status ${status}`, error.response.data);
+        console.warn(`[API ERROR] ${method} ${url} - Status ${status}`);
       }
     }
 

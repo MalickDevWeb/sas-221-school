@@ -49,10 +49,12 @@ export function CollaborationPage() {
           <ActiveClassesList meets={state.meets} activeMeetId={activeMeetId} onSelectMeet={setActiveMeetId} onJoinMeet={handleJoinMeetSimulate} />
           <WorkgroupsList workgroups={state.workgroups} activeGroupId={activeGroupId} onSelectGroup={setActiveGroupId} />
           {(isTeacher || isAdmin) && <MeetScheduler onSchedule={state.createVirtualClass} teacherName={utilisateur?.nom || 'Enseignant'} />}
-          <GroupCreator
-            onAutoGenerate={state.generateAutoGroups}
-            onCreateManual={state.createManualGroup}
-          />
+          {isTeacher && (
+            <GroupCreator
+              onAutoGenerate={state.generateAutoGroups}
+              onCreateManual={state.createManualGroup}
+            />
+          )}
         </div>
 
         <div className="lg:col-span-8 space-y-6">
