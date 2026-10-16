@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { CandidateAdmissionBadge } from './CandidateAdmissionBadge';
-import { CandidateDetailModal } from './CandidateDetailModal';
+import { CandidateDetailPage } from './CandidateDetailPage';
 
 interface Props {
   candidates: ExtendedCandidate[];
@@ -11,6 +11,19 @@ interface Props {
 export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
   const [selectedCandidate, setSelectedCandidate] = useState<ExtendedCandidate | null>(null);
   const [filterType, setFilterType] = useState<string>('ALL');
+
+  if (selectedCandidate) {
+    return (
+      <CandidateDetailPage
+        candidate={selectedCandidate}
+        onBack={() => setSelectedCandidate(null)}
+        onUpdateCandidate={(updated) => {
+          onUpdateCandidate(updated);
+          setSelectedCandidate(updated);
+        }}
+      />
+    );
+  }
 
   const columns: { id: ExtendedCandidate['step']; label: string; bg: string; border: string; text: string }[] = [
     { id: 'new', label: 'Nouveau Dossier', bg: 'bg-neutral-50/50', border: 'border-neutral-200', text: 'text-neutral-500' },
@@ -29,7 +42,7 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
         <div>
           <h3 className="font-extrabold text-sm text-[#1E293B]">Espace Candidatures & Validation des Dossiers</h3>
           <p className="text-[10px] text-neutral-400 font-semibold">
-            Cliquez sur un candidat pour ouvrir son dossier, vérifier sa CNI, confirmer son paiement ou prononcer son admission.
+            Cliquez sur un candidat pour ouvrir sa page complète, vérifier sa CNI, confirmer son paiement ou prononcer son admission.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold">
@@ -69,7 +82,7 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
                   >
                     <div className="flex items-start justify-between gap-1">
                       <div className="font-extrabold text-xs text-[#1E293B] leading-snug group-hover:text-primary transition-colors">{c.name}</div>
-                      <span className="text-[9px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">Ouvrir →</span>
+                      <span className="text-[9px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">Voir la fiche →</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 flex-wrap">
                       <span className="text-[9px] text-neutral-400 font-extrabold truncate uppercase">{c.course}</span>
@@ -96,17 +109,6 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
           );
         })}
       </div>
-
-      {selectedCandidate && (
-        <CandidateDetailModal
-          candidate={selectedCandidate}
-          onClose={() => setSelectedCandidate(null)}
-          onUpdateCandidate={(updated) => {
-            onUpdateCandidate(updated);
-            setSelectedCandidate(updated);
-          }}
-        />
-      )}
     </div>
   );
 }
