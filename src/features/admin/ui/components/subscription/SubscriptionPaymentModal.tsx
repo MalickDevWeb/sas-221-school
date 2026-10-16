@@ -117,3 +117,4 @@ export const SubscriptionPaymentModal: React.FC<SubscriptionPaymentModalProps> =
     </AnimatePresence>
   );
 };
+

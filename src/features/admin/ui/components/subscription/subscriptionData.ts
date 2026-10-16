@@ -27,3 +27,4 @@ export const INITIAL_PAYMENT_METHODS: PaymentMethodInfo[] = [
   { type: 'ORANGE_MONEY', label: 'Orange Money Marchand', identifier: '+221 78 987 65 43', isDefault: false },
   { type: 'CARD', label: 'Carte Visa Entreprise (BICI)', identifier: '•••• 4242 (Exp 08/28)', isDefault: false }
 ];
+

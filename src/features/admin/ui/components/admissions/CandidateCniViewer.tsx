@@ -14,7 +14,7 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
   const [rejectReason, setRejectReason] = useState('Document flou ou illisible');
 
   const cniStatus = candidate.details?.cniStatus || 'pending';
-  const cniUrl = candidate.details?.cniUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80';
+  const cniUrl = candidate.details?.cniUrl || 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png';
   const nin = candidate.details?.cniNumber || '1 751 2005 02841';
 
   const handleValidate = () => {

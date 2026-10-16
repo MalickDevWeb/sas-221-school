@@ -33,3 +33,4 @@ export interface PaymentMethodInfo {
   identifier: string;
   isDefault: boolean;
 }
+

@@ -42,13 +42,11 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   };
 
   const simulateDocUpload = (key: keyof DocumentsState, label: string) => {
-    const url = key === 'idCard' ? 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80' : 'https://res.cloudinary.com/demo/image/upload/v1570979139/sample.jpg';
+    const url = key === 'idCard' ? 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png' : 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170916/file-69201f84.png';
     setDocs(prev => ({ ...prev, [key]: { name: `${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}_2026.pdf`, size: '1.4 Mo', uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
   };
 
-  const removeDoc = (key: keyof DocumentsState) => {
-    setDocs(prev => ({ ...prev, [key]: null }));
-  };
+  const removeDoc = (key: keyof DocumentsState) => setDocs(prev => ({ ...prev, [key]: null }));
 
   const declarePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH', ref: string) => {
     setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees || 25000 });
@@ -75,7 +73,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
       registrationFeePaid: false,
       details: {
         cniNumber: personal.cniNumber,
-        cniUrl: docs.idCard?.url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+        cniUrl: docs.idCard?.url || 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png',
         cniStatus: 'pending',
         paymentMethod: payment.method,
         paymentTransactionRef: payment.transactionRef || 'OM-SN-737385',

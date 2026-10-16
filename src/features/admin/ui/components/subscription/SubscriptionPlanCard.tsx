@@ -89,3 +89,4 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
     </motion.div>
   );
 };
+

@@ -102,3 +102,4 @@ export const SubscriptionQuotaSection: React.FC<SubscriptionQuotaSectionProps> =
     </motion.div>
   );
 };
+

@@ -123,3 +123,4 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
     </AnimatePresence>
   );
 };
+

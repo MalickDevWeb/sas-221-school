@@ -98,3 +98,4 @@ export const SubscriptionInvoicesTable: React.FC<SubscriptionInvoicesTableProps>
     </motion.div>
   );
 };
+
