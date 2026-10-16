@@ -54,13 +54,19 @@ export const useTenantStore = create<TenantState>()(
           localStorage.setItem('tenant_slug', slug);
         } catch {}
 
-        let branding: TenantBranding = {
-          primaryColor: '#7C3AED',
-          palette: generatePaletteFromHex('#7C3AED'),
-        };
+        const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
+        let branding: TenantBranding = isEcole221
+          ? {
+              primaryColor: '#B3181C',
+              palette: ECOLE_221_PALETTE,
+            }
+          : {
+              primaryColor: '#B3181C',
+              palette: ECOLE_221_PALETTE,
+            };
         try {
           const cached = localStorage.getItem(`tenant_theme_${slug}`);
-          if (cached) branding = JSON.parse(cached);
+          if (cached && !isEcole221) branding = JSON.parse(cached);
         } catch {}
 
         const tenantInfo: TenantInfo = {
@@ -123,8 +129,9 @@ export const useTenantStore = create<TenantState>()(
         try {
           const { data } = await publicApiClient.get(`/public/tenants/${slug}`);
           const branding = data.branding || {};
-          const primaryColor = branding.primaryColor || localCachedBranding?.primaryColor || '#7C3AED';
-          const palette = branding.palette || generatePaletteFromHex(primaryColor);
+          const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
+          const primaryColor = isEcole221 ? '#B3181C' : (branding.primaryColor || localCachedBranding?.primaryColor || '#B3181C');
+          const palette = isEcole221 ? ECOLE_221_PALETTE : (branding.palette || generatePaletteFromHex(primaryColor));
 
           const tenantInfo: TenantInfo = {
             id: data.id || 'tenant-' + slug,
@@ -133,7 +140,7 @@ export const useTenantStore = create<TenantState>()(
             branding: {
               primaryColor,
               palette,
-              logoUrl: branding.logoUrl,
+              logoUrl: isEcole221 ? undefined : branding.logoUrl,
             },
           };
 
@@ -167,8 +174,8 @@ export const useTenantStore = create<TenantState>()(
                 name: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '),
                 slug,
                 branding: {
-                  primaryColor: '#7C3AED',
-                  palette: generatePaletteFromHex('#7C3AED'),
+                  primaryColor: '#B3181C',
+                  palette: ECOLE_221_PALETTE,
                 },
               };
           set({ currentTenant: mockTenant, isLoading: false });
@@ -183,7 +190,8 @@ export const useTenantStore = create<TenantState>()(
        */
       applyTheme: (branding: TenantBranding) => {
         const root = document.documentElement;
-        const palette = branding.palette ?? generatePaletteFromHex(branding.primaryColor);
+        const isEcole221 = get().currentTenant?.slug === 'ecole221' || get().currentTenant?.slug === 'ecole-221' || !get().currentTenant;
+        const palette = isEcole221 ? ECOLE_221_PALETTE : (branding.palette ?? generatePaletteFromHex(branding.primaryColor));
 
         // Sauvegarder dans le cache local du slug actif si disponible
         const currentSlug = get().currentTenant?.slug;

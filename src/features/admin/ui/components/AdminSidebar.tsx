@@ -35,7 +35,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
   const { utilisateur } = useAuthStore();
   const { hasPermission } = useRbacStore();
   const schoolName = currentTenant?.name || 'École 221';
-  const primaryColor = currentTenant?.branding?.primaryColor || '#7C3AED';
+  const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
 
   const userRole = utilisateur?.role || 'Administrateur';
   const visibleMenuItems = MENU_ITEMS.filter(item => {

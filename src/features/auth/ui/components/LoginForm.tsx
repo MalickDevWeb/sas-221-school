@@ -65,7 +65,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
       label: 'Parent',
       email: isDefaultSchool ? 'parent221@gmail.com' : `parent@${activeSlug}.sn`,
       password: 'ecole221',
-      badgeClass: 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200',
+      badgeClass: 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200',
     },
   };
 

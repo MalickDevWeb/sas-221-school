@@ -33,7 +33,7 @@ export function AdminPage() {
   const { isMobile, isTablet } = useDeviceStore();
 
   const schoolName = currentTenant?.name || tenant.name || 'École 221';
-  const primaryColor = currentTenant?.branding?.primaryColor || '#7C3AED';
+  const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
 
   useEffect(() => {
     setIsSidebarCollapsed(isTablet || activeTab !== 'dashboard');

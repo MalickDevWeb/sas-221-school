@@ -14,8 +14,11 @@ export const EcoleLogo = ({ size = 'md' }: EcoleLogoProps) => {
     lg: 'text-[34px] h-[40px]',
   };
 
-  // Si on a une URL de logo personnalisée (via la DB)
-  if (currentTenant?.branding?.logoUrl) {
+  const slug = currentTenant?.slug;
+  const isEcole221 = !slug || slug === 'ecole221' || slug === 'ecole-221';
+
+  // Si on a une URL de logo personnalisée pour une autre école
+  if (!isEcole221 && currentTenant?.branding?.logoUrl && !currentTenant.branding.logoUrl.includes('myschool-icon')) {
     return (
       <img 
         src={currentTenant.branding.logoUrl} 

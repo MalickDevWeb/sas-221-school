@@ -4,8 +4,11 @@ import { useTenantStore } from '@/core/store/tenantStore';
 export const EcoleBadge = () => {
   const { currentTenant } = useTenantStore();
 
-  // Si on a un logo personnalisé, on peut utiliser une version miniature ou l'image elle-même.
-  if (currentTenant?.branding?.logoUrl) {
+  const slug = currentTenant?.slug;
+  const isEcole221 = !slug || slug === 'ecole221' || slug === 'ecole-221';
+
+  // Si une autre école a un logo personnalisé
+  if (!isEcole221 && currentTenant?.branding?.logoUrl && !currentTenant.branding.logoUrl.includes('myschool-icon')) {
     return (
       <div className="h-11 w-11 md:h-13 md:w-13 rounded-2xl bg-white border border-gray-100 shadow-lg flex items-center justify-center p-2 select-none animate-fade-in shrink-0">
         <img src={currentTenant.branding.logoUrl} alt="Badge" className="max-w-full max-h-full object-contain" />
@@ -14,7 +17,6 @@ export const EcoleBadge = () => {
   }
 
   // Fallback dynamique
-  const isEcole221 = currentTenant?.slug === 'ecole221' || !currentTenant;
   const initiales = (currentTenant?.name || 'EC')
     .split(' ')
     .map(w => w.charAt(0))

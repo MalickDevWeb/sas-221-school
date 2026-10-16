@@ -50,8 +50,8 @@ export const AdminPortalLoginPage: React.FC = () => {
     ...(currentTenant && currentTenant.slug !== 'ecole221' && currentTenant.slug !== 'ecole-221'
       ? [{ slug: currentTenant.slug, name: `${currentTenant.name} (Mon Établissement)`, color: currentTenant.branding?.primaryColor || '#10B981', badge: 'Actif' }]
       : []),
-    { slug: 'ecole221', name: 'École 221 (Campus Dakar)', color: '#8B5CF6', badge: 'Standard' },
-    { slug: 'lycee-excellence', name: 'Lycée d\'Excellence Moderne', color: '#6366F1', badge: 'Privé' },
+    { slug: 'ecole221', name: 'École 221 (Campus Dakar)', color: '#B3181C', badge: 'Standard' },
+    { slug: 'lycee-excellence', name: 'Lycée d\'Excellence Moderne', color: '#1E5E3A', badge: 'Privé' },
     { slug: 'groupe-scolaire-avenir', name: 'Groupe Scolaire Avenir', color: '#06B6D4', badge: 'Bilingue' },
     { slug: 'custom', name: 'Autre Établissement (Saisir le nom)...', color: '#10B981', badge: 'Multi-Tenant' },
   ];
@@ -74,7 +74,7 @@ export const AdminPortalLoginPage: React.FC = () => {
         particleCount: 45,
         spread: 65,
         origin: { y: 0.6 },
-        colors: ['#10B981', '#34D399', '#8B5CF6', '#38BDF8'],
+        colors: ['#10B981', '#34D399', '#B3181C', '#38BDF8'],
         disableForReducedMotion: true,
       });
     }
