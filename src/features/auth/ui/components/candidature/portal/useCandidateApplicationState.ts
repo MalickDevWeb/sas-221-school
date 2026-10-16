@@ -71,6 +71,28 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
 
     saveAdmissionsDb({ candidates: [...db.candidates, newCandidate] });
     addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);
+
+    try {
+      await fetch('/api/candidatures/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: candId,
+          nom: personal.lastName,
+          prenom: personal.firstName,
+          email: personal.email,
+          telephone: personal.phone,
+          filiere: academic.targetFiliere,
+          niveau: academic.targetLevel,
+          fraisPayes: payment.isPaid,
+          modePaiement: payment.method,
+          referencePaiement: payment.transactionRef,
+        }),
+      });
+    } catch {
+      // Synchronisation locale assurée
+    }
+
     setIsSubmitting(false);
     onSuccess(newCandidate);
   };
