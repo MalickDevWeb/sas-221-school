@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Expense } from '../../../domain/FinancesModels';
+import { toneOf, useReferentiel } from '@/features/referentiels';
 
 interface Props {
   expenses: Expense[];
@@ -9,13 +10,16 @@ interface Props {
 export function DepensesTab({ expenses, onAddExpense }: Props) {
   const [form, setForm] = useState({ label: '', category: 'RH', amount: '', date: '' });
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  // Catégories paramétrables (onglet « Référentiels ») : plus de liste en dur
+  const categories = useReferentiel('expense-category');
+  const selectedCategory = categories.find(form.category) ? form.category : categories.values[0]?.code ?? '';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.label || !form.amount || !form.date) return;
+    if (!form.label || !form.amount || !form.date || !selectedCategory) return;
     onAddExpense({
       label: form.label,
-      category: form.category,
+      category: selectedCategory,
       amount: Number(form.amount),
       date: form.date,
     });
@@ -53,7 +57,7 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
                 <tr key={exp.id} className="hover:bg-neutral-50/50">
                   <td className="px-4 py-3 text-[#1E293B] font-extrabold">{exp.label}</td>
                   <td className="px-4 py-3">
-                    <span className="bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded text-[9px] uppercase font-black">{exp.category}</span>
+                    <span className={`border px-2 py-0.5 rounded text-[9px] uppercase font-black ${toneOf(categories.find(exp.category)?.color).badge}`}>{categories.labelOf(exp.category)}</span>
                   </td>
                   <td className="px-4 py-3 text-neutral-400 font-semibold">{exp.date}</td>
                   <td className="px-4 py-3 text-right font-mono text-rose-600 font-black">- {exp.amount.toLocaleString()} FCFA</td>
@@ -77,12 +81,10 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
           </div>
           <div className="space-y-1">
             <label className="text-[9px] text-neutral-400 font-black uppercase">Catégorie</label>
-            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none">
-              <option value="RH">Salaires / RH</option>
-              <option value="Loyer/Charges">Loyer / Charges</option>
-              <option value="Matériel">Matériel & Equipement</option>
-              <option value="Autre">Autre dépense</option>
+            <select value={selectedCategory} onChange={e => setForm({...form, category: e.target.value})} disabled={categories.loading || !!categories.error} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none">
+              {categories.values.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
+            {categories.error && <p role="alert" className="text-[10px] text-red-600 font-semibold">{categories.error}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[9px] text-neutral-400 font-black uppercase">Montant (FCFA)</label>
