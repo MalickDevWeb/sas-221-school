@@ -12,6 +12,7 @@ import { AdminSecurityAuditTrail } from './AdminSecurityAuditTrail';
 import { AdminSubscriptionManager } from './AdminSubscriptionManager';
 import { AdminBrandingManager } from './branding/AdminBrandingManager';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
+import { AdminReferentielsManager } from '@/features/referentiels';
 
 interface AdminTabViewsProps {
   activeTab: string;
@@ -32,6 +33,7 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     billing: <AdminSubscriptionManager />,
     notifications: <AdminNotificationsHub />,
     branding: <AdminBrandingManager />,
+    referentiels: <AdminReferentielsManager />,
     ai: <AdminPredictiveAIEngine />,
     security: <AdminSecurityAuditTrail />,
   };

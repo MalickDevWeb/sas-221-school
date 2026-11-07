@@ -56,10 +56,17 @@ export const STATUT_CANDIDATURE_CONFIG: Record<string, StatutConfig> = {
 /**
  * Fonctions d'aide (helpers) pour classifier et agréger les statuts de façon robuste et centralisée.
  */
+// Clés canoniques renvoyées par le backend (CandidateStatus) : même rendu que leurs équivalents historiques.
+// Libellés et couleurs officiels : référentiel « candidate-status » (useReferentiel).
+STATUT_CANDIDATURE_CONFIG.ACCEPTED = STATUT_CANDIDATURE_CONFIG[STATUT_CANDIDATURE.ACCEPTE];
+STATUT_CANDIDATURE_CONFIG.FINALISE = { ...STATUT_CANDIDATURE_CONFIG[STATUT_CANDIDATURE.VALIDE], label: 'Inscription finalisée' };
+STATUT_CANDIDATURE_CONFIG.REJECTED = STATUT_CANDIDATURE_CONFIG[STATUT_CANDIDATURE.REFUSE];
+STATUT_CANDIDATURE_CONFIG.EN_COURS = { ...STATUT_CANDIDATURE_CONFIG[STATUT_CANDIDATURE.EN_ATTENTE], label: "En cours d'étude" };
+
 export function isCandidatureValidee(statut?: string | null): boolean {
   if (!statut) return false;
   const s = statut.toUpperCase();
-  return s === STATUT_CANDIDATURE.VALIDE || s === STATUT_CANDIDATURE.ACCEPTE;
+  return s === STATUT_CANDIDATURE.VALIDE || s === STATUT_CANDIDATURE.ACCEPTE || s === 'ACCEPTED' || s === 'FINALISE';
 }
 
 export function isCandidatureEnAttente(statut?: string | null): boolean {
@@ -71,7 +78,7 @@ export function isCandidatureEnAttente(statut?: string | null): boolean {
 export function isCandidatureRefusee(statut?: string | null): boolean {
   if (!statut) return false;
   const s = statut.toUpperCase();
-  return s === STATUT_CANDIDATURE.REFUSE || s === 'REJETE';
+  return s === STATUT_CANDIDATURE.REFUSE || s === 'REJETE' || s === 'REJECTED';
 }
 
 /**
