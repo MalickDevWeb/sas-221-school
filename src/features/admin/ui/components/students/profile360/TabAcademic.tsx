@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 
 interface Props {
   selectedStudent: Student;
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function TabAcademic({ selectedStudent, erpData }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = (erpData || PROFIL_VIDE) as any;
   const [selectedYear, setSelectedYear] = useState<'L1' | 'L2' | 'L3'>('L3');
 
   const getYearSummary = () => {

@@ -11,8 +11,8 @@ import { SubscriptionPlan, PaymentMethodInfo } from './subscription/subscription
 
 export const AdminSubscriptionManager: React.FC = () => {
   const [plan, setPlan] = useState<SubscriptionPlan>(INITIAL_PLAN);
-  const [invoices] = useState(INITIAL_INVOICES);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>(INITIAL_PAYMENT_METHODS);
+  const [invoices] = useState<typeof INITIAL_INVOICES>([]);   // aucune facture inventée
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>([]);   // aucun moyen de paiement inventé
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 

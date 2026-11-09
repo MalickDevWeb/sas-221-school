@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Classe, Filiere, PlanningSlot, INITIAL_PLANNING } from '../../../domain/SchoolModels';
+import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
 import { ClasseFormModal } from './ClasseFormModal';
 import { ClasseDetailPage } from './ClasseDetailPage';
-import { INITIAL_STUDENTS, Student } from '../../../domain/StudentModels';
+import { Student } from '../../../domain/StudentModels';
 
 interface Props {
   classes: Classe[];
@@ -12,7 +12,7 @@ interface Props {
   onUpdateClasses: (classes: Classe[]) => void;
 }
 
-export function ClassesTab({ classes, filieres, slots = INITIAL_PLANNING, students = INITIAL_STUDENTS, onUpdateClasses }: Props) {
+export function ClassesTab({ classes, filieres, slots = [], students = [], onUpdateClasses }: Props) {
   const [activeClasseForEdit, setActiveClasseForEdit] = useState<Classe | null | undefined>(undefined);
   const [activeClasseFor360, setActiveClasseFor360] = useState<Classe | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<'ALL' | 'LICENCE' | 'MASTER' | 'AUTRES'>('ALL');

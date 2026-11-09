@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { Student } from '../../../domain/StudentModels';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
 import { apiClient } from '@/shared/lib/apiClient';
 
@@ -21,7 +21,7 @@ export function ClasseDetailPage({
   classe,
   filieres,
   slots,
-  allStudents = INITIAL_STUDENTS,
+  allStudents = [],
   onBack,
   onEditClasse,
   onUpdateStudents,
