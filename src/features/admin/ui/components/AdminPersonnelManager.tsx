@@ -9,8 +9,38 @@ interface StaffMember {
   telephone: string;
 }
 
+/** Forme renvoyée par AdminStaffService.toMap (GET /admin/staff). */
+interface StaffApiMember {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
+/** Libellé affiché → clé de rôle backend (users.role). */
+const ROLE_KEYS: Record<string, string> = {
+  Professeur: 'PROFESSEUR',
+  Administrateur: 'ADMIN',
+  'Scolarité': 'SECRETAIRE',
+  Vigile: 'VIGILE',
+};
+
+const isProfessorRole = (role: string) => ['PROFESSEUR', 'PROFESSOR', 'PROF'].includes(role.toUpperCase());
+
+function toStaffMember(m: StaffApiMember): StaffMember {
+  return {
+    id: m.id,
+    name: `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim() || (m.email ?? m.id),
+    email: m.email ?? '',
+    role: m.role ?? '',
+    telephone: m.phone ?? '',
+  };
+}
+
 export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
-  const [professors, setProfessors] = useState<any[]>([]);
+  const [professors, setProfessors] = useState<StaffMember[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -18,11 +48,13 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Routes réelles : AdminController /admin/staff (GET, POST, DELETE/{id}) — APP-ARC-01
   const loadPersonnel = async () => {
     try {
-      const { data } = await apiClient.get('/admin/personnel');
-      setProfessors(data.professors || []);
-      setStaff(data.staff || []);
+      const { data } = await apiClient.get<StaffApiMember[]>('/admin/staff');
+      const members = (Array.isArray(data) ? data : []).map(toStaffMember);
+      setProfessors(members.filter(m => isProfessorRole(m.role)));
+      setStaff(members.filter(m => !isProfessorRole(m.role)));
     } catch { /* handled by apiClient interceptor */ }
   };
 
@@ -33,7 +65,14 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
     if (!name || !email) return;
     setLoading(true);
     try {
-      await apiClient.post('/admin/personnel', { name, email, role, telephone: phone });
+      const [firstName, ...rest] = name.trim().split(/\s+/);
+      await apiClient.post('/admin/staff', {
+        firstName,
+        lastName: rest.join(' '),
+        email,
+        role: ROLE_KEYS[role] ?? role,
+        phone,
+      });
       setName(''); setEmail(''); setPhone('');
       await loadPersonnel();
       onUpdate();
@@ -42,7 +81,7 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
 
   const handleDelete = async (id: string) => {
     try {
-      await apiClient.delete(`/admin/personnel/${id}`);
+      await apiClient.delete(`/admin/staff/${id}`);
       await loadPersonnel();
       onUpdate();
     } catch { /* handled by apiClient interceptor */ }

@@ -1,31 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useAuthStore } from '@/core/store/authStore';
 import { LogOut, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
-import { apiClient } from '@/shared/lib/apiClient';
 
 export function VisitorDashboard() {
-  const { utilisateur, deconnexion, connexionReussie, token } = useAuthStore();
-  const [statut, setStatut] = useState<'En attente' | 'Accepté' | 'Refusé'>('En attente');
+  const { utilisateur, deconnexion } = useAuthStore();
 
-  useEffect(() => {
-    let active = true;
-    const fetchStatus = async () => {
-      if (!utilisateur?.email) return;
-      try {
-        const { data: d } = await apiClient.get(`/student/admission-status?email=${encodeURIComponent(utilisateur.email)}`);
-        if (!active) return;
-        setStatut(d.statut);
-        if (d.role === 'ETUDIANT') {
-          connexionReussie({ utilisateur: { ...utilisateur, role: 'ETUDIANT' }, token: token || 'active' });
-          window.location.reload();
-        }
-      } catch { /* handled by apiClient interceptor */ }
-    };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 4000);
-    return () => { active = false; clearInterval(interval); };
-  }, [utilisateur, token, connexionReussie]);
+  // Fonctionnalité non disponible : aucune route backend ne donne au candidat le statut de
+  // SA candidature (ex-GET /student/admission-status, à spécifier — APP-ARC-01). Pas de
+  // sondage simulé : le statut reste « En attente » et un message explicite est affiché.
+  const statut = 'En attente' as 'En attente' | 'Accepté' | 'Refusé';
 
   const steps = [
     { title: "Dossier Déposé", desc: "Candidature enregistrée avec succès", status: "complete", icon: CheckCircle2, color: "text-emerald-500 bg-emerald-500/10" },
@@ -50,7 +34,7 @@ export function VisitorDashboard() {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="max-w-xl w-full bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-primary to-transparent" />
           <h2 className="text-lg font-black tracking-tight text-white mb-2 text-center">Suivi de votre Candidature</h2>
-          <p className="text-xs text-slate-400 font-semibold mb-8 text-center">Votre dossier est en cours de traitement en temps réel</p>
+          <p className="text-xs text-slate-400 font-semibold mb-8 text-center">Votre dossier est en cours de traitement. Le suivi en ligne de la décision n'est pas encore disponible : vous serez contacté par l'école.</p>
 
           <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
             {steps.map((s, idx) => (

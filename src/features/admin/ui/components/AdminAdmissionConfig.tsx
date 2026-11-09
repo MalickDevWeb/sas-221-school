@@ -28,8 +28,9 @@ export function AdminAdmissionConfig() {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await apiClient.get('/admin/candidatures/settings');
-        if (data) setConfig(data as Config);
+        // Lecture : CandidaturesController GET /candidatures/settings — APP-ARC-01
+        const { data } = await apiClient.get<Partial<Config>>('/candidatures/settings');
+        if (data) setConfig(p => ({ ...p, ...data, docsRequis: { ...p.docsRequis, ...(data.docsRequis ?? {}) } }));
       } catch (err) { console.warn('[AdminAdmissionConfig] Could not load settings from API:', err); }
     };
     load();
@@ -39,7 +40,12 @@ export function AdminAdmissionConfig() {
     e.preventDefault();
     setLoading(true); setSuccess(false);
     try {
-      await apiClient.post('/admin/candidatures/settings', config);
+      // Écriture : /candidatures/settings (réglages complets relus ci-dessus) et
+      // /admin/candidatures/settings (bascule ouvert/fermé côté AdminUseCase).
+      await Promise.all([
+        apiClient.post('/candidatures/settings', config),
+        apiClient.post('/admin/candidatures/settings', config),
+      ]);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {

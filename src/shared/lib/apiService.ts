@@ -55,7 +55,8 @@ export const profService = {
     return data;
   },
   getTodaySchedule: async () => {
-    const { data } = await apiClient.get('/prof/today-schedule');
+    // Emploi du temps du jour : ProfExtraController GET /professor/schedule (APP-ARC-01)
+    const { data } = await apiClient.get('/professor/schedule');
     return data;
   },
 };
