@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { messageErreur, ERREUR_AFFICHEE } from '@/shared/errors/errorDictionary';
 
 let lastNetworkToastTime = 0;
 const TOAST_THROTTLE_MS = 10_000;
@@ -72,7 +72,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   // Message lisible pour les écrans qui affichent error.message (avant : « Request failed with
   // status code 404 » affiché tel quel) — dictionnaire d'erreurs commun, en français.
   try {
-    error.message = resolveErrorMessage(error);
+    error.message = messageErreur(error);
   } catch { /* message d'origine conservé */ }
 
   const status = error.response?.status;
@@ -137,7 +137,12 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
     if (!isBackgroundUrl(url)) showThrottledNetworkError();
   } else if (status !== 404 && !isBackgroundUrl(url)) {
     const serverMsg = (error.response?.data as any)?.message;
-    toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
+    // Différé : si l'écran affiche lui-même le message (resolveErrorMessage dans son catch, exécuté avant
+    // ce délai), le message global n'est pas répété — avant, deux messages pour une même erreur 400/409.
+    setTimeout(() => {
+      if ((error as any)[ERREUR_AFFICHEE]) return;
+      toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
+    }, 0);
   }
 
   return Promise.reject(error);

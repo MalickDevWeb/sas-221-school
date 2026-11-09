@@ -1,25 +1,17 @@
 import React, { useState } from 'react';
-import { Globe, Shield, Bell, Server, Save, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { Globe, Shield, Server, Save, Sparkles } from 'lucide-react';
 import { SettingsGeneralTab } from '../components/settings/SettingsGeneralTab';
 import { SettingsSecurityTab } from '../components/settings/SettingsSecurityTab';
 import { SettingsSystemTab } from '../components/settings/SettingsSystemTab';
 
 export const SuperAdminSettingsPage = () => {
   const [activeTab, setActiveTab] = useState('general');
-  const [isSaving, setIsSaving] = useState(false);
+  // Aucun service serveur ne stocke les paramètres de la plateforme : aucune valeur inventée,
+  // champs et sauvegarde désactivés (plus de faux « sauvegardé avec succès »).
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [platformName, setPlatformName] = useState('My School SaaS');
-  const [supportEmail, setSupportEmail] = useState('contact@myschool.sn');
-  const [require2fa, setRequire2fa] = useState(true);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success('Paramètres globaux sauvegardés avec succès !');
-    }, 600);
-  };
+  const [platformName, setPlatformName] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [require2fa, setRequire2fa] = useState(false);
 
   const navItems = [
     { id: 'general', label: 'Général', icon: Globe },
@@ -38,12 +30,17 @@ export const SuperAdminSettingsPage = () => {
           <p className="text-xs text-slate-400 mt-1">Supervisez les variables environnementales et les seuils de sécurité.</p>
         </div>
         <button
-          onClick={handleSave} disabled={isSaving}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50 w-fit"
+          type="button" disabled aria-disabled="true"
+          title="Fonctionnalité non disponible : aucune source de données"
+          className="flex items-center gap-2 bg-white/10 text-slate-400 px-5 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed w-fit"
         >
-          {isSaving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={16} />}
+          <Save size={16} />
           <span>Sauvegarder</span>
         </button>
+      </div>
+
+      <div className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-semibold">
+        Fonctionnalité non disponible : aucune source de données. Les paramètres globaux de la plateforme ne sont pas encore stockés côté serveur ; rien n'est affiché ni enregistré.
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
@@ -62,7 +59,7 @@ export const SuperAdminSettingsPage = () => {
         </div>
 
         {/* Content Box */}
-        <div className="flex-1 bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-xl">
+        <fieldset disabled className="flex-1 min-w-0 opacity-60 bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-xl">
           {activeTab === 'general' && (
             <SettingsGeneralTab platformName={platformName} setPlatformName={setPlatformName} supportEmail={supportEmail} setSupportEmail={setSupportEmail} />
           )}
@@ -72,7 +69,7 @@ export const SuperAdminSettingsPage = () => {
           {activeTab === 'system' && (
             <SettingsSystemTab maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />
           )}
-        </div>
+        </fieldset>
       </div>
     </div>
   );

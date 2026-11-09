@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { StaffMember } from '../../../domain/PersonnelModels';
+import { StaffMember, libelleRole } from '../../../domain/PersonnelModels';
 import { AccountsFilterBar } from './accounts/AccountsFilterBar';
 import { StaffTable } from './accounts/StaffTable';
-import { AddStaffCard } from './accounts/AddStaffCard';
+import { AddStaffCard, NouveauCollaborateur, ResultatCreation } from './accounts/AddStaffCard';
 import { EditStaffModal } from './accounts/EditStaffModal';
 import { DeleteStaffModal } from './accounts/DeleteStaffModal';
+import { MotDePasseProvisoireModal } from '../MotDePasseProvisoireModal';
 
 interface Props {
   staff: StaffMember[];
-  onAddStaff: (member: Omit<StaffMember, 'id'>) => Promise<any> | void;
-  onUpdateStaff: (updated: StaffMember, originalId?: string) => void;
-  onDeleteStaff: (id: string) => void;
+  onAddStaff: (member: NouveauCollaborateur) => Promise<ResultatCreation | null>;
+  onUpdateStaff: (updated: StaffMember) => Promise<boolean>;
+  onDeleteStaff: (id: string) => Promise<boolean>;
   onToggleStatus: (id: string) => void;
 }
 
@@ -24,33 +25,23 @@ export function AccountsTab({
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [search, setSearch] = useState('');
-  const [successInfo, setSuccessInfo] = useState<{ id: string; pass: string } | null>(null);
+  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; email: string; motDePasse: string } | null>(null);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [deletingStaffId, setDeletingStaffId] = useState<string | null>(null);
 
   const filteredStaff = useMemo(() => {
     return staff.filter((s) => {
-      const rMatch = filterRole === 'ALL' || s.role === filterRole;
+      const rMatch = filterRole === 'ALL' || libelleRole(s) === filterRole;
       const sMatch = filterStatus === 'ALL' || s.status === filterStatus;
       const q = search.toLowerCase().trim();
-      const qMatch = !q || `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
+      const qMatch = !q || `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) || (s.email || '').toLowerCase().includes(q)
+        || (s.phone || '').toLowerCase().includes(q) || (s.matricule || '').toLowerCase().includes(q);
       return rMatch && sMatch && qMatch;
     });
   }, [staff, filterRole, filterStatus, search]);
 
   return (
     <div className="space-y-4" id="accounts-tab-root">
-      {successInfo && (
-        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between text-xs font-bold text-emerald-800">
-          <div className="space-y-1">
-            <span className="text-sm font-black text-emerald-950">🎉 Collaborateur Ajouté avec Succès !</span>
-            <p>Identifiant : <code className="bg-emerald-100 px-1.5 py-0.5 rounded text-neutral-900 font-mono">{successInfo.id}</code></p>
-            <p>Mot de passe temporaire : <code className="bg-emerald-100 px-1.5 py-0.5 rounded text-neutral-900 font-mono">{successInfo.pass}</code></p>
-          </div>
-          <button type="button" onClick={() => setSuccessInfo(null)} className="px-3 py-1 bg-white border border-emerald-300 hover:bg-emerald-100 rounded-lg cursor-pointer font-bold">OK</button>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-4 min-w-0">
           <AccountsFilterBar
@@ -69,16 +60,23 @@ export function AccountsTab({
           />
         </div>
 
-        <AddStaffCard onAddStaff={onAddStaff} onSuccess={setSuccessInfo} />
+        <AddStaffCard
+          onAddStaff={onAddStaff}
+          onCreated={({ member, motDePasseProvisoire }) => {
+            if (motDePasseProvisoire) {
+              setMotDePasseInfo({ nom: `${member.firstName} ${member.lastName}`.trim(), email: member.email, motDePasse: motDePasseProvisoire });
+            }
+          }}
+        />
       </div>
 
       {editingStaff && (
         <EditStaffModal
           staff={editingStaff}
           onClose={() => setEditingStaff(null)}
-          onSave={(updated) => {
-            onUpdateStaff(updated, editingStaff.id);
-            setEditingStaff(null);
+          onSave={async (updated) => {
+            // La fenêtre ne se ferme qu'après confirmation du serveur
+            if (await onUpdateStaff(updated)) setEditingStaff(null);
           }}
         />
       )}
@@ -86,11 +84,19 @@ export function AccountsTab({
       <DeleteStaffModal
         isOpen={Boolean(deletingStaffId)}
         onClose={() => setDeletingStaffId(null)}
-        onConfirm={() => {
-          if (deletingStaffId) onDeleteStaff(deletingStaffId);
-          setDeletingStaffId(null);
+        onConfirm={async () => {
+          if (deletingStaffId && (await onDeleteStaff(deletingStaffId))) setDeletingStaffId(null);
         }}
       />
+
+      {motDePasseInfo && (
+        <MotDePasseProvisoireModal
+          nom={motDePasseInfo.nom}
+          identifiant={motDePasseInfo.email}
+          motDePasse={motDePasseInfo.motDePasse}
+          onClose={() => setMotDePasseInfo(null)}
+        />
+      )}
     </div>
   );
 }

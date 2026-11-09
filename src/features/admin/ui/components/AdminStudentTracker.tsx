@@ -41,11 +41,11 @@ export function AdminStudentTracker({ students }: { students: TrackerStudent[]; 
           <div className="grid grid-cols-2 gap-2 bg-[#FAF8F6] p-2.5 rounded-xl border border-[#E2DCDA]/60">
             <div>
               <p className="text-[9px] text-[#8E7977] font-bold uppercase">Moyenne Générale</p>
-              <p className="text-sm font-black text-primary">{student.average || 12}/20</p>
+              <p className="text-sm font-black text-primary">{student.average != null ? `${student.average}/20` : '—'}</p>
             </div>
             <div>
-              <p className="text-[9px] text-[#8E7977] font-bold uppercase">Humeur / Statut</p>
-              <p className="font-bold text-[#291715]">{student.mood || 'Actif'}</p>
+              <p className="text-[9px] text-[#8E7977] font-bold uppercase">Statut</p>
+              <p className="font-bold text-[#291715]">{student.status ?? '—'}</p>
             </div>
           </div>
 

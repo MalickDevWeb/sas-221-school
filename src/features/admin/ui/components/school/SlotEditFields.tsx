@@ -1,6 +1,7 @@
 import React from 'react';
 import { Room } from '../../../domain/SchoolModels';
-import { TEACHERS, SUBJECTS } from './PlanningConstants';
+import { SUBJECTS } from './PlanningConstants';
+import { useSchoolProfessors } from './useSchoolProfessors';
 
 interface Props {
   subject: string;
@@ -23,6 +24,8 @@ export function SlotEditFields({
   isLive,
   rooms,
 }: Props) {
+  const { professors, loading: loadingProfs, error: profsError } = useSchoolProfessors();
+  const profInconnu = prof !== '' && !professors.some(p => p.name === prof);
   return (
     <div className="space-y-3">
       <div>
@@ -49,9 +52,12 @@ export function SlotEditFields({
           onChange={e => setProf(e.target.value)}
           className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-primary disabled:bg-neutral-100 disabled:text-neutral-500"
         >
-          <option value="">Sélectionner</option>
-          {TEACHERS.map(t => <option key={t} value={t}>{t}</option>)}
+          <option value="">{loadingProfs ? 'Chargement…' : professors.length === 0 ? 'Aucun enseignant' : 'Sélectionner'}</option>
+          {profInconnu && <option value={prof}>{prof}</option>}
+          {professors.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
         </select>
+        {!loadingProfs && profsError && <p className="text-[10px] font-bold text-rose-700 mt-1">Enseignants indisponibles : {profsError}</p>}
+        {!loadingProfs && !profsError && professors.length === 0 && <p className="text-[10px] font-bold text-neutral-400 mt-1">Aucun enseignant enregistré dans l'école.</p>}
       </div>
 
       <div>

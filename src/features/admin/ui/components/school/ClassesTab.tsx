@@ -58,9 +58,11 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
 
   // Calculate totals
   const totalCapacity = safeClasses.reduce((acc, c) => acc + (c.capacityMax || 0), 0);
-  const avgTuition = safeClasses.length > 0
-    ? Math.round(safeClasses.reduce((acc, c) => acc + (c.price || 0), 0) / safeClasses.length)
-    : 0;
+  // Moyenne calculée uniquement sur les classes dont le tarif est renseigné
+  const pricedClasses = safeClasses.filter(c => c.price != null);
+  const avgTuition = pricedClasses.length > 0
+    ? Math.round(pricedClasses.reduce((acc, c) => acc + (c.price ?? 0), 0) / pricedClasses.length)
+    : null;
 
   if (activeClasseFor360) {
     return (
@@ -130,7 +132,7 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
         </div>
         <div className="p-3.5 bg-[#FAF8F6] border border-neutral-200/80 rounded-2xl">
           <span className="text-[10px] font-black uppercase text-neutral-400 block tracking-wider">Frais Moyen Annuel</span>
-          <span className="text-xl font-black text-emerald-600 block mt-1">{avgTuition.toLocaleString('fr-FR')} FCFA</span>
+          <span className="text-xl font-black text-emerald-600 block mt-1">{avgTuition == null ? '—' : `${avgTuition.toLocaleString('fr-FR')} FCFA`}</span>
           <span className="text-[10px] font-bold text-neutral-500 mt-0.5 block">par étudiant / an</span>
         </div>
         <div className="p-3.5 bg-[#FAF8F6] border border-neutral-200/80 rounded-2xl">
@@ -224,9 +226,9 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
                   const classStudentCount = students.filter(
                     s => s.classe?.toLowerCase() === cls.name.toLowerCase() ||
                          s.classe?.toLowerCase().includes(cls.level.toLowerCase())
-                  ).length || Math.min(cls.capacityMax, 2);
+                  ).length;   // effectif réel (0 si aucun élève rattaché), jamais inventé
 
-                  const occupancy = Math.min(100, Math.round((classStudentCount / (cls.capacityMax || 1)) * 100));
+                  const occupancy = cls.capacityMax ? Math.min(100, Math.round((classStudentCount / cls.capacityMax) * 100)) : 0;
 
                   return (
                     <tr
@@ -257,7 +259,7 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
                         <div className="space-y-1 w-32">
                           <div className="flex justify-between text-[10px] font-bold">
                             <span className="text-neutral-700">{classStudentCount} inscrits</span>
-                            <span className="text-neutral-400">max {cls.capacityMax}</span>
+                            <span className="text-neutral-400">max {cls.capacityMax ?? '—'}</span>
                           </div>
                           <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
                             <div
@@ -270,7 +272,7 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
                         </div>
                       </td>
                       <td className="px-5 py-3.5 text-right text-emerald-600 font-extrabold text-sm">
-                        {cls.price.toLocaleString('fr-FR')} FCFA
+                        {cls.price == null ? '—' : `${cls.price.toLocaleString('fr-FR')} FCFA`}
                       </td>
                       <td className="px-5 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1.5">

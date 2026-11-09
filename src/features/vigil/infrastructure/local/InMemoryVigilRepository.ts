@@ -1,18 +1,40 @@
 import type { VigilProfile } from '../../domain/VigilProfile';
 import type { VigilRepository } from '../../domain/VigilRepository';
 import type { VigilScanResult } from '../../domain/VigilScan';
-import { APP_CONFIG } from '@/core/config/app.config';
+
+/**
+ * Dépôt de DÉVELOPPEMENT uniquement (VITE_USE_MOCK=true). Jamais utilisé en production :
+ * les données ci-dessous sont des valeurs de test explicitement neutres (aucune personne réelle).
+ */
+const DEV_VIGIL = {
+  id: 'dev-vigil',
+  nom: 'Test',
+  prenom: 'Vigile',
+  badgeId: 'DEV-VIGIL',
+  equipe: '—',
+  derniereConnexion: '—',
+};
+
+const DEV_SCAN = {
+  badgeOwner: 'Badge de test',
+  studentId: 'DEV-BADGE',
+  message: 'Scan simulé (mode développement)',
+  assiduite: '—',
+  statutFrais: '—',
+  zone: '—',
+  time: '—',
+};
 
 export class InMemoryVigilRepository implements VigilRepository {
   private lastScan: VigilScanResult | null = {
-    ...APP_CONFIG.studentMock,
+    ...DEV_SCAN,
     statut: 'Autorisé',
   };
 
   async getProfile(): Promise<VigilProfile> {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return {
-      ...APP_CONFIG.vigilMock,
+      ...DEV_VIGIL,
       statut: 'Opérationnel',
     };
   }
@@ -20,7 +42,7 @@ export class InMemoryVigilRepository implements VigilRepository {
   async scanBadge(badgeId: string): Promise<VigilScanResult> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.lastScan = {
-      ...APP_CONFIG.studentMock,
+      ...DEV_SCAN,
       studentId: badgeId,
       statut: 'Autorisé',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

@@ -10,7 +10,7 @@ interface Props {
 
 export function AdminExcelImport(_props: Props) {
   const { isMobile, isTablet } = useDeviceStore();
-  const [csvText, setCsvText] = useState("Nom;Matricule;Classe\nAssane Diallo;221-M901;221-GL\nMariama Fall;221-M902;221-MOBI");
+  const [csvText, setCsvText] = useState('');   // aucune donnée pré-remplie
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -18,7 +18,10 @@ export function AdminExcelImport(_props: Props) {
 
   const parseCsv = () => {
     const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean);
-    if (!lines.length) return;
+    if (!lines.length) {
+      toast.error('Collez le contenu CSV (ligne d\'entête puis une ligne par élève).');
+      return;
+    }
     const separator = lines[0].includes(';') ? ';' : lines[0].includes(',') ? ',' : '\t';
     const parsedHeaders = lines[0].split(separator).map(h => h.trim());
     const parsedRows = lines.slice(1).map(line => line.split(separator).map(cell => cell.trim()));
@@ -59,7 +62,7 @@ export function AdminExcelImport(_props: Props) {
 
       {step === 1 ? (
         <div className="space-y-2">
-          <textarea rows={3} className="w-full font-mono text-[10px] bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none" value={csvText} onChange={e => setCsvText(e.target.value)} />
+          <textarea rows={3} className="w-full font-mono text-[10px] bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none" value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="Nom;Email;Matricule;Classe" />
           <button type="button" onClick={parseCsv} className="w-full h-9 bg-primary hover:bg-primary/90 text-white font-black uppercase rounded-xl tracking-wider cursor-pointer">Analyse des Colonnes</button>
         </div>
       ) : (

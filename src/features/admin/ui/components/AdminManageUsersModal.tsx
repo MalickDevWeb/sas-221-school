@@ -5,6 +5,7 @@ import { AdminStudentTracker } from './AdminStudentTracker';
 import { AdminClassFiliereManager } from './AdminClassFiliereManager';
 import { AdminPersonnelManager } from './AdminPersonnelManager';
 import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { toast } from 'sonner';
 
 interface AdminManageUsersModalProps {
   onClose: () => void;
@@ -62,10 +63,10 @@ export function AdminManageUsersModal({
                   <div key={s.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-[#E2DCDA] hover:shadow-xs transition-shadow">
                     <div>
                       <p className="text-xs font-bold text-[#291715]">{s.name}</p>
-                      <p className="text-[9px] text-[#8E7977] font-bold">Matricule : {s.matricule} • {promotions.find(p => p.id === s.promotion_id)?.name || 'Classe'}</p>
-                      <p className="text-[9px] font-semibold text-primary">Moyenne : {s.average || 'N/A'}/20</p>
+                      <p className="text-[9px] text-[#8E7977] font-bold">Matricule : {s.matricule || '—'}{s.email ? ` • ${s.email}` : ''}</p>
+                      <p className="text-[9px] font-semibold text-primary">Frais : {s.statutFrais ?? 'Non renseigné'}{s.status ? ` • ${s.status}` : ''}</p>
                     </div>
-                    <button onClick={async () => { if (await demanderConfirmation(`Supprimer définitivement ${s.name} ?`, { titre: 'Supprimer un élève', confirmer: 'Supprimer' })) { await onDeleteStudent(s.id); onRefreshData(); } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
+                    <button onClick={async () => { if (await demanderConfirmation(`Supprimer définitivement ${s.name} ?`, { titre: 'Supprimer un élève', confirmer: 'Supprimer' })) { if (await onDeleteStudent(s.id)) { toast.success(`${s.name} a été retiré de l'école.`); onRefreshData(); } else { toast.error(`Le retrait de ${s.name} a échoué : le serveur a refusé l'opération.`); } } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
                   </div>
                 ))}
               </div>

@@ -22,7 +22,7 @@ export const AttendanceStatsCard: React.FC<Props> = ({
       <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest block">
         Taux de Présence
       </span>
-      <span className="text-[9px] text-neutral-500 font-semibold">Aujourd'hui sur site</span>
+      <span className="text-[9px] text-neutral-500 font-semibold">Sur les pointages enregistrés</span>
     </div>
 
     <div className="relative w-32 h-32 flex items-center justify-center">
@@ -45,7 +45,7 @@ export const AttendanceStatsCard: React.FC<Props> = ({
         />
       </svg>
       <div className="flex flex-col items-center">
-        <span className="text-2xl font-black text-[#1E293B]">{rate}%</span>
+        <span className="text-2xl font-black text-[#1E293B]">{totalCount > 0 ? `${rate}%` : '—'}</span>
         <span className="text-[9px] uppercase font-bold text-primary tracking-widest">
           {presentCount}/{totalCount} Présents
         </span>
@@ -76,7 +76,7 @@ export const AttendanceStatsCard: React.FC<Props> = ({
     </div>
 
     <p className="text-[9px] text-neutral-400 font-medium leading-normal">
-      Le pointage s'effectue automatiquement via QR Code vigile ou manuellement depuis ce panneau.
+      {totalCount === 0 ? 'Aucun pointage enregistré pour le moment.' : 'Pointages saisis depuis ce panneau.'}
     </p>
   </div>
 );

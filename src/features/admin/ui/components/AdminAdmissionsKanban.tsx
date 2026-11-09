@@ -5,7 +5,9 @@ import { ValidationKanbanTab } from './admissions/ValidationKanbanTab';
 import { MatriculationTab } from './admissions/MatriculationTab';
 import { AdmissionsRulesEngine } from './admissions/AdmissionsRulesEngine';
 import { ExtendedCandidate } from '../../domain/AdmissionsExtendedModels';
-import { getAdmissionsDb, saveAdmissionsDb } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
+import { getAdmissionsDb } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
+import { publicApiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
 export function AdminAdmissionsKanban() {
@@ -30,32 +32,45 @@ export function AdminAdmissionsKanban() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleUpdateCandidate = (updated: ExtendedCandidate) => {
+  /** Enregistre la liste côté serveur ; l'écran n'est mis à jour qu'après réponse 2xx. */
+  const persistCandidates = async (nextList: ExtendedCandidate[]): Promise<boolean> => {
+    try {
+      await publicApiClient.post('/admissions/db', { candidates: nextList });
+      localStorage.setItem('e221_candidates', JSON.stringify(nextList));
+      setCandidates(nextList);
+      return true;
+    } catch (err) {
+      showToast(resolveErrorMessage(err), false);
+      return false;
+    }
+  };
+
+  const handleUpdateCandidate = async (updated: ExtendedCandidate) => {
     const nextList = candidates.map((c) => (c.id === updated.id ? updated : c));
-    setCandidates(nextList);
-    saveAdmissionsDb({ candidates: nextList });
-    showToast(`Dossier de ${updated.name} mis à jour avec succès.`, true);
+    if (await persistCandidates(nextList)) {
+      showToast(`Dossier de ${updated.name} mis à jour.`, true);
+    }
   };
 
-  const handleTogglePayment = (id: string) => {
-    const nextList = candidates.map((c) => {
-      if (c.id === id) {
-        const nextState = !c.registrationFeePaid;
-        showToast(nextState ? "Paiement de la tranche 1 enregistré !" : "Paiement révoqué.", true);
-        return { ...c, registrationFeePaid: nextState };
-      }
-      return c;
-    });
-    setCandidates(nextList);
-    saveAdmissionsDb({ candidates: nextList });
+  const handleTogglePayment = async (id: string) => {
+    const cible = candidates.find((c) => c.id === id);
+    if (!cible) return;
+    const nextState = !cible.registrationFeePaid;
+    const nextList = candidates.map((c) => (c.id === id ? { ...c, registrationFeePaid: nextState } : c));
+    if (await persistCandidates(nextList)) {
+      showToast(nextState ? 'Paiement de la tranche 1 enregistré.' : 'Paiement révoqué.', true);
+    }
   };
 
+  /** Appelé uniquement avec un matricule renvoyé par le serveur. */
   const handleEnroll = (c: ExtendedCandidate, matricule: string) => {
-    showToast(`Félicitations ! ${c.name} est matriculé d'office ! Matricule : ${matricule}.`, true);
+    showToast(`${c.name} est matriculé(e). Matricule : ${matricule}.`, true);
     const nextList = candidates.filter((item) => item.id !== c.id);
     setCandidates(nextList);
-    saveAdmissionsDb({ candidates: nextList });
+    localStorage.setItem('e221_candidates', JSON.stringify(nextList));
   };
+
+  const handleEnrollError = (message: string) => showToast(message, false);
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-admissions-root">
@@ -89,10 +104,10 @@ export function AdminAdmissionsKanban() {
         )}
         {activeTab === 'rules' && <AdmissionsRulesEngine />}
         {activeTab === 'validation' && (
-          <ValidationKanbanTab candidates={candidates} onUpdateCandidate={handleUpdateCandidate} />
+          <ValidationKanbanTab candidates={candidates} onUpdateCandidate={(c) => { void handleUpdateCandidate(c); }} />
         )}
         {activeTab === 'matriculation' && (
-          <MatriculationTab candidates={candidates} onEnroll={handleEnroll} onTogglePayment={handleTogglePayment} />
+          <MatriculationTab candidates={candidates} onEnroll={handleEnroll} onError={handleEnrollError} onTogglePayment={(id) => { void handleTogglePayment(id); }} />
         )}
       </div>
     </div>

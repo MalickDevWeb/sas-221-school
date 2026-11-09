@@ -1,9 +1,11 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
 import { Settings, LifeBuoy, LogOut, Edit3, X } from 'lucide-react';
 import { ProfileDetails } from './ProfileDetails';
+import { getStudentProfile } from '@/features/student/api';
+import type { StudentProfile } from '@/features/student/types';
 
 interface Props {
   readonly showProfile: boolean;
@@ -21,11 +23,29 @@ export function ProfileDropdown({
   showProfile, setShowProfile, setShowNotifications, setShowCalendar, mood, tempMood, setTempMood, isEditingMood, setIsEditingMood, onOpenSettings, onOpenSupport, triggerToast, onMoodSave, profileRef
 }: Props) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { utilisateur, deconnexion } = useAuthStore();
   
   const isProf = utilisateur?.role === 'PROFESSEUR';
-  const name = utilisateur?.nom ?? (isProf ? 'Professeur' : 'Étudiant');
+  const isStudent = utilisateur?.role === 'ETUDIANT';
+  const fullName = [(utilisateur as { prenom?: string } | null)?.prenom, utilisateur?.nom].filter(Boolean).join(' ').trim();
+  const name = fullName || (isProf ? 'Professeur' : 'Étudiant');
+
+  // Profil étudiant réel (GET /student/profile) : matricule, niveau, filière. Rien d'inventé si absent.
+  const [studentProfile, setStudentProfile] = useState<Partial<StudentProfile> | null>(null);
+  useEffect(() => {
+    if (!showProfile || !isStudent || studentProfile) return;
+    let cancelled = false;
+    getStudentProfile()
+      .then((p) => { if (!cancelled && p && typeof p === 'object') setStudentProfile(p); })
+      .catch(() => { /* profil indisponible : les lignes sont simplement omises */ });
+    return () => { cancelled = true; };
+  }, [showProfile, isStudent, studentProfile]);
+
+  const matricule = studentProfile?.matricule?.trim();
+  const niveauFiliere = [studentProfile?.niveau, studentProfile?.filiere].map(v => v?.trim()).filter(Boolean).join(' ');
+  const subtitle = isStudent
+    ? [matricule ? `Matricule : ${matricule}` : '', niveauFiliere].filter(Boolean).join(' • ')
+    : '';
   const initials = name.replace(/^(Dr\.|Mme\.|M\.)\s*/, '').trim().split(/\s+/).map(p => p[0]).join('').substring(0, 2).toUpperCase();
 
   const handleLogout = () => {
@@ -50,12 +70,14 @@ export function ProfileDropdown({
                 <span className="text-white font-black text-base select-none">{initials}</span>
               </div>
               <h4 className="font-headline-md text-sm font-black tracking-tight">{name}</h4>
-              <p className="text-[10px] text-white/80 font-semibold mt-0.5">
-                {isProf ? `ID Enseignant : #221-P${utilisateur?.id?.slice(-3) || '99'}` : 'Matricule : #221-M382 • ' + (location.pathname.includes('cours') || location.pathname.includes('devoirs') ? 'Master 1 GL' : 'Licence 3 GL')}
-              </p>
-              <span className="inline-block mt-2 px-2.5 py-0.5 bg-white/20 rounded-full text-[8.5px] font-black uppercase tracking-wider text-white">
-                {isProf ? 'Espace Enseignant' : 'Promotion 221-GL'}
-              </span>
+              {subtitle && (
+                <p className="text-[10px] text-white/80 font-semibold mt-0.5">{subtitle}</p>
+              )}
+              {(isProf || isStudent) && (
+                <span className="inline-block mt-2 px-2.5 py-0.5 bg-white/20 rounded-full text-[8.5px] font-black uppercase tracking-wider text-white">
+                  {isProf ? 'Espace Enseignant' : 'Espace Étudiant'}
+                </span>
+              )}
             </div>
           </div>
           <div className="p-4 space-y-4 pb-5">

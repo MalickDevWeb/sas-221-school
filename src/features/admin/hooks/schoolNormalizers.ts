@@ -5,12 +5,12 @@ export function normalizeRooms(rawRooms: any): Room[] {
   return list.map((r: any) => ({
     id: r.id || `room-${Math.random()}`,
     name: r.name || 'Salle sans nom',
-    capacity: r.capacity || 40,
+    capacity: r.capacity ?? r.capacite ?? 0,   // capacité réelle de la salle (aucune valeur supposée)
     equipment: Array.isArray(r.equipment)
       ? r.equipment
       : typeof r.equipment === 'string' && r.equipment.trim().length > 0
       ? r.equipment.split(',').map((e: string) => e.trim()).filter(Boolean)
-      : ['Projecteur'],
+      : [],   // aucun équipement supposé
     status: r.status || 'Disponible',
   }));
 }
@@ -20,7 +20,7 @@ export function normalizeFilieres(rawFilieres: any): Filiere[] {
   return list.map((f: any) => ({
     id: f.id || `fil-${Math.random()}`,
     name: f.name || 'Filière sans nom',
-    code: f.code || 'GEN',
+    code: f.code || '',
     description: f.description || '',
   }));
 }
@@ -30,10 +30,10 @@ export function normalizeClasses(rawClasses: any): Classe[] {
   return list.map((c: any) => ({
     id: c.id || `cls-${Math.random()}`,
     name: c.name || 'Classe sans nom',
-    level: c.level || 'L1',
+    level: c.level || c.niveau || '',
     filiereId: c.filiereId || '',
-    capacityMax: c.capacityMax ?? c.capacity ?? 35,
-    price: c.price ?? 450000,
+    capacityMax: c.capacityMax ?? c.capacity ?? null,   // non renseignée → affichée « — »
+    price: c.price ?? null,                            // aucun tarif inventé → affiché « — »
   }));
 }
 
@@ -45,8 +45,8 @@ export function normalizeSlots(rawSlots: any): PlanningSlot[] {
     slot: s.slot || `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
     classeId: s.classeId || '',
     subject: s.subject || s.matiere || 'Cours',
-    prof: s.prof || s.professeur || 'Enseignant',
-    roomName: s.roomName || s.room?.name || 'Salle Principale',
+    prof: s.prof || s.professeur || '—',
+    roomName: s.roomName || s.room?.name || '—',
     isLive: s.isLive ?? false,
     status: s.status,
     isAbsent: s.isAbsent ?? false,

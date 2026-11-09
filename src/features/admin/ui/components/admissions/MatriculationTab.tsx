@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { MatriculationTable } from './MatriculationTable';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface Props {
   candidates: ExtendedCandidate[];
   onEnroll: (candidate: ExtendedCandidate, matricule: string) => void;
+  onError: (message: string) => void;
   onTogglePayment: (id: string) => void;
 }
 
-type CreatedStudent = { name: string; matricule: string; credits: number; level: string };
+type CreatedStudent = { name: string; matricule: string; credits: number | null; level: string };
 
 function getLevel(type: string): string {
   if (['BAC'].includes(type)) return 'Licence 1';
@@ -19,21 +22,39 @@ function getLevel(type: string): string {
   return 'Doctorat';
 }
 
-export function MatriculationTab({ candidates, onEnroll, onTogglePayment }: Props) {
+/** Cherche le matricule attribué par le serveur à ce candidat dans la réponse (aucune invention). */
+function matriculeRenvoye(data: any, candidateId: string): string | null {
+  const m = data?.matricules;
+  if (Array.isArray(m)) {
+    const trouve = m.find((x: any) => x && String(x.candidateId ?? x.id) === candidateId);
+    return trouve?.matricule ? String(trouve.matricule) : null;
+  }
+  if (m && typeof m === 'object' && m[candidateId]) return String(m[candidateId]);
+  return null;
+}
+
+export function MatriculationTab({ candidates, onEnroll, onError, onTogglePayment }: Props) {
   const admitted = candidates.filter((c) => c.step === 'admitted');
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
   const [createdStudent, setCreatedStudent] = useState<CreatedStudent | null>(null);
 
-  const handleEnrollClick = (c: ExtendedCandidate) => {
+  const handleEnrollClick = async (c: ExtendedCandidate) => {
     setEnrollingId(c.id);
-    const matricule = `MAT-2026-${Math.floor(1000 + Math.random() * 8999)}`;
-    const credits = c.equivalence?.validatedCredits || 0;
-    const level = getLevel(c.type);
-    setTimeout(() => {
+    try {
+      const { data } = await apiClient.post('/admissions/automation/matricules');
+      const matricule = matriculeRenvoye(data, c.id);
+      if (!matricule) {
+        onError("Le serveur n'a attribué aucun matricule à ce dossier : l'inscription définitive n'a pas été effectuée.");
+        return;
+      }
+      const credits = typeof c.equivalence?.validatedCredits === 'number' ? c.equivalence.validatedCredits : null;
       onEnroll(c, matricule);
+      setCreatedStudent({ name: c.name, matricule, credits, level: getLevel(c.type) });
+    } catch (err) {
+      onError(resolveErrorMessage(err));
+    } finally {
       setEnrollingId(null);
-      setCreatedStudent({ name: c.name, matricule, credits, level });
-    }, 1200);
+    }
   };
 
   return (
@@ -50,7 +71,7 @@ export function MatriculationTab({ candidates, onEnroll, onTogglePayment }: Prop
           <div className="flex justify-between items-center">
             <span className="uppercase text-[10px] font-black tracking-wider flex items-center gap-1">
               <span translate="no" className="material-symbols-outlined text-sm">verified_user</span>
-              Étudiant Activé Avec Succès !
+              Matricule attribué par le serveur
             </span>
             <button onClick={() => setCreatedStudent(null)} className="text-emerald-600 hover:text-emerald-900">Masquer</button>
           </div>
@@ -58,12 +79,12 @@ export function MatriculationTab({ candidates, onEnroll, onTogglePayment }: Prop
             <div>Nom complet : <span className="text-[#1E293B] block font-black">{createdStudent.name}</span></div>
             <div>Matricule Unique : <span className="text-emerald-700 block font-black font-mono">{createdStudent.matricule}</span></div>
             <div>Niveau Affecté : <span className="text-[#1E293B] block font-black">{createdStudent.level}</span></div>
-            <div>Crédits Reconnus : <span className="text-[#1E293B] block font-black">{createdStudent.credits} ECTS</span></div>
+            <div>Crédits Reconnus : <span className="text-[#1E293B] block font-black">{createdStudent.credits != null ? `${createdStudent.credits} ECTS` : '—'}</span></div>
           </div>
         </div>
       )}
 
-      <MatriculationTable admitted={admitted} enrollingId={enrollingId} onEnrollClick={handleEnrollClick} onTogglePayment={onTogglePayment} />
+      <MatriculationTable admitted={admitted} enrollingId={enrollingId} onEnrollClick={(c) => { void handleEnrollClick(c); }} onTogglePayment={onTogglePayment} />
     </div>
   );
 }

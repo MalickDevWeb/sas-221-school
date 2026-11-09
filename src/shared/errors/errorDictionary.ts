@@ -42,7 +42,23 @@ export const ERROR_MESSAGES: Record<string, string> = {
 /**
  * Résout le meilleur message d'erreur pour l'utilisateur
  */
+/** Marque posée sur une erreur dont l'écran affiche lui-même le message (évite le double message global). */
+export const ERREUR_AFFICHEE = '__erreurAffichee';
+
+/**
+ * Message lisible d'une erreur d'API, à afficher par l'écran.
+ * Appeler cette fonction signale que l'écran gère l'affichage : le message global « Erreur 4xx »
+ * n'est alors pas affiché en double (voir apiErrorHandler).
+ */
 export function resolveErrorMessage(error: any): string {
+  if (error && typeof error === 'object') {
+    try { error[ERREUR_AFFICHEE] = true; } catch { /* objet gelé */ }
+  }
+  return messageErreur(error);
+}
+
+/** Même calcul, sans marquer l'erreur comme affichée (usage interne du gestionnaire global). */
+export function messageErreur(error: any): string {
   if (!error) return "Une erreur inattendue est survenue.";
 
   // 1. Détection via ErrorCode applicatif retourné par le backend

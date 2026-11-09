@@ -63,17 +63,18 @@ export function HistoryAnalyticsTab({ campaigns, onDeleteCampaign }: Props) {
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex flex-wrap gap-1">
+                    {camp.channels.length === 0 && <span className="text-neutral-400">—</span>}
                     {camp.channels.map((ch: string) => (
                       <span key={ch} className="bg-slate-100 text-slate-800 text-[8px] font-black uppercase px-1.5 py-0.5 rounded">{ch}</span>
                     ))}
                   </div>
                 </td>
                 <td className="px-4 py-3.5 text-neutral-500 text-[10px] whitespace-nowrap">{camp.date} {camp.time ? `• ${camp.time}` : ''}</td>
-                <td className="px-4 py-3.5 text-emerald-600 font-extrabold">{camp.deliveryRate}%</td>
-                <td className="px-4 py-3.5 text-primary font-extrabold">{camp.openRate}%</td>
+                <td className="px-4 py-3.5 text-emerald-600 font-extrabold">{camp.deliveryRate != null ? `${camp.deliveryRate}%` : '—'}</td>
+                <td className="px-4 py-3.5 text-primary font-extrabold">{camp.openRate != null ? `${camp.openRate}%` : '—'}</td>
                 <td className="px-3 py-3.5 text-right">
                   {onDeleteCampaign && (
-                    <button type="button" onClick={() => onDeleteCampaign(camp.id)} className="p-1 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer" title="Supprimer de l'historique">
+                    <button type="button" onClick={() => onDeleteCampaign(camp.id)} className="p-1 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer" title="Supprimer de l'historique (serveur)">
                       <span translate="no" className="material-symbols-outlined text-base">delete</span>
                     </button>
                   )}

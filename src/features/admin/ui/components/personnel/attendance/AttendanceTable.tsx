@@ -21,7 +21,7 @@ export const AttendanceTable: React.FC<Props> = ({
         <span translate="no" className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">search</span>
         <input
           type="text"
-          placeholder="Rechercher par nom, rôle ou ID..."
+          placeholder="Rechercher par nom, rôle ou date..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full pl-8 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-none focus:bg-white focus:border-primary"
@@ -63,21 +63,23 @@ export const AttendanceTable: React.FC<Props> = ({
             records.map((r) => (
               <tr key={r.id} onClick={() => onSelectRecord(r)} className="hover:bg-neutral-50/70 transition-colors cursor-pointer group">
                 <td className="px-4 py-2.5 flex items-center gap-2.5">
-                  <img src={r.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&q=80'} alt={r.name} className="w-8 h-8 rounded-full object-cover border border-neutral-200 shrink-0" referrerPolicy="no-referrer" />
+                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-[10px] shrink-0 border border-primary/20">
+                    {(r.name || '?').split(' ').map((p) => p.charAt(0)).join('').slice(0, 2).toUpperCase()}
+                  </div>
                   <div>
                     <span className="text-[#1E293B] font-black group-hover:text-primary transition-colors block leading-tight">{r.name}</span>
-                    <span className="text-[9px] text-neutral-400 font-mono uppercase">{r.id}</span>
+                    <span className="text-[9px] text-neutral-400 font-mono">{r.date || '—'}</span>
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-[10px] text-neutral-500 uppercase font-black"><span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded-md">{r.role}</span></td>
-                <td className="px-3 py-2.5 font-mono text-neutral-800 font-black">{r.checkIn !== '--' ? <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">{r.checkIn}</span> : <span className="text-neutral-400">--</span>}</td>
-                <td className="px-3 py-2.5 font-mono text-neutral-800 font-black">{r.checkOut !== '--' ? <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{r.checkOut}</span> : <span className="text-neutral-400">--</span>}</td>
-                <td className="px-3 py-2.5 font-mono text-neutral-700">{r.hours > 0 ? <span className="font-extrabold">{r.hours}h</span> : <span className="text-neutral-300">--</span>}</td>
+                <td className="px-3 py-2.5 text-[10px] text-neutral-500 uppercase font-black"><span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded-md">{r.role || '—'}</span></td>
+                <td className="px-3 py-2.5 font-mono text-neutral-800 font-black">{r.checkIn && r.checkIn !== '--' ? <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">{r.checkIn}</span> : <span className="text-neutral-400">--</span>}</td>
+                <td className="px-3 py-2.5 font-mono text-neutral-800 font-black">{r.checkOut && r.checkOut !== '--' ? <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{r.checkOut}</span> : <span className="text-neutral-400">--</span>}</td>
+                <td className="px-3 py-2.5 font-mono text-neutral-700">{r.hours != null && r.hours > 0 ? <span className="font-extrabold">{r.hours}h</span> : <span className="text-neutral-300">--</span>}</td>
                 <td className="px-3 py-2.5">
                   <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-black border ${
                     r.status === 'À l\'heure' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                     r.status === 'En retard' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'
-                  }`}>{r.status}</span>
+                  }`}>{r.status || '—'}</span>
                 </td>
                 <td className="px-3 py-2.5 text-center">
                   <button type="button" onClick={(e) => { e.stopPropagation(); onSelectRecord(r); }} className="px-2.5 py-1 bg-neutral-100 hover:bg-primary hover:text-white text-neutral-700 text-[10px] font-black rounded-lg transition-all cursor-pointer border border-neutral-200 inline-flex items-center gap-1">
@@ -92,7 +94,7 @@ export const AttendanceTable: React.FC<Props> = ({
       </table>
     </div>
     <div className="pt-2 text-[10px] text-neutral-400 font-semibold flex items-center justify-between border-t border-neutral-100">
-      <span>{records.length} collaborateurs affichés</span>
+      <span>{records.length} pointage{records.length > 1 ? 's' : ''} affiché{records.length > 1 ? 's' : ''}</span>
       <span className="text-primary font-bold">💡 Cliquez sur une ligne pour modifier</span>
     </div>
   </div>
