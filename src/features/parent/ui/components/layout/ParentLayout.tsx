@@ -15,9 +15,12 @@ interface ParentContextType {
   children: ChildProfile[];
   selectedChild: ChildProfile | null;
   selectedChildId: string | null;
-  stats: ChildDashboardStats;
+  /** null tant que le backend n'a pas fourni les statistiques (chargement, erreur ou aucun enfant). */
+  stats: ChildDashboardStats | null;
   loading: boolean;
-  realtimeAlert: string | null;
+  childrenError: string | null;
+  statsError: string | null;
+  reloadDashboard: () => void;
   switchChild: (id: string) => void;
   attendances: ChildAttendance[];
   grades: ChildGrade[];
@@ -40,13 +43,8 @@ export function ParentLayout() {
     <ParentContext.Provider value={{ ...dashboard, ...details }}>
       <div className="bg-surface text-on-surface font-body-md min-h-screen flex selection:bg-blue-100 selection:text-blue-800 overflow-x-hidden">
 
-        {/* Alerte temps réel */}
-        {dashboard.realtimeAlert && (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[500] max-w-md w-full mx-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-2xl py-3 px-5 shadow-2xl flex items-center gap-3 animate-fade-in text-sm font-bold">
-            <span translate="no" className="material-symbols-outlined text-[20px] shrink-0">notifications_active</span>
-            <p className="flex-grow leading-snug text-xs">{dashboard.realtimeAlert}</p>
-          </div>
-        )}
+        {/* APP-FE-07 : l'alerte « temps réel » simulée (pointage inventé) a été retirée.
+            Aucune source temps réel n'est contractualisée dans docs/api-contract.md. */}
 
         {/* Sidebar */}
         <ParentSidebar

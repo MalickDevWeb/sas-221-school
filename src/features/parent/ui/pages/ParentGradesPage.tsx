@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
+import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
 const MENTION_CONFIG: Record<string, { color: string; bg: string }> = {
   'Excellent':     { color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
@@ -12,8 +13,8 @@ const MENTION_CONFIG: Record<string, { color: string; bg: string }> = {
 const NEUTRAL_MENTION = { color: 'text-neutral-600', bg: 'bg-neutral-50 border-neutral-200' };
 
 /** Valeur absente côté backend : on affiche « — », jamais une valeur inventée. */
-function display(value: number | string | null): string {
-  return value === null ? '—' : String(value);
+function display(value: number | string | null | undefined): string {
+  return value === null || value === undefined ? '—' : String(value);
 }
 
 function getBarColor(moyenne: number) {
@@ -27,8 +28,10 @@ function getBarColor(moyenne: number) {
 export function ParentGradesPage() {
   const { grades, selectedChild, stats, loading, errors, retry } = useParentContext();
 
-  const moyenne = stats.moyenneGenerale;
-  const mention = moyenne >= 16 ? 'Excellent' : moyenne >= 14 ? 'Bien' : moyenne >= 12 ? 'Assez Bien' : moyenne >= 10 ? 'Passable' : 'Insuffisant';
+  // APP-FE-07 : la moyenne générale n'est affichée que si le backend l'a fournie (stats chargées) ;
+  // aucune mention n'est déduite côté client à partir de cette moyenne.
+  const moyenneGenerale = stats?.moyenneGenerale ?? null;
+  const creditValides = stats?.creditValides ?? null;
   const gradesError = errors?.grades ?? null;
 
   return (
@@ -55,17 +58,22 @@ export function ParentGradesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 text-white col-span-1 md:col-span-1 shadow-lg shadow-blue-200">
           <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-1">Moyenne générale</p>
-          <p className="text-4xl font-black leading-none">{moyenne}<span className="text-lg text-blue-200">/20</span></p>
-          <span className={`mt-3 inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-solid ${MENTION_CONFIG[mention]?.bg ?? ''} ${MENTION_CONFIG[mention]?.color ?? ''}`}>
-            {mention}
-          </span>
+          <p className="text-4xl font-black leading-none">
+            {display(moyenneGenerale)}
+            {moyenneGenerale !== null && <span className="text-lg text-blue-200">/20</span>}
+          </p>
         </div>
         <div className="bg-white rounded-2xl border border-neutral-100 border-solid shadow-sm p-5 flex flex-col justify-between">
           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Crédits ECTS</p>
-          <p className="text-3xl font-black text-neutral-800">{stats.creditValides}<span className="text-sm text-neutral-400">/30</span></p>
-          <div className="mt-2 h-2 bg-neutral-100 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${(stats.creditValides / 30) * 100}%` }} />
-          </div>
+          <p className="text-3xl font-black text-neutral-800">
+            {display(creditValides)}
+            {creditValides !== null && <span className="text-sm text-neutral-400">/30</span>}
+          </p>
+          {creditValides !== null && (
+            <div className="mt-2 h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.min(100, (creditValides / 30) * 100)}%` }} />
+            </div>
+          )}
         </div>
         <div className="bg-white rounded-2xl border border-neutral-100 border-solid shadow-sm p-5">
           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Modules</p>
@@ -86,23 +94,9 @@ export function ParentGradesPage() {
           <div className="w-7 h-7 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
         </div>
       ) : gradesError ? (
-        <div role="alert" className="bg-red-50 border border-red-200 border-solid rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span translate="no" className="material-symbols-outlined text-red-600 text-[22px]">error</span>
-            <p className="font-bold text-red-700 text-sm">{gradesError}</p>
-          </div>
-          <button
-            onClick={retry}
-            className="px-4 py-2 bg-white border border-red-200 border-solid rounded-xl text-xs font-black text-red-700 hover:bg-red-100 transition-all"
-          >
-            Réessayer
-          </button>
-        </div>
+        <ParentErrorState message={gradesError} onRetry={retry} />
       ) : grades.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-neutral-100 border-solid shadow-sm py-16 flex flex-col items-center gap-2">
-          <span translate="no" className="material-symbols-outlined text-neutral-300 text-[40px]">grade</span>
-          <p className="font-bold text-neutral-400 text-sm">Aucune note pour le moment</p>
-        </div>
+        <ParentEmptyState icon="grade" title="Aucune note pour le moment" />
       ) : (
         <div className="bg-white rounded-3xl border border-neutral-100 border-solid shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-neutral-100 border-solid">
