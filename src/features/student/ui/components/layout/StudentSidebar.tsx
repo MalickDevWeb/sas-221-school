@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { anneeAcademiqueCourte } from '@/shared/lib/anneeAcademique';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
@@ -41,7 +42,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
           </div>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Étudiant</p>
         </div>
-        <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2025-26</p>
+        <p className="text-secondary font-label-md text-xs mt-1">Année Académique {anneeAcademiqueCourte()}</p>
       </div>
 
       <nav className="flex flex-col gap-1 flex-grow">

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { CalendarSlot, UnassignedCourse, ConflictAlert, TeacherSubjectAssociation, AuditLog } from '../domain/PlanningModels';
 import { definirSallesReelles, checkSchedulingConflicts, autoSuggestSubject } from '../domain/PlanningRulesEngine';
+import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 import { apiClient } from '@/shared/lib/apiClient';
 
 export function useAdminSchedulerState() {
@@ -78,7 +79,7 @@ export function useAdminSchedulerState() {
       id: `slot-${Date.now()}`, subject: finalSubject, prof: course.prof, room: targetRoom,
       classe: course.classe, day, slot: slotTime, type: course.type, faculte: course.faculte,
       departement: course.departement, filiere: course.filiere, niveau: course.niveau,
-      semestre: 'Semestre 1', anneeAcademique: '2025-2026', groupe: 'Aucun',
+      semestre: 'Semestre 1', anneeAcademique: anneeAcademique(), groupe: 'Aucun',
       building: targetRoom.includes('Amphi') ? 'Bâtiment Central' : 'Bâtiment B',
       capacityRequired: course.capacityRequired, isPublished: false, weekNumber: week
     };
@@ -94,7 +95,7 @@ export function useAdminSchedulerState() {
     if (finalSubject === course.subject) {
       setAssociations(prev => [...prev, {
         id: `as-${Date.now()}`, prof: course.prof, classe: course.classe,
-        subject: course.subject, semestre: 'Semestre 1', anneeAcademique: '2025-2026'
+        subject: course.subject, semestre: 'Semestre 1', anneeAcademique: anneeAcademique()
       }]);
     }
     setSlots(prev => [...prev, newSlot]);
