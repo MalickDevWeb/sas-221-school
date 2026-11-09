@@ -1,0 +1,99 @@
+# Intégration continue du frontend École 221 (carte APP-CI-02, Agent 10 — Ibrahima Guèye).
+# Déclenchée sur pull request et sur push vers main. Aucun secret : le build n'en utilise pas.
+# Bloquant : typage + build, nouvelles fuites de secrets.
+# Non bloquant pour l'instant (état connu, suivi par carte) : lint (71 erreurs, APP-FE-03)
+# et dépendances (1 critique, 9 hautes, APP-SEC-08) — à rendre bloquants une fois résorbés.
+name: frontend-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typage et construction
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Node 22 (Vite exige 20.19+ ou 22.12+)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Dépendances (lockfile strict)
+        run: npm ci
+
+      - name: Typage TypeScript
+        run: npx tsc -b --noEmit
+
+      - name: Construction (vite build)
+        run: npm run build
+
+      - name: Artefact versionné (dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: dist/
+          retention-days: 14
+
+  lint:
+    name: Lint (non bloquant, APP-FE-03)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx eslint .
+
+  audit:
+    name: Dépendances de production (non bloquant, APP-SEC-08)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: npm audit (production, seuil haut)
+        run: npm audit --omit=dev --audit-level=high
+
+  secrets:
+    name: Recherche de secrets (gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Plage de commits à analyser (nouveaux commits uniquement)
+        id: plage
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "opts=origin/${{ github.base_ref }}..HEAD" >> "$GITHUB_OUTPUT"
+          else
+            echo "opts=${{ github.event.before }}..${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+      # L'historique contient des clés connues (firebase.ts, carte APP-TL-07) :
+      # on bloque toute NOUVELLE fuite sans rendre la CI rouge en permanence.
+      - name: gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.18.4 \
+            detect --source /repo --no-banner --redact --log-opts="${{ steps.plage.outputs.opts }}"
