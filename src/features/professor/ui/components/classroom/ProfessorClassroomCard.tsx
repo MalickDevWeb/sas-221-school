@@ -30,7 +30,7 @@ export function ProfessorClassroomCard({ course, isSelected, onSelect }: CardPro
             {isSec ? <Shield className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
           </div>
           <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider transition-colors ${isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-50 text-neutral-500 border border-neutral-200/50'}`}>
-            Coef. {course.coefficient}
+            Coef. {course.coefficient ?? '—'}
           </span>
           {course.classe && (
             <span className="text-[9px] font-black px-2 py-0.5 rounded-md uppercase bg-primary-light text-primary border border-primary/10">
@@ -54,10 +54,10 @@ export function ProfessorClassroomCard({ course, isSelected, onSelect }: CardPro
         <div className="pt-1">
           <div className="flex items-center justify-between text-[8.5px] font-extrabold uppercase tracking-wider text-neutral-400">
             <span>Progression</span>
-            <span className={isSelected ? 'text-primary' : 'text-neutral-500'}>{course.progress}%</span>
+            <span className={isSelected ? 'text-primary' : 'text-neutral-500'}>{course.progress != null ? `${course.progress}%` : '—'}</span>
           </div>
           <div className="h-1 w-full bg-neutral-100 rounded-full overflow-hidden mt-0.5">
-            <div className={`h-full rounded-full transition-all ${isSelected ? 'bg-primary' : 'bg-primary/75'}`} style={{ width: `${course.progress}%` }} />
+            <div className={`h-full rounded-full transition-all ${isSelected ? 'bg-primary' : 'bg-primary/75'}`} style={{ width: `${course.progress ?? 0}%` }} />
           </div>
         </div>
         {/* Quick Action using Material Symbols as requested */}

@@ -43,7 +43,7 @@ export function CourseModalLeftColumn({ selectedCourse, state }: LeftColumnProps
         >
           <span className="flex items-center gap-1.5 text-[11.5px]">
             <FileDown className="h-4 w-4 text-primary" /> 
-            <span>Cours_Supports.pdf</span>
+            <span>Supports de cours</span>
           </span>
           <span className="text-[10px] font-black uppercase text-neutral-400 group-hover:text-primary tracking-wide">Télécharger</span>
         </button>

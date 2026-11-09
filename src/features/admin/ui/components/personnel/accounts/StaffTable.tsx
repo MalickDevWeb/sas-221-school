@@ -1,5 +1,5 @@
 import React from 'react';
-import { StaffMember } from '../../../../domain/PersonnelModels';
+import { StaffMember, libelleRole } from '../../../../domain/PersonnelModels';
 
 interface Props {
   staff: StaffMember[];
@@ -34,23 +34,23 @@ export const StaffTable: React.FC<Props> = ({ staff, onEdit, onToggleStatus, onD
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-xs shrink-0 border border-primary/20">
-                      {m.firstName.charAt(0)}{m.lastName.charAt(0)}
+                      {(m.firstName || '').charAt(0)}{(m.lastName || '').charAt(0)}
                     </div>
                     <div>
                       <div className="text-[#1E293B] font-black text-xs group-hover:text-primary transition-colors">
                         {m.firstName} {m.lastName}
                       </div>
-                      <div className="text-[10px] text-neutral-400 font-mono font-bold">{m.id}</div>
+                      <div className="text-[10px] text-neutral-400 font-mono font-bold">{m.matricule || '—'}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="text-neutral-700 font-semibold">{m.email}</div>
-                  <div className="text-[10px] text-neutral-400 font-semibold">{m.phone}</div>
+                  <div className="text-[10px] text-neutral-400 font-semibold">{m.phone || '—'}</div>
                 </td>
                 <td className="px-3 py-3">
                   <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[10px] uppercase font-black">
-                    {m.role}
+                    {libelleRole(m)}
                   </span>
                 </td>
                 <td className="px-3 py-3">
@@ -96,7 +96,7 @@ export const StaffTable: React.FC<Props> = ({ staff, onEdit, onToggleStatus, onD
     </div>
     <div className="bg-[#FAF8F6] px-4 py-2 border-t border-neutral-100 text-[10px] text-neutral-400 font-semibold flex items-center justify-between">
       <span>{staff.length} collaborateurs répertoriés</span>
-      <span className="text-primary font-bold">💡 Cliquez sur "Modifier" pour changer identifiant, rôle ou mot de passe</span>
+      <span className="text-primary font-bold">💡 Cliquez sur "Modifier" pour changer les coordonnées ou le rôle</span>
     </div>
   </div>
 );

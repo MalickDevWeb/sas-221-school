@@ -10,7 +10,7 @@ import { useAdminStudents } from './students/useAdminStudents';
 export function AdminStudentManager() {
   const [activeTab, setActiveTab] = useState('annuaire');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { students, setStudents, loading, updateFinancialStatus, refetch } = useAdminStudents();
+  const { students, setStudents, loading, updateFinancialStatus, toggleQrStatus, refetch } = useAdminStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);   // plus d'élève fictif sélectionné par défaut
 
   const handleViewProfile = (student: Student) => {
@@ -35,6 +35,7 @@ export function AdminStudentManager() {
             onUpdateStudents={setStudents}
             onViewProfile={handleViewProfile}
             onToggleFinancialStatus={updateFinancialStatus}
+            onToggleQrStatus={toggleQrStatus}
             onRefresh={refetch}
           />
         )}

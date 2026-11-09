@@ -14,8 +14,8 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
   const [level, setLevel] = useState(classe?.level || 'L1');
   const [filiereId, setFiliereId] = useState(classe?.filiereId || filieres[0]?.id || '');
   const [name, setName] = useState(classe?.name || '');
-  const [capacity, setCapacity] = useState(classe?.capacityMax?.toString() || '40');
-  const [price, setPrice] = useState(classe?.price?.toString() || '900000');
+  const [capacity, setCapacity] = useState(classe?.capacityMax?.toString() || '');
+  const [price, setPrice] = useState(classe?.price?.toString() || '');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {

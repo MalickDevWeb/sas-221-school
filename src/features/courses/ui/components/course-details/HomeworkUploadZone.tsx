@@ -8,7 +8,8 @@ interface Props {
   readonly uploadingId: string | null;
   readonly uploadProgress: number;
   readonly onFileChange: (e: React.ChangeEvent<HTMLInputElement>, id: string) => void;
-  readonly onRetract: (id: string) => void;
+  /** Absent : le serveur ne permet pas de retirer un dépôt (aucun endpoint) → pas de bouton. */
+  readonly onRetract?: (id: string) => void;
 }
 
 export function HomeworkUploadZone({ homeworkId, uploaded, uploadingId, uploadProgress, onFileChange, onRetract }: Props) {
@@ -19,9 +20,11 @@ export function HomeworkUploadZone({ homeworkId, uploaded, uploadingId, uploadPr
           <span translate="no" className="material-symbols-outlined text-emerald-500 shrink-0">check_circle</span>
           <span className="truncate">{uploaded.name} ({uploaded.size})</span>
         </span>
-        <button onClick={() => onRetract(homeworkId)} className="text-[9px] font-black text-red-500 hover:underline uppercase tracking-wider cursor-pointer font-sans">
-          Retirer
-        </button>
+        {onRetract && (
+          <button onClick={() => onRetract(homeworkId)} className="text-[9px] font-black text-red-500 hover:underline uppercase tracking-wider cursor-pointer font-sans">
+            Retirer
+          </button>
+        )}
       </div>
     );
   }

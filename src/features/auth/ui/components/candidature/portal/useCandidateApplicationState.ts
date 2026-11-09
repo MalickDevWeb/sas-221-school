@@ -48,7 +48,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [payment, setPayment] = useState<PaymentDetails>({
-    method: 'WAVE', isPaid: false, transactionRef: '', amount: campaign.fees || 25000
+    method: 'WAVE', isPaid: false, transactionRef: '', amount: campaign.fees ?? 0
   });
   const [credentials, setCredentials] = useState({ password: '', confirm: '', accept: false });
   const [error, setError] = useState('');
@@ -95,7 +95,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     setDocs(prev => ({ ...prev, [key]: null }));
   };
   const declarePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH', ref: string) => {
-    setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees || 25000 });
+    setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees ?? 0 });
   };
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -106,8 +106,28 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     if (!credentials.accept) return setError('Veuillez accepter la charte et le règlement des admissions.');
     setIsSubmitting(true);
 
+    // APP-FE-09 : le dossier n'est confirmé au candidat QUE si le serveur l'a reçu.
+    // Avant : l'échec était ignoré (« synchronisation locale ») et le candidat voyait un succès
+    // alors que l'établissement n'avait rien reçu.
+    // L'identifiant du dossier est celui attribué par le serveur (plus d'identifiant tiré au hasard).
+    let candId: string;
+    try {
+      const { data } = await publicApiClient.post('/candidatures/submit', {
+        nom: personal.lastName, prenom: personal.firstName,
+        email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
+        niveau: academic.targetLevel, fraisPayes: payment.isPaid,
+        modePaiement: payment.method, referencePaiement: payment.transactionRef,
+      });
+      const idServeur = data?.candidatureId ?? data?.id;
+      if (!idServeur) throw new Error('Identifiant de dossier absent de la réponse');
+      candId = String(idServeur);
+    } catch {
+      setIsSubmitting(false);
+      return setError("Votre dossier n'a pas pu être transmis à l'établissement. Vérifiez votre connexion et réessayez.");
+    }
+
+
     const db = getAdmissionsDb();
-    const candId = `CAND-2026-${Math.floor(1000 + Math.random() * 8999)}`;
     const newCandidate: ExtendedCandidate = {
       id: candId,
       name: `${personal.firstName} ${personal.lastName}`.trim(),
@@ -129,21 +149,6 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
         { id: `not-${Date.now()}`, type: 'creation_compte', message: `Dossier #${candId} déposé. Frais de dossier déclarés (${payment.method}) en attente de validation comptable.`, sentAt: new Date().toISOString() }
       ]
     };
-
-    // APP-FE-09 : le dossier n'est confirmé au candidat QUE si le serveur l'a reçu.
-    // Avant : l'échec était ignoré (« synchronisation locale ») et le candidat voyait un succès
-    // alors que l'établissement n'avait rien reçu.
-    try {
-      await publicApiClient.post('/candidatures/submit', {
-        id: candId, nom: personal.lastName, prenom: personal.firstName,
-        email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
-        niveau: academic.targetLevel, fraisPayes: payment.isPaid,
-        modePaiement: payment.method, referencePaiement: payment.transactionRef,
-      });
-    } catch {
-      setIsSubmitting(false);
-      return setError("Votre dossier n'a pas pu être transmis à l'établissement. Vérifiez votre connexion et réessayez.");
-    }
 
     saveAdmissionsDb({ candidates: [...db.candidates, newCandidate] });
     addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);

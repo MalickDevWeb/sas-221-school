@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface AdminAlertsModalProps {
   onClose: () => void;
@@ -9,16 +11,32 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
   const [alertText, setAlertText] = useState('');
   const [category, setCategory] = useState<'Système' | 'Inscriptions' | 'IT Admin'>('Système');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!alertText) return;
+    const texte = alertText.trim();
+    if (!texte || loading) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Alerte globale diffusée avec succès à tout l'établissement !");
+    setError(null);
+    try {
+      // Diffusion réelle : notification adressée à tout l'établissement (destinataire « ALL »).
+      const { data } = await apiClient.post('/v1/notifications', {
+        recipientId: 'ALL',
+        title: `Alerte globale — ${category}`,
+        content: texte,
+        type: 'WARNING',
+      });
+      if (!data?.id) throw new Error('Réponse du serveur incomplète');
+      toast.success("Alerte globale enregistrée par le serveur pour tout l'établissement.");
       onClose();
-    }, 1000);
+    } catch (err) {
+      const message = resolveErrorMessage(err);
+      setError(message);
+      toast.error("L'alerte n'a pas été diffusée.", { description: message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,10 +73,14 @@ export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
             />
           </div>
 
+          {error && (
+            <p className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2">{error}</p>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-[#8F1316] text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#B3181C]/15 transition-all"
+            className="w-full bg-primary hover:bg-[#8F1316] disabled:opacity-60 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#B3181C]/15 transition-all"
           >
             {loading ? 'Diffusion...' : 'Diffuser l\'Alerte'}
           </button>

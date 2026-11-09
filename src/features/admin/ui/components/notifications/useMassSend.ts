@@ -24,7 +24,7 @@ export const MASS_TEMPLATES = [
   },
 ];
 
-export function useMassSend(onSendCampaign: (title: string, content: string, target: string, channels: string[]) => void) {
+export function useMassSend(onSendCampaign: (title: string, content: string, target: string, channels: string[]) => Promise<boolean> | void) {
   const [target, setTarget] = useState('Toute l\'école');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -51,16 +51,20 @@ export function useMassSend(onSendCampaign: (title: string, content: string, tar
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content || channels.length === 0) return;
+    if (!title || !content || channels.length === 0 || sending) return;
     setSending(true);
-    setTimeout(() => {
-      onSendCampaign(title, content, target, channels);
-      setTitle('');
-      setContent('');
+    try {
+      // Le formulaire n'est vidé qu'après acceptation par le serveur (en cas d'échec, la saisie est conservée).
+      const ok = await onSendCampaign(title, content, target, channels);
+      if (ok !== false) {
+        setTitle('');
+        setContent('');
+      }
+    } finally {
       setSending(false);
-    }, 800);
+    }
   };
 
   return {

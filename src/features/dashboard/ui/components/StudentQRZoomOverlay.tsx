@@ -10,8 +10,8 @@ interface Props {
 }
 
 export function StudentQRZoomOverlay({ studentName, matricule, onClose }: Props) {
-  const name = studentName || 'Abdoulaye Diallo';
-  const mat = matricule || 'SN-2026-8492';
+  const name = studentName?.trim() || '';
+  const mat = matricule?.trim() || '';
 
   const [minuteEpoch, setMinuteEpoch] = useState(() => Math.floor(Date.now() / 60000));
 
@@ -22,8 +22,10 @@ export function StudentQRZoomOverlay({ studentName, matricule, onClose }: Props)
     return () => clearInterval(timer);
   }, []);
 
-  const qrData = getDynamicBadgeData(mat, name, minuteEpoch);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}&color=1b1c1e&margin=4`;
+  // Pas de QR sans matricule réel : un badge inventé serait trompeur.
+  const qrUrl = mat
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(getDynamicBadgeData(mat, name || '—', minuteEpoch))}&color=1b1c1e&margin=4`
+    : null;
 
 
   useEffect(() => {
@@ -57,15 +59,25 @@ export function StudentQRZoomOverlay({ studentName, matricule, onClose }: Props)
 
         {/* Minimalist QR code display */}
         <div className="relative w-full h-full bg-white rounded-2xl flex items-center justify-center overflow-hidden">
-          <img 
-            src={qrUrl} 
-            alt="QR Code Étudiant" 
-            className="w-full h-full object-contain p-2" 
-            referrerPolicy="no-referrer" 
-          />
-          {/* Subtle scanning light animation bar */}
-          <div className="absolute left-0 right-0 h-[1.5px] bg-brand-red-deep opacity-80 shadow-[0_0_8px_#B3181C] top-1/2 -translate-y-1/2" />
-          <div className="absolute inset-x-0 h-0.5 bg-brand-red-deep/20 top-1 animate-[bounce_3s_infinite]" />
+          {qrUrl ? (
+            <>
+              <img 
+                src={qrUrl} 
+                alt="QR Code Étudiant" 
+                className="w-full h-full object-contain p-2" 
+                referrerPolicy="no-referrer" 
+              />
+              {/* Subtle scanning light animation bar */}
+              <div className="absolute left-0 right-0 h-[1.5px] bg-brand-red-deep opacity-80 shadow-[0_0_8px_#B3181C] top-1/2 -translate-y-1/2" />
+              <div className="absolute inset-x-0 h-0.5 bg-brand-red-deep/20 top-1 animate-[bounce_3s_infinite]" />
+            </>
+          ) : (
+            <div id="student-qr-zoom-unavailable" className="flex flex-col items-center gap-2 text-center px-6 text-neutral-500">
+              <Icon icon="lucide:qr-code" className="h-10 w-10 opacity-40" />
+              <p className="text-sm font-semibold">Badge indisponible</p>
+              <p className="text-xs">Matricule non renseigné — contactez l'administration.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>,

@@ -67,7 +67,7 @@ export function EcolagesTab({ students }: Props) {
                   filteredStudents.map(s => (
                     <tr key={s.id} className="hover:bg-neutral-50/50">
                       <td className="px-4 py-3 text-[#1E293B] font-extrabold">{s.name}</td>
-                      <td className="px-4 py-3 font-mono text-[10px] text-neutral-400">{s.id}</td>
+                      <td className="px-4 py-3 font-mono text-[10px] text-neutral-400">{s.id.startsWith('etudiant-') ? '—' : s.id}</td>
                       <td className="px-4 py-3 font-mono text-[#1E293B]">{s.paid.toLocaleString()} FCFA</td>
                       <td className="px-4 py-3">
                         {s.debt > 0 ? (

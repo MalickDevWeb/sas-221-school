@@ -1,50 +1,16 @@
-import React, { useState } from 'react';
-import { IaConfigForm } from './IaConfigForm';
-import { IaResultsDisplay } from './IaResultsDisplay';
+import React from 'react';
 
 interface Props {
   onApplyIaSchedule: (newSlots: any[], info: string) => void;
 }
 
-export function AssistantIaTab({ onApplyIaSchedule }: Props) {
-  const [promptInput, setPromptInput] = useState('');
-  const [rules, setRules] = useState({
-    noGaps: true,
-    respectQuota: false,
-    prioritizeLargeAmphis: true,
-    evenDistribution: true,
-  });
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResult, setGeneratedResult] = useState<any | null>(null);
-
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    setGeneratedResult(null);
-    setTimeout(() => {
-      setIsGenerating(false);
-      setGeneratedResult({
-        score: '98%',
-        conflits: '0',
-        recommendations: [
-          'Affecté Béton Armé en Amphi A le Lundi à 14h (priorité L2 Génie Civil)',
-          'Positionné Machine Learning le Mercredi matin pour Mme Sow (disponibilité optimale)',
-          'Zéro chevauchement de salle ou de professeur détecté',
-        ],
-        slots: [
-          { id: 'ai-s1', subject: 'Béton Armé', prof: 'Dr. Diallo', room: 'Salle 1 - Amphi A', classe: 'L2 Génie Civil', day: 'Lundi', slot: '14h - 16h', type: 'soir' },
-          { id: 'ai-s2', subject: 'Machine Learning', prof: 'Mme. Sow', room: 'Salle 3 - Labo GC', classe: 'Master 1 Spécialité IA', day: 'Mercredi', slot: '08h - 10h', type: 'matin' },
-        ]
-      });
-    }, 2800);
-  };
-
-  const handleApply = () => {
-    if (generatedResult) {
-      onApplyIaSchedule(generatedResult.slots, 'Planning optimisé par l\'IA appliqué avec succès !');
-      setGeneratedResult(null);
-    }
-  };
-
+/**
+ * Assistant IA d'optimisation des horaires.
+ * Aucun moteur de génération de planning n'existe côté serveur : plutôt que de proposer un emploi
+ * du temps inventé, l'onglet indique honnêtement que la fonctionnalité est indisponible.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function AssistantIaTab(_props: Props) {
   return (
     <div className="space-y-4 text-xs font-bold text-[#4A5568]" id="assistant-ia-tab">
       <div className="pb-2 border-b border-neutral-100">
@@ -52,24 +18,18 @@ export function AssistantIaTab({ onApplyIaSchedule }: Props) {
           <span translate="no" className="material-symbols-outlined text-primary">psychology</span>
           <span>Assistant IA & Optimisation des Horaires</span>
         </h3>
-        <p className="text-[10px] text-neutral-400 font-semibold">Génération automatisée intelligente sous contraintes pédagogiques et logistiques.</p>
+        <p className="text-[10px] text-neutral-400 font-semibold">Génération automatisée sous contraintes pédagogiques et logistiques.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <IaConfigForm
-          promptInput={promptInput}
-          setPromptInput={setPromptInput}
-          rules={rules}
-          setRules={setRules}
-          isGenerating={isGenerating}
-          handleGenerate={handleGenerate}
-        />
-
-        <IaResultsDisplay
-          isGenerating={isGenerating}
-          generatedResult={generatedResult}
-          handleApply={handleApply}
-        />
+      <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 text-center space-y-2">
+        <span translate="no" className="material-symbols-outlined text-3xl text-neutral-300">block</span>
+        <p className="text-xs font-black text-neutral-600">Fonctionnalité non disponible : aucune source de données</p>
+        <p className="text-[11px] font-semibold text-neutral-400">
+          Aucun moteur d'optimisation n'est branché au serveur. Les créneaux se planifient manuellement depuis l'onglet de planification.
+        </p>
+        <button type="button" disabled aria-disabled="true" className="mt-2 px-4 py-2 bg-neutral-300 text-white rounded-xl text-[10px] font-black uppercase cursor-not-allowed">
+          Générer un planning
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 export interface ProfessorCourse {
   readonly id: string;
   readonly titre: string;
-  readonly coefficient: number;
-  readonly progress: number;
+  /** undefined = non renseigné par le serveur (affiché « — ») */
+  readonly coefficient?: number;
+  readonly progress?: number;
   readonly unites: string[];
   readonly prochainCours: string;
   readonly salle: string;

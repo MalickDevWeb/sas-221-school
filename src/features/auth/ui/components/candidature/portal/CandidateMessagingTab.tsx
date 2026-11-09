@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
-import { getAdmissionsDb, saveAdmissionsDb, Message } from './admissionsDb';
+import { getAdmissionsDb, Message } from './admissionsDb';
+import { publicApiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface Props {
   candidate: ExtendedCandidate;
@@ -9,59 +11,45 @@ interface Props {
 export function CandidateMessagingTab({ candidate }: Props) {
   const [activeChannel, setActiveChannel] = useState<'SECRETAIRE' | 'ADMIN'>('ADMIN');
   const [inputText, setInputText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  // Uniquement les messages réellement enregistrés pour ce candidat (plus de message d'accueil inventé).
   const [allMessages, setAllMessages] = useState<Message[]>(() => {
     const db = getAdmissionsDb();
-    // Filtre les messages correspondants à ce candidat
-    const filtered = db.messages.filter(m => m.id.startsWith(`msg-${candidate.id}-`));
-    if (filtered.length === 0) {
-      // Message de bienvenue initial automatique
-      return [
-        {
-          id: `msg-${candidate.id}-init`,
-          sender: 'Service Admissions (Mme Diop)',
-          text: `Bonjour ${candidate.name}, nous avons bien reçu votre demande d'admission. Avez-vous besoin d'aide pour compléter vos documents ?`,
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          role: 'ADMIN'
-        }
-      ];
-    }
-    return filtered;
+    return db.messages.filter(m => m.id.startsWith(`msg-${candidate.id}-`));
   });
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    const texte = inputText.trim();
+    if (!texte || sending) return;
 
     const newMessage: Message = {
       id: `msg-${candidate.id}-${Date.now()}`,
       sender: candidate.name,
-      text: inputText.trim(),
+      text: texte,
       timestamp: new Date().toISOString(),
       role: 'CANDIDAT'
     };
 
     const updated = [...allMessages, newMessage];
-    setAllMessages(updated);
-    setInputText('');
-
-    // Sauvegarde en DB
     const db = getAdmissionsDb();
     const otherCandidateMessages = db.messages.filter(m => !m.id.startsWith(`msg-${candidate.id}-`));
-    saveAdmissionsDb({ messages: [...otherCandidateMessages, ...updated] });
+    const tousLesMessages = [...otherCandidateMessages, ...updated];
 
-    // Réponse automatique simulée pro après 800ms !
-    setTimeout(() => {
-      const reply: Message = {
-        id: `msg-${candidate.id}-${Date.now()}-reply`,
-        sender: activeChannel === 'ADMIN' ? 'Service Admissions' : 'Secrétariat Général',
-        text: `Nous avons bien reçu votre message : "${inputText.trim()}". Notre équipe examine actuellement les pièces de votre dossier d'admission.`,
-        timestamp: new Date().toISOString(),
-        role: activeChannel
-      };
-      const finalMsgs = [...updated, reply];
-      setAllMessages(finalMsgs);
-      saveAdmissionsDb({ messages: [...otherCandidateMessages, ...finalMsgs] });
-    }, 800);
+    setSending(true);
+    setSendError(null);
+    try {
+      // Le message n'apparaît comme envoyé qu'après acceptation par le serveur (aucune réponse automatique simulée).
+      await publicApiClient.post('/admissions/db', { messages: tousLesMessages });
+      localStorage.setItem('e221_messages', JSON.stringify(tousLesMessages));
+      setAllMessages(updated);
+      setInputText('');
+    } catch (err) {
+      setSendError(resolveErrorMessage(err));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -79,6 +67,9 @@ export function CandidateMessagingTab({ candidate }: Props) {
 
       {/* Message Timeline box */}
       <div className="flex-1 bg-neutral-50 border border-neutral-200 rounded-2xl p-4 overflow-y-auto space-y-3 min-h-0 no-scrollbar">
+        {allMessages.length === 0 && (
+          <p className="text-center text-[11px] font-semibold text-neutral-400 py-6">Aucun message pour le moment.</p>
+        )}
         {allMessages.map((m, idx) => {
           const isMe = m.role === 'CANDIDAT';
           return (
@@ -95,6 +86,10 @@ export function CandidateMessagingTab({ candidate }: Props) {
         })}
       </div>
 
+      {sendError && (
+        <p className="shrink-0 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2">Message non envoyé : {sendError}</p>
+      )}
+
       {/* Send Message Form */}
       <form onSubmit={handleSendMessage} className="flex gap-2 shrink-0">
         <input
@@ -105,9 +100,9 @@ export function CandidateMessagingTab({ candidate }: Props) {
           onChange={e => setInputText(e.target.value)}
           className="flex-1 h-11 bg-white border border-neutral-200 rounded-xl px-3.5 outline-none font-semibold text-xs text-[#1E293B] focus:border-primary"
         />
-        <button type="submit" className="px-4 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all">
+        <button type="submit" disabled={sending} className="px-4 disabled:opacity-50 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl uppercase font-black tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all">
           <span translate="no" className="material-symbols-outlined text-xs">send</span>
-          <span>Envoyer</span>
+          <span>{sending ? 'Envoi…' : 'Envoyer'}</span>
         </button>
       </form>
     </div>

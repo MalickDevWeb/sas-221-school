@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { VirtualClass, AdminMeeting, MeetAttendance } from '../domain/CollaborationModels';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { subscribeMeets, saveMeet, subscribeAdminMeets, saveAdminMeet, subscribeAttendances, saveAttendance } from '../infrastructure/msgService';
 
 export function useVirtualClassState(triggerToast: (msg: string, isSuccess: boolean) => void) {
@@ -31,7 +32,12 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       triggerToast('Erreur : vous devez affecter le cours à au moins une classe !', false);
       return;
     }
-    const meetLink = autoGen ? `https://meet.google.com/aut-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}` : rawLink.trim();
+    // Aucun lien n'est généré côté client (avant : lien Meet aléatoire inexistant) : le lien réel est obligatoire.
+    if (autoGen) {
+      triggerToast('Génération automatique indisponible (aucune intégration Google Workspace) : collez le lien réel de la réunion.', false);
+      return;
+    }
+    const meetLink = rawLink.trim();
     if (!meetLink.includes('meet.google.com/')) {
       triggerToast('Erreur : lien Google Meet invalide ! Ex: https://meet.google.com/xxx-yyyy-zzz', false);
       return;
@@ -45,13 +51,18 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       teacherName,
       meetLink,
       isPublished: true,
-      date: 'Aujourd\'hui',
-      time: '14h00 - 16h00',
+      // Date / horaire non saisis dans le formulaire : jamais inventés
+      date: '—',
+      time: '—',
       restrictToGoogleAccount: restrict,
     };
 
-    await saveMeet(newMeet);
-    triggerToast(`Classe virtuelle publiée pour ${classNames.join(', ')} !`, true);
+    try {
+      await saveMeet(newMeet);
+      triggerToast(`Classe virtuelle publiée pour ${classNames.join(', ')}.`, true);
+    } catch (err) {
+      triggerToast(`Classe virtuelle non publiée : ${resolveErrorMessage(err)}`, false);
+    }
   }, [triggerToast]);
 
   const createAdminMeeting = useCallback(async (
@@ -74,11 +85,15 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       targetDetails: details,
       type,
       meetLink,
-      date: 'Aujourd\'hui',
-      time: '15h30',
+      date: '',
+      time: '',
     };
-    await saveAdminMeet(newMeet);
-    triggerToast(`Réunion administrative "${title}" créée avec succès.`, true);
+    try {
+      await saveAdminMeet(newMeet);
+      triggerToast(`Réunion administrative « ${title} » créée.`, true);
+    } catch (err) {
+      triggerToast(`Réunion non créée : ${resolveErrorMessage(err)}`, false);
+    }
   }, [triggerToast]);
 
   const recordAttendance = useCallback(async (meetId: string, studentName: string, emailUsed: string, isAuthorized: boolean) => {
@@ -88,8 +103,7 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       studentName,
       emailUsed,
       entryTime: new Date().toLocaleTimeString('fr-FR'),
-      durationMinutes: Math.floor(Math.random() * 60) + 30,
-      participationScore: Math.floor(Math.random() * 5) + 1,
+      // Durée et score de participation non mesurés : omis (jamais tirés au hasard)
       isAuthorizedAccount: isAuthorized,
     };
     try {

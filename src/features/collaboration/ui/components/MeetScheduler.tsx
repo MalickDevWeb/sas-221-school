@@ -69,13 +69,16 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
         <div className="flex items-center justify-between bg-neutral-gray-50 p-3 rounded-xl">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-brand-red-deep" />
-            <span className="text-xs font-bold text-gray-800">Générer via Google Workspace API</span>
+            <span className="text-xs font-bold text-gray-800">Générer via Google Workspace API <span className="font-semibold text-neutral-400">(non disponible)</span></span>
           </div>
           <input
             type="checkbox"
-            checked={autoGen}
+            checked={false}
+            disabled
+            aria-disabled="true"
+            title="Fonctionnalité non disponible : aucune intégration Google Workspace"
             onChange={(e) => setAutoGen(e.target.checked)}
-            className="h-4 w-4 text-brand-red-deep border-gray-300 rounded focus:ring-brand-red-deep"
+            className="cursor-not-allowed opacity-50 h-4 w-4 text-brand-red-deep border-gray-300 rounded focus:ring-brand-red-deep"
           />
         </div>
 

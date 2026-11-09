@@ -42,11 +42,11 @@ export function MeetSessionTracker({ attendances, meetId }: Props) {
                   <td className="py-3 font-bold text-gray-800">{a.studentName}</td>
                   <td className="py-3 font-mono font-semibold text-neutral-500">{a.emailUsed}</td>
                   <td className="py-3 font-bold flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-neutral-400" /> {a.durationMinutes} min
+                    <Clock className="w-3.5 h-3.5 text-neutral-400" /> {a.durationMinutes != null ? `${a.durationMinutes} min` : '—'}
                   </td>
                   <td className="py-3">
                     <div className="flex items-center gap-1 font-bold text-brand-red-deep">
-                      <Award className="w-3.5 h-3.5" /> Score {a.participationScore}/5
+                      <Award className="w-3.5 h-3.5" /> Score {a.participationScore != null ? `${a.participationScore}/5` : '—'}
                     </div>
                   </td>
                   <td className="py-3 text-right">

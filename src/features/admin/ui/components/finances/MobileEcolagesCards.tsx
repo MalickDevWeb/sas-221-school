@@ -21,7 +21,7 @@ export function MobileEcolagesCards({ students }: Props) {
           <div className="flex justify-between items-start">
             <div>
               <div className="font-extrabold text-[#1E293B] text-xs">{s.name}</div>
-              <div className="text-[10px] text-neutral-400 font-mono mt-0.5">{s.id}</div>
+              <div className="text-[10px] text-neutral-400 font-mono mt-0.5">{s.id.startsWith('etudiant-') ? '—' : s.id}</div>
             </div>
             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
               s.status === 'En Règle' ? 'bg-emerald-50 text-emerald-700' :

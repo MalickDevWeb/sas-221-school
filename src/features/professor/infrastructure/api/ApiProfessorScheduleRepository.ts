@@ -18,7 +18,7 @@ function mapStudentList(list: any[]): StudentEnrolled[] {
       prenom = parts[0] || '';
       nom = parts.slice(1).join(' ') || '';
     }
-    return { ...s, prenom, nom, email: s.email || `${prenom.toLowerCase()}.${nom.toLowerCase().replace(/\s+/g, '')}@gmail.com` };
+    return { ...s, prenom, nom, email: s.email || '' };
   });
 }
 
@@ -46,14 +46,15 @@ export class ApiProfessorScheduleRepository {
     const r = await apiClient.get('/professor/courses', { params: { profId } });
     const items = Array.isArray(r.data) ? r.data : (r.data?.content || []);
     return items.map((c: any) => ({
-      id: c.id || c.code || 'course-1',
-      titre: c.titre || c.name || c.title || 'Cours',
-      coefficient: c.coefficient || c.totalHours || 3,
-      progress: c.progress || 50,
-      unites: c.unites || ['CM', 'TD'],
-      prochainCours: c.prochainCours || 'Lundi 08:00',
-      salle: c.salle || 'Salle B12',
-      classe: c.classe || 'M1 GL'
+      // Aucune valeur inventée : un champ absent côté serveur reste vide / « — »
+      id: String(c.id ?? c.code ?? ''),
+      titre: c.titre || c.name || c.title || '—',
+      coefficient: typeof c.coefficient === 'number' ? c.coefficient : undefined,
+      progress: typeof c.progress === 'number' ? c.progress : undefined,
+      unites: Array.isArray(c.unites) ? c.unites : [],
+      prochainCours: c.prochainCours || '—',
+      salle: c.salle || '—',
+      classe: c.classe || undefined
     }));
   }
 

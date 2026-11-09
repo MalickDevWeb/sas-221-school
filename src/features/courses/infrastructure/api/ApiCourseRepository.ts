@@ -1,7 +1,6 @@
 import { apiClient } from '@/shared/lib/apiClient';
 import type { Course } from '../../domain/Course';
 import type { CourseRepository } from '../../domain/CourseRepository';
-import { COURS_CATALOGUE } from '../../ui/components/types';
 
 export class ApiCourseRepository implements CourseRepository {
   private readonly baseUrl: string;
@@ -12,34 +11,44 @@ export class ApiCourseRepository implements CourseRepository {
   }
 
   async getStudentCourses(): Promise<Course[]> {
-    const { data: rawData } = await apiClient.get<Course[]>(this.baseUrl);
+    const { data: rawData } = await apiClient.get<unknown>(this.baseUrl);
 
-    if (!Array.isArray(rawData)) return COURS_CATALOGUE;
+    // Réponse inattendue : aucune donnée inventée, liste vide (état vide côté UI).
+    if (!Array.isArray(rawData)) return [];
 
-    return rawData.map((c: any, index: number) => {
-      const localCourse = COURS_CATALOGUE.find(lc =>
-        lc.id === c.id ||
-        lc.id.replace('course-', 'c-') === c.id ||
-        c.id?.replace('c-', 'course-') === lc.id ||
-        lc.nom.toLowerCase().includes((c.titre || c.nom || '').toLowerCase())
-      ) || COURS_CATALOGUE[index % COURS_CATALOGUE.length];
+    // Seuls les champs réellement renvoyés par le backend sont mappés ;
+    // un champ texte absent est affiché « — », jamais complété par un catalogue fictif.
+    const text = (...values: unknown[]): string => {
+      for (const v of values) {
+        if (typeof v === 'string' && v.trim()) return v;
+      }
+      return '—';
+    };
+    const optionalText = (...values: unknown[]): string | undefined => {
+      const v = text(...values);
+      return v === '—' ? undefined : v;
+    };
 
-      return {
-        id: c.id || localCourse.id,
-        nom: c.titre || c.nom || localCourse.nom,
-        description: c.description || localCourse.description,
-        categorie: c.categorie || localCourse.categorie,
-        statut: c.statut || (c.progress === 100 ? 'termine' : (c.progress && c.progress > 0) ? 'en_cours' : 'non_demarre'),
-        image: c.image || localCourse.image,
-        progression: typeof c.progress === 'number' ? c.progress : typeof c.progression === 'number' ? c.progression : localCourse.progression,
-        noteFinale: c.noteFinale || localCourse.noteFinale,
-        professeur: c.professeur || localCourse.professeur,
-        salle: c.salle || localCourse.salle,
-        avis: c.avis || localCourse.avis,
-        volumeHoraire: c.volumeHoraire || localCourse.volumeHoraire,
-        prochainCours: c.prochainCours || c.prochain_cours || localCourse.prochainCours
-      };
-    });
+    return rawData
+      .filter((c): c is Record<string, any> => !!c && typeof c === 'object' && (typeof c.id === 'string' || typeof c.id === 'number'))
+      .map((c) => {
+        const progression = typeof c.progress === 'number' ? c.progress : typeof c.progression === 'number' ? c.progression : 0;
+        return {
+          id: String(c.id),
+          nom: text(c.titre, c.nom),
+          description: text(c.description),
+          categorie: text(c.categorie) as Course['categorie'],
+          statut: c.statut || (progression === 100 ? 'termine' : progression > 0 ? 'en_cours' : 'non_demarre'),
+          image: typeof c.image === 'string' ? c.image : '',
+          progression,
+          noteFinale: optionalText(c.noteFinale),
+          professeur: text(c.professeur),
+          salle: text(c.salle),
+          avis: optionalText(c.avis),
+          volumeHoraire: text(c.volumeHoraire),
+          prochainCours: optionalText(c.prochainCours, c.prochain_cours),
+        };
+      });
   }
 
   /** GET /student/courses/{courseId}/details */

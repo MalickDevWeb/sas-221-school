@@ -18,12 +18,13 @@ export function AdminGlobalMeetings({ meetings, onCreate }: Props) {
   const [title, setTitle] = useState('');
   const [scope, setScope] = useState<AdminMeeting['targetScope']>('ALL');
   const [type, setType] = useState<AdminMeeting['type']>('conférence');
-  const [meetLink, setMeetLink] = useState('https://meet.google.com/xyz-work-shp');
+  const [meetLink, setMeetLink] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCreate(title, 'Direction Académique', scope, 'Tous les départements', type, meetLink);
     setTitle('');
+    setMeetLink('');
   };
 
   return (
@@ -78,6 +79,20 @@ export function AdminGlobalMeetings({ meetings, onCreate }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Lien de la visioconférence</label>
+            <input
+              type="url"
+              placeholder="https://meet.google.com/..."
+              value={meetLink}
+              onChange={(e) => setMeetLink(e.target.value)}
+              className="w-full text-xs px-3 py-2 border border-neutral-gray-200 rounded-xl focus:outline-none bg-white"
+              data-msg-requis="Indiquez le lien réel de la visioconférence."
+              data-msg-format="Saisissez une adresse web valide (https://…)."
+              required
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full py-2 bg-neutral-900 text-white font-bold text-xs rounded-xl hover:bg-neutral-850 transition-all flex items-center justify-center gap-1.5"
@@ -88,6 +103,7 @@ export function AdminGlobalMeetings({ meetings, onCreate }: Props) {
 
         <div className="space-y-3 overflow-y-auto max-h-[220px] no-scrollbar">
           <span className="text-[10px] font-bold text-neutral-600 block">Événements publiés</span>
+          {meetings.length === 0 && <p className="text-[11px] font-semibold text-neutral-400">Aucun événement publié.</p>}
           {meetings.map((m) => (
             <div key={m.id} className="p-3 rounded-xl border border-neutral-200 flex justify-between items-center bg-white shadow-3xs">
               <div>

@@ -1,13 +1,45 @@
-import { useState } from 'react';
-import { CourseSession, GROUP_CLASSES } from './CalendarData';
+import { useEffect, useState } from 'react';
+import { CourseSession } from './CalendarData';
 import { useAuthStore } from '@/core/store/authStore';
 import { ROLE_UTILISATEUR } from '@/shared/constants';
+import { apiClient } from '@/shared/lib/apiClient';
+import { checkIn } from '@/features/student/api';
 
-function matchesProfessor(profNameInSession: string | undefined, currentProfNom: string | undefined): boolean {
-  const s = (profNameInSession || "").toLowerCase();
-  const p = (currentProfNom || "").toLowerCase();
-  if (!s || !p) return false;
-  return s.includes(p) || p.includes(s) || s.split(/\s+/).some(w => w.length > 2 && p.includes(w));
+const DAY_KEYS: Record<string, CourseSession['jour']> = {
+  LUN: 'LUN', LUNDI: 'LUN', MONDAY: 'LUN',
+  MAR: 'MAR', MARDI: 'MAR', TUESDAY: 'MAR',
+  MER: 'MER', MERCREDI: 'MER', WEDNESDAY: 'MER',
+  JEU: 'JEU', JEUDI: 'JEU', THURSDAY: 'JEU',
+  VEN: 'VEN', VENDREDI: 'VEN', FRIDAY: 'VEN',
+};
+const DAY_NAMES: Record<CourseSession['jour'], string> = { LUN: 'Lundi', MAR: 'Mardi', MER: 'Mercredi', JEU: 'Jeudi', VEN: 'Vendredi' };
+
+const pick = (...values: unknown[]): string => {
+  for (const v of values) if (typeof v === 'string' && v.trim()) return v;
+  return '';
+};
+
+/** Convertit une séance renvoyée par le backend ; ignorée si le jour est inconnu (aucune valeur inventée). */
+function toCalendarSession(raw: any): CourseSession | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const dayRaw = pick(raw.jour, raw.day, raw.jourComplet).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const jour = DAY_KEYS[dayRaw];
+  if (!jour) return null;
+  const debut = pick(raw.heureDebut);
+  const fin = pick(raw.heureFin);
+  const type = ['CM', 'TD', 'TP'].includes(raw.type) ? raw.type : 'CM';
+  return {
+    id: String(raw.id ?? `${jour}-${pick(raw.nom, raw.courseTitle, raw.titre)}-${debut}`),
+    nom: pick(raw.nom, raw.courseTitle, raw.titre) || '—',
+    jour,
+    jourNom: DAY_NAMES[jour],
+    heure: pick(raw.heureStr, raw.heure, raw.time) || (debut && fin ? `${debut} - ${fin}` : '—'),
+    salle: pick(raw.salle, raw.room) || '—',
+    professeur: pick(raw.professeur, raw.profName) || '—',
+    type,
+    enCours: raw.status === 'actuel',
+    syllabus: pick(raw.description, raw.syllabus) || 'Non renseigné',
+  };
 }
 
 export function useCalendarState() {
@@ -22,10 +54,31 @@ export function useCalendarState() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [presenceSuccess, setPresenceSuccess] = useState(false);
   const [presenceLoading, setPresenceLoading] = useState(false);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const downloadingId: string | null = null;
+  const downloadProgress = 0;
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedMonthDayIdx, setSelectedMonthDayIdx] = useState<number>(23);
+  const [realSessions, setRealSessions] = useState<CourseSession[]>([]);
+
+  // Emploi du temps réel : GET /professor/schedule (professeur) ou GET /schedule (étudiant).
+  // Sans session ou en cas d'erreur : liste vide (état vide honnête), aucune séance inventée.
+  const role = utilisateur?.role;
+  useEffect(() => {
+    if (!role || (role !== ROLE_UTILISATEUR.PROFESSEUR && role !== ROLE_UTILISATEUR.ETUDIANT)) {
+      setRealSessions([]);
+      return;
+    }
+    let cancelled = false;
+    const url = role === ROLE_UTILISATEUR.PROFESSEUR ? '/professor/schedule' : '/schedule';
+    apiClient.get(url)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setRealSessions(list.map(toCalendarSession).filter((x): x is CourseSession => x !== null));
+      })
+      .catch(() => { if (!cancelled) setRealSessions([]); });
+    return () => { cancelled = true; };
+  }, [role]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -44,32 +97,32 @@ export function useCalendarState() {
     setIsNotesSaved(true); triggerToast("Notes enregistrées avec succès !");
   };
 
-  const handleDownloadMaterials = (courseId: string) => {
-    setDownloadingId(courseId); setDownloadProgress(0);
-    const interval = setInterval(() => {
-      setDownloadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => { setDownloadingId(null); triggerToast("Dossier enregistré !"); }, 350);
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 200);
+  // Aucun endpoint backend ne fournit les supports d'une séance : message honnête, pas de faux téléchargement.
+  const handleDownloadMaterials = (_courseId: string) => {
+    triggerToast("Aucun support de cours n'est disponible au téléchargement pour cette séance.");
   };
 
-  const triggerAttendanceScan = () => {
+  // Émargement réel : POST /student/attendances ; succès affiché uniquement après réponse 2xx.
+  const triggerAttendanceScan = async () => {
+    if (presenceLoading || presenceSuccess) return;
+    if (utilisateur?.role !== ROLE_UTILISATEUR.ETUDIANT) {
+      triggerToast("L'émargement est réservé aux étudiants connectés.");
+      return;
+    }
     setPresenceLoading(true);
-    setTimeout(() => {
-      setPresenceLoading(false); setPresenceSuccess(true);
+    try {
+      await checkIn({ type: 'PRESENT', method: 'QR' });
+      setPresenceSuccess(true);
       triggerToast("Présence enregistrée !");
-    }, 1500);
+    } catch {
+      triggerToast("Échec de l'enregistrement de la présence. Réessayez.");
+    } finally {
+      setPresenceLoading(false);
+    }
   };
 
-  let rawSessions = GROUP_CLASSES[level]?.[weekType] || [];
-  if (utilisateur && utilisateur.role === ROLE_UTILISATEUR.PROFESSEUR) {
-    rawSessions = rawSessions.filter(c => matchesProfessor(c.professeur, utilisateur.nom));
-  }
+  // Le backend ne fournit que la semaine en cours : la semaine suivante reste vide.
+  const rawSessions = weekType === 'currentWeek' ? realSessions : [];
 
   const displayedSessions = rawSessions.filter(c => {
     const q = (searchQuery || "").toLowerCase();

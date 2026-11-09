@@ -1,4 +1,4 @@
-export const TEACHERS = ['Prof Diallo', 'Mme Sow', 'Prof Ndiaye', 'Dr Diop'];
+/** Suggestions de saisie libre (aucune donnée réelle). Les enseignants viennent de GET /admin/users. */
 export const SUBJECTS = [
   'Ingénierie Structurale',
   'Intelligence Artificielle',

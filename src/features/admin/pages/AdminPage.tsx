@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
-import { SCHOOL_TENANTS, SchoolTenant } from '../domain/AdminTenants';
 import { AdminSidebar } from '../ui/components/AdminSidebar';
 import { AdminCommandPalette } from '../ui/components/AdminCommandPalette';
 import { AdminTabViews } from '../ui/components/AdminTabViews';
@@ -15,7 +14,6 @@ export function AdminPage() {
   const { currentTenant } = useTenantStore();
   const isSuperAdmin = utilisateur?.role === 'SUPER_ADMIN' || utilisateur?.role === 'PLATFORM_OWNER' || !!originalSuperAdminRole;
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [tenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const { isMobile } = useDeviceStore();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -31,7 +29,9 @@ export function AdminPage() {
     });
   };
 
-  const schoolName = currentTenant?.name || tenant.name || 'École 221';
+  const schoolName = currentTenant?.name || 'École 221';
+  // Devise de l'école courante ; « XOF » seulement si l'école n'en déclare aucune.
+  const currency = (currentTenant as { currency?: string } | null)?.currency || 'XOF';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
   const handleLogout = () => { deconnexion(); localStorage.removeItem('access_token'); navigate('/admin'); };
   const leftMarginClass = isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64';
@@ -82,7 +82,7 @@ export function AdminPage() {
         </header>
 
         <main className={`p-4 md:p-6 w-full space-y-6 flex-grow ${activeTab === 'schedule' ? 'max-w-none' : 'max-w-[1440px] mx-auto'}`}>
-          <AdminTabViews activeTab={activeTab} currency={tenant.currency} />
+          <AdminTabViews activeTab={activeTab} currency={currency} />
         </main>
       </div>
 

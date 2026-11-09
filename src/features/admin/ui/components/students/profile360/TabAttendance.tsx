@@ -1,55 +1,57 @@
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { AttendanceHeatmap } from './AttendanceHeatmap';
 
 interface Props {
   selectedStudent: Student;
   erpData?: any;
 }
 
-const STATIC_ATTENDANCE = [
-  { date: '16/07/2026', time: '08:05', course: 'Résistance des Matériaux (RDM)', status: 'PRÉSENT', info: 'Excellent', comment: '-' },
-  { date: '15/07/2026', time: '10:00', course: 'Ingénierie & Planification', status: 'PRÉSENT', info: 'Actif', comment: '-' },
-  { date: '14/07/2026', time: '14:15', course: 'Physique des Matériaux', status: 'RETARD', info: 'Retard de 15m', comment: 'Retard de transport' },
-  { date: '13/07/2026', time: '08:00', course: 'Mathématiques & Analyse', status: 'ABSENT', info: 'Justifié', comment: 'Certificat Médical validé' },
-  { date: '12/07/2026', time: '11:00', course: 'Anglais Technique', status: 'PRÉSENT', info: 'Excellent', comment: '-' }
-];
+/**
+ * Assiduité : uniquement le registre de présences fourni par le dossier 360 (champ « attendance »).
+ * Plus de registre statique ni de taux par défaut (92 %) ; les journaux d'accès ne sont pas des présences.
+ */
+export function TabAttendance({ erpData }: Props) {
+  const history: any[] = Array.isArray(erpData?.attendance) ? erpData.attendance : [];
 
-export function TabAttendance({ selectedStudent, erpData }: Props) {
-  // Convert backend activity logs to attendance list items if available
-  const history = erpData?.activityTrail?.length > 0
-    ? erpData.activityTrail.map((log: any) => {
-        const parts = log.timestamp.split(' ');
-        const date = parts[0] ? parts[0].split('-').reverse().join('/') : 'Aujourd\'hui';
-        const time = parts[1] || '08:00';
-        return {
-          date,
-          time,
-          course: log.action.split('(')[1]?.replace(')', '') || 'Portail Principal',
-          status: log.result === 'SUCCÈS' ? 'PRÉSENT' : 'ABSENT',
-          info: log.module,
-          comment: log.action.split(' - ')[0]
-        };
-      })
-    : STATIC_ATTENDANCE;
+  if (history.length === 0) {
+    return (
+      <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-attendance">
+        <div className="border border-neutral-100 p-6 bg-neutral-50/50 rounded-2xl text-center space-y-2">
+          <span translate="no" className="material-symbols-outlined text-neutral-300 text-3xl">event_busy</span>
+          <p className="text-neutral-600 font-bold m-0">Aucune donnée disponible</p>
+          <p className="text-[11px] text-neutral-400 m-0">Aucune présence n'a encore été enregistrée pour cet élève.</p>
+        </div>
+      </div>
+    );
+  }
 
   const total = history.length;
   const present = history.filter((h: any) => h.status === 'PRÉSENT').length;
-  const presenceRate = total > 0 ? Math.round((present / total) * 100) : 92;
-  const absenceRate = 100 - presenceRate;
+  const retard = history.filter((h: any) => h.status === 'RETARD').length;
+  const absent = history.filter((h: any) => h.status === 'ABSENT').length;
+  const taux = (n: number) => `${Math.round((n / total) * 100)}%`;
 
   return (
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-attendance">
-      <AttendanceHeatmap
-        presenceRate={presenceRate}
-        absenceRate={absenceRate}
-        punctuality={95}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="border border-neutral-100 p-3 bg-emerald-50/40 rounded-2xl">
+          <p className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider">Taux de Présence</p>
+          <p className="text-emerald-700 font-black text-base mt-0.5">{taux(present + retard)}</p>
+        </div>
+        <div className="border border-neutral-100 p-3 bg-rose-50/40 rounded-2xl">
+          <p className="text-[10px] text-rose-800 font-bold uppercase tracking-wider">Taux d'Absence</p>
+          <p className="text-rose-700 font-black text-base mt-0.5">{taux(absent)}</p>
+        </div>
+        <div className="border border-neutral-100 p-3 bg-amber-50/40 rounded-2xl">
+          <p className="text-[10px] text-amber-800 font-bold uppercase tracking-wider">Retards</p>
+          <p className="text-amber-700 font-black text-base mt-0.5">{retard} / {total}</p>
+        </div>
+      </div>
 
       <div className="border border-neutral-100 rounded-2xl overflow-hidden bg-white">
         <div className="bg-neutral-50 border-b border-neutral-100 px-3 py-2 flex items-center gap-1">
           <span translate="no" className="material-symbols-outlined text-neutral-400 text-sm">list_alt</span>
-          <span className="text-neutral-800 font-extrabold text-[11px] uppercase tracking-wider">Registre d'Assiduité Tracé</span>
+          <span className="text-neutral-800 font-extrabold text-[11px] uppercase tracking-wider">Registre d'Assiduité</span>
         </div>
         <table className="w-full text-left">
           <thead>
@@ -57,25 +59,25 @@ export function TabAttendance({ selectedStudent, erpData }: Props) {
               <th className="p-2.5">Date / Heure</th>
               <th className="p-2.5">Cours / Salle</th>
               <th className="p-2.5">Statut</th>
-              <th className="p-2.5">Détails / Module</th>
+              <th className="p-2.5">Détails</th>
             </tr>
           </thead>
           <tbody>
             {history.map((row: any, idx: number) => (
               <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
                 <td className="p-2.5">
-                  <p className="font-extrabold text-neutral-800">{row.date}</p>
-                  <p className="text-[10px] text-neutral-400 font-bold">{row.time}</p>
+                  <p className="font-extrabold text-neutral-800">{row.date ?? '—'}</p>
+                  <p className="text-[10px] text-neutral-400 font-bold">{row.time ?? ''}</p>
                 </td>
-                <td className="p-2.5 font-extrabold text-neutral-700">{row.course}</td>
+                <td className="p-2.5 font-extrabold text-neutral-700">{row.course ?? '—'}</td>
                 <td className="p-2.5">
-                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${row.status === 'PRÉSENT' ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
-                    {row.status}
+                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${row.status === 'PRÉSENT' ? 'bg-emerald-50 text-emerald-800' : row.status === 'RETARD' ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'}`}>
+                    {row.status ?? '—'}
                   </span>
                 </td>
                 <td className="p-2.5">
-                  <p className="font-bold text-neutral-600">{row.info}</p>
-                  <p className="text-[10px] text-neutral-400 font-bold">{row.comment}</p>
+                  <p className="font-bold text-neutral-600">{row.info ?? ''}</p>
+                  <p className="text-[10px] text-neutral-400 font-bold">{row.comment ?? ''}</p>
                 </td>
               </tr>
             ))}

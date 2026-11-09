@@ -17,12 +17,9 @@ export function StudentHeaderBanner({
   const schoolName = currentTenant?.name ? currentTenant.name : "l'École 221";
 
   const currentHour = new Date().getHours();
-  const nameToDisplay = studentName ? studentName.split(' ')[0] : "Abdoulaye";
-  const welcomeMessage = currentHour >= 18 
-    ? `Bonsoir, ${nameToDisplay} !` 
-    : currentHour >= 12 
-      ? `Bon après-midi, ${nameToDisplay} !` 
-      : `Bonjour, ${nameToDisplay} !`;
+  const nameToDisplay = studentName?.trim() ? studentName.trim().split(' ')[0] : '';
+  const greeting = currentHour >= 18 ? 'Bonsoir' : currentHour >= 12 ? 'Bon après-midi' : 'Bonjour';
+  const welcomeMessage = nameToDisplay ? `${greeting}, ${nameToDisplay} !` : `${greeting} !`;
 
   // Déterminer automatiquement le type de pointage (alternance Arrivée / Départ)
   const nextPointerType = attendancesCount % 2 === 0 ? 'arrivée' : 'départ';
@@ -36,7 +33,9 @@ export function StudentHeaderBanner({
     return () => clearInterval(timer);
   }, []);
 
-  const qrData = getDynamicBadgeData(matricule || "SN-2026-8492", studentName || "Abdoulaye Diallo", minuteEpoch);
+  // Aucun QR n'est généré sans matricule réel (pas de badge inventé).
+  const realMatricule = matricule?.trim() || '';
+  const qrData = realMatricule ? getDynamicBadgeData(realMatricule, studentName?.trim() || '—', minuteEpoch) : null;
 
 
   return (
@@ -71,20 +70,28 @@ export function StudentHeaderBanner({
           className="bg-white p-2.5 h-[120px] w-[120px] rounded-2xl border border-neutral-200/50 flex flex-col items-center justify-center shadow-3xs hover:shadow-2xs hover:bg-neutral-100/50 transition-all relative group cursor-pointer shrink-0"
         >
           {/* Pulsing active status badge - critical to show active/payment validation */}
+          {qrData && (
           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 bg-green-500/10 border border-green-500/20 text-green-700 px-1 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider">
             <span className="h-1 w-1 rounded-full bg-green-500 animate-pulse"></span>
             ACTIF
           </div>
+          )}
 
           {/* QR Code Mini-Card - Custom 100px size for pristine scanning */}
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-350 mt-3">
-            <img
-              id="student-qr-code-img"
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=1b1c1e&margin=4`}
-              alt="QR Code d'accès"
-              className="w-[74px] h-[74px] object-contain"
-              referrerPolicy="no-referrer"
-            />
+            {qrData ? (
+              <img
+                id="student-qr-code-img"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=1b1c1e&margin=4`}
+                alt="QR Code d'accès"
+                className="w-[74px] h-[74px] object-contain"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div id="student-qr-code-unavailable" className="w-[74px] h-[74px] flex items-center justify-center text-center text-[9px] font-semibold text-neutral-500 leading-tight">
+                Matricule non renseigné
+              </div>
+            )}
             {/* Horizontal scan line effect */}
             <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>

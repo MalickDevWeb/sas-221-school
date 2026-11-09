@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Star, CheckSquare, Sparkles } from 'lucide-react';
+import { Award, Star, CheckSquare } from 'lucide-react';
 import { Workgroup } from '../../domain/CollaborationModels';
 import { GroupEvaluation } from '../../domain/TaskWikiModels';
 
@@ -19,24 +19,34 @@ interface Props {
 }
 
 export function GroupEvaluationPanel({ group, isTeacher, evaluations, onSaveEvaluation, userName }: Props) {
-  const [groupGrade, setGroupGrade] = useState('16');
-  const [feedback, setFeedback] = useState('Excellent travail de collaboration, les commits sont réguliers.');
-  const [qual, setQual] = useState(4);
-  const [collab, setCollab] = useState(5);
+  // Formulaire vierge : aucune note ni appréciation pré-remplie, aucune note individuelle calculée au hasard.
+  const [groupGrade, setGroupGrade] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [qual, setQual] = useState('');
+  const [collab, setCollab] = useState('');
+  const [individuelles, setIndividuelles] = useState<Record<string, string>>({});
+  const members = group.members || [];
 
   const groupEval = evaluations.find((e) => e.groupId === group.id);
+
+  /** Choix explicite de l'enseignant : chaque membre reçoit la note du groupe (modifiable ensuite). */
+  const appliquerNoteGroupe = () => {
+    if (groupGrade.trim() === '') return;
+    const suivant: Record<string, string> = {};
+    members.forEach((m) => { suivant[m.id] = groupGrade; });
+    setIndividuelles(suivant);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const indGrades: Record<string, number> = {};
-    (group.members || []).forEach((m) => {
-      indGrades[m.id] = parseFloat(groupGrade) + ((m.gpa ?? 3.0) > 3.5 ? 1 : -0.5);
+    members.forEach((m) => {
+      const v = parseFloat(individuelles[m.id] ?? '');
+      if (Number.isFinite(v)) indGrades[m.id] = v;
     });
-    onSaveEvaluation(group.id, parseFloat(groupGrade), indGrades, feedback, {
-      quality: qual,
-      collaboration: collab,
-      commitFrequency: 4,
-      promptness: 5,
+    onSaveEvaluation(group.id, parseFloat(groupGrade), indGrades, feedback.trim(), {
+      quality: parseInt(qual, 10),
+      collaboration: parseInt(collab, 10),
     }, userName);
   };
 
@@ -49,16 +59,44 @@ export function GroupEvaluationPanel({ group, isTeacher, evaluations, onSaveEval
 
       {isTeacher ? (
         <form onSubmit={handleSubmit} className="space-y-3 bg-neutral-50/50 p-3.5 rounded-xl border border-neutral-100">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-[10px] font-bold text-neutral-500 mb-1">Note Globale du Groupe (/20)</label>
-              <input type="number" min="0" max="20" value={groupGrade} onChange={(e) => setGroupGrade(e.target.value)} className="w-full text-xs px-2.5 py-1.5 border border-neutral-200 rounded-lg bg-white font-bold text-brand-red-deep" required />
+              <input type="number" min="0" max="20" step="0.25" value={groupGrade} onChange={(e) => setGroupGrade(e.target.value)} className="w-full text-xs px-2.5 py-1.5 border border-neutral-200 rounded-lg bg-white font-bold text-brand-red-deep" required />
             </div>
             <div>
               <label className="block text-[10px] font-bold text-neutral-500 mb-1">Qualité de Collaboration (1-5)</label>
-              <input type="number" min="1" max="5" value={collab} onChange={(e) => setCollab(parseInt(e.target.value))} className="w-full text-xs px-2.5 py-1.5 border border-neutral-200 rounded-lg bg-white" required />
+              <input type="number" min="1" max="5" step="1" value={collab} onChange={(e) => setCollab(e.target.value)} className="w-full text-xs px-2.5 py-1.5 border border-neutral-200 rounded-lg bg-white" required />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-neutral-500 mb-1">Qualité des Livrables (1-5)</label>
+              <input type="number" min="1" max="5" step="1" value={qual} onChange={(e) => setQual(e.target.value)} className="w-full text-xs px-2.5 py-1.5 border border-neutral-200 rounded-lg bg-white" required />
             </div>
           </div>
+
+          {members.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="block text-[10px] font-bold text-neutral-500">Notes individuelles (/20)</span>
+                <button type="button" onClick={appliquerNoteGroupe} disabled={groupGrade.trim() === ''} className="text-[9px] font-bold text-brand-red-deep hover:underline disabled:opacity-40 disabled:no-underline">
+                  Attribuer la note du groupe à chaque membre
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {members.map((m) => (
+                  <label key={m.id} className="flex items-center justify-between gap-2 text-[10px] font-semibold text-neutral-600 bg-white border border-neutral-200 rounded-lg px-2 py-1">
+                    <span className="truncate">{m.name}</span>
+                    <input
+                      type="number" min="0" max="20" step="0.25" required
+                      value={individuelles[m.id] ?? ''}
+                      onChange={(e) => setIndividuelles((prev) => ({ ...prev, [m.id]: e.target.value }))}
+                      className="w-16 text-xs px-1.5 py-1 border border-neutral-200 rounded-md bg-white font-bold"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-[10px] font-bold text-neutral-500 mb-1">Commentaire & Axes d&apos;Amélioration</label>

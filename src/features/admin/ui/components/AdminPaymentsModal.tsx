@@ -12,14 +12,15 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
   const [filter, setFilter] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const handleToggle = async (studentId: string, currentStatus?: string) => {
-    const nextStatus = currentStatus === 'Paiement en retard' ? 'Scolarité à jour' : 'Paiement en retard';
+  // Valeurs acceptées par PATCH /admin/students/{id}/status : « En Règle » ou « En Retard »
+  const handleToggle = async (studentId: string, currentStatus?: string | null) => {
+    const nextStatus = currentStatus === 'En Règle' ? 'En Retard' : 'En Règle';
     setUpdatingId(studentId);
     await onUpdatePayment(studentId, nextStatus);
     setUpdatingId(null);
   };
 
-  const getPromoName = (promoId: string) => promotions.find(p => p.id === promoId)?.name || 'Inconnue';
+  const getPromoName = (promoId?: string) => (promoId ? promotions.find(p => p.id === promoId)?.name : undefined) || 'Classe non renseignée';
 
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(filter.toLowerCase()) || 
@@ -51,7 +52,8 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
             <p className="text-center text-xs text-[#8E7977] py-6">Aucun étudiant trouvé.</p>
           ) : (
             filteredStudents.map(student => {
-              const isOk = student.statutFrais !== 'Paiement en retard';
+              const statut = student.statutFrais ?? null;   // null = non renseigné (jamais supposé à jour)
+              const isOk = statut === 'En Règle';
               return (
                 <div key={student.id} className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-[#E2DCDA] shadow-sm hover:border-primary/20 transition-all">
                   <div>
@@ -65,7 +67,7 @@ export function AdminPaymentsModal({ onClose, students, promotions, onUpdatePaym
                     disabled={updatingId === student.id}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${isOk ? 'bg-[#EAF7EE] text-[#1E5E3A] border border-[#D0EBD9] hover:bg-[#D9F2E2]' : 'bg-primary-light text-primary border border-[#FFD1D1] hover:bg-[#FFE6E6]'}`}
                   >
-                    {updatingId === student.id ? 'Mise à jour...' : isOk ? 'À jour' : 'En retard'}
+                    {updatingId === student.id ? 'Mise à jour...' : isOk ? 'À jour' : statut === 'En Retard' ? 'En retard' : 'Non renseigné'}
                   </button>
                 </div>
               );

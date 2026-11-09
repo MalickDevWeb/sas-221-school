@@ -6,6 +6,7 @@ import { ReportsTab } from './finances/ReportsTab';
 import { AutomationTab } from './finances/AutomationTab';
 import { Expense } from '../../domain/FinancesModels';
 import { useAdminFinances } from './finances/useAdminFinances';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
 export function AdminFinanceDashboard() {
@@ -20,8 +21,12 @@ export function AdminFinanceDashboard() {
   };
 
   const handleAddExpense = async (newExp: Omit<Expense, 'id'>) => {
-    await addExpense(newExp);
-    showToast(`Dépense de ${newExp.amount.toLocaleString()} FCFA enregistrée !`, true);
+    try {
+      const created = await addExpense(newExp);
+      showToast(`Dépense de ${created.amount.toLocaleString('fr-FR')} FCFA enregistrée.`, true);
+    } catch (err) {
+      showToast(err instanceof Error && !(err as any).isAxiosError ? err.message : resolveErrorMessage(err), false);
+    }
   };
 
   const handleToggleStudentStatus = (id: string) => {

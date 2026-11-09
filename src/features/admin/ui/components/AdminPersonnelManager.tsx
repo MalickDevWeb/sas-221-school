@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { MotDePasseProvisoireModal } from './MotDePasseProvisoireModal';
 
 interface StaffMember {
   id: string;
   name: string;
   email: string;
   role: string;
+  roleLabel: string;
   telephone: string;
 }
 
@@ -17,6 +22,7 @@ interface StaffApiMember {
   email?: string;
   phone?: string;
   role?: string;
+  roleLabel?: string;
 }
 
 /** Libellé affiché → clé de rôle backend (users.role). */
@@ -35,6 +41,7 @@ function toStaffMember(m: StaffApiMember): StaffMember {
     name: `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim() || (m.email ?? m.id),
     email: m.email ?? '',
     role: m.role ?? '',
+    roleLabel: m.roleLabel || m.role || '—',
     telephone: m.phone ?? '',
   };
 }
@@ -47,6 +54,7 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
   const [role, setRole] = useState('Professeur');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; email: string; motDePasse: string } | null>(null);
 
   // Routes réelles : AdminController /admin/staff (GET, POST, DELETE/{id}) — APP-ARC-01
   const loadPersonnel = async () => {
@@ -55,7 +63,9 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
       const members = (Array.isArray(data) ? data : []).map(toStaffMember);
       setProfessors(members.filter(m => isProfessorRole(m.role)));
       setStaff(members.filter(m => !isProfessorRole(m.role)));
-    } catch { /* handled by apiClient interceptor */ }
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+    }
   };
 
   useEffect(() => { loadPersonnel(); }, []);
@@ -66,25 +76,35 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
     setLoading(true);
     try {
       const [firstName, ...rest] = name.trim().split(/\s+/);
-      await apiClient.post('/admin/staff', {
+      const { data } = await apiClient.post<any>('/admin/staff', {
         firstName,
         lastName: rest.join(' '),
         email,
         role: ROLE_KEYS[role] ?? role,
         phone,
       });
+      toast.success(`Compte créé pour ${name.trim()}.`);
+      if (data?.motDePasseProvisoire) {
+        setMotDePasseInfo({ nom: name.trim(), email: data.email || email, motDePasse: data.motDePasseProvisoire });
+      }
       setName(''); setEmail(''); setPhone('');
       await loadPersonnel();
       onUpdate();
-    } catch { /* handled by apiClient interceptor */ } finally { setLoading(false); }
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));   // formulaire conservé
+    } finally { setLoading(false); }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, nom: string) => {
+    if (!(await demanderConfirmation(`Retirer ${nom} de l'école ?`, { titre: 'Retirer un collaborateur', confirmer: 'Retirer' }))) return;
     try {
       await apiClient.delete(`/admin/staff/${id}`);
+      toast.success(`${nom} a été retiré de l'école.`);
       await loadPersonnel();
       onUpdate();
-    } catch { /* handled by apiClient interceptor */ }
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+    }
   };
 
   return (
@@ -116,19 +136,31 @@ export function AdminPersonnelManager({ onUpdate }: { onUpdate: () => void }) {
               <span className="font-bold text-[#291715] block">{p.name}</span>
               <span className="text-[9px] text-[#8E7977]">Enseignant • {p.email}</span>
             </div>
-            <button onClick={() => handleDelete(p.id)} className="text-[9px] text-red-600 hover:underline">Retirer</button>
+            <button onClick={() => handleDelete(p.id, p.name)} className="text-[9px] text-red-600 hover:underline">Retirer</button>
           </div>
         ))}
         {staff.map(s => (
           <div key={s.id} className="flex justify-between items-center bg-[#FAF8F6] p-2 rounded-lg border border-[#E2DCDA]/50">
             <div>
-              <span className="font-bold text-[#291715] block">{s.name} ({s.telephone})</span>
-              <span className="text-[9px] text-[#8E7977]">{s.role} • {s.email}</span>
+              <span className="font-bold text-[#291715] block">{s.name}{s.telephone ? ` (${s.telephone})` : ''}</span>
+              <span className="text-[9px] text-[#8E7977]">{s.roleLabel} • {s.email}</span>
             </div>
-            <button onClick={() => handleDelete(s.id)} className="text-[9px] text-red-600 hover:underline">Retirer</button>
+            <button onClick={() => handleDelete(s.id, s.name)} className="text-[9px] text-red-600 hover:underline">Retirer</button>
           </div>
         ))}
+        {professors.length === 0 && staff.length === 0 && (
+          <p className="text-center py-2 text-[#8E7977] italic text-[10px]">Aucun membre du personnel enregistré.</p>
+        )}
       </div>
+
+      {motDePasseInfo && (
+        <MotDePasseProvisoireModal
+          nom={motDePasseInfo.nom}
+          identifiant={motDePasseInfo.email}
+          motDePasse={motDePasseInfo.motDePasse}
+          onClose={() => setMotDePasseInfo(null)}
+        />
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { AttendanceTab } from './personnel/AttendanceTab';
 import { StaffMember } from '../../domain/PersonnelModels';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function AdminPersonnelRH() {
   const [activeTab, setActiveTab] = useState('accounts');
@@ -24,61 +25,69 @@ export function AdminPersonnelRH() {
         const res = await apiClient.get('/admin/staff');
         setStaff(Array.isArray(res.data) ? res.data : []);   // jamais de personnel inventé
       } catch (err) {
-        console.warn("API staff indisponible :", err);
+        showToast(resolveErrorMessage(err), false);
       }
     }
     loadStaff();
   }, []);
 
-  const handleAddStaff = async (newMember: Omit<StaffMember, 'id'>) => {
+  /** Création réelle : le collaborateur n'apparaît qu'avec la réponse du serveur (mot de passe provisoire inclus s'il a été généré). */
+  const handleAddStaff = async (newMember: { firstName: string; lastName: string; email: string; phone: string; role: string }) => {
     try {
       const res = await apiClient.post('/admin/staff', newMember);
-      const created = res.data?.id ? res.data : { id: `EMP-2026-${Date.now().toString().slice(-4)}`, ...newMember };
-      setStaff(prev => [...prev.filter(s => s.email !== newMember.email), created]);
-      showToast(`Compte pour ${newMember.firstName} créé avec succès.`, true);
-      return created;
-    } catch (err: any) {
-      const msg = err.response?.data?.message || "Erreur lors de la création du compte.";
-      showToast(msg, false);
+      const { motDePasseProvisoire, ...created } = res.data ?? {};
+      if (!created?.id) {
+        showToast("Réponse du serveur incomplète : rechargez la liste du personnel.", false);
+        return null;
+      }
+      setStaff(prev => [...prev.filter(s => s.id !== created.id), created as StaffMember]);
+      showToast(`Compte pour ${created.firstName || newMember.firstName} créé.`, true);
+      return { member: created as StaffMember, motDePasseProvisoire: (motDePasseProvisoire as string | undefined) ?? null };
+    } catch (err) {
+      showToast(resolveErrorMessage(err), false);
       return null;
     }
   };
 
-  const handleUpdateStaff = async (updated: StaffMember, originalId?: string) => {
-    const targetId = originalId || updated.id;
-    setStaff(prev => prev.map(s => s.id === targetId ? updated : s));
-    showToast(`Identifiants de ${updated.firstName} ${updated.lastName} mis à jour.`, true);
+  const handleUpdateStaff = async (updated: StaffMember): Promise<boolean> => {
     try {
-      await apiClient.put(`/admin/staff/${targetId}`, { ...updated, newId: updated.id });
+      const res = await apiClient.put(`/admin/staff/${updated.id}`, {
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        email: updated.email,
+        phone: updated.phone,
+        role: updated.role,
+      });
+      const confirme: StaffMember = res.data?.id ? res.data : updated;
+      setStaff(prev => prev.map(s => s.id === updated.id ? confirme : s));
+      showToast(`Fiche de ${confirme.firstName} ${confirme.lastName} mise à jour.`, true);
+      return true;
     } catch (err) {
-      console.warn("Erreur PUT staff backend:", err);
+      showToast(resolveErrorMessage(err), false);
+      return false;
     }
   };
 
   const handleToggleStatus = async (id: string) => {
-    let nextStatus = 'Actif';
-    setStaff(prev => prev.map(s => {
-      if (s.id === id) {
-        nextStatus = s.status === 'Actif' ? 'Suspendu' : 'Actif';
-        return { ...s, status: nextStatus as any };
-      }
-      return s;
-    }));
-    showToast(`Le statut du collaborateur est maintenant : ${nextStatus}`, true);
     try {
-      await apiClient.patch(`/admin/staff/${id}/toggle-status`);
+      const res = await apiClient.patch(`/admin/staff/${id}/toggle-status`);
+      const status: StaffMember['status'] = res.data?.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      setStaff(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+      showToast(`Le statut du collaborateur est maintenant : ${status}`, true);
     } catch (err) {
-      console.warn("Erreur PATCH staff toggle status:", err);
+      showToast(resolveErrorMessage(err), false);
     }
   };
 
-  const handleDeleteStaff = async (id: string) => {
-    setStaff(prev => prev.filter(s => s.id !== id));
-    showToast("Collaborateur supprimé avec succès.", true);
+  const handleDeleteStaff = async (id: string): Promise<boolean> => {
     try {
       await apiClient.delete(`/admin/staff/${id}`);
+      setStaff(prev => prev.filter(s => s.id !== id));
+      showToast("Collaborateur retiré de l'école.", true);
+      return true;
     } catch (err) {
-      console.warn("Erreur DELETE staff:", err);
+      showToast(resolveErrorMessage(err), false);
+      return false;
     }
   };
 
@@ -113,7 +122,7 @@ export function AdminPersonnelRH() {
           />
         )}
         {activeTab === 'rbac' && <RbacTab onShowToast={showToast} />}
-        {activeTab === 'attendance' && <AttendanceTab onShowToast={showToast} />}
+        {activeTab === 'attendance' && <AttendanceTab onShowToast={showToast} staff={staff} />}
       </div>
     </div>
   );

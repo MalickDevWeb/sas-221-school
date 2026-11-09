@@ -3,19 +3,31 @@ export interface AdminStats {
   professorsCount: number;
   coursesCount: number;
   classesCount: number;
-  presentProfessors: string;
-  salleOccupation: string;
+  /** Aucune source serveur pour l'instant : null → afficher « — ». */
+  presentProfessors: string | null;
+  /** Aucune source serveur pour l'instant : null → afficher « — ». */
+  salleOccupation: string | null;
 }
 
+/** Élève tel que renvoyé par GET /admin/users : uniquement des champs réels (pas de moyenne, présence ni classe). */
 export interface AdminStudent {
   id: string;
   name: string;
   matricule: string;
-  promotion_id: string;
-  average: number;
-  gpa: number;
-  mood: string;
-  statutFrais?: string;
+  prenom?: string | null;
+  nom?: string | null;
+  email?: string | null;
+  telephone?: string | null;
+  /** null = non renseigné */
+  statutFrais?: string | null;
+  status?: 'Actif' | 'Suspendu';
+  qrStatus?: 'AUTORISÉ' | 'SUSPENDU';
+  /** Affectation à une classe : non stockée par le serveur (absente). */
+  promotion_id?: string;
+  /** Champs historiques sans source serveur : jamais affichés avec une valeur inventée. */
+  average?: number | null;
+  gpa?: number | null;
+  mood?: string | null;
 }
 
 export interface AdminSession {
