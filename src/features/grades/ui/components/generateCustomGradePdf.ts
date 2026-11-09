@@ -96,7 +96,7 @@ export function generateCustomGradePdf(
       doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(115);
       doc.text(opts.signature, 15, sY + 2);
       doc.text("Document officiel certifié et signé numériquement par l'établissement.", 15, sY + 6);
-      doc.text(`Identifiant d'archivage : E221-${year.id}-${Math.floor(Math.random() * 89999 + 10000)}`, 15, sY + 10);
+      doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} — document non certifié (aucun identifiant d'archivage).`, 15, sY + 10);
 
       // Seal Box
       doc.setDrawColor(primary[0], primary[1], primary[2]).setLineWidth(0.6).roundedRect(138, sY - 6, 57, 21, 1.5, 1.5, "S");

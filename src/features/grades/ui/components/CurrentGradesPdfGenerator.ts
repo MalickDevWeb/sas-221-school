@@ -94,8 +94,10 @@ export function downloadCurrentYearPDF(data: CurrentPdfData, onProgress: (p: num
       doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(pdr, pdg, pdb).text("SIGNATURE & HOMOLOGATION", 15, sY - 6);
       doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(115);
       doc.text(`Le Conseil de Direction Académique de ${tenantTheme.schoolName}`, 15, sY);
-      doc.text("Relevé de notes officiel provisoire émis en ligne.", 15, sY + 4);
-      doc.text(`ID unique d'authentification : ${tenantTheme.slug.toUpperCase()}-CUR-S2-${Math.floor(Math.random() * 89999 + 10000)}`, 15, sY + 8);
+      doc.text("Relevé de notes provisoire émis en ligne.", 15, sY + 4);
+      // Avant : « ID unique d'authentification » tiré au hasard (Math.random) — un faux identifiant sur un relevé
+      // présenté comme officiel. Aucun service de certification n'existe : on l'indique clairement.
+      doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} — document non certifié (aucune signature électronique).`, 15, sY + 8);
 
       // Certificate Seal Box — toujours lisible avec primaryDark
       doc.setDrawColor(pdr, pdg, pdb).setLineWidth(0.8).roundedRect(140, sY - 8, 55, 23, 1.5, 1.5, "S");

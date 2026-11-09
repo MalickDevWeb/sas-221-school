@@ -69,7 +69,7 @@ export function downloadPreviousYearPDF(year: AcademicYear, onProgress: (p: numb
       doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(115);
       doc.text(`Le Conseil de Direction Académique de ${tenantTheme.schoolName}`, 15, sY);
       doc.text("Ce relevé est certifié authentique.", 15, sY + 4);
-      doc.text(`ID : ${tenantTheme.slug.toUpperCase()}-ID-${year.id}-${Math.floor(Math.random() * 89999 + 10000)}`, 15, sY + 8);
+      doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} — document non certifié.`, 15, sY + 8);
 
       doc.setDrawColor(pdr, pdg, pdb).setLineWidth(0.8).roundedRect(140, sY - 8, 55, 23, 1.5, 1.5, "S");
       doc.setFillColor(pdr, pdg, pdb).rect(140, sY - 8, 55, 4.5, "F");
