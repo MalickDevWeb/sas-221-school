@@ -63,6 +63,11 @@ export function resolveErrorMessage(error: any): string {
   const status = error.response?.status;
   if (status === 409) return "Cette information (email, téléphone ou identifiant) est déjà enregistrée.";
   if (status === 404) return "La ressource demandée n'a pas été trouvée.";
+  // Refus CORS (réponse texte « Invalid CORS request ») : l'adresse du site n'est pas autorisée par le serveur
+  if (status === 403 && typeof data === 'string' && /cors/i.test(data)) {
+    return "Le serveur refuse les requêtes venant de cette adresse (" + window.location.origin + "). " +
+      "Ouvrez l'application depuis son adresse officielle, ou ajoutez cette origine à CORS_ALLOWED_ORIGINS.";
+  }
   if (status === 403) return "Vous n'avez pas l'autorisation d'effectuer cette action.";
   if (status === 401) return "Veuillez vous connecter pour continuer.";
   if (status === 500) return "Le serveur a rencontré une difficulté momentanée. Veuillez réessayer.";
