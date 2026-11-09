@@ -14,8 +14,8 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
   const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
   const [phone, setPhone] = useState(selectedStudent.phoneParent);
   const [email, setEmail] = useState(selectedStudent.email);
-  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || 'O+');
-  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || 'Aucune');
+  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || ''   /* APP-BE-17 : pas de groupe sanguin inventé */);
+  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || ''   /* APP-BE-17 : pas d'allergie présumée */);
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = async () => {
