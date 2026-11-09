@@ -4,8 +4,29 @@ import {
   PersonalDetails, GuardianDetails, AcademicDetails, DocumentsState, PaymentDetails
 } from './admissionsDb';
 import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
-import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
+import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
 import { publicApiClient } from '@/shared/lib/apiClient';
+
+export type DocKey = keyof DocumentsState;
+export type DocErrors = Partial<Record<DocKey, string>>;
+
+/**
+ * Pièces fictives de démonstration : disponible UNIQUEMENT en développement (APP-FE-08).
+ * En production, `import.meta.env.DEV` vaut `false` à la compilation : la fonction vaut `undefined`,
+ * le bouton n'est pas rendu et ce code (avec ses URL de démonstration) est éliminé du bundle.
+ */
+const devSimulateDoc: ((key: DocKey, label: string) => NonNullable<DocumentsState[DocKey]>) | undefined =
+  import.meta.env.DEV
+    ? (key, label) => ({
+        name: `${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}_2026.pdf`,
+        size: '1.4 Mo',
+        uploadedAt: new Date().toLocaleTimeString('fr-FR'),
+        status: 'uploaded',
+        url: key === 'idCard'
+          ? 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png'
+          : 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170916/file-69201f84.png'
+      })
+    : undefined;
 
 export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: ExtendedCandidate) => void) {
   const [step, setStep] = useState(1);
@@ -23,6 +44,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
     targetFiliere: campaign.title, intakeSession: campaign.intake || 'Octobre 2026'
   });
   const [docs, setDocs] = useState<DocumentsState>({ idCard: null, diploma: null, transcripts: null, photo: null });
+  const [docErrors, setDocErrors] = useState<DocErrors>({});
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [payment, setPayment] = useState<PaymentDetails>({
@@ -32,25 +54,46 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const uploadDoc = async (key: keyof DocumentsState, file: File) => {
+  const clearDocError = (key: DocKey) => setDocErrors(prev => {
+    if (!(key in prev)) return prev;
+    const next = { ...prev };
+    delete next[key];
+    return next;
+  });
+
+  const uploadDoc = async (key: DocKey, file: File) => {
     setUploadingDoc(key);
     setUploadProgress(10);
+    clearDocError(key);
     try {
-      const url = await uploadToCloudinary(file, (pct) => setUploadProgress(pct));
+      // Mode strict : aucun repli DataURL, l'échec backend remonte ici.
+      const url = await uploadToCloudinary(file, (pct) => setUploadProgress(pct), { strict: true });
       const sizeStr = file.size > 1048576 ? `${(file.size / 1048576).toFixed(1)} Mo` : `${Math.round(file.size / 1024)} Ko`;
       setDocs(prev => ({ ...prev, [key]: { name: file.name, size: sizeStr, uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
+    } catch (err) {
+      // Le document n'est PAS marqué comme envoyé ; on affiche le message du backend à côté de la pièce.
+      const message = err instanceof UploadError
+        ? err.message
+        : 'L’envoi du fichier a échoué. Veuillez réessayer.';
+      setDocs(prev => ({ ...prev, [key]: null }));
+      setDocErrors(prev => ({ ...prev, [key]: message }));
     } finally {
       setUploadingDoc(null);
       setUploadProgress(0);
     }
   };
 
-  const simulateDocUpload = (key: keyof DocumentsState, label: string) => {
-    const url = key === 'idCard' ? 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png' : 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170916/file-69201f84.png';
-    setDocs(prev => ({ ...prev, [key]: { name: `${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}_2026.pdf`, size: '1.4 Mo', uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
-  };
+  const simulateDocUpload = devSimulateDoc
+    ? (key: DocKey, label: string) => {
+        clearDocError(key);
+        setDocs(prev => ({ ...prev, [key]: devSimulateDoc(key, label) }));
+      }
+    : undefined;
 
-  const removeDoc = (key: keyof DocumentsState) => setDocs(prev => ({ ...prev, [key]: null }));
+  const removeDoc = (key: DocKey) => {
+    clearDocError(key);
+    setDocs(prev => ({ ...prev, [key]: null }));
+  };
   const declarePayment = (method: 'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH', ref: string) => {
     setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees || 25000 });
   };
@@ -107,7 +150,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
 
   return {
     step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, uploadDoc, uploadingDoc, uploadProgress,
+    academic, setAcademic, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress,
     simulateDocUpload, removeDoc, payment, declarePayment,
     credentials, setCredentials, error, setError, isSubmitting, handleFinalSubmit
   };

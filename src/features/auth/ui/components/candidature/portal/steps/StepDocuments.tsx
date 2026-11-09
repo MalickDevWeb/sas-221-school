@@ -5,16 +5,19 @@ import { DocumentsState } from '../admissionsTypes';
 
 interface Props {
   docs: DocumentsState;
+  /** Message d'échec d'envoi par pièce (message renvoyé par le backend). */
+  docErrors?: Partial<Record<keyof DocumentsState, string>>;
   uploadDoc: (key: keyof DocumentsState, file: File) => Promise<void>;
   uploadingDoc?: string | null;
   uploadProgress?: number;
-  simulateDocUpload: (key: keyof DocumentsState, label: string) => void;
+  /** Fourni uniquement en développement (import.meta.env.DEV) ; absent en production → bouton masqué. */
+  simulateDocUpload?: (key: keyof DocumentsState, label: string) => void;
   removeDoc: (key: keyof DocumentsState) => void;
   onNext: () => void;
   onPrev: () => void;
 }
 
-export function StepDocuments({ docs, uploadDoc, uploadingDoc, uploadProgress = 0, simulateDocUpload, removeDoc, onNext, onPrev }: Props) {
+export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, uploadProgress = 0, simulateDocUpload, removeDoc, onNext, onPrev }: Props) {
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const docList = [
     { key: 'idCard' as const, label: "Carte Nationale d'Identité ou Passeport", required: true, icon: 'solar:user-id-bold-duotone' },
@@ -28,6 +31,8 @@ export function StepDocuments({ docs, uploadDoc, uploadingDoc, uploadProgress = 
 
   const handleFileChange = (key: keyof DocumentsState, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Réinitialise la valeur pour permettre de renvoyer le même fichier après un échec.
+    e.target.value = '';
     if (file) void uploadDoc(key, file);
   };
 
@@ -48,13 +53,15 @@ export function StepDocuments({ docs, uploadDoc, uploadingDoc, uploadProgress = 
         {docList.map(item => {
           const doc = docs[item.key];
           const isUploading = uploadingDoc === item.key;
+          const uploadError = !doc && !isUploading ? docErrors[item.key] : undefined;
+          const errorId = `doc-error-${item.key}`;
           return (
-            <div key={item.key} className={`p-3 rounded-2xl border transition-all ${doc ? 'bg-emerald-50/40 border-emerald-300' : 'bg-neutral-50/70 border-neutral-200 hover:border-neutral-300'}`}>
+            <div key={item.key} className={`p-3 rounded-2xl border transition-all ${doc ? 'bg-emerald-50/40 border-emerald-300' : uploadError ? 'bg-rose-50/40 border-rose-300' : 'bg-neutral-50/70 border-neutral-200 hover:border-neutral-300'}`}>
               <input ref={el => { fileInputRefs.current[item.key] = el; }} type="file" accept="image/*,application/pdf" className="hidden" onChange={e => handleFileChange(item.key, e)} />
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${doc ? 'bg-emerald-600 text-white' : isUploading ? 'bg-primary text-white animate-pulse' : 'bg-neutral-200 text-neutral-600'}`}>
-                    <Icon icon={doc ? 'solar:check-circle-bold' : isUploading ? 'solar:cloud-upload-bold-duotone' : item.icon} className="text-lg" />
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${doc ? 'bg-emerald-600 text-white' : isUploading ? 'bg-primary text-white animate-pulse' : uploadError ? 'bg-rose-600 text-white' : 'bg-neutral-200 text-neutral-600'}`}>
+                    <Icon icon={doc ? 'solar:check-circle-bold' : isUploading ? 'solar:cloud-upload-bold-duotone' : uploadError ? 'solar:danger-triangle-bold' : item.icon} className="text-lg" />
                   </div>
                   <div className="min-w-0">
                     <h5 className="text-xs font-bold text-neutral-800 leading-snug truncate">{item.label}</h5>
@@ -72,6 +79,10 @@ export function StepDocuments({ docs, uploadDoc, uploadingDoc, uploadProgress = 
                       <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1 mt-0.5 truncate">
                         <span className="font-mono truncate">{doc.name}</span> · {doc.size} · Cloudinary <Icon icon="solar:check-read-bold" className="text-emerald-600 text-xs inline" />
                       </span>
+                    ) : uploadError ? (
+                      <p id={errorId} role="alert" className="text-[10px] text-rose-700 font-bold mt-0.5 break-words">
+                        Non envoyé : {uploadError}
+                      </p>
                     ) : (
                       <span className="text-[10px] text-neutral-400 font-medium">{item.required ? 'Obligatoire' : 'Facultatif'}</span>
                     )}
@@ -86,13 +97,15 @@ export function StepDocuments({ docs, uploadDoc, uploadingDoc, uploadProgress = 
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5">
-                      <button disabled={isUploading} type="button" onClick={() => fileInputRefs.current[item.key]?.click()} className="px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
-                        <Icon icon="solar:upload-track-2-bold" className="text-sm" />
-                        <span>{isUploading ? `${uploadProgress}%` : 'Téléverser'}</span>
+                      <button disabled={isUploading} type="button" aria-describedby={uploadError ? errorId : undefined} onClick={() => fileInputRefs.current[item.key]?.click()} className="px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
+                        <Icon icon={uploadError ? 'solar:restart-bold' : 'solar:upload-track-2-bold'} className="text-sm" />
+                        <span>{isUploading ? `${uploadProgress}%` : uploadError ? 'Réessayer' : 'Téléverser'}</span>
                       </button>
-                      <button type="button" title="Simulation rapide" onClick={() => simulateDocUpload(item.key, item.label)} className="p-1.5 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 cursor-pointer">
-                        <Icon icon="solar:magic-stick-3-bold-duotone" className="text-sm" />
-                      </button>
+                      {simulateDocUpload && (
+                        <button type="button" title="Simulation rapide (développement uniquement)" aria-label="Simulation rapide (développement uniquement)" onClick={() => simulateDocUpload(item.key, item.label)} className="p-1.5 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 cursor-pointer">
+                          <Icon icon="solar:magic-stick-3-bold-duotone" className="text-sm" />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
