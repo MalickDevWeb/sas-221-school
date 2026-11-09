@@ -77,6 +77,12 @@ export function resolveErrorMessage(error: any): string {
     return ERROR_MESSAGES[ERROR_CODES.NETWORK_OFFLINE];
   }
 
-  return error.message || "Une erreur inattendue est survenue.";
+  // Jamais le message technique d'axios (« Request failed with status code … ») à l'écran
+  if (status === 400) return "Données invalides : vérifiez les champs du formulaire.";
+  if (status === 429) return "Trop de demandes : réessayez dans quelques instants.";
+  if (status === 503) return "Service momentanément indisponible. Réessayez plus tard.";
+  if (status) return `Le serveur a refusé la demande (code ${status}).`;
+  if (error.message && !/^Request failed with status code/i.test(error.message)) return error.message;
+  return "Une erreur inattendue est survenue.";
 }
 

@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 let lastNetworkToastTime = 0;
 const TOAST_THROTTLE_MS = 10_000;
@@ -67,6 +68,12 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   if (axios.isCancel(error)) {
     return Promise.reject(error);
   }
+
+  // Message lisible pour les écrans qui affichent error.message (avant : « Request failed with
+  // status code 404 » affiché tel quel) — dictionnaire d'erreurs commun, en français.
+  try {
+    error.message = resolveErrorMessage(error);
+  } catch { /* message d'origine conservé */ }
 
   const status = error.response?.status;
   const url = error.config?.url || '';
