@@ -3,13 +3,11 @@ import { apiClient } from '@/shared/lib/apiClient';
 import {
   StudentFinance,
   Expense,
-  INITIAL_STUDENTS_FINANCES,
-  INITIAL_EXPENSES
 } from '../../../domain/FinancesModels';
 
 export function useAdminFinances() {
-  const [students, setStudents] = useState<StudentFinance[]>(INITIAL_STUDENTS_FINANCES);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+  const [students, setStudents] = useState<StudentFinance[]>([]);   // données réelles uniquement
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchFinances = useCallback(async () => {
@@ -20,7 +18,7 @@ export function useAdminFinances() {
         apiClient.get<any[]>('/finance/students')
       ]);
 
-      if (expRes.status === 'fulfilled' && Array.isArray(expRes.value.data) && expRes.value.data.length > 0) {
+      if (expRes.status === 'fulfilled' && Array.isArray(expRes.value.data)) {
         const mappedExpenses: Expense[] = expRes.value.data.map((item: any) => ({
           id: item.id || `exp-${Math.random()}`,
           label: item.label || item.description || 'Dépense',
@@ -31,19 +29,19 @@ export function useAdminFinances() {
         setExpenses(mappedExpenses);
       }
 
-      if (stuRes.status === 'fulfilled' && Array.isArray(stuRes.value.data) && stuRes.value.data.length > 0) {
+      if (stuRes.status === 'fulfilled' && Array.isArray(stuRes.value.data)) {
         const mappedStudents: StudentFinance[] = stuRes.value.data.map((item: any) => ({
           id: item.id || `STU-${Math.random()}`,
           name: item.name || `${item.prenom || ''} ${item.nom || ''}`.trim() || 'Étudiant',
-          classe: item.classe || item.filiere || 'L1 Génie Civil',
-          status: item.debt > 0 ? 'En Retard' : (item.status || 'En Règle'),
+          classe: item.classe || item.filiere || '',
+          status: item.debt > 0 ? 'En Retard' : (item.status || 'Non renseigné'),   // jamais supposé en règle
           debt: Number(item.debt) || 0,
           paid: Number(item.paid) || 0
         }));
         setStudents(mappedStudents);
       }
     } catch (err) {
-      // Fallback already pre-set to INITIAL_*
+      // erreur : listes inchangées (vides au départ), jamais de finances fictives
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { NotificationCampaign, INITIAL_CAMPAIGNS } from '../../../domain/NotificationsModels';
+import { NotificationCampaign } from '../../../domain/NotificationsModels';
 import { sendPushNotification, vibrateDevice, playPushChime } from '@/shared/lib/pushNotifier';
 
 const STORAGE_KEY = 'ecole221_notifications_campaigns';
@@ -9,9 +9,9 @@ export function useNotificationsHub() {
   const [campaigns, setCampaigns] = useState<NotificationCampaign[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_CAMPAIGNS;
+      return saved ? JSON.parse(saved) : [];   // plus de campagnes inventées
     } catch {
-      return INITIAL_CAMPAIGNS;
+      return [];
     }
   });
 

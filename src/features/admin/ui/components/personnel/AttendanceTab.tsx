@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { AttendanceRecord, INITIAL_ATTENDANCE } from '../../../domain/PersonnelModels';
+import { AttendanceRecord } from '../../../domain/PersonnelModels';
 import { apiClient } from '@/shared/lib/apiClient';
 import { AttendanceHeader } from './attendance/AttendanceHeader';
 import { AttendanceStatsCard } from './attendance/AttendanceStatsCard';
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function AttendanceTab({ onShowToast }: Props) {
-  const [records, setRecords] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);   // pointages réels uniquement
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedStaff, setSelectedStaff] = useState<AttendanceRecord | null>(null);
   const [search, setSearch] = useState('');
@@ -23,13 +23,9 @@ export function AttendanceTab({ onShowToast }: Props) {
     setLoading(true);
     try {
       const res = await apiClient.get('/admin/attendance');
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setRecords(res.data);
-      } else {
-        setRecords(INITIAL_ATTENDANCE);
-      }
+      setRecords(Array.isArray(res.data) ? res.data : []);   // jamais de pointages inventés
     } catch {
-      setRecords((prev) => (prev.length > 0 ? prev : INITIAL_ATTENDANCE));
+      // erreur : liste inchangée, jamais de pointages inventés
     } finally {
       setLoading(false);
     }

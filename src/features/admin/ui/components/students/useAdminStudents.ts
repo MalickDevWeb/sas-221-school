@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { Student } from '../../../domain/StudentModels';
 
 export function useAdminStudents() {
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);   // données réelles uniquement (plus d'élèves fictifs au départ ni en repli)
   const [loading, setLoading] = useState(false);
 
   const fetchStudents = useCallback(async () => {
@@ -18,23 +18,23 @@ export function useAdminStudents() {
         ? data.content
         : [];
 
-      if (studentList.length > 0) {
+      {
         const mapped: Student[] = studentList.map((s: any, idx: number) => ({
           id: s.id || `s-${idx + 1}`,
-          matricule: s.matricule || `2026-STU-00${idx + 1}`,
+          matricule: s.matricule || '',
           name: s.name || `${s.prenom || ''} ${s.nom || ''}`.trim() || 'Étudiant',
-          email: s.email || 'etudiant@ecole221.sn',
-          classe: s.classe || s.promotion || 'L1 Génie Civil',
-          financialStatus: s.statutFrais === 'En Retard' || s.debt > 0 ? 'En Retard' : 'En Règle',
+          email: s.email || '',
+          classe: s.classe || s.promotion || '',
+          financialStatus: s.statutFrais === 'En Retard' || s.debt > 0 ? 'En Retard' : (s.statutFrais === 'En Règle' ? 'En Règle' : 'Non renseigné'),
           qrStatus: s.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ',
           avatar: s.avatar || s.photoUrl,
-          gpa: s.gpa || (s.moyenne ? `${s.moyenne}/20` : '15.0/20'),
-          phoneParent: s.phoneParent || s.telephone || '+221 77 000 00 00'
+          gpa: s.gpa || (s.moyenne ? `${s.moyenne}/20` : '—'),
+          phoneParent: s.phoneParent || s.telephone || ''
         }));
         setStudents(mapped);
       }
     } catch {
-      // Keep initial students
+      // erreur : liste inchangée (vide au départ), jamais d'élèves fictifs
     } finally {
       setLoading(false);
     }

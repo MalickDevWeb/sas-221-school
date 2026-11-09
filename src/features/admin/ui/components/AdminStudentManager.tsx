@@ -3,7 +3,7 @@ import { StudentSubSidebar } from './students/StudentSubSidebar';
 import { StudentDataGridTab } from './students/StudentDataGridTab';
 import { ExcelImportTab } from './students/ExcelImportTab';
 import { StudentProfile360Tab } from './students/StudentProfile360Tab';
-import { INITIAL_STUDENTS, Student } from '../../domain/StudentModels';
+import { Student } from '../../domain/StudentModels';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminStudents } from './students/useAdminStudents';
 
@@ -11,7 +11,7 @@ export function AdminStudentManager() {
   const [activeTab, setActiveTab] = useState('annuaire');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { students, setStudents, loading, updateFinancialStatus, refetch } = useAdminStudents();
-  const [selectedStudent, setSelectedStudent] = useState<Student>(INITIAL_STUDENTS[0]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);   // plus d'élève fictif sélectionné par défaut
 
   const handleViewProfile = (student: Student) => {
     setSelectedStudent(student);
@@ -44,7 +44,10 @@ export function AdminStudentManager() {
             onAddStudents={(newList) => setStudents([...students, ...newList])}
           />
         )}
-        {activeTab === 'profil360' && (
+        {activeTab === 'profil360' && !selectedStudent && (
+          <p className="text-sm text-neutral-500 p-6 text-center">Sélectionnez un élève dans l'annuaire pour afficher son profil.</p>
+        )}
+        {activeTab === 'profil360' && selectedStudent && (
           <StudentProfile360Tab
             selectedStudent={selectedStudent}
             onUpdateStudent={(s) => {
