@@ -9,7 +9,7 @@ import { safeApiCall } from '@/shared/lib/apiMiddleware';
 import { isServerError } from '@/shared/errors/httpStatus';
 import { normalizePhoneNumber } from '@/shared/utils/phoneUtils';
 import { useSchoolBrandingPicker, DEFAULT_MY_SCHOOL_PALETTE } from './useSchoolBrandingPicker';
-import { validateRegistrationStep3, mapRegistrationApiError } from './useSchoolRegistrationErrors';
+import { validateRegistrationStep1, validateRegistrationStep3, mapRegistrationApiError } from './useSchoolRegistrationErrors';
 
 export { DEFAULT_MY_SCHOOL_PALETTE };
 
@@ -107,7 +107,17 @@ export function useSchoolRegistration() {
     ...branding,
     step,
     setStep,
-    goToNextStep: () => setStep((s) => Math.min(s + 1, 3)),
+    goToNextStep: () => {
+      // Étape 1 : validation avant de continuer (avant : on pouvait atteindre l'étape 3 sans nom ni identifiant)
+      if (step === 1) {
+        const erreurs = validateRegistrationStep1(formData);
+        if (Object.keys(erreurs).length > 0) {
+          setFieldErrors(erreurs);
+          return;
+        }
+      }
+      setStep((s) => Math.min(s + 1, 3));
+    },
     goToPrevStep: () => setStep((s) => Math.max(s - 1, 1)),
     isLoading,
     showSuccessModal,

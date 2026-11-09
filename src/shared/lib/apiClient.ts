@@ -26,8 +26,12 @@ function injectTenantHeaders<T extends InternalAxiosRequestConfig>(config: T): T
   const urlSlugMatch = window.location.pathname.match(/\/t\/([^/]+)/);
   if (urlSlugMatch && urlSlugMatch[1]) slug = urlSlugMatch[1].trim();
 
-  const parts = window.location.hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app') slug = parts[0];
+  // Sous-domaine d'école (ex. lycee-thies.myschool.sn) : seulement si l'URL ne désigne pas déjà
+  // l'école, et jamais pour une adresse IP (192.168.1.239 donnait slug « 192 » et écrasait /t/<école>).
+  const hote = window.location.hostname;
+  const estAdresseIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(hote) || hote.includes(':');
+  const parts = hote.split('.');
+  if (!slug && !estAdresseIp && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app') slug = parts[0];
 
   if (!slug) {
     try {

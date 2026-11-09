@@ -182,7 +182,7 @@ export const SchoolRegistrationPage: React.FC = () => {
           <PlanBanner planParam={planParam} isTrial={isTrial} />
 
           {/* Formulaire Multi-Étapes avec animations de transition */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">   {/* validation de l'application (messages sous les champs), pas celle du navigateur */}
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <IdentityStepForm
@@ -190,6 +190,7 @@ export const SchoolRegistrationPage: React.FC = () => {
                   formData={formData}
                   onChange={handleChange}
                   onNext={goToNextStep}
+                  fieldErrors={fieldErrors}
                 />
               )}
 

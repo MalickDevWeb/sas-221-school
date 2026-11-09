@@ -34,13 +34,16 @@ function showThrottledNetworkError() {
   }
 }
 
+let derniereSessionExpiree = 0;
+
 function handleAuthRedirect(currentPath: string) {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('ecole-221-auth-storage');
 
-  let tenantSlug = '';
-  try {
+  // École de l'URL d'abord (/t/<école>/…), sinon celle mémorisée
+  let tenantSlug = currentPath.match(/^\/t\/([^/]+)/)?.[1] || '';
+  if (!tenantSlug) try {
     const stored = localStorage.getItem('tenant-storage');
     if (stored) {
       const parsed = JSON.parse(stored);
@@ -67,11 +70,28 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   const status = error.response?.status;
   const url = error.config?.url || '';
   const isLoginRequest = url.includes('auth/login');
-  if (isLoginRequest || status === 401) {
+  const currentPath = (window.location.pathname.replace(/\/+$/, '') || '/');
+
+  // Session expirée ou invalidée (jeton refusé) : avant, ce cas était rejeté sans rien faire et
+  // l'écran affichait « Unauthorized » tout en indiquant « Connecté ».
+  if (status === 401) {
+    const surPageDeConnexion = currentPath === ROUTES.login || /\/login$/.test(currentPath) ||
+      ['/', '/accueil', '/admin', '/super-admin'].includes(currentPath);
+    let sessionOuverte = false;
+    try { sessionOuverte = !!localStorage.getItem('ecole-221-auth-storage'); } catch { /* stockage indisponible */ }
+    if (!isLoginRequest && sessionOuverte && !surPageDeConnexion) {
+      const maintenant = Date.now();
+      if (maintenant - derniereSessionExpiree > 5000) {
+        derniereSessionExpiree = maintenant;
+        toast.error('Session expirée', { description: 'Veuillez vous reconnecter.' });
+        handleAuthRedirect(currentPath);
+      }
+    }
     return Promise.reject(error);
   }
-
-  const currentPath = (window.location.pathname.replace(/\/+$/, '') || '/');
+  if (isLoginRequest) {
+    return Promise.reject(error);
+  }
   const isPublicOrLoginPage = currentPath === ROUTES.login ||
     currentPath === '/' || currentPath === '/accueil' ||
     currentPath === '/super-admin' || currentPath === '/admin' ||
@@ -81,11 +101,6 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
     toast.error('Accès refusé', {
       description: 'Vous n\'avez pas les permissions nécessaires.'
     });
-    return Promise.reject(error);
-  }
-
-  if (status === 401 && !isPublicOrLoginPage && !currentPath.includes('/dashboard')) {
-    handleAuthRedirect(currentPath);
     return Promise.reject(error);
   }
 

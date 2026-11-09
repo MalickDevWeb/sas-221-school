@@ -7,6 +7,25 @@ export interface MappedErrorResult {
   modalField?: string;
 }
 
+/** Étape 1 : nom et identifiant web de l'établissement. */
+export function validateRegistrationStep1(data: SchoolRegistrationFormData): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const nom = data.schoolName?.trim() ?? '';
+  if (!nom) errors.schoolName = "Le nom de l'établissement est requis.";
+  else if (nom.length < 3) errors.schoolName = 'Le nom doit comporter au moins 3 caractères.';
+  const slug = data.slug?.trim() ?? '';
+  if (!slug) errors.slug = "L'identifiant web est requis.";
+  else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+    errors.slug = 'Uniquement des lettres minuscules, des chiffres et des tirets (ex. lycee-thies).';
+  } else if (slug.length < 3 || slug.length > 50) {
+    errors.slug = "L'identifiant doit comporter entre 3 et 50 caractères.";
+  }
+  return errors;
+}
+
+/** Téléphone sénégalais : +221 suivi d'un numéro à 9 chiffres commençant par 7 ou 3 (espaces tolérés). */
+export const TELEPHONE_SN = /^(\+?221[\s.-]?)?[37]\d([\s.-]?\d){7}$/;
+
 export function validateRegistrationStep3(data: SchoolRegistrationFormData): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -15,7 +34,11 @@ export function validateRegistrationStep3(data: SchoolRegistrationFormData): Rec
   if (!data.adminEmail?.trim()) {
     errors.adminEmail = "L'adresse email est requise.";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.adminEmail)) {
-    errors.adminEmail = "Format d'email invalide.";
+    errors.adminEmail = "Format d'email invalide (exemple : directeur@monecole.sn).";
+  }
+
+  if (data.adminPhone?.trim() && !TELEPHONE_SN.test(data.adminPhone.trim())) {
+    errors.adminPhone = 'Numéro invalide (exemple : +221 77 000 00 00).';
   }
 
   if (data.adminPassword !== undefined) {
