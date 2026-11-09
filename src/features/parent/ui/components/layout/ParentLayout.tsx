@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useParentDashboard } from '@/features/parent/hooks/useParentDashboard';
 import { useChildDetails } from '@/features/parent/hooks/useChildDetails';
+import type { ChildDetailsErrors } from '@/features/parent/hooks/useChildDetails';
 import { ParentSidebar } from './ParentSidebar';
 import { ParentMobileNav } from './ParentMobileNav';
 import { ParentHeader } from './ParentHeader';
@@ -22,6 +23,8 @@ interface ParentContextType {
   grades: ChildGrade[];
   schedule: ChildScheduleItem[];
   messages: ParentMessage[];
+  errors: ChildDetailsErrors;
+  retry: () => void;
   unreadCount: number;
   markRead: (id: string) => void;
 }
