@@ -152,34 +152,27 @@ export const useTenantStore = create<TenantState>()(
 
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
-        } catch {
-          console.warn(`Tenant API indisponible, fallback local pour '${slug}'`);
+        } catch (err: any) {
+          // École inexistante (404) : la signaler — avant, une école était INVENTÉE à partir de l'URL
+          // (nom tiré du slug) et l'on pouvait remplir toute une candidature pour une école inexistante.
+          if (err?.response?.status === 404) {
+            try {
+              localStorage.removeItem(`tenant_theme_${slug}`);
+              if (localStorage.getItem('tenant_slug') === slug) {
+                localStorage.removeItem('tenant_slug');
+                localStorage.removeItem('tenant_id');
+              }
+            } catch {}
+            set({ currentTenant: null, isLoading: false, error: `introuvable:${slug}` });
+            return;
+          }
+          // Serveur injoignable : on garde la fiche déjà connue (cache), sans jamais en inventer une
+          console.warn(`Tenant API indisponible pour '${slug}'`);
           const existing = get().currentTenant;
           if (existing && existing.slug === slug) {
             get().applyTheme(existing.branding);
-            set({ isLoading: false });
-            return;
           }
-
-          if (localCachedBranding) {
-            set({ isLoading: false });
-            return;
-          }
-
-          const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
-          const mockTenant: TenantInfo = isEcole221
-            ? MOCK_ECOLE_221
-            : {
-                id: 'mock-' + slug,
-                name: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '),
-                slug,
-                branding: {
-                  primaryColor: '#B3181C',
-                  palette: ECOLE_221_PALETTE,
-                },
-              };
-          set({ currentTenant: mockTenant, isLoading: false });
-          get().applyTheme(mockTenant.branding);
+          set({ isLoading: false, error: localCachedBranding || existing ? null : `indisponible:${slug}` });
         }
       },
 

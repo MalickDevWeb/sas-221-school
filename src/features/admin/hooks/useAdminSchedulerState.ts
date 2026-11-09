@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { CalendarSlot, UnassignedCourse, ConflictAlert, TeacherSubjectAssociation, AuditLog } from '../domain/PlanningModels';
-import { checkSchedulingConflicts, autoSuggestSubject } from '../domain/PlanningRulesEngine';
+import { definirSallesReelles, checkSchedulingConflicts, autoSuggestSubject } from '../domain/PlanningRulesEngine';
 import { apiClient } from '@/shared/lib/apiClient';
 
 export function useAdminSchedulerState() {
@@ -14,6 +14,11 @@ export function useAdminSchedulerState() {
 
   // Charger les créneaux réels depuis le backend (aussi utilisé par « Restaurer »)
   const recharger = useCallback(() => {
+    // Salles réelles pour le contrôle de capacité du moteur de règles
+    apiClient.get('/admin/planning/rooms')
+      .then((res) => definirSallesReelles((Array.isArray(res.data) ? res.data : [])
+        .map((r: any) => ({ name: r.name, capacity: Number(r.capacity) || 0 }))))
+      .catch(() => definirSallesReelles([]));
     apiClient.get('/admin/planning/slots')
       .then((res) => {
         if (Array.isArray(res.data)) {
