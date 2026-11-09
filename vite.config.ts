@@ -20,7 +20,8 @@ export default defineConfig(() => {
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:8090',
+          // Backend cible : 8090 (développement) par défaut ; VITE_PROXY_TARGET=http://127.0.0.1:8091 pour la QA
+          target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8090',
           changeOrigin: true,
           secure: false,
         },

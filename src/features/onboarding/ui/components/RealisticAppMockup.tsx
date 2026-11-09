@@ -172,7 +172,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
               </div>
             </div>
 
-            {/* Cartes KPIs clés */}
+            {/* Cartes KPIs : aperçu des COULEURS de l'école — aucune statistique inventée (école neuve = 0 / « — ») */}
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 flex flex-col justify-between">
                 <div className="flex items-center justify-between text-slate-400 mb-1">
@@ -180,8 +180,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
                   <Icon icon="solar:users-group-rounded-bold-duotone" className="text-xs" style={{ color: palette.primary }} />
                 </div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-black text-white font-mono">1 240</span>
-                  <span className="text-[9px] font-bold text-emerald-400">+14%</span>
+                  <span className="text-base font-black text-white font-mono">0</span>
+                  <span className="text-[9px] font-bold text-slate-400">école neuve</span>
                 </div>
               </div>
 
@@ -191,8 +191,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
                   <Icon icon="solar:chart-2-bold-duotone" className="text-xs text-emerald-400" />
                 </div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-black text-white font-mono">98.4%</span>
-                  <span className="text-[9px] font-bold text-emerald-400">Stable</span>
+                  <span className="text-base font-black text-white font-mono">—</span>
+                  <span className="text-[9px] font-bold text-slate-400">aucune donnée</span>
                 </div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
             <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
               <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400 mb-2">
                 <span>Fréquentation Hebdomadaire</span>
-                <span className="font-mono text-emerald-400 font-bold">96.8% Moy.</span>
+                <span className="font-mono text-slate-400 font-bold">Aperçu des couleurs</span>
               </div>
               <div className="flex items-end justify-between h-10 gap-1.5 px-1">
                 {[45, 80, 60, 95, 75, 88].map((h, i) => (

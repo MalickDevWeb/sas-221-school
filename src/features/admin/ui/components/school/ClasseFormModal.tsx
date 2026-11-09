@@ -51,7 +51,10 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-neutral-400">Filière d'Étude</label>
-                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
+                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} required
+                  data-msg-requis={filieres.length === 0 ? "Aucune filière : créez-en une dans « Filières & Spécialités »." : "Choisissez la filière de la classe."}
+                  className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
+                  {filieres.length === 0 && <option value="">Aucune filière — créez-en une d'abord</option>}
                   {filieres.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               </div>
