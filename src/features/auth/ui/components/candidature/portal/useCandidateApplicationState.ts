@@ -119,10 +119,10 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
       registrationFeePaid: false,
       details: {
         cniNumber: personal.cniNumber,
-        cniUrl: docs.idCard?.url || 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png',
+        cniUrl: docs.idCard?.url,   // APP-FE-09 : pas de pièce de démonstration
         cniStatus: 'pending',
         paymentMethod: payment.method,
-        paymentTransactionRef: payment.transactionRef || 'OM-SN-737385',
+        paymentTransactionRef: payment.transactionRef || undefined,   // APP-FE-09 : pas de référence inventée
         paymentStatus: 'pending'
       },
       notifications: [
@@ -130,9 +130,9 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
       ]
     };
 
-    saveAdmissionsDb({ candidates: [...db.candidates, newCandidate] });
-    addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);
-
+    // APP-FE-09 : le dossier n'est confirmé au candidat QUE si le serveur l'a reçu.
+    // Avant : l'échec était ignoré (« synchronisation locale ») et le candidat voyait un succès
+    // alors que l'établissement n'avait rien reçu.
     try {
       await publicApiClient.post('/candidatures/submit', {
         id: candId, nom: personal.lastName, prenom: personal.firstName,
@@ -141,9 +141,12 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
         modePaiement: payment.method, referencePaiement: payment.transactionRef,
       });
     } catch {
-      // Synchronisation locale assurée
+      setIsSubmitting(false);
+      return setError("Votre dossier n'a pas pu être transmis à l'établissement. Vérifiez votre connexion et réessayez.");
     }
 
+    saveAdmissionsDb({ candidates: [...db.candidates, newCandidate] });
+    addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);
     setIsSubmitting(false);
     onSuccess(newCandidate);
   };

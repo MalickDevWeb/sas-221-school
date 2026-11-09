@@ -14,8 +14,10 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
   const [rejectReason, setRejectReason] = useState('Document flou ou illisible');
 
   const cniStatus = candidate.details?.cniStatus || 'pending';
-  const cniUrl = candidate.details?.cniUrl || 'https://res.cloudinary.com/qudmvipg/image/upload/v1792170944/file-f82d806f.png';
-  const nin = candidate.details?.cniNumber || '1 751 2005 02841';
+  // APP-FE-09 : jamais de pièce ni de NIN de démonstration — un admin ne doit valider que le vrai document
+  const cniUrl = candidate.details?.cniUrl || null;
+  const nin = candidate.details?.cniNumber || '—';
+  const pieceVisible = Boolean(cniUrl) && !imgError;
 
   const handleValidate = () => {
     const updated: ExtendedCandidate = {
@@ -66,30 +68,18 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
         className="relative group rounded-xl overflow-hidden border-2 border-neutral-200 bg-gradient-to-br from-slate-800 to-slate-900 h-48 w-full cursor-pointer flex items-center justify-center shadow-inner"
         onClick={() => setIsZoomed(true)}
       >
-        {!imgError ? (
+        {pieceVisible ? (
           <img
-            src={cniUrl}
+            src={cniUrl ?? undefined}
             alt="Pièce d'Identité CNI"
             onError={() => setImgError(true)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full p-4 flex flex-col justify-between text-white bg-gradient-to-r from-emerald-950/90 via-slate-900 to-indigo-950/90">
-            <div className="flex justify-between items-start border-b border-white/20 pb-2">
-              <span className="text-[10px] font-black tracking-widest text-emerald-400 uppercase">RÉPUBLIQUE DU SÉNÉGAL</span>
-              <span className="text-[9px] font-bold text-neutral-400">CARTE D'IDENTITÉ</span>
-            </div>
-            <div className="flex gap-3 items-center">
-              <div className="w-14 h-16 rounded-lg bg-neutral-700/80 border border-white/30 flex items-center justify-center">
-                <Icon icon="solar:user-bold-duotone" className="text-2xl text-neutral-300" />
-              </div>
-              <div className="space-y-0.5 text-[10px]">
-                <p className="font-black text-white">{candidate.name}</p>
-                <p className="font-mono text-neutral-300">NIN: {nin}</p>
-                <p className="text-emerald-300 text-[9px]">Document officiel vérifié</p>
-              </div>
-            </div>
-            <div className="text-[9px] text-neutral-400 font-mono tracking-wider">SN &lt;&lt; {nin.replace(/\s/g, '')} &lt;&lt;&lt;&lt; 2026</div>
+          <div className="w-full h-full p-4 flex flex-col items-center justify-center gap-2 text-center text-white">
+            <Icon icon="solar:document-cross-bold-duotone" className="text-3xl text-rose-300" />
+            <p className="text-xs font-black">{cniUrl ? 'Pièce illisible ou introuvable' : 'Aucune pièce d’identité fournie'}</p>
+            <p className="text-[10px] text-neutral-300">Validation impossible : demander le document au candidat.</p>
           </div>
         )}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-black">
@@ -114,7 +104,7 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
         </div>
       ) : (
         <div className="flex gap-2">
-          <button onClick={handleValidate} className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer">
+          <button onClick={handleValidate} disabled={!pieceVisible} title={pieceVisible ? undefined : "Aucune pièce lisible à valider"} className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer">
             <Icon icon="solar:verified-check-bold" className="text-base" />
             <span>Valider Conforme</span>
           </button>
@@ -134,13 +124,12 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
               </button>
             </div>
             <div className="h-80 w-full rounded-2xl overflow-hidden bg-neutral-900 flex items-center justify-center">
-              {!imgError ? (
-                <img src={cniUrl} alt="Inspection CNI" className="w-full h-full object-contain" />
+              {pieceVisible ? (
+                <img src={cniUrl ?? undefined} alt="Inspection CNI" className="w-full h-full object-contain" />
               ) : (
                 <div className="text-white text-center p-6 space-y-2">
-                  <Icon icon="solar:user-id-bold-duotone" className="text-5xl text-emerald-400 inline-block" />
-                  <p className="font-bold text-base">{candidate.name}</p>
-                  <p className="font-mono text-xs text-neutral-300">NIN: {nin}</p>
+                  <Icon icon="solar:document-cross-bold-duotone" className="text-5xl text-rose-300 inline-block" />
+                  <p className="font-bold text-base">{cniUrl ? 'Pièce illisible ou introuvable' : 'Aucune pièce d’identité fournie'}</p>
                 </div>
               )}
             </div>
