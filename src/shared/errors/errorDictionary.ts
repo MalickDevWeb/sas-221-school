@@ -42,6 +42,11 @@ export const ERROR_MESSAGES: Record<string, string> = {
 /**
  * Résout le meilleur message d'erreur pour l'utilisateur
  */
+/** Codes trop vagues pour l'utilisateur : le message précis renvoyé par le serveur est préféré. */
+const CODES_GENERIQUES = new Set<string>([
+  ERROR_CODES.VALIDATION_ERROR, ERROR_CODES.RESOURCE_NOT_FOUND, ERROR_CODES.OPERATION_NOT_ALLOWED,
+]);
+
 /** Marque posée sur une erreur dont l'écran affiche lui-même le message (évite le double message global). */
 export const ERREUR_AFFICHEE = '__erreurAffichee';
 
@@ -61,8 +66,14 @@ export function resolveErrorMessage(error: any): string {
 export function messageErreur(error: any): string {
   if (!error) return "Une erreur inattendue est survenue.";
 
-  // 1. Détection via ErrorCode applicatif retourné par le backend
+  // 1. Détection via ErrorCode applicatif retourné par le backend.
+  // Codes GÉNÉRIQUES : le message précis du serveur passe en priorité (avant : « Veuillez vérifier les
+  // informations… » à la place de « Cette adresse e-mail est déjà utilisée. » — test navigateur 2026-11-09).
   const data = error.response?.data;
+  const precis = typeof data?.message === 'string' && data.message.trim().length > 0 ? data.message.trim() : null;
+  if (data?.code && CODES_GENERIQUES.has(data.code) && precis) {
+    return precis;
+  }
   if (data?.code && ERROR_MESSAGES[data.code]) {
     return ERROR_MESSAGES[data.code];
   }

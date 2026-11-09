@@ -1,4 +1,5 @@
 import { CalendarSlot, UnassignedCourse, DAYS, SLOTS } from './PlanningModels';
+import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 import { checkSchedulingConflicts } from './PlanningRulesEngine';
 
 export function generateOptimizedSchedule(
@@ -33,7 +34,7 @@ export function generateOptimizedSchedule(
           filiere: course.filiere,
           niveau: course.niveau,
           semestre: 'Semestre 1',
-          anneeAcademique: '2025-2026',
+          anneeAcademique: anneeAcademique(),
           groupe: 'Aucun',
           building: course.room.includes('Amphi') ? 'Bâtiment Central' : 'Bâtiment B',
           capacityRequired: course.capacityRequired,
