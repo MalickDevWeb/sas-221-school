@@ -70,6 +70,28 @@ export interface ParentMessage {
   avatar?: string;
 }
 
+/** Élément de GET /api/parent/rdv (docs/api-contract.md, interface ParentAppointment). */
+export interface ParentAppointment {
+  id: string;
+  parentId: string;
+  professeurId: string;
+  professeurNom: string;
+  dateSouhaitee: string;
+  motif: string;
+  status: string;
+  meetUrl: string | null;
+  createdAt: string;
+}
+
+/** Élément de GET /api/parent/professeurs (docs/api-contract.md, interface ParentProfesseur). */
+export interface ParentProfesseur {
+  id: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  displayName: string;
+}
+
 export interface RealtimePresenceEvent {
   enfantId: string;
   type: 'ENTREE' | 'SORTIE' | 'ABSENCE';

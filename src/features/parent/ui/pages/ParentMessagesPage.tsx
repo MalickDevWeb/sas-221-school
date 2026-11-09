@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
-import type { ParentMessage } from '@/features/parent/types';
+import type { ParentMessage, ParentAppointment, ParentProfesseur } from '@/features/parent/types';
 import { apiClient } from '@/shared/lib/apiClient';
+import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
 function MessageCard({ msg, onOpen }: { msg: ParentMessage; onOpen: (m: ParentMessage) => void }) {
   return (
@@ -62,22 +63,23 @@ function MessageModal({ msg, onClose }: { msg: ParentMessage; onClose: () => voi
 }
 
 export function ParentMessagesPage() {
-  const { messages, unreadCount, markRead } = useParentContext();
+  const { messages, unreadCount, markRead, errors, retry } = useParentContext();
+  const messagesError = errors?.messages ?? null;
   const [selected, setSelected] = useState<ParentMessage | null>(null);
   const [showRdv, setShowRdv] = useState(false);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [professeurs, setProfesseurs] = useState<{ id: string; displayName: string; nom?: string }[]>([]);
+  const [appointments, setAppointments] = useState<ParentAppointment[]>([]);
+  const [professeurs, setProfesseurs] = useState<ParentProfesseur[]>([]);
   const [selectedProf, setSelectedProf] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [rdvMotif, setRdvMotif] = useState('');
   const [submittingRdv, setSubmittingRdv] = useState(false);
 
   useEffect(() => {
-    apiClient.get('/parent/rdv')
+    apiClient.get<ParentAppointment[]>('/parent/rdv')
       .then(res => setAppointments(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error('Erreur chargement RDV:', err));
 
-    apiClient.get('/parent/professeurs')
+    apiClient.get<ParentProfesseur[]>('/parent/professeurs')
       .then(res => {
         const list = Array.isArray(res.data) ? res.data : [];
         setProfesseurs(list);
@@ -89,15 +91,16 @@ export function ParentMessagesPage() {
   }, []);
 
   const handleSendRdv = async () => {
-    if (!selectedDate || !rdvMotif.trim()) return;
+    // APP-FE-07 : plus de professeur de repli inventé ; un professeur réel doit être choisi.
+    if (!selectedProf || !selectedDate || !rdvMotif.trim()) return;
     setSubmittingRdv(true);
     try {
       await apiClient.post('/parent/rdv', {
-        professeurId: selectedProf || (professeurs[0]?.displayName || 'Professeur Principal'),
+        professeurId: selectedProf,
         dateSouhaitee: selectedDate,
         motif: rdvMotif
       });
-      const res = await apiClient.get('/parent/rdv');
+      const res = await apiClient.get<ParentAppointment[]>('/parent/rdv');
       setAppointments(Array.isArray(res.data) ? res.data : []);
       setShowRdv(false);
       setRdvMotif('');
@@ -145,6 +148,7 @@ export function ParentMessagesPage() {
                 <select 
                   value={selectedProf} 
                   onChange={e => setSelectedProf(e.target.value)}
+                  disabled={professeurs.length === 0}
                   className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary outline-none"
                 >
                   {professeurs.length > 0 ? (
@@ -154,10 +158,7 @@ export function ParentMessagesPage() {
                       </option>
                     ))
                   ) : (
-                    <>
-                      <option>Dr. Sall — Algorithmique & Systèmes</option>
-                      <option>Prof. Ndiaye — Bases de Données</option>
-                    </>
+                    <option value="">Aucun professeur disponible</option>
                   )}
                 </select>
               </div>
@@ -184,7 +185,7 @@ export function ParentMessagesPage() {
             <div className="mt-6">
               <button 
                 onClick={handleSendRdv} 
-                disabled={submittingRdv || !selectedDate || !rdvMotif.trim()}
+                disabled={submittingRdv || !selectedProf || !selectedDate || !rdvMotif.trim()}
                 className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <span translate="no" className="material-symbols-outlined text-[16px]">send</span>
@@ -256,10 +257,10 @@ export function ParentMessagesPage() {
 
                   <h3 className="font-black text-sm text-neutral-900 mb-1 flex items-center gap-2">
                     <span translate="no" className="material-symbols-outlined text-[18px] text-blue-600">person</span>
-                    {apt.professeurId || 'Enseignant référent'}
+                    {apt.professeurNom || apt.professeurId || '—'}
                   </h3>
                   <p className="text-xs text-neutral-600 line-clamp-2 mb-4 bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
-                    "{apt.motif || 'Entretien de suivi pédagogique'}"
+                    {apt.motif ? `"${apt.motif}"` : '—'}
                   </p>
                 </div>
 
@@ -284,11 +285,14 @@ export function ParentMessagesPage() {
         </div>
       )}
 
-      {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <span translate="no" className="material-symbols-outlined text-[48px] text-neutral-200 mb-3">mark_email_read</span>
-          <p className="font-bold text-neutral-400 text-sm">Aucun message</p>
-        </div>
+      {messagesError ? (
+        <ParentErrorState message={messagesError} onRetry={retry} />
+      ) : messages.length === 0 ? (
+        <ParentEmptyState
+          icon="mark_email_read"
+          title="Aucun message pour le moment."
+          description="Les communications de l'établissement apparaîtront ici."
+        />
       ) : (
         <>
           {nonLus.length > 0 && (

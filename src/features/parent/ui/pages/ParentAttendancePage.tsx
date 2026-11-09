@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
+import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
 const STATUT_CONFIG = {
   PRESENT: { label: 'Présent',  bg: 'bg-emerald-50 border-emerald-200', color: 'text-emerald-700', icon: 'check_circle',    dot: 'bg-emerald-500' },
@@ -10,12 +11,16 @@ const STATUT_CONFIG = {
 type Filtre = 'TOUT' | 'PRESENT' | 'ABSENT' | 'RETARD';
 
 export function ParentAttendancePage() {
-  const { attendances, selectedChild, stats, loading } = useParentContext();
+  const { attendances, selectedChild, stats, loading, errors, retry } = useParentContext();
   const [filtre, setFiltre] = useState<Filtre>('TOUT');
   const [justifyingId, setJustifyingId] = useState<string | null>(null);
   const [justifFile, setJustifFile] = useState<File | null>(null);
   const [justifText, setJustifText] = useState('');
   const [isSubmittingJustif, setIsSubmittingJustif] = useState(false);
+
+  const attendancesError = errors?.attendances ?? null;
+  // Taux fourni par le backend uniquement (stats) ; « — » s'il n'est pas disponible.
+  const tauxPresence = stats?.tauxPresence ?? null;
 
   const handleJustifySubmit = () => {
     setIsSubmittingJustif(true);
@@ -152,8 +157,11 @@ export function ParentAttendancePage() {
       <div className="bg-white rounded-2xl border border-neutral-100 border-solid shadow-sm p-5 mb-6">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-black text-neutral-700">Taux de présence global</p>
-          <p className={`text-lg font-black ${stats.tauxPresence >= 80 ? 'text-emerald-600' : stats.tauxPresence >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-            {stats.tauxPresence}%
+          <p className={`text-lg font-black ${
+            tauxPresence === null ? 'text-neutral-400'
+            : tauxPresence >= 80 ? 'text-emerald-600' : tauxPresence >= 60 ? 'text-amber-600' : 'text-red-600'
+          }`}>
+            {tauxPresence === null ? '—' : `${tauxPresence}%`}
           </p>
         </div>
         <div className="h-3 bg-neutral-100 rounded-full overflow-hidden flex">
@@ -201,11 +209,16 @@ export function ParentAttendancePage() {
         <div className="flex items-center justify-center py-16">
           <div className="w-7 h-7 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
         </div>
+      ) : attendancesError ? (
+        <ParentErrorState message={attendancesError} onRetry={retry} />
+      ) : total === 0 ? (
+        <ParentEmptyState
+          icon="event_available"
+          title="Aucune présence enregistrée pour le moment."
+          description="Les pointages apparaîtront ici dès que l'établissement les aura saisis."
+        />
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <span translate="no" className="material-symbols-outlined text-[48px] text-neutral-200 mb-3">event_available</span>
-          <p className="font-bold text-neutral-400 text-sm">Aucune donnée pour ce filtre</p>
-        </div>
+        <ParentEmptyState icon="filter_alt_off" title="Aucune donnée pour ce filtre." />
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((att) => {
