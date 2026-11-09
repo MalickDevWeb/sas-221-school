@@ -4,6 +4,7 @@ import { AdminExcelImport } from './AdminExcelImport';
 import { AdminStudentTracker } from './AdminStudentTracker';
 import { AdminClassFiliereManager } from './AdminClassFiliereManager';
 import { AdminPersonnelManager } from './AdminPersonnelManager';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
 
 interface AdminManageUsersModalProps {
   onClose: () => void;
@@ -64,7 +65,7 @@ export function AdminManageUsersModal({
                       <p className="text-[9px] text-[#8E7977] font-bold">Matricule : {s.matricule} • {promotions.find(p => p.id === s.promotion_id)?.name || 'Classe'}</p>
                       <p className="text-[9px] font-semibold text-primary">Moyenne : {s.average || 'N/A'}/20</p>
                     </div>
-                    <button onClick={async () => { if (confirm(`Supprimer ${s.name} ?`)) { await onDeleteStudent(s.id); onRefreshData(); } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
+                    <button onClick={async () => { if (await demanderConfirmation(`Supprimer définitivement ${s.name} ?`, { titre: 'Supprimer un élève', confirmer: 'Supprimer' })) { await onDeleteStudent(s.id); onRefreshData(); } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
                   </div>
                 ))}
               </div>

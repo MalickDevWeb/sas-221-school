@@ -6,6 +6,7 @@ import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
 import { Student } from '../../../domain/StudentModels';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
 import { apiClient } from '@/shared/lib/apiClient';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
 
 interface Props {
   classe: Classe;
@@ -154,8 +155,8 @@ export function ClasseDetailPage({
     );
   };
 
-  const handleRemoveStudent = (id: string, name: string) => {
-    if (window.confirm(`Confirmez-vous le retrait de ${name} de cette promotion ?`)) {
+  const handleRemoveStudent = async (id: string, name: string) => {
+    if (await demanderConfirmation(`Confirmez-vous le retrait de ${name} de cette promotion ?`, { titre: 'Retirer un élève', confirmer: 'Retirer' })) {
       setClassStudents(prev => prev.filter(s => s.id !== id));
       toast.success(`${name} a été retiré de la promotion.`);
     }
