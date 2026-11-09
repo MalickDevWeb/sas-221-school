@@ -6,12 +6,19 @@ import { useTenantStore } from '@/core/store/tenantStore';
  * Composant de synchronisation du tenant depuis les paramètres de l'URL (/t/:tenantSlug/...).
  * Garantit que la palette, le nom et le slug de l'école sont résolus et appliqués instantanément.
  */
+/** Écoles déjà revérifiées auprès du serveur pendant ce chargement de page. */
+const ecolesVerifiees = new Set<string>();
+
 export function TenantRouteSync() {
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
   const { currentTenant, resolveTenant, error } = useTenantStore();
 
   useEffect(() => {
-    if (tenantSlug && tenantSlug !== currentTenant?.slug && error !== `introuvable:${tenantSlug}`) {
+    if (!tenantSlug || error === `introuvable:${tenantSlug}`) return;
+    // Revérifier l'école AU MOINS UNE FOIS par chargement de page, même si elle est déjà en mémoire
+    // (avant : une école supprimée restait affichée depuis le stockage local et chaque page échouait en 404).
+    if (tenantSlug !== currentTenant?.slug || !ecolesVerifiees.has(tenantSlug)) {
+      ecolesVerifiees.add(tenantSlug);
       void resolveTenant(tenantSlug);
     }
   }, [tenantSlug, currentTenant?.slug, resolveTenant, error]);

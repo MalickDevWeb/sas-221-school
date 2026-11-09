@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 let lastNetworkToastTime = 0;
 const TOAST_THROTTLE_MS = 10_000;
@@ -116,6 +117,12 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   if (status === 404 && responseData.includes('tenant not found')) {
     localStorage.removeItem('tenant_slug');
     localStorage.removeItem('tenant_id');
+    // École supprimée ou inexistante : page « Établissement introuvable » plutôt qu'une erreur 404 par écran
+    const slugUrl = currentPath.match(/^\/t\/([^/]+)/)?.[1];
+    if (slugUrl) {
+      try { localStorage.removeItem(`tenant_theme_${slugUrl}`); } catch { /* stockage indisponible */ }
+      useTenantStore.setState({ currentTenant: null, error: `introuvable:${slugUrl}` });
+    }
     return Promise.reject(error);
   }
 
