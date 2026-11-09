@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { Student } from '../../../domain/StudentModels';
 import { apiClient } from '@/shared/lib/apiClient';
 
 interface Props {
@@ -17,7 +17,7 @@ export function ClasseDetail360Modal({
   classe,
   filieres,
   slots,
-  allStudents = INITIAL_STUDENTS,
+  allStudents = [],
   onClose,
   onEditClasse,
 }: Props) {

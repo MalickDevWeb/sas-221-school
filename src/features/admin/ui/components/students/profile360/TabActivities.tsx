@@ -1,6 +1,6 @@
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 
 interface Props {
   selectedStudent: Student;
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function TabActivities({ selectedStudent, erpData }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = (erpData || PROFIL_VIDE) as any;
 
   return (
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-activities">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 import { printTable } from './utils/ExportUtils';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function TabCommunication({ selectedStudent, erpData }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = (erpData || PROFIL_VIDE) as any;
   const [commMode, setCommMode] = useState<'timeline' | 'chat'>('timeline');
 
   const handlePrintChat = () => {

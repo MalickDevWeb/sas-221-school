@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
-import { getStudentERPData } from '../utils/StudentMockData';
 
 export function useStudentProfile360(studentId: string, studentName: string) {
   const [erpData, setErpData] = useState<any>(null);
