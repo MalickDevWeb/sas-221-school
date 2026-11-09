@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { audioService } from '../infrastructure/config/dependencies';
 import { securityService } from '@/shared/lib/apiService';
-import { DEFAULT_LOGS, DEFAULT_CHECKPOINTS } from '../ui/pages/vigilData';
 import { applyVigilFilters, DateFilter } from './useVigilFilters';
 
 export function useVigilLocalState() {
   const [manualId, setManualId] = useState('');
   const [resetKey, setResetKey] = useState(0);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
-  const [scanLogs, setScanLogs] = useState(() => JSON.parse(localStorage.getItem('v_scan_logs') || 'null') || DEFAULT_LOGS);
-  const [checkpoints, setCheckpoints] = useState(() => JSON.parse(localStorage.getItem('v_checkpoints') || 'null') || DEFAULT_CHECKPOINTS);
+  // Passages et points de contrôle RÉELS uniquement (avant : passages d'élèves et points inventés)
+  const [scanLogs, setScanLogs] = useState<any[]>(() => { try { const v = JSON.parse(localStorage.getItem('v_scan_logs') || '[]'); return Array.isArray(v) ? v.filter((l: any) => !['1','2','3','4','5'].includes(String(l?.id))) : []; } catch { return []; } });
+  const [checkpoints, setCheckpoints] = useState<any[]>(() => { try { const v = JSON.parse(localStorage.getItem('v_checkpoints') || '[]'); return Array.isArray(v) ? v.filter((c: any) => !/^cp[1-5]$/.test(String(c?.id))) : []; } catch { return []; } });
   const [searchQuery, setSearchQuery] = useState('');
   const [showBadge, setShowBadge] = useState(false);
   const [scanMode, setScanMode] = useState<'scan' | 'showQR'>('scan');
@@ -27,7 +27,7 @@ export function useVigilLocalState() {
         if (isMounted && res) setActiveCheckpoint(res);
       } catch {
         if (isMounted) {
-          setActiveCheckpoint((prev: any) => prev || { gate: 'Porte Principale', guard: 'Agent de Sécurité', status: 'ACTIVE' });
+          setActiveCheckpoint((prev: any) => prev || null);   // poste réel inconnu : rien d'inventé
         }
       }
     };
@@ -89,13 +89,13 @@ export function useVigilLocalState() {
   const checkCheckpoint = (id: string) => {
     audioService.playSuccessBeep();
     const nowStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    setCheckpoints((p: any) => p.map((cp: any) => cp.id === id ? { ...cp, status: 'Sécurisé', lastCheck: nowStr, guard: 'Diallo A.' } : cp));
+    setCheckpoints((p: any) => p.map((cp: any) => cp.id === id ? { ...cp, status: 'Sécurisé', lastCheck: nowStr, guard: 'Vigile connecté' } : cp));
   };
 
-  const resetCheckpoints = () => { audioService.playSuccessBeep(); setCheckpoints(DEFAULT_CHECKPOINTS); };
+  const resetCheckpoints = () => { audioService.playSuccessBeep(); setCheckpoints((p: any[]) => p.map((cp: any) => ({ ...cp, status: 'En attente', lastCheck: '-', guard: '-' }))); };
   const clearScanLogs = () => setScanLogs([]);
   const completedCheckpoints = checkpoints.filter((cp: any) => cp.status === 'Sécurisé').length;
-  const progressPercent = Math.round((completedCheckpoints / checkpoints.length) * 100);
+  const progressPercent = checkpoints.length ? Math.round((completedCheckpoints / checkpoints.length) * 100) : 0;
   const { totalPages, paginatedLogs } = applyVigilFilters(scanLogs, searchQuery, dateFilter, currentPage, itemsPerPage);
 
   return {

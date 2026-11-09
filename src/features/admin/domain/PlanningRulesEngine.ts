@@ -1,5 +1,9 @@
 import { CalendarSlot, ConflictAlert, TeacherSubjectAssociation } from './PlanningModels';
-import { INITIAL_TEACHERS, INITIAL_ROOMS } from './PlanningMockData';
+/** Salles RÉELLES de l'école (chargées par le planificateur depuis GET /admin/planning/rooms). */
+let sallesReelles: { name: string; capacity: number }[] = [];
+export function definirSallesReelles(salles: { name: string; capacity: number }[]): void {
+  sallesReelles = Array.isArray(salles) ? salles : [];
+}
 export function checkSchedulingConflicts(
   slot: Partial<CalendarSlot>,
   allSlots: CalendarSlot[],
@@ -53,7 +57,7 @@ export function checkSchedulingConflicts(
   }
 
   // 4. Room Capacity Constraint
-  const targetRoom = INITIAL_ROOMS.find((r) => r.name === slot.room);
+  const targetRoom = sallesReelles.find((r) => r.name === slot.room);   // salles réelles (avant : catalogue fictif)
   if (targetRoom && slot.capacityRequired && targetRoom.capacity < slot.capacityRequired) {
     alerts.push({
       id: `err-cap-${Date.now()}-${Math.random()}`,
@@ -64,33 +68,9 @@ export function checkSchedulingConflicts(
     });
   }
 
-  // 5. Teacher Maximum Work Hours Exceeded
-  const teacherLimit = INITIAL_TEACHERS.find((t) => t.name === slot.prof);
-  if (teacherLimit) {
-    const totalHours = allSlots
-      .filter((s) => s.prof === slot.prof && s.id !== slot.id)
-      .reduce((sum) => sum + 2, 2); // each slot is 2h
-    if (totalHours > teacherLimit.maxHours) {
-      alerts.push({
-        id: `err-quota-${Date.now()}-${Math.random()}`,
-        type: 'Quota',
-        message: `Dépassement d'heures : "${slot.prof}" atteint ${totalHours}h programmées (limite autorisée : ${teacherLimit.maxHours}h).`,
-        timestamp: nowStr,
-        severity: 'medium',
-      });
-    }
-  }
-
-  // 6. Teacher Hardcoded Availability (Sénégal universities mock)
-  if (slot.prof === 'Dr. Diallo' && slot.day === 'Mercredi') {
-    alerts.push({
-      id: `err-avail-${Date.now()}-${Math.random()}`,
-      type: 'Disponibilité',
-      message: `Le Dr. Diallo n'est pas disponible le Mercredi (Séminaire de recherche national).`,
-      timestamp: nowStr,
-      severity: 'high',
-    });
-  }
+  // 5. Plafond horaire et indisponibilités des enseignants : aucune source réelle n'existe encore
+  //    (avant : plafonds inventés et règle codée en dur « le Dr. Diallo n'est pas disponible le mercredi »).
+  //    À réactiver quand ces données seront saisies (carte APP-BE-21).
 
   return alerts;
 }
