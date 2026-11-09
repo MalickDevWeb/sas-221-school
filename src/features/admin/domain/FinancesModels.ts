@@ -2,7 +2,7 @@ export interface StudentFinance {
   id: string;
   name: string;
   classe: string;
-  status: 'En Règle' | 'En Avance' | 'En Retard';
+  status: 'En Règle' | 'En Avance' | 'En Retard' | 'Non renseigné';
   debt: number; // in FCFA
   paid: number;  // in FCFA
 }

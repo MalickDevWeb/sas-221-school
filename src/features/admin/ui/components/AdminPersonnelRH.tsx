@@ -3,14 +3,14 @@ import { PersonnelSubSidebar } from './personnel/PersonnelSubSidebar';
 import { AccountsTab } from './personnel/AccountsTab';
 import { RbacTab } from './personnel/RbacTab';
 import { AttendanceTab } from './personnel/AttendanceTab';
-import { StaffMember, INITIAL_STAFF } from '../../domain/PersonnelModels';
+import { StaffMember } from '../../domain/PersonnelModels';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { apiClient } from '@/shared/lib/apiClient';
 
 export function AdminPersonnelRH() {
   const [activeTab, setActiveTab] = useState('accounts');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [staff, setStaff] = useState<StaffMember[]>(INITIAL_STAFF);
+  const [staff, setStaff] = useState<StaffMember[]>([]);   // personnel réel uniquement
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -22,11 +22,9 @@ export function AdminPersonnelRH() {
     async function loadStaff() {
       try {
         const res = await apiClient.get('/admin/staff');
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          setStaff(res.data);
-        }
+        setStaff(Array.isArray(res.data) ? res.data : []);   // jamais de personnel inventé
       } catch (err) {
-        console.warn("API staff indisponible, fallback local:", err);
+        console.warn("API staff indisponible :", err);
       }
     }
     loadStaff();

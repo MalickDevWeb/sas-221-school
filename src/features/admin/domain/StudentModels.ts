@@ -4,7 +4,7 @@ export interface Student {
   name: string;
   email: string;
   classe: string;
-  financialStatus: 'En Règle' | 'En Retard';
+  financialStatus: 'En Règle' | 'En Retard' | 'Non renseigné';   // « Non renseigné » : aucune donnée (jamais supposé en règle)
   qrStatus: 'AUTORISÉ' | 'SUSPENDU';
   avatar?: string;
   gpa: string;
