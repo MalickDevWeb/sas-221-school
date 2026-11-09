@@ -37,10 +37,10 @@ export function ParentDashboardStats({ stats }: { stats: any }) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard onClick={() => navigate(`${base}/presences`)} icon="how_to_reg" label="Taux de présence" value={`${stats.tauxPresence}%`} sub={`${stats.nombreAbsences} absences`} color="green" pulse />
-        <StatCard onClick={() => navigate(`${base}/notes`)} icon="grade" label="Moyenne générale" value={`${stats.moyenneGenerale}/20`} sub="Semestre en cours" color="blue" />
-        <StatCard onClick={() => navigate(`${base}/notes`)} icon="school" label="Crédits ECTS" value={`${stats.creditValides}/30`} sub="Validés ce semestre" color="amber" />
-        <StatCard onClick={() => navigate(`${base}/notes`)} icon="assignment_late" label="Devoirs en retard" value={stats.devoirsEnRetard} sub="À régulariser" color={stats.devoirsEnRetard > 0 ? 'red' : 'green'} />
+        <StatCard onClick={() => navigate(`${base}/presences`)} icon="how_to_reg" label="Taux de présence" value={stats.tauxPresence == null ? '—' : `${stats.tauxPresence}%`} sub={stats.nombreAbsences == null ? 'Aucune présence saisie' : `${stats.nombreAbsences} absences`} color="green" pulse />
+        <StatCard onClick={() => navigate(`${base}/notes`)} icon="grade" label="Moyenne générale" value={stats.moyenneGenerale == null ? '—' : `${stats.moyenneGenerale}/20`} sub={stats.moyenneGenerale == null ? 'Aucune note saisie' : 'Notes saisies'} color="blue" />
+        <StatCard onClick={() => navigate(`${base}/notes`)} icon="school" label="Crédits ECTS" value={stats.creditValides == null ? '—' : `${stats.creditValides}/30`} sub={stats.creditValides == null ? 'Non disponible' : 'Validés ce semestre'} color="amber" />
+        <StatCard onClick={() => navigate(`${base}/notes`)} icon="assignment_late" label="Devoirs en retard" value={stats.devoirsEnRetard ?? '—'} sub={stats.devoirsEnRetard == null ? 'Non disponible' : 'À régulariser'} color={(stats.devoirsEnRetard ?? 0) > 0 ? 'red' : 'green'} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -99,7 +99,7 @@ export function ParentDashboardStats({ stats }: { stats: any }) {
               ))}
             </div>
           )}
-          {stats.nombreAbsences >= 3 && (
+          {(stats.nombreAbsences ?? 0) >= 3 && (
             <div onClick={(e) => { e.stopPropagation(); navigate(`${base}/presences`); }} className="mt-4 bg-amber-50 border border-amber-200 border-solid rounded-2xl p-4 flex items-start gap-3 cursor-pointer hover:bg-amber-100/60 transition-colors">
               <span translate="no" className="material-symbols-outlined text-amber-600 text-[20px] shrink-0">warning</span>
               <div>
