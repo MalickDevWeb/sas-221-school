@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
 import type { AdminStudent } from '../../domain/AdminModels';
-import { apiClient } from '@/shared/lib/apiClient';
+import { toast } from 'sonner';
 
 interface TrackerStudent extends AdminStudent {
   observations?: Array<{ id: string; text: string; type: string; date: string; auteur: string }>;
 }
 
-export function AdminStudentTracker({ students, onUpdate }: { students: TrackerStudent[]; onUpdate: () => void }) {
+export function AdminStudentTracker({ students }: { students: TrackerStudent[]; onUpdate: () => void }) {
   const [selectedId, setSelectedId] = useState('');
   const [text, setText] = useState('');
   const [type, setType] = useState('Général');
-  const [loading, setLoading] = useState(false);
 
   const student = students.find(s => s.id === selectedId);
 
   const handleAddObservation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text || !selectedId) return;
-    setLoading(true);
-    try {
-      await apiClient.post(`/admin/students/${selectedId}/observations`, { text, type, auteur: 'Directeur Scolarité' });
-      setText('');
-      onUpdate();
-    } catch { /* handled by apiClient interceptor */ } finally {
-      setLoading(false);
-    }
+    // Fonctionnalité non disponible : aucune route backend pour les observations élèves
+    // (ex-POST /admin/students/{id}/observations, à spécifier — APP-ARC-01).
+    toast.info('Fonctionnalité non disponible', { description: "L'enregistrement des observations n'est pas encore pris en charge par le serveur." });
   };
 
   return (
@@ -87,7 +81,7 @@ export function AdminStudentTracker({ students, onUpdate }: { students: TrackerS
                 <input value={text} onChange={e => setText(e.target.value)} placeholder="Texte de l'observation..." className="w-full h-8 bg-[#FAF8F6] border border-[#E2DCDA] rounded-md px-2 text-[10px] outline-none focus:border-primary" required />
               </div>
             </div>
-            <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-md tracking-wider transition-all">{loading ? 'Saisie...' : 'Enregistrer la note'}</button>
+            <button type="submit" title="Fonctionnalité non disponible" className="w-full h-8 bg-primary/60 text-white font-bold uppercase rounded-md tracking-wider transition-all cursor-not-allowed">Enregistrer la note (indisponible)</button>
           </form>
         </div>
       ) : (

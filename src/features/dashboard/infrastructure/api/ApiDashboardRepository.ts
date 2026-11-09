@@ -44,7 +44,8 @@ export class ApiDashboardRepository implements DashboardRepository {
   }
 
   async getPerformanceData(): Promise<PerformanceData[]> {
-    const res = await apiClient.get('/student/performance');
-    return res.data;
+    // Fonctionnalité non disponible : aucune route backend de performance étudiant
+    // (ex-GET /student/performance, à spécifier — APP-ARC-01). État vide explicite.
+    return [];
   }
 }

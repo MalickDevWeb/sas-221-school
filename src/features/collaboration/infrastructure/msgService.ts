@@ -59,7 +59,13 @@ export function subscribeAdminMeets(onUpdate: (meets: readonly AdminMeeting[]) =
 }
 
 export async function saveAdminMeet(am: AdminMeeting): Promise<void> {
-  await apiClient.post('/collaboration/admin-meets', am);
+  // Le backend n'expose que POST /collaboration/meets (title, link, time) ; la liste admin
+  // est relue via GET /collaboration/admin-meets (APP-ARC-01).
+  await apiClient.post('/collaboration/meets', {
+    ...am,
+    link: am.meetLink,
+    time: am.date ? `${am.date} ${am.time}` : am.time,
+  });
 }
 
 export function subscribeAttendances(onUpdate: (atts: readonly MeetAttendance[]) => void) {
