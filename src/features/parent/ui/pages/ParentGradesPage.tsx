@@ -9,6 +9,13 @@ const MENTION_CONFIG: Record<string, { color: string; bg: string }> = {
   'Insuffisant':   { color: 'text-red-700',     bg: 'bg-red-50 border-red-200' },
 };
 
+const NEUTRAL_MENTION = { color: 'text-neutral-600', bg: 'bg-neutral-50 border-neutral-200' };
+
+/** Valeur absente côté backend : on affiche « — », jamais une valeur inventée. */
+function display(value: number | string | null): string {
+  return value === null ? '—' : String(value);
+}
+
 function getBarColor(moyenne: number) {
   if (moyenne >= 16) return 'bg-emerald-500';
   if (moyenne >= 14) return 'bg-blue-500';
@@ -18,10 +25,11 @@ function getBarColor(moyenne: number) {
 }
 
 export function ParentGradesPage() {
-  const { grades, selectedChild, stats, loading } = useParentContext();
+  const { grades, selectedChild, stats, loading, errors, retry } = useParentContext();
 
   const moyenne = stats.moyenneGenerale;
   const mention = moyenne >= 16 ? 'Excellent' : moyenne >= 14 ? 'Bien' : moyenne >= 12 ? 'Assez Bien' : moyenne >= 10 ? 'Passable' : 'Insuffisant';
+  const gradesError = errors?.grades ?? null;
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">
@@ -77,6 +85,24 @@ export function ParentGradesPage() {
         <div className="flex items-center justify-center py-16">
           <div className="w-7 h-7 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
         </div>
+      ) : gradesError ? (
+        <div role="alert" className="bg-red-50 border border-red-200 border-solid rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span translate="no" className="material-symbols-outlined text-red-600 text-[22px]">error</span>
+            <p className="font-bold text-red-700 text-sm">{gradesError}</p>
+          </div>
+          <button
+            onClick={retry}
+            className="px-4 py-2 bg-white border border-red-200 border-solid rounded-xl text-xs font-black text-red-700 hover:bg-red-100 transition-all"
+          >
+            Réessayer
+          </button>
+        </div>
+      ) : grades.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-neutral-100 border-solid shadow-sm py-16 flex flex-col items-center gap-2">
+          <span translate="no" className="material-symbols-outlined text-neutral-300 text-[40px]">grade</span>
+          <p className="font-bold text-neutral-400 text-sm">Aucune note pour le moment</p>
+        </div>
       ) : (
         <div className="bg-white rounded-3xl border border-neutral-100 border-solid shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-neutral-100 border-solid">
@@ -84,39 +110,43 @@ export function ParentGradesPage() {
           </div>
           <div className="divide-y divide-neutral-50">
             {grades.map((grade) => {
-              const mc = MENTION_CONFIG[grade.mention] ?? { color: 'text-neutral-600', bg: 'bg-neutral-50 border-neutral-200' };
+              const mc = (grade.mention !== null ? MENTION_CONFIG[grade.mention] : undefined) ?? NEUTRAL_MENTION;
               return (
                 <div key={grade.id} className="px-6 py-4 hover:bg-neutral-50/50 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h4 className="font-black text-sm text-neutral-800 truncate">{grade.module}</h4>
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-solid ${mc.bg} ${mc.color}`}>
-                          {grade.mention}
-                        </span>
+                        {grade.mention !== null && (
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-solid ${mc.bg} ${mc.color}`}>
+                            {grade.mention}
+                          </span>
+                        )}
                       </div>
                       <p className="text-[10px] text-neutral-400 font-semibold">{grade.professeur}</p>
-                      {/* Barre progression */}
-                      <div className="mt-2 h-1.5 bg-neutral-100 rounded-full overflow-hidden max-w-xs">
-                        <div className={`h-full rounded-full transition-all ${getBarColor(grade.moyenne)}`} style={{ width: `${(grade.moyenne / 20) * 100}%` }} />
-                      </div>
+                      {/* Barre progression : uniquement si la moyenne existe */}
+                      {grade.moyenne !== null && (
+                        <div className="mt-2 h-1.5 bg-neutral-100 rounded-full overflow-hidden max-w-xs">
+                          <div className={`h-full rounded-full transition-all ${getBarColor(grade.moyenne)}`} style={{ width: `${(grade.moyenne / 20) * 100}%` }} />
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-4 shrink-0 text-center">
                       <div>
                         <p className="text-[8px] font-black uppercase text-neutral-400 tracking-wider">CC</p>
-                        <p className="font-black text-sm text-neutral-700">{grade.cc}</p>
+                        <p className="font-black text-sm text-neutral-700">{display(grade.cc)}</p>
                       </div>
                       <div>
                         <p className="text-[8px] font-black uppercase text-neutral-400 tracking-wider">Examen</p>
-                        <p className="font-black text-sm text-neutral-700">{grade.examen}</p>
+                        <p className="font-black text-sm text-neutral-700">{display(grade.examen)}</p>
                       </div>
                       <div className="min-w-[3rem]">
                         <p className="text-[8px] font-black uppercase text-neutral-400 tracking-wider">Moy.</p>
-                        <p className={`font-black text-base leading-tight ${mc.color}`}>{grade.moyenne}</p>
+                        <p className={`font-black text-base leading-tight ${mc.color}`}>{display(grade.moyenne)}</p>
                       </div>
                       <div>
                         <p className="text-[8px] font-black uppercase text-neutral-400 tracking-wider">ECTS</p>
-                        <p className="font-black text-sm text-blue-700">{grade.ects}</p>
+                        <p className="font-black text-sm text-blue-700">{display(grade.ects)}</p>
                       </div>
                     </div>
                   </div>

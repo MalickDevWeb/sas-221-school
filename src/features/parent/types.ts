@@ -20,15 +20,21 @@ export interface ChildAttendance {
   heure: string;
 }
 
+/**
+ * Réponse de GET /parent/enfants/{id}/notes (backend 1085787).
+ * cc, examen, moyenne, mention et ects peuvent être null (note non saisie) :
+ * l'UI affiche « — » et ne calcule jamais de mention à la place du backend.
+ * mention : chaîne libre renvoyée par le backend (valeurs non contractualisées à ce jour).
+ */
 export interface ChildGrade {
   id: string;
   module: string;
   professeur: string;
-  cc: number;
-  examen: number;
-  moyenne: number;
-  mention: 'Excellent' | 'Bien' | 'Assez Bien' | 'Passable' | 'Insuffisant';
-  ects: number;
+  cc: number | null;
+  examen: number | null;
+  moyenne: number | null;
+  mention: string | null;
+  ects: number | null;
 }
 
 export interface ChildScheduleItem {
@@ -101,4 +107,3 @@ export interface ParentApplication {
   etape: string;
   commentaire?: string;
 }
-
