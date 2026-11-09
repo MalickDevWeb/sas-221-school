@@ -8,7 +8,6 @@ import { StatsTab } from './planning/StatsTab';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminSchedulerState } from '../../hooks/useAdminSchedulerState';
 import { generateOptimizedSchedule } from '../../domain/PlanningGenerator';
-import { INITIAL_SLOTS, INITIAL_UNASSIGNED, INITIAL_CONFLICTS } from '../../domain/PlanningMockData';
 
 export function AdminGlobalScheduler() {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -16,7 +15,7 @@ export function AdminGlobalScheduler() {
   const [isPublished, setIsPublished] = useState(false);
 
   const {
-    slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
+    recharger, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
     associations, setAssociations, logs, setLogs, week, setWeek, toast, showToast, addLog,
     scheduleCourse, removeSlot, moveCourse, duplicateCourse
   } = useAdminSchedulerState();
@@ -97,7 +96,7 @@ export function AdminGlobalScheduler() {
         {activeTab === 'calendar' && <CalendarTab slots={slots} unassigned={unassigned} onSchedule={scheduleCourse} onMoveCourse={moveCourse} onDuplicateCourse={duplicateCourse} onRemoveSlot={removeSlot} />}
         {activeTab === 'conflicts' && <ConflictsTab conflicts={conflicts} onClearConflict={(id) => setConflicts(conflicts.filter(c => c.id !== id))} onClearAll={() => setConflicts([])} />}
         {activeTab === 'ai_opt' && <AssistantIaTab onApplyIaSchedule={(newSlots, info) => { setSlots([...slots, ...newSlots]); showToast(info, true); }} />}
-        {activeTab === 'history' && <HistoryTab logs={logs} slots={slots} unassigned={unassigned} onRestore={(log) => { setSlots(INITIAL_SLOTS); setUnassigned(INITIAL_UNASSIGNED); setConflicts(INITIAL_CONFLICTS); showToast("Grille restaurée à l'état initial avec succès.", true); }} />}
+        {activeTab === 'history' && <HistoryTab logs={logs} slots={slots} unassigned={unassigned} onRestore={() => { recharger(); setUnassigned([]); setConflicts([]); showToast("Grille rechargée depuis le planning enregistré.", true); }} />}
         {activeTab === 'stats' && <StatsTab associations={associations} slots={slots} onRemoveAssociation={(id) => setAssociations(associations.filter(a => a.id !== id))} />}
       </div>
     </div>

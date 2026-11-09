@@ -35,7 +35,8 @@ const INITIAL_SEQUENCES = [
 
 export function ModuleSequencesSection({ moduleId, students }: Props) {
   const [panelTab, setPanelTab] = useState<'plan' | 'tracking'>('plan');
-  const [sequences, setSequences] = useState(INITIAL_SEQUENCES);
+  // plus de séquences inventées ; persistance côté serveur à créer (APP-BE-21)
+  const [sequences, setSequences] = useState<typeof INITIAL_SEQUENCES>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleAddSequence = (newSeq: any) => {
