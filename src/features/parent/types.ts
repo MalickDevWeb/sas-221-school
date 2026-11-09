@@ -49,12 +49,12 @@ export interface ChildScheduleItem {
 }
 
 export interface ChildDashboardStats {
-  tauxPresence: number;
-  nombreAbsences: number;
-  nombreRetards: number;
-  moyenneGenerale: number;
-  creditValides: number;
-  devoirsEnRetard: number;
+  tauxPresence: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  nombreAbsences: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  nombreRetards: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  moyenneGenerale: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  creditValides: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  devoirsEnRetard: number | null;   // null = aucune donnée réelle (APP-BE-19)
   prochainsExamens: { titre: string; date: string; salle: string }[];
   coursAujourdhui: ChildScheduleItem[];
 }
