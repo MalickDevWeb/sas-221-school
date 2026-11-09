@@ -36,35 +36,41 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
     ? localStorage.getItem(`tenant_admin_${activeSlug}`)
     : null;
 
+  // APP-SEC-03 : connexion rapide de démonstration — jamais en production par défaut,
+  // et aucun mot de passe dans le code (il serait public dans le bundle).
+  // Activer pour une démo : VITE_DEMO_LOGIN=true et VITE_DEMO_PASSWORD=… au moment du build.
+  const DEMO_LOGIN = import.meta.env.DEV || import.meta.env.VITE_DEMO_LOGIN === 'true';
+  const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD ?? '';
+
   const quickCredentials = {
     admin: {
       label: 'Admin',
       email: isDefaultSchool ? 'admin221@gmail.com' : (localRegisteredAdmin || `admin@${activeSlug}.sn`),
-      password: 'ecole221',
+      password: DEMO_PASSWORD,
       badgeClass: 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200',
     },
     etudiant: {
       label: 'Étudiant',
       email: isDefaultSchool ? 'etudiant221@gmail.com' : `etudiant@${activeSlug}.sn`,
-      password: 'ecole221',
+      password: DEMO_PASSWORD,
       badgeClass: 'bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] border-[#1E5E3A]/20',
     },
     professeur: {
       label: 'Prof',
       email: isDefaultSchool ? 'professeur221@gmail.com' : `prof@${activeSlug}.sn`,
-      password: 'ecole221',
+      password: DEMO_PASSWORD,
       badgeClass: 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200',
     },
     vigile: {
       label: 'Vigile',
       email: isDefaultSchool ? 'vigile221@gmail.com' : `vigile@${activeSlug}.sn`,
-      password: 'ecole221',
+      password: DEMO_PASSWORD,
       badgeClass: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200',
     },
     parent: {
       label: 'Parent',
       email: isDefaultSchool ? 'parent221@gmail.com' : `parent@${activeSlug}.sn`,
-      password: 'ecole221',
+      password: DEMO_PASSWORD,
       badgeClass: 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200',
     },
   };
@@ -260,6 +266,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
         </button>
       </div>
 
+      {DEMO_LOGIN && (
       <div className="mt-4 pt-3 border-t border-[#E2DCDA]/60 space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">
@@ -283,6 +290,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           ))}
         </div>
       </div>
+      )}
     </motion.form>
   );
 }
