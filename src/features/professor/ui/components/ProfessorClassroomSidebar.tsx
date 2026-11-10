@@ -1,16 +1,17 @@
 import React from 'react';
-import { ArrowLeft, Users, BookOpen, PenTool, Award } from 'lucide-react';
+import { ArrowLeft, Users, BookOpen, PenTool, Award, ClipboardList } from 'lucide-react';
 import { ProfessorProfileSection } from './ProfessorProfileSection';
 import { ProfessorClassroomHeader } from './ProfessorClassroomHeader';
 import { ProfessorClassroomSessions } from './ProfessorClassroomSessions';
+import type { ClassroomSubTab } from './classroom/ClassroomProps';
 
 interface ClassroomSidebarProps {
   readonly selectedCourse: any;
   readonly onSelectCourse: (id: string) => void;
   readonly activeTab: string;
   readonly onSelectTab: (tab: string) => void;
-  readonly classroomSubTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements';
-  readonly setClassroomSubTab: (tab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => void;
+  readonly classroomSubTab: ClassroomSubTab;
+  readonly setClassroomSubTab: (tab: ClassroomSubTab) => void;
   readonly schedule: readonly any[];
   readonly profName?: string;
   readonly initials?: string;
@@ -24,7 +25,7 @@ export function ProfessorClassroomSidebar({
     (s) => s && selectedCourse && (s.courseId === selectedCourse.id || (s.courseTitle || "").toLowerCase() === (selectedCourse.titre || "").toLowerCase())
   );
 
-  const handleSubTabClick = (subTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => {
+  const handleSubTabClick = (subTab: ClassroomSubTab) => {
     onSelectTab('classroom');
     setClassroomSubTab(subTab);
   };
@@ -45,6 +46,7 @@ export function ProfessorClassroomSidebar({
               { id: 'attendance', label: 'Présence & Appel', icon: Users },
               { id: 'modules', label: 'Chapitres & Supports', icon: BookOpen },
               { id: 'homework', label: 'Devoirs de classe', icon: PenTool },
+              { id: 'evaluations', label: 'Évaluations & moyennes', icon: ClipboardList },
               { id: 'grades', label: 'Notes d\'Évaluation', icon: Award },
             ].map((item) => {
               const IconComp = item.icon;
