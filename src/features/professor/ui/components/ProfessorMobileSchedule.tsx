@@ -78,7 +78,7 @@ export function ProfessorMobileSchedule({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="font-black text-[13px] text-neutral-800 group-hover:text-primary transition-colors truncate">
-                    {session.classe || 'L3-GL'}
+                    {session.classe || '—'}
                   </h4>
                   <p className="text-[10.5px] text-neutral-400 font-extrabold leading-tight truncate mb-2">
                     {session.courseTitle}

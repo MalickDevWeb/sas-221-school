@@ -33,7 +33,7 @@ export function ProfessorCompactSessionItem({ session, isEnCours, isProchain, on
           <h4 className={`text-[12px] font-black leading-tight tracking-tight line-clamp-1 transition-colors duration-200 ${
             isEnCours ? 'text-primary group-hover:text-black' : isProchain ? 'text-amber-900 group-hover:text-amber-600' : 'text-neutral-800 group-hover:text-primary'
           }`}>
-            {session.classe || 'L3-GL'}
+            {session.classe || '—'}
           </h4>
           <p className="text-[10px] text-neutral-400 font-semibold leading-tight truncate mt-0.5 group-hover:text-neutral-600 transition-colors">
             {session.courseTitle}
@@ -81,7 +81,7 @@ export function ProfessorCompactSessionItem({ session, isEnCours, isProchain, on
       </div>
       <h5 className={`text-[10.5px] font-black leading-tight truncate ${
         isEnCours ? 'text-primary' : isProchain ? 'text-amber-900' : 'text-neutral-800 group-hover/item:text-primary'
-      }`}>{session.classe || 'L3-GL'}</h5>
+      }`}>{session.classe || '—'}</h5>
       <p className="text-[9.5px] text-neutral-400 font-medium truncate mt-0.5">{session.courseTitle}</p>
       <div className="flex items-center justify-between mt-1 text-[9px] text-neutral-500 font-semibold">
         <span className="flex items-center gap-0.5"><span translate="no" className="material-symbols-outlined text-[9px]">location_on</span>{formattedRoom}</span>

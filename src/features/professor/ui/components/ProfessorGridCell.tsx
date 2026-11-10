@@ -45,7 +45,7 @@ export function ProfessorGridCell({ matched, match, rowSpan, onSelectSession, li
         </div>
         <div>
           <h4 className="font-black text-xs leading-snug text-[#291715] line-clamp-1 group-hover:text-primary transition-colors">
-            {matched.classe || 'L3-GL'}
+            {matched.classe || '—'}
           </h4>
           <p className="text-[10px] text-neutral-400 font-bold leading-tight truncate mt-0.5">
             {matched.courseTitle}
