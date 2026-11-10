@@ -28,6 +28,8 @@ export interface SeanceManquee {
   observation: string | null;
   horaire: string | null;
   salle: string | null;
+  /** Dernier justificatif déposé par le parent pour cette séance (null : aucun). */
+  justificatif: { statut: 'EN_ATTENTE' | 'ACCEPTE' | 'REFUSE'; motifRefus: string | null } | null;
 }
 
 export interface MonAssiduite {

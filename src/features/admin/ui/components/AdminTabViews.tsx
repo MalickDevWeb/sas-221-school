@@ -13,6 +13,7 @@ import { AdminSubscriptionManager } from './AdminSubscriptionManager';
 import { AdminBrandingManager } from './branding/AdminBrandingManager';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { AdminReferentielsManager } from '@/features/referentiels';
+import { AdminJustificatifsAbsence } from './justificatifs/AdminJustificatifsAbsence';
 
 interface AdminTabViewsProps {
   activeTab: string;
@@ -27,6 +28,7 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     schedule: <AdminGlobalScheduler />,
     personnel: <AdminPersonnelRH />,
     students: <AdminStudentManager />,
+    justificatifs: <AdminJustificatifsAbsence />,
     admissions: <AdminAdmissionsKanban />,
     finances: <AdminFinanceDashboard />,
     collaboration: <CollaborationPage />,

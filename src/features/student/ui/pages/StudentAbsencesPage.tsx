@@ -49,6 +49,13 @@ function LigneSeance({ s }: { s: SeanceManquee }) {
         <p className="text-xs text-neutral-gray-500 font-semibold first-letter:uppercase">
           {formatDate(s.date)}{s.horaire ? ` · ${s.horaire}` : ''}{s.salle ? ` · ${s.salle}` : ''}
         </p>
+        {s.justificatif && (
+          <p className={`text-[11px] font-bold mt-1 ${s.justificatif.statut === 'REFUSE' ? 'text-red-700' : s.justificatif.statut === 'ACCEPTE' ? 'text-emerald-700' : 'text-amber-700'}`}>
+            {s.justificatif.statut === 'EN_ATTENTE' ? 'Justificatif de vos parents en attente de validation'
+              : s.justificatif.statut === 'ACCEPTE' ? 'Justificatif accepté par l\'établissement'
+              : `Justificatif refusé${s.justificatif.motifRefus ? ` : ${s.justificatif.motifRefus}` : ''}`}
+          </p>
+        )}
         {s.observation && (
           <p className="text-xs text-on-surface mt-1.5 bg-surface-container-lowest rounded-lg px-2.5 py-1.5">
             <span className="font-bold">Observation du professeur : </span>{s.observation}

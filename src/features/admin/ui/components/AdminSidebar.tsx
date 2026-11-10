@@ -20,6 +20,7 @@ const MENU_ITEMS = [
   { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today', requiredPerm: 'planning_schedule_get' },
   { id: 'personnel', label: 'Gestion Personnel', icon: 'badge', requiredPerm: 'hr_staff_get' },
   { id: 'students', label: 'Gestion Élèves', icon: 'group', requiredPerm: 'students_list_get' },
+  { id: 'justificatifs', label: 'Justificatifs d\'absence', icon: 'assignment_turned_in', requiredPerm: 'students_list_get' },
   { id: 'admissions', label: 'Admissions', icon: 'person_add', requiredPerm: 'admissions_candidatures_get' },
   { id: 'finances', label: 'Finances & Recouvre', icon: 'payments', requiredPerm: 'finance_transactions_get' },
   { id: 'collaboration', label: 'Collaboration', icon: 'group_work', requiredPerm: 'communication_chat_post' },

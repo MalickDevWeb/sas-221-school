@@ -14,7 +14,8 @@ export interface ChildProfile {
 export interface ChildAttendance {
   id: string;
   date: string;
-  statut: 'PRESENT' | 'ABSENT' | 'RETARD';
+  /** Normalisé par le serveur comme la feuille d'appel du professeur (EXCUSE = absence justifiée acceptée). */
+  statut: 'PRESENT' | 'ABSENT' | 'RETARD' | 'EXCUSE';
   cours: string;
   professeur: string;
   heure: string;
