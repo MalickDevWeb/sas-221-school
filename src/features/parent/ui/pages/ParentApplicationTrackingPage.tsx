@@ -26,14 +26,14 @@ export function ParentApplicationTrackingPage() {
 
   useEffect(() => {
     parentApi.getApplications()
-      .then((data) => {
+      .then((data: ParentApplication[]) => {
         const list = Array.isArray(data) ? data : [];
         setDossiers(list);
         if (list.length > 0) {
           setExpanded(list[0].id);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.warn("Erreur chargement candidatures:", err);
         setDossiers([]);
       })

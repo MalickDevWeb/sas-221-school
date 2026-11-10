@@ -3,20 +3,61 @@ import { audioService } from '../infrastructure/config/dependencies';
 import { securityService } from '@/shared/lib/apiService';
 import { applyVigilFilters, DateFilter } from './useVigilFilters';
 
+export interface ScanLogItem {
+  id: string;
+  name: string;
+  studentId: string;
+  status: string;
+  time: string;
+  type?: string;
+  date?: string;
+  avatar?: string | null;
+}
+
+export interface CheckpointItem {
+  id: string;
+  name: string;
+  status: string;
+  lastCheck: string;
+  guard: string;
+}
+
+export interface ActiveCheckpoint {
+  id?: string;
+  name?: string;
+  status?: string;
+  gate?: string;
+  guard?: string;
+}
+
 export function useVigilLocalState() {
   const [manualId, setManualId] = useState('');
   const [resetKey, setResetKey] = useState(0);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
   // Passages et points de contrôle RÉELS uniquement (avant : passages d'élèves et points inventés)
-  const [scanLogs, setScanLogs] = useState<any[]>(() => { try { const v = JSON.parse(localStorage.getItem('v_scan_logs') || '[]'); return Array.isArray(v) ? v.filter((l: any) => !['1','2','3','4','5'].includes(String(l?.id))) : []; } catch { return []; } });
-  const [checkpoints, setCheckpoints] = useState<any[]>(() => { try { const v = JSON.parse(localStorage.getItem('v_checkpoints') || '[]'); return Array.isArray(v) ? v.filter((c: any) => !/^cp[1-5]$/.test(String(c?.id))) : []; } catch { return []; } });
+  const [scanLogs, setScanLogs] = useState<ScanLogItem[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('v_scan_logs') || '[]');
+      return Array.isArray(v) ? v.filter((l: ScanLogItem) => !['1','2','3','4','5'].includes(String(l?.id))) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [checkpoints, setCheckpoints] = useState<CheckpointItem[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('v_checkpoints') || '[]');
+      return Array.isArray(v) ? v.filter((c: CheckpointItem) => !/^cp[1-5]$/.test(String(c?.id))) : [];
+    } catch {
+      return [];
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showBadge, setShowBadge] = useState(false);
   const [scanMode, setScanMode] = useState<'scan' | 'showQR'>('scan');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeCheckpoint, setActiveCheckpoint] = useState<any>(null);
+  const [activeCheckpoint, setActiveCheckpoint] = useState<ActiveCheckpoint | null>(null);
   const itemsPerPage = 3;
 
   useEffect(() => {
@@ -27,7 +68,7 @@ export function useVigilLocalState() {
         if (isMounted && res) setActiveCheckpoint(res);
       } catch {
         if (isMounted) {
-          setActiveCheckpoint((prev: any) => prev || null);   // poste réel inconnu : rien d'inventé
+          setActiveCheckpoint((prev) => prev || null);   // poste réel inconnu : rien d'inventé
         }
       }
     };
@@ -59,18 +100,18 @@ export function useVigilLocalState() {
         setFeedback({ success: false, message: apiResult.message });
       }
 
-      const newLog = {
-        id: apiResult.id,
-        name: apiResult.badgeOwner,
-        studentId: apiResult.studentId,
-        status: apiResult.statut,
-        time: apiResult.time,
+      const newLog: ScanLogItem = {
+        id: String(apiResult?.id ?? Date.now()),
+        name: String(apiResult?.badgeOwner ?? ''),
+        studentId: String(apiResult?.studentId ?? resolvedId),
+        status: String(apiResult?.statut ?? 'Inconnu'),
+        time: String(apiResult?.time ?? new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })),
         type: isManual ? 'Manuel' : 'Scanner',
         date: "Aujourd'hui",
         avatar: null
       };
-      setScanLogs((prev: any) => [newLog, ...prev]);
-    } catch (err: any) {
+      setScanLogs((prev) => [newLog, ...prev]);
+    } catch {
       audioService.playFailureBeep();
       setFeedback({ success: false, message: "Échec du scan de badge" });
     }
@@ -89,12 +130,15 @@ export function useVigilLocalState() {
   const checkCheckpoint = (id: string) => {
     audioService.playSuccessBeep();
     const nowStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    setCheckpoints((p: any) => p.map((cp: any) => cp.id === id ? { ...cp, status: 'Sécurisé', lastCheck: nowStr, guard: 'Vigile connecté' } : cp));
+    setCheckpoints((p) => p.map((cp) => cp.id === id ? { ...cp, status: 'Sécurisé', lastCheck: nowStr, guard: 'Vigile connecté' } : cp));
   };
 
-  const resetCheckpoints = () => { audioService.playSuccessBeep(); setCheckpoints((p: any[]) => p.map((cp: any) => ({ ...cp, status: 'En attente', lastCheck: '-', guard: '-' }))); };
+  const resetCheckpoints = () => {
+    audioService.playSuccessBeep();
+    setCheckpoints((p) => p.map((cp) => ({ ...cp, status: 'En attente', lastCheck: '-', guard: '-' })));
+  };
   const clearScanLogs = () => setScanLogs([]);
-  const completedCheckpoints = checkpoints.filter((cp: any) => cp.status === 'Sécurisé').length;
+  const completedCheckpoints = checkpoints.filter((cp) => cp.status === 'Sécurisé').length;
   const progressPercent = checkpoints.length ? Math.round((completedCheckpoints / checkpoints.length) * 100) : 0;
   const { totalPages, paginatedLogs } = applyVigilFilters(scanLogs, searchQuery, dateFilter, currentPage, itemsPerPage);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Crown, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import type { PlanDto, CreatePlanCommand, Entitlement } from '@/features/super-admin/domain/models/PlatformModels';
 import { FEATURE_LABELS } from './billingConstants';
@@ -18,7 +19,23 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
       { featureCode: 'MULTI_CAMPUS', maxLimit: 0, isEnabled: false },
     ],
   });
-  const [loading, setLoading] = useState(false);
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: CreatePlanCommand) => {
+      const { data } = await apiClient.post<PlanDto>('/v1/super-admin/plans', payload);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`✅ Plan "${data.name}" créé avec succès !`);
+      onCreated(data);
+      onClose();
+    },
+    onError: () => {
+      toast.error('Erreur lors de la création du plan.');
+    },
+  });
+
+  const loading = createMutation.isPending;
 
   const toggleFeature = (code: string) => {
     setForm((f: CreatePlanCommand) => ({
@@ -33,19 +50,9 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const { data } = await apiClient.post<PlanDto>('/v1/super-admin/plans', form);
-      toast.success(`✅ Plan "${data.name}" créé avec succès !`);
-      onCreated(data);
-      onClose();
-    } catch {
-      toast.error('Erreur lors de la création du plan.');
-    } finally {
-      setLoading(false);
-    }
+    createMutation.mutate(form);
   };
 
   return (
