@@ -59,6 +59,8 @@ export interface StudentProfile {
   filiere: string;
   niveau: string;
   photoUrl: string;
+  /** Classe actuelle (null si l'élève n'est affecté à aucune classe). */
+  classe?: string | null;
 }
 
 export interface StudentDashboard {
