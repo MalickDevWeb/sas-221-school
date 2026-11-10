@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import { Server, Database, Cpu, HardDrive, ShieldCheck, Activity, RefreshCw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
@@ -11,28 +12,25 @@ type EtatApi = { statut: 'UP' | 'DOWN' | 'INCONNU'; latenceMs: number | null; ho
  * temps de réponse chronométré). Base de données, CPU et stockage n'ont aucune source : « — ».
  */
 export const SuperAdminSystemPage = () => {
-  const [api, setApi] = useState<EtatApi>({ statut: 'INCONNU', latenceMs: null, horodatage: null, erreur: null });
-  const [loading, setLoading] = useState(true);
+  const { data: api = { statut: 'INCONNU', latenceMs: null, horodatage: null, erreur: null }, isLoading: loading, refetch } = useQuery<EtatApi>({
+    queryKey: ['superadmin', 'system', 'health'],
+    queryFn: async () => {
+      const debut = performance.now();
+      try {
+        const { data } = await apiClient.get<{ status?: string; timestamp?: string }>('/common/health');
+        return {
+          statut: data?.status === 'UP' ? 'UP' : 'DOWN',
+          latenceMs: Math.round(performance.now() - debut),
+          horodatage: data?.timestamp ?? null,
+          erreur: null,
+        };
+      } catch (err) {
+        return { statut: 'DOWN', latenceMs: null, horodatage: null, erreur: resolveErrorMessage(err) };
+      }
+    },
+  });
 
-  const verifier = useCallback(async () => {
-    setLoading(true);
-    const debut = performance.now();
-    try {
-      const { data } = await apiClient.get<{ status?: string; timestamp?: string }>('/common/health');
-      setApi({
-        statut: data?.status === 'UP' ? 'UP' : 'DOWN',
-        latenceMs: Math.round(performance.now() - debut),
-        horodatage: data?.timestamp ?? null,
-        erreur: null,
-      });
-    } catch (err) {
-      setApi({ statut: 'DOWN', latenceMs: null, horodatage: null, erreur: resolveErrorMessage(err) });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void verifier(); }, [verifier]);
+  const verifier = () => { refetch(); };
 
   const libelleApi = loading ? 'Vérification…' : api.statut === 'UP' ? 'Opérationnel' : api.statut === 'DOWN' ? 'Injoignable' : '—';
   const monitors = [

@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   ReferentielInfo,
   ReferentielSlug,
@@ -36,3 +37,28 @@ export const referentielApi = {
     await apiClient.delete(`${BASE}/${slug}/${encodeURIComponent(code)}`);
   },
 };
+
+export function useReferentielLists() {
+  return useQuery({
+    queryKey: ['referentiels'],
+    queryFn: () => referentielApi.lists(),
+  });
+}
+
+export function useReferentielValues(slug: ReferentielSlug, all = false) {
+  return useQuery({
+    queryKey: ['referentiels', slug, all],
+    queryFn: () => referentielApi.values(slug, all),
+  });
+}
+
+export function useCreateReferentielValue() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ slug, input }: { slug: ReferentielSlug; input: ReferentielValueInput }) =>
+      referentielApi.create(slug, input),
+    onSuccess: (_, { slug }) => {
+      queryClient.invalidateQueries({ queryKey: ['referentiels', slug] });
+    },
+  });
+}

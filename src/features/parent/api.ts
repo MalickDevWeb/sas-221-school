@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   ChildProfile,
   ChildDashboardStats,
@@ -7,6 +8,7 @@ import type {
   ChildScheduleItem,
   ParentMessage,
   EnrollChildPayload,
+  ParentApplication,
 } from './types';
 
 // ─── Enfants liés au compte parent ──────────────────────────
@@ -48,15 +50,56 @@ export const parentApi = {
   },
 
   markMessageRead: async (messageId: string): Promise<void> => {
-    await apiClient.patch(`/parent/messages/${messageId}/lu`);
+    await apiClient.patch(`/parent/messages/${messageId}/read`);
   },
 
-  enrollChild: async (payload: EnrollChildPayload): Promise<void> => {
-    await apiClient.post('/parent/inscrire-enfant', payload);
+  enrollChild: async (payload: EnrollChildPayload): Promise<ChildProfile> => {
+    const { data } = await apiClient.post('/parent/enfants/inscrire', payload);
+    return data;
   },
 
-  getApplications: async (): Promise<import('./types').ParentApplication[]> => {
+  getApplications: async (): Promise<ParentApplication[]> => {
     const { data } = await apiClient.get('/parent/candidatures');
     return data;
   },
 };
+
+export function useParentChildren() {
+  return useQuery({
+    queryKey: ['parent', 'children'],
+    queryFn: () => parentApi.getChildren(),
+  });
+}
+
+export function useParentChildStats(enfantId: string) {
+  return useQuery({
+    queryKey: ['parent', 'child', enfantId, 'stats'],
+    queryFn: () => parentApi.getChildStats(enfantId),
+    enabled: Boolean(enfantId),
+  });
+}
+
+export function useParentMessages() {
+  return useQuery({
+    queryKey: ['parent', 'messages'],
+    queryFn: () => parentApi.getMessages(),
+  });
+}
+
+export function useSendParentMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ destinataireId, sujet, message }: { destinataireId: string; sujet: string; message: string }) =>
+      parentApi.sendMessage(destinataireId, sujet, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parent', 'messages'] });
+    },
+  });
+}
+
+export function useParentApplications() {
+  return useQuery({
+    queryKey: ['parent', 'applications'],
+    queryFn: parentApi.getApplications,
+  });
+}
