@@ -8,6 +8,7 @@ import { ProfessorSidebarNav } from './ProfessorSidebarNav';
 import { ProfessorSidebarClasses } from './ProfessorSidebarClasses';
 import { ProfessorProfileSection } from './ProfessorProfileSection';
 import { ProfessorClassroomSidebar } from './ProfessorClassroomSidebar';
+import type { ClassroomSubTab } from './classroom/ClassroomProps';
 
 interface Props {
   readonly activeTab: string;
@@ -17,8 +18,8 @@ interface Props {
   readonly courses: any[];
   readonly selectedCourseId: string;
   readonly onSelectCourse: (id: string) => void;
-  readonly classroomSubTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements';
-  readonly setClassroomSubTab: (tab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => void;
+  readonly classroomSubTab: ClassroomSubTab;
+  readonly setClassroomSubTab: (tab: ClassroomSubTab) => void;
   readonly schedule: readonly any[];
 }
 

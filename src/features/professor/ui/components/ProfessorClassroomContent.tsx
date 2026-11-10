@@ -1,5 +1,6 @@
 import React from 'react';
 import { FeuilleAppelSeance } from './classroom/FeuilleAppelSeance';
+import { EvaluationsView } from './evaluations/EvaluationsView';
 import { ProfessorClassroomHeader } from './classroom/ProfessorClassroomHeader';
 import { ProfessorLessonReminderForms } from './classroom/ProfessorLessonReminderForms';
 import { ProfessorModuleForm } from './classroom/ProfessorModuleForm';
@@ -53,6 +54,9 @@ export function ProfessorClassroomContent(props: ProfessorClassroomContentProps)
 
   if (subTab === 'homework') return <ProfessorHomeworkView {...classroomProps} />;
   
+  if (subTab === 'evaluations') {
+    return <EvaluationsView key={classroomProps.selectedCourse?.id ?? 'aucun'} courseId={classroomProps.selectedCourse?.id} coursTitre={classroomProps.selectedCourse?.titre} />;
+  }
   if (subTab === 'grades') return <ProfessorGradesView {...classroomProps} />;
   
   if (subTab === 'attendance') {
