@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { useAuthStore } from '@/core/store/authStore';
 import { messageErreur, ERREUR_AFFICHEE } from '@/shared/errors/errorDictionary';
 
 let lastNetworkToastTime = 0;
@@ -98,6 +99,14 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
     return Promise.reject(error);
   }
   if (isLoginRequest) {
+    return Promise.reject(error);
+  }
+
+  // Mot de passe provisoire pas encore remplacé (session ouverte avant la règle, ou drapeau perdu) :
+  // on affiche l'écran de changement au lieu d'un « Erreur 403 » par requête refusée.
+  if (status === 403 && (error.response?.data as { code?: string } | undefined)?.code === 'MOT_DE_PASSE_PROVISOIRE') {
+    useAuthStore.getState().marquerMotDePasseProvisoire(true);
+    (error as any)[ERREUR_AFFICHEE] = true;
     return Promise.reject(error);
   }
   const isPublicOrLoginPage = currentPath === ROUTES.login ||

@@ -2,12 +2,24 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RoleUtilisateur } from '@/shared/constants';
 
+export interface UtilisateurConnecte {
+  id: string;
+  nom: string;
+  prenom?: string;
+  role: RoleUtilisateur;
+  email?: string;
+  /** Mot de passe provisoire (donné par l'administration) à remplacer avant d'accéder à son espace. */
+  doitChangerMotDePasse?: boolean;
+}
+
 interface AuthState {
-  utilisateur: { id: string; nom: string; role: RoleUtilisateur; email?: string } | null;
+  utilisateur: UtilisateurConnecte | null;
   token: string | null;
   estConnecte: boolean;
   originalSuperAdminRole: RoleUtilisateur | null;
-  connexionReussie: (payload: { utilisateur: { id: string; nom: string; role: RoleUtilisateur; email?: string }; token: string }) => void;
+  connexionReussie: (payload: { utilisateur: UtilisateurConnecte; token: string }) => void;
+  /** Fixe l'obligation de changer le mot de passe provisoire (connexion, réponse 403 du serveur, changement réussi). */
+  marquerMotDePasseProvisoire: (doitChanger: boolean) => void;
   impersonateSchoolAdmin: () => void;
   leaveSchoolAdmin: () => void;
   deconnexion: () => void;
@@ -32,6 +44,12 @@ export const useAuthStore = create<AuthState>()(
           estConnecte: true,
           originalSuperAdminRole: null,
         });
+      },
+
+      marquerMotDePasseProvisoire: (doitChanger) => {
+        const current = get().utilisateur;
+        if (!current || !!current.doitChangerMotDePasse === doitChanger) return;
+        set({ utilisateur: { ...current, doitChangerMotDePasse: doitChanger } });
       },
 
       impersonateSchoolAdmin: () => {

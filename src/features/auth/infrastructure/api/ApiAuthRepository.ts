@@ -47,6 +47,7 @@ export class ApiAuthRepository implements AuthRepository {
           email: data.email,
           role: role,
           tenantSlug: data.tenantSlug,
+          doitChangerMotDePasse: data.doitChangerMotDePasse === true,
         },
         token: data.token,
       };
