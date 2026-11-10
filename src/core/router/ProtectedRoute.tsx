@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
 import { ROUTES, ROLE_UTILISATEUR, type RoleUtilisateur } from '@/shared/constants';
+import { ChangementMotDePasseObligatoire } from '@/features/auth/ui/pages/ChangementMotDePasseObligatoire';
 
 interface Props {
   rolesAutorises?: RoleUtilisateur[];
@@ -18,6 +19,11 @@ export function ProtectedRoute({ rolesAutorises }: Props) {
 
   if (!estConnecte || !utilisateur) {
     return <Navigate to={ROUTES.login} replace />; 
+  }
+
+  // 0. Mot de passe provisoire : le serveur refuse tout (403) tant qu'il n'est pas remplacé
+  if (utilisateur.doitChangerMotDePasse) {
+    return <ChangementMotDePasseObligatoire />;
   }
 
   // 1. Détection Super Admin / Platform Owner (Autorité Totale Universelle)
