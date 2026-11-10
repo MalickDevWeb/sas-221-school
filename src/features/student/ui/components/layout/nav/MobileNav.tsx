@@ -13,6 +13,7 @@ export function MobileNav() {
     { to: `${base}/planning`,      icon: 'calendar_today', label: 'Agenda' },
     { to: `${base}/devoirs`,       icon: 'assignment',     label: 'Devoirs' },
     { to: `${base}/notes`,         icon: 'grade',          label: 'Notes' },
+    { to: `${base}/absences`,      icon: 'event_busy',     label: 'Absences' },
     { to: `${base}/collaboration`, icon: 'groups',         label: 'Collab' },
     { to: `${base}/tuteur`,        icon: 'smart_toy',      label: 'Tuteur IA' },
   ];
