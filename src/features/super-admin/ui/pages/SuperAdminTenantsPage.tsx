@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, LayoutGrid, List } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { AddTenantModal } from '../components/AddTenantModal';
 import { usePlatformStore } from '../../store/usePlatformStore';
 import { TenantsTable } from '../components/tenants/TenantsTable';
@@ -24,20 +25,20 @@ export const SuperAdminTenantsPage = () => {
 
   const handleApprove = async (id: string) => {
     try { await approveTenant(id); toast.success('École approuvée avec succès.'); } 
-    catch { toast.error("Erreur lors de l'approbation."); }
+    catch (err) { toast.error(resolveErrorMessage(err)); }
   };
   const handleSuspend = async (id: string) => {
     try { await suspendTenant(id); toast.success('École suspendue.'); } 
-    catch { toast.error('Erreur lors de la suspension.'); }
+    catch (err) { toast.error(resolveErrorMessage(err)); }
   };
   const handleActivate = async (id: string) => {
     try { await activateTenant(id); toast.success('École réactivée.'); } 
-    catch { toast.error('Erreur lors de la réactivation.'); }
+    catch (err) { toast.error(resolveErrorMessage(err)); }
   };
   const confirmArchive = async () => {
     if (!archiveConfirm) return;
     try { await deleteTenant(archiveConfirm.id); toast.success('École archivée.'); } 
-    catch { toast.error("Erreur lors de l'archivage."); } 
+    catch (err) { toast.error(resolveErrorMessage(err)); } 
     finally { setArchiveConfirm(null); }
   };
 

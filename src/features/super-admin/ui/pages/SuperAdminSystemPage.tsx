@@ -35,9 +35,9 @@ export const SuperAdminSystemPage = () => {
   const libelleApi = loading ? 'Vérification…' : api.statut === 'UP' ? 'Opérationnel' : api.statut === 'DOWN' ? 'Injoignable' : '—';
   const monitors = [
     { title: 'Serveur API Spring Boot', status: libelleApi, icon: Server, mesure: api.latenceMs != null ? `${api.latenceMs} ms` : '—', libelleMesure: 'Temps de réponse', reel: true },
-    { title: 'Base de données PostgreSQL', status: 'Indisponible', icon: Database, mesure: '—', libelleMesure: 'Charge', reel: false },
-    { title: 'Charge CPU Conteneur', status: 'Indisponible', icon: Cpu, mesure: '—', libelleMesure: 'Charge', reel: false },
-    { title: 'Stockage Multi-Tenant', status: 'Indisponible', icon: HardDrive, mesure: '—', libelleMesure: 'Occupation', reel: false },
+    { title: 'Base de données PostgreSQL', status: 'Non mesuré', icon: Database, mesure: '—', libelleMesure: 'Charge', reel: false },
+    { title: 'Charge CPU Conteneur', status: 'Non mesuré', icon: Cpu, mesure: '—', libelleMesure: 'Charge', reel: false },
+    { title: 'Stockage Multi-Tenant', status: 'Non mesuré', icon: HardDrive, mesure: '—', libelleMesure: 'Occupation', reel: false },
   ];
   const ok = !loading && api.statut === 'UP';
 

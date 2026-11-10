@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { superAdminService } from '@/services/superAdminService';
 import type { GlobalUser } from '@/types/superAdmin';
 import { CreateUserModal } from '../components/users/CreateUserModal';
@@ -21,8 +22,8 @@ export const SuperAdminUsersPage = () => {
     try {
       const data = await superAdminService.getGlobalUsers();
       setUsers(data);
-    } catch {
-      toast.error('Erreur lors du chargement des utilisateurs');
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -38,8 +39,9 @@ export const SuperAdminUsersPage = () => {
       toast.success(`Accès révoqué pour ${userToDelete.name}`);
       setUserToDelete(null);
       fetchUsers();
-    } catch {
-      toast.error('Erreur lors de la suppression de l\'utilisateur');
+    } catch (err) {
+      // ex. « Vous ne pouvez pas supprimer le compte avec lequel vous êtes connecté. »
+      toast.error(resolveErrorMessage(err));
     } finally {
       setIsDeleting(false);
     }

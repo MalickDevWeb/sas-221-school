@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { usePlatformStore } from '@/features/super-admin/store/usePlatformStore';
 import { motion } from 'motion/react';
 import { Activity, Users, TrendingUp, BookOpen, BarChart3, LineChart, Sparkles } from 'lucide-react';
 
+/**
+ * Analytiques de la plateforme. Avant (jusqu'au 2026-11-10) : « +12,5 % de trafic », « 3 402 inscrits »,
+ * « 89 % de rétention », « 1 204 contenus » inventés. Désormais : comptages réels des établissements ;
+ * les indicateurs sans source (trafic, rétention, historique) sont affichés « — ».
+ */
 export const SuperAdminAnalyticsPage = () => {
+  const { tenants, fetchTenants } = usePlatformStore();
+  useEffect(() => { fetchTenants().catch(() => undefined); }, [fetchTenants]);
+  const actifs = tenants.filter(t => t.status === 'ACTIVE').length;
+  const enAttente = tenants.filter(t => t.status === 'PENDING').length;
+  const suspendus = tenants.filter(t => t.status === 'SUSPENDED').length;
   const stats = [
-    { label: "Trafic global", value: "+12.5%", icon: Activity, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-    { label: "Nouveaux inscrits", value: "3,402", icon: Users, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
-    { label: "Taux de rétention", value: "89%", icon: TrendingUp, color: "text-indigo-400", bg: "bg-indigo-500/10 border-indigo-500/20" },
-    { label: "Contenus pédagogiques", value: "1,204", icon: BookOpen, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    { label: "Établissements actifs", value: String(actifs), icon: Activity, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    { label: "En attente de validation", value: String(enAttente), icon: Users, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
+    { label: "Suspendus", value: String(suspendus), icon: TrendingUp, color: "text-indigo-400", bg: "bg-indigo-500/10 border-indigo-500/20" },
+    { label: "Trafic / rétention", value: "—", icon: BookOpen, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
   ];
 
   return (
@@ -46,14 +57,14 @@ export const SuperAdminAnalyticsPage = () => {
             <LineChart className="w-7 h-7" />
           </div>
           <p className="text-sm font-bold text-white">Courbe d'évolution des inscriptions</p>
-          <p className="text-xs text-slate-400 mt-1 max-w-xs">Données synchronisées avec les bases de données des campus en temps réel.</p>
+          <p className="text-xs text-slate-400 mt-1 max-w-xs">Non disponible : l'historique des inscriptions n'est pas encore enregistré côté serveur.</p>
         </div>
         <div className="bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl p-6 rounded-2xl min-h-[300px] flex flex-col items-center justify-center text-center shadow-xl">
           <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-3 text-cyan-400">
             <BarChart3 className="w-7 h-7" />
           </div>
           <p className="text-sm font-bold text-white">Répartition des flux par établissement</p>
-          <p className="text-xs text-slate-400 mt-1 max-w-xs">Comparatif d'utilisation et ratios de présence par niveau académique.</p>
+          <p className="text-xs text-slate-400 mt-1 max-w-xs">Non disponible : aucune mesure d'utilisation par établissement n'est collectée.</p>
         </div>
       </div>
     </div>

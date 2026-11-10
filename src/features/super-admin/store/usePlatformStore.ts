@@ -12,7 +12,7 @@ interface PlatformState {
   error: string | null;
 
   fetchTenants: (status?: string) => Promise<void>;
-  createTenant: (data: CreateTenantCommand) => Promise<void>;
+  createTenant: (data: CreateTenantCommand) => Promise<Tenant>;
   updateTenant: (id: string, data: Partial<CreateTenantCommand>) => Promise<void>;
   deleteTenant: (id: string) => Promise<void>;
   approveTenant: (id: string) => Promise<void>;
@@ -57,7 +57,7 @@ export const usePlatformStore = create<PlatformState>((set, get) => ({
   createTenant: async (data) => {
     const { data: created } = await apiClient.post<Tenant>(BASE, data);
     await get().fetchTenants();
-    return created as any;
+    return created;
   },
 
   // ── UPDATE ─────────────────────────────────────────────────────────────

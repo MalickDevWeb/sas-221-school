@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Crown, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import type { PlanDto, CreatePlanCommand, Entitlement } from '@/features/super-admin/domain/models/PlatformModels';
@@ -30,8 +31,8 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
       onCreated(data);
       onClose();
     },
-    onError: () => {
-      toast.error('Erreur lors de la création du plan.');
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
     },
   });
 
