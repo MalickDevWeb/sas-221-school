@@ -21,7 +21,7 @@ export function useProfessorGradeForm(professor: ProfessorWithGrades, triggerToa
       setEditingGradeStudentId(null);
       triggerToast('Note enregistrée avec succès !');
     } catch (err) {
-      triggerToast('Erreur lors de la mise à jour');
+      // le message réel (ex. « Note "cc" hors de l'intervalle 0–20 ») est déjà affiché par handleUpdateGrade
       throw err;
     }
   }, [editCC, editExam, professor, triggerToast]);

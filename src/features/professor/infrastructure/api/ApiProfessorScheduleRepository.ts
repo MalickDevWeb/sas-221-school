@@ -11,10 +11,13 @@ import type {
 
 function mapStudentList(list: any[]): StudentEnrolled[] {
   return list.map((s: any) => {
-    let prenom = s.prenom || '';
-    let nom = s.nom || '';
-    if (!prenom && !nom && s.name) {
-      const parts = s.name.trim().split(/\s+/);
+    // le serveur envoie firstName / lastName / fullName (avant : seuls prenom / nom / name étaient lus →
+    // élèves affichés SANS NOM dans l'appel et les notes — test navigateur du 2026-11-10)
+    let prenom = s.prenom || s.firstName || '';
+    let nom = s.nom || s.lastName || '';
+    const complet = s.name || s.fullName;
+    if (!prenom && !nom && complet) {
+      const parts = complet.trim().split(/\s+/);
       prenom = parts[0] || '';
       nom = parts.slice(1).join(' ') || '';
     }
