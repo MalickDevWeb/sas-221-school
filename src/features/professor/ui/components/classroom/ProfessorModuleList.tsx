@@ -13,20 +13,9 @@ export function ProfessorModuleList({ modules, students, onSelectModule }: Props
   const [localModules, setLocalModules] = useState<any[]>([]);
   const [selectedModule, setSelectedModule] = useState<any | null>(null);
 
+  // modules RÉELS du serveur (avant : une ancienne copie du navigateur « p_modules » les remplaçait)
   const syncModules = React.useCallback(() => {
-    const stored = localStorage.getItem('p_modules');
-    if (stored) {
-      const all: any[] = JSON.parse(stored);
-      // Filter modules for this course
-      const currentCourseId = modules[0]?.courseId;
-      if (currentCourseId) {
-        setLocalModules(all.filter((m) => m.courseId === currentCourseId));
-      } else {
-        setLocalModules([...modules]);
-      }
-    } else {
-      setLocalModules([...modules]);
-    }
+    setLocalModules([...modules]);
   }, [modules]);
 
   useEffect(() => {
