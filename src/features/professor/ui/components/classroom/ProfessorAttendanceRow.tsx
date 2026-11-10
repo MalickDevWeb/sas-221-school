@@ -4,7 +4,8 @@ import type { AttendanceStatus } from '../../../domain/ProfessorAttendance';
 
 interface RowProps {
   readonly student: StudentEnrolled;
-  readonly status: AttendanceStatus;
+  /** undefined = pas encore noté pour cette séance */
+  readonly status?: AttendanceStatus;
   readonly onMark: (studentId: string, status: AttendanceStatus) => void;
 }
 
@@ -13,7 +14,10 @@ export function ProfessorAttendanceRow({ student, status, onMark }: RowProps) {
   const nomChar = student && student.nom ? student.nom.charAt(0) : '';
   const initials = `${prenomChar}${nomChar}`.toUpperCase() || 'ST';
 
-  const getStatusColor = (current: AttendanceStatus) => {
+  const getStatusColor = (current?: AttendanceStatus) => {
+    if (!current) return {
+      bg: 'bg-neutral-100', border: 'border-neutral-200', text: 'text-neutral-500', indicator: 'bg-neutral-400'
+    };
     if (current === 'present') return {
       bg: 'bg-[#E6F4EA]', border: 'border-[#CEEAD6]', text: 'text-[#137333]', indicator: 'bg-[#137333]'
     };
@@ -40,7 +44,7 @@ export function ProfessorAttendanceRow({ student, status, onMark }: RowProps) {
             <span>{student.prenom} {student.nom}</span>
             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${currentColors.bg} ${currentColors.text} border ${currentColors.border}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${currentColors.indicator}`} />
-              {status === 'present' ? 'Présent' : status === 'retard' ? 'Retard' : 'Absent'}
+              {status === 'present' ? 'Présent' : status === 'retard' ? 'Retard' : status === 'absent' ? 'Absent' : 'Non noté'}
             </span>
           </h4>
           <p className="text-[10.5px] text-neutral-400 font-bold mt-1 font-mono truncate">

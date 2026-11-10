@@ -1,11 +1,14 @@
 import { useState, useCallback, useEffect, FormEvent } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import type { AttendanceByStudent, AttendanceStatus } from '../domain/ProfessorAttendance';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface ProfessorWithClassroom {
   selectedCourseId: string;
-  handleCreateReminder: (content: string, isUrgent: boolean) => Promise<any>;
-  handleCreateLesson: (title: string, description: string, attachmentName?: string, attachmentUrl?: string, moduleId?: string) => Promise<any>;
-  handleCreateModule: (title: string, description: string) => Promise<any>;
+  handleCreateReminder: (content: string, isUrgent: boolean) => Promise<unknown>;
+  handleCreateLesson: (title: string, description: string, attachmentName?: string, attachmentUrl?: string, moduleId?: string) => Promise<unknown>;
+  handleCreateModule: (title: string, description: string) => Promise<unknown>;
 }
 
 export function useProfessorClassroomFormState(professor: ProfessorWithClassroom, triggerToast: (msg: string) => void) {
@@ -26,10 +29,28 @@ export function useProfessorClassroomFormState(professor: ProfessorWithClassroom
     setAttendance({});
   }, [professor.selectedCourseId]);
 
-  const handleMarkAttendance = useCallback((studentId: string, status: AttendanceStatus) => {
-    setAttendance((prev) => ({ ...prev, [studentId]: status }));
-    triggerToast('Présence mise à jour');
-  }, [triggerToast]);
+  const submitAttendanceMutation = useMutation({
+    mutationFn: async (payload: { date: string; courseId: string; studentId: string; status: string }[]) => {
+      await apiClient.post('/prof/attendance/submit', payload);
+    }
+  });
+
+  // Avant (jusqu'au 2026-11-10) : changement LOCAL seulement + « Présence mise à jour » → aucun appel n'était
+  // jamais enregistré. Désormais : enregistré sur le serveur (date du jour), affiché seulement après succès.
+  const handleMarkAttendance = useCallback(async (studentId: string, status: AttendanceStatus) => {
+    const courseId = professor.selectedCourseId;
+    if (!courseId) return;
+    const statut = status === 'present' ? 'PRESENT' : status === 'retard' ? 'RETARD' : 'ABSENT';
+    const aujourdhui = new Date();
+    const date = `${aujourdhui.getFullYear()}-${String(aujourdhui.getMonth() + 1).padStart(2, '0')}-${String(aujourdhui.getDate()).padStart(2, '0')}`;
+    try {
+      await submitAttendanceMutation.mutateAsync([{ date, courseId, studentId, status: statut }]);
+      setAttendance((prev) => ({ ...prev, [studentId]: status }));
+      triggerToast('Présence enregistrée');
+    } catch (err) {
+      triggerToast(resolveErrorMessage(err));
+    }
+  }, [professor.selectedCourseId, submitAttendanceMutation, triggerToast]);
 
   const handleReminderSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();

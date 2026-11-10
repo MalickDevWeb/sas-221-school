@@ -77,7 +77,7 @@ export function ProfessorTimelineView({
                    </div>
                    <div className="flex-1 flex flex-col justify-between">
                      <div>
-                       <h4 className="font-extrabold text-xs leading-snug text-[#291715]">{session.classe || 'L3-GL'}</h4>
+                       <h4 className="font-extrabold text-xs leading-snug text-[#291715]">{session.classe || '—'}</h4>
                        <p className="text-[10px] text-neutral-500 font-bold mb-1.5">{session.courseTitle}</p>
                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${session.status === 'annule' ? 'bg-red-100 text-primary' : activeSession ? 'bg-primary text-white animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>{session.status === 'annule' ? 'Annulé' : activeSession ? 'En Direct' : 'Confirmé'}</span>
                      </div>

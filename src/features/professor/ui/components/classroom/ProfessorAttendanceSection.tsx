@@ -20,8 +20,9 @@ export function ProfessorAttendanceSection({ students, attendance, onMarkAttenda
   const stats = useMemo(() => {
     let p = 0, r = 0, a = 0;
     students.forEach((s) => {
-      const st = attendance[s.id] ?? 'absent';
-      if (st === 'present') p++; else if (st === 'retard') r++; else a++;
+      // élève pas encore noté : ni présent ni absent (avant : compté « absent » d'office, taux 0 %)
+      const st = attendance[s.id];
+      if (st === 'present') p++; else if (st === 'retard') r++; else if (st === 'absent') a++;
     });
     return { total: students.length, present: p, retard: r, absent: a };
   }, [students, attendance]);
@@ -33,7 +34,7 @@ export function ProfessorAttendanceSection({ students, attendance, onMarkAttenda
       const matricule = s.matricule || '';
       const query = (searchQuery || "").toLowerCase();
       const match = `${prenom} ${nom}`.toLowerCase().includes(query) || matricule.toLowerCase().includes(query);
-      const status = attendance[s.id] ?? 'absent';
+      const status = attendance[s.id];
       return match && (activeFilter === 'all' || status === activeFilter);
     });
   }, [students, attendance, searchQuery, activeFilter]);
@@ -97,7 +98,7 @@ export function ProfessorAttendanceSection({ students, attendance, onMarkAttenda
             </div>
           ) : (
             filteredStudents.map((s) => (
-              <ProfessorAttendanceRow key={s.id} student={s} status={attendance[s.id] ?? 'absent'} onMark={onMarkAttendance} />
+              <ProfessorAttendanceRow key={s.id} student={s} status={attendance[s.id]} onMark={onMarkAttendance} />
             ))
           )}
         </div>

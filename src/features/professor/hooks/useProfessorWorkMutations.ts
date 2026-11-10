@@ -14,7 +14,9 @@ export function useProfessorWorkMutations(
     if (!selectedCourseId) return;
     try {
       const updated = await updateGradeUseCase(selectedCourseId, studentId, cc, examen);
-      setGrades(prev => prev.map(g => g.studentId === studentId ? updated : g));
+      setGrades(prev => prev.some(g => g.studentId === studentId)
+        ? prev.map(g => g.studentId === studentId ? updated : g)
+        : [...prev, updated]);
       toast.success('Note enregistrée avec succès');
       return updated;
     } catch (err) {

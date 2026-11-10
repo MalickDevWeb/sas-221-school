@@ -12,7 +12,7 @@ interface Props {
   readonly courses: readonly ProfessorCourse[];
   readonly homeworksCount: number;
   readonly validatedGrades: number;
-  readonly classAvg: number;
+  readonly classAvg: number | null;
   readonly schedule: readonly ProfessorSchedule[];
   readonly students: readonly StudentEnrolled[];
   readonly onMarkAttendance: (studentId: string, status: AttendanceStatus) => void;
@@ -60,7 +60,7 @@ export function ProfessorDashboardView({
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Performance moyenne</span>
           </div>
-          <p className="mt-5 text-3xl font-black text-neutral-800">{classAvg} <span className="text-sm font-semibold text-neutral-400">/ 20</span></p>
+          <p className="mt-5 text-3xl font-black text-neutral-800">{classAvg ?? '—'} <span className="text-sm font-semibold text-neutral-400">/ 20</span></p>
           <p className="mt-2.5 text-xs text-neutral-400 font-bold">Moyenne générale de vos classes</p>
         </div>
 
@@ -80,10 +80,11 @@ export function ProfessorDashboardView({
             <div className="p-2 bg-primary-light rounded-xl border border-primary/10">
               <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Workflow</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Séances à venir</span>
           </div>
-          <p className="mt-5 text-3xl font-black text-neutral-800">{courses.length * 3}</p>
-          <p className="mt-2.5 text-xs text-neutral-400 font-bold">Actions pédagogiques à mener</p>
+          {/* avant : « nombre de cours × 3 » présenté comme des actions à mener */}
+          <p className="mt-5 text-3xl font-black text-neutral-800">{schedule.filter(s => s.status === 'a_venir').length}</p>
+          <p className="mt-2.5 text-xs text-neutral-400 font-bold">Séances planifiées non annulées</p>
         </div>
       </div>
 

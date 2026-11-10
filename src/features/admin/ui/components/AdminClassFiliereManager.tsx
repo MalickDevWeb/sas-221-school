@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import type { AdminPromotion, AdminProfessor } from '../../domain/AdminModels';
 import { apiClient } from '@/shared/lib/apiClient';
 import { toast } from 'sonner';
@@ -23,36 +24,48 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
   const [heures, setHeures] = useState('');
   const [profId, setProfId] = useState('');
   const [promoId, setPromoId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const createPromoMutation = useMutation({
+    mutationFn: async (payload: { name: string; filiere: string; level: string; capacity: string }) => {
+      const { data } = await apiClient.post('/admin/promotions', payload);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Classe ${variables.name} créée.`);
+      setPromoName(''); setFiliere(''); setNiveau(''); setCapacite('');
+      onCreated();
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    }
+  });
+
+  const createCourseMutation = useMutation({
+    mutationFn: async (payload: Record<string, string>) => {
+      const { data } = await apiClient.post('/admin/courses', payload);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Matière ${variables.titre} créée.`);
+      setCourseTitre(''); setHeures('');
+      onCreated();
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    }
+  });
+
+  const loading = createPromoMutation.isPending || createCourseMutation.isPending;
 
   const handleCreatePromo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!promoName || !filiere || !niveau || !capacite) return;   // champs « required » : messages personnalisés affichés
-    setLoading(true);
-    try {
-      await apiClient.post('/admin/promotions', { name: promoName.trim(), filiere: filiere.trim(), level: niveau, capacity: capacite });
-      toast.success(`Classe ${promoName.trim()} créée.`);
-      setPromoName(''); setFiliere(''); setNiveau(''); setCapacite('');
-      onCreated();
-    } catch (err) {
-      toast.error(resolveErrorMessage(err));
-    } finally { setLoading(false); }
+    createPromoMutation.mutate({ name: promoName.trim(), filiere: filiere.trim(), level: niveau, capacity: capacite });
   };
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!courseTitre || !promoId || !profId) return;   // classe et enseignant obligatoires (plus de choix implicite)
-    setLoading(true);
-    try {
-      const corps: Record<string, string> = { titre: courseTitre.trim(), professeur_id: profId, promotion_id: promoId };
-      if (heures) corps.volumeHoraire = heures;
-      await apiClient.post('/admin/courses', corps);
-      toast.success(`Matière ${courseTitre.trim()} créée.`);
-      setCourseTitre(''); setHeures('');
-      onCreated();
-    } catch (err) {
-      toast.error(resolveErrorMessage(err));
-    } finally { setLoading(false); }
+    if (!courseTitre || !promoId || !profId || !heures) return;   // classe et enseignant obligatoires (plus de choix implicite)
+    createCourseMutation.mutate({ titre: courseTitre.trim(), professeur_id: profId, promotion_id: promoId, volumeHoraire: heures });
   };
 
   return (
@@ -89,7 +102,7 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
               <option value="">-- Enseignant --</option>
               {professors.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <input value={heures} type="number" onChange={e => setHeures(e.target.value)} placeholder="Heures" title="Volume horaire (facultatif)" className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-2" min="1" max="500" />
+            <input value={heures} type="number" onChange={e => setHeures(e.target.value)} placeholder="Heures" title="Volume horaire (obligatoire)" className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-2" min="1" max="500" required data-msg-requis="Indiquez le volume horaire." />
           </div>
         </div>
         <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg tracking-wider text-[10px]">Ajouter la Matière</button>

@@ -9,7 +9,7 @@ interface Props {
 
 export function StudentCard({ grade, onClick }: Props) {
   const finalGrade = grade.finalGrade;
-  const isPass = finalGrade >= 10;
+  const isPass = finalGrade !== null && finalGrade >= 10;
   const initials = grade.studentNom
     .split(' ')
     .slice(0, 2)
@@ -50,7 +50,7 @@ export function StudentCard({ grade, onClick }: Props) {
           <span className="text-neutral-200">|</span>
           <div className="text-center min-w-8">
             <span className="block text-[8px] font-black uppercase text-brand-red-deep">Note</span>
-            <span className="text-xs font-black text-brand-red-deep">{finalGrade}</span>
+            <span className="text-xs font-black text-brand-red-deep">{finalGrade ?? "Non noté"}</span>
           </div>
         </div>
 
