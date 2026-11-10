@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { Campaign } from './admissionsDb';
 import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
 import { useCandidateApplicationState } from './useCandidateApplicationState';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Props) {
+  const ecoleContact = useTenantStore((st) => st.currentTenant);   // coordonnées réelles de l'école
   const [createdCandidate, setCreatedCandidate] = useState<ExtendedCandidate | null>(null);
 
   const state = useCandidateApplicationState(campaign, (candidate) => {
@@ -92,10 +94,12 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
             </div>
           </div>
 
-          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3 text-amber-900 text-[11px] font-medium">
-            <span translate="no" className="material-symbols-outlined text-amber-700 text-lg">support_agent</span>
-            <div>Assistance inscriptions : <strong>+221 33 800 00 00</strong></div>
-          </div>
+          {(ecoleContact?.phone || ecoleContact?.email) && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3 text-amber-900 text-[11px] font-medium">
+              <span translate="no" className="material-symbols-outlined text-amber-700 text-lg">support_agent</span>
+              <div>Assistance inscriptions : <strong>{ecoleContact.phone || ecoleContact.email}</strong></div>
+            </div>
+          )}
         </div>
 
         {/* Right Dynamic Form Container */}

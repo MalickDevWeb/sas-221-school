@@ -21,12 +21,14 @@ export interface CandidatureSettings {
 }
 
 export function useCandidatureSettings() {
+  // Avant la réponse du serveur (ou s'il est injoignable) : FERMÉ et sans date — jamais de campagne
+  // « ouverte » ni de dates inventées (avant : ouvert, 01/06 → 30/09/2026, « campagne officielle active »).
   const [settings, setSettings] = useState<CandidatureSettings>({
-    ouvert: true,
-    dateOuverture: '2026-06-01',
-    dateFermeture: '2026-09-30',
-    messageAvis: 'La campagne d\'inscription officielle pour l\'année universitaire 2026/2027 est active.',
-    showRegisterButton: true
+    ouvert: false,
+    dateOuverture: '',
+    dateFermeture: '',
+    messageAvis: '',
+    showRegisterButton: false
   });
   const [loading, setLoading] = useState(true);
 

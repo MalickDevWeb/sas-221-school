@@ -1,5 +1,7 @@
 import React from 'react';
 import { EcoleLogo } from '../../components/EcoleLogo';
+import { useTenantStore } from '@/core/store/tenantStore';
+import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 
 interface Props {
   schoolDisplayName: string;
@@ -7,6 +9,7 @@ interface Props {
 }
 
 export function CandidatureNavbar({ schoolDisplayName, onBack }: Props) {
+  const telephoneEcole = useTenantStore((s) => s.currentTenant?.phone) || null;
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 px-4 sm:px-8 py-3.5 shadow-2xs">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
@@ -17,19 +20,22 @@ export function CandidatureNavbar({ schoolDisplayName, onBack }: Props) {
               Portail Officiel des Admissions
             </span>
             <span className="text-xs font-black text-neutral-800 tracking-tight">
-              {schoolDisplayName} · Session 2026/2027
+              {schoolDisplayName} · Session {anneeAcademique().replace('-', '/')}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href="tel:+221338000000"
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-700 text-[11px] font-bold transition-all"
-          >
-            <span translate="no" className="material-symbols-outlined text-emerald-600 text-sm">call</span>
-            <span>+221 33 800 00 00</span>
-          </a>
+          {/* téléphone RÉEL de l'école (avant : « +221 33 800 00 00 » pour toutes) ; masqué s'il n'est pas renseigné */}
+          {telephoneEcole && (
+            <a
+              href={`tel:${telephoneEcole.replace(/\s+/g, '')}`}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-700 text-[11px] font-bold transition-all"
+            >
+              <span translate="no" className="material-symbols-outlined text-emerald-600 text-sm">call</span>
+              <span>{telephoneEcole}</span>
+            </a>
+          )}
 
           <button
             onClick={onBack}

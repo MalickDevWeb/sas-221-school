@@ -43,14 +43,11 @@ export function CandidaturePage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="font-black text-neutral-800 uppercase tracking-tight">{schoolDisplayName}</span>
-            <span>· Établissement d'Enseignement Supérieur Agréé</span>
+
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-[11px] font-bold text-neutral-600">
-            <span>Diplômes Reconnus CAMES</span>
-            <span>·</span>
-            <span>Accréditation ANAQ-Sup</span>
-            <span>·</span>
-            <span>Conforme CDP Sénégal</span>
+            {/* avant : « Diplômes reconnus CAMES · Accréditation ANAQ-Sup · Conforme CDP » affirmés pour toute école */}
+            <span>Portail officiel des admissions</span>
           </div>
           <div className="text-[11px] text-neutral-400">
             © {new Date().getFullYear()} {schoolDisplayName}. Tous droits réservés.

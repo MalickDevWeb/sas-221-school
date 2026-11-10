@@ -16,6 +16,10 @@ interface TenantInfo {
   name: string;
   slug: string;
   branding: TenantBranding;
+  /** Coordonnées réelles saisies à l'inscription (null si absentes — jamais inventées). */
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
 }
 
 interface TenantState {
@@ -137,6 +141,9 @@ export const useTenantStore = create<TenantState>()(
             id: data.id || 'tenant-' + slug,
             name: data.name || slug,
             slug: data.slug || slug,
+            phone: data.phone ?? null,
+            email: data.email ?? null,
+            city: data.city ?? null,
             branding: {
               primaryColor,
               palette,
