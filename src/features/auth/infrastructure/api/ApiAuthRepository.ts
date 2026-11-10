@@ -2,6 +2,7 @@ import type { AuthRepository } from '../../domain/port/AuthRepository';
 import type { Utilisateur } from '../../domain/model/Utilisateur';
 import { IdentifiantsInvalidesError } from '../../domain/exception/AuthExceptions';
 import type { AxiosInstance } from 'axios';
+import { memoriserHorsLigne, verifierHorsLigne } from '../local/identifiantsHorsLigne';
 
 export class ApiAuthRepository implements AuthRepository {
   private readonly http: AxiosInstance;
@@ -11,25 +12,9 @@ export class ApiAuthRepository implements AuthRepository {
   }
 
   async login(email: string, motDePasse: string): Promise<{ utilisateur: Utilisateur; token: string }> {
-    const checkOfflineCache = () => {
-      try {
-        const offlineUsers = JSON.parse(localStorage.getItem('ecole-221-offline-users') || '{}');
-        const cachedUser = offlineUsers[email.toLowerCase().trim()];
-        if (cachedUser && cachedUser.passwordHash === btoa(motDePasse)) {
-          return {
-            utilisateur: cachedUser.utilisateur,
-            token: cachedUser.token,
-          };
-        }
-      } catch (err) {
-        console.warn('Erreur lors de la lecture du cache hors-ligne :', err);
-      }
-      return null;
-    };
-
     // Si on sait qu'on est hors-ligne
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      const cached = checkOfflineCache();
+      const cached = await verifierHorsLigne(email, motDePasse);
       if (cached) return cached;
       throw new Error("Vous êtes hors-ligne et ces identifiants n'ont pas été enregistrés sur cet appareil.");
     }
@@ -52,18 +37,9 @@ export class ApiAuthRepository implements AuthRepository {
         token: data.token,
       };
 
-      // Enregistrer pour l'accès hors-ligne futur
-      try {
-        const offlineUsers = JSON.parse(localStorage.getItem('ecole-221-offline-users') || '{}');
-        offlineUsers[email.toLowerCase().trim()] = {
-          utilisateur: result.utilisateur,
-          token: result.token,
-          passwordHash: btoa(motDePasse), // Encodage de base pour comparaison locale
-        };
-        localStorage.setItem('ecole-221-offline-users', JSON.stringify(offlineUsers));
-      } catch (err) {
-        console.warn("Impossible d'enregistrer les identifiants pour le mode hors-ligne :", err);
-      }
+      // Accès hors-ligne futur : empreinte PBKDF2 seulement. Attendue (quelques centaines de ms) : un
+      // rechargement juste après la connexion (changement du mot de passe provisoire) l'interrompait.
+      await memoriserHorsLigne(email, motDePasse, result.utilisateur, result.token);
 
       return result;
     } catch (error) {
@@ -74,7 +50,7 @@ export class ApiAuthRepository implements AuthRepository {
                              axiosError.message?.includes('Network Error');
 
       if (isNetworkError) {
-        const cached = checkOfflineCache();
+        const cached = await verifierHorsLigne(email, motDePasse);
         if (cached) return cached;
       }
 
