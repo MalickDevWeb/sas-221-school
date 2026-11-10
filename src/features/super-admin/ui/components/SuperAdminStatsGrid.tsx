@@ -5,9 +5,17 @@ import { Tenant } from '@/features/super-admin/domain/models/PlatformModels';
 
 interface SuperAdminStatsGridProps {
   tenants: Tenant[];
+  /** Nombre réel de comptes de la plateforme (GET /v1/super-admin/users) ; null = non chargé. */
+  comptes?: number | null;
+  /** Revenu mensuel réel : somme des prix mensuels des abonnements ACTIFS ; null = non chargé. */
+  revenuMensuel?: number | null;
 }
 
-export const SuperAdminStatsGrid: React.FC<SuperAdminStatsGridProps> = ({ tenants }) => {
+/**
+ * Avant (jusqu'au 2026-11-10) : « comptes = écoles × 15 », « flux mensuel = écoles × 49 000 F »,
+ * « disponibilité 99,9 % » codés en dur. Désormais : uniquement des valeurs réelles, « — » sinon.
+ */
+export const SuperAdminStatsGrid: React.FC<SuperAdminStatsGridProps> = ({ tenants, comptes = null, revenuMensuel = null }) => {
   const totalTenants = tenants.length;
   const activeTenants = tenants.filter(t => t.status === 'ACTIVE').length;
   const pendingTenants = tenants.filter(t => t.status === 'PENDING').length;
@@ -22,25 +30,25 @@ export const SuperAdminStatsGrid: React.FC<SuperAdminStatsGridProps> = ({ tenant
       badgeColor: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
     },
     {
-      label: 'Comptes Administrateurs',
-      value: totalTenants > 0 ? `${totalTenants * 15}+` : '0',
-      sublabel: 'Gestionnaires & Directeurs',
+      label: 'Comptes Plateforme',
+      value: comptes === null ? '—' : comptes,
+      sublabel: 'Super-admins, admins plateforme et d\'écoles',
       icon: <Users className="w-5 h-5 text-cyan-400" />,
       glowColor: 'rgba(6, 182, 212, 0.25)',
       badgeColor: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
     },
     {
-      label: 'Flux Mensuel SaaS',
-      value: `${(totalTenants * 49000).toLocaleString('fr-FR')} F`,
-      sublabel: 'Licences & Abonnements récurrents',
+      label: 'Revenu Mensuel (abonnements)',
+      value: revenuMensuel === null ? '—' : `${revenuMensuel.toLocaleString('fr-FR')} F`,
+      sublabel: 'Somme des abonnements actifs',
       icon: <CreditCard className="w-5 h-5 text-emerald-400" />,
       glowColor: 'rgba(16, 185, 129, 0.25)',
       badgeColor: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
     },
     {
       label: 'Disponibilité Plateforme',
-      value: '99.9%',
-      sublabel: 'Neon DB & API opérationnelles',
+      value: '—',
+      sublabel: 'Non mesurée — voir Système & Santé',
       icon: <Activity className="w-5 h-5 text-purple-400" />,
       glowColor: 'rgba(168, 85, 247, 0.25)',
       badgeColor: 'bg-purple-500/15 text-purple-300 border-purple-500/30',

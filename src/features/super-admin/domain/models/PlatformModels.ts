@@ -14,6 +14,8 @@ export interface Tenant {
   createdAt: string;
   slug?: string | null;
   contactEmail?: string | null;
+  /** Mot de passe provisoire de l'administrateur, présent UNIQUEMENT dans la réponse de création. */
+  motDePasseProvisoireAdmin?: string | null;
   // Champs locaux supplémentaires (UI uniquement)
   usersCount?: number;
 }

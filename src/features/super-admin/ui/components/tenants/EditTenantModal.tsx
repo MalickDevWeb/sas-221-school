@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Save, Palette, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { superAdminService } from '@/services/superAdminService';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { useAuthStore } from '@/core/store/authStore';
@@ -28,8 +29,8 @@ export const EditTenantModal: React.FC<Props> = ({ tenant, onClose, onUpdated })
       await superAdminService.updateTenant(tenant.id, form);
       toast.success(`Établissement "${form.name}" mis à jour avec succès !`);
       onUpdated(); onClose();
-    } catch {
-      toast.error('Erreur lors de la mise à jour de l\'établissement');
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
     } finally { setIsSaving(false); }
   };
 

@@ -113,14 +113,10 @@ export const SuperAdminLoginPage = () => {
         </div>
         
         <div className="mt-8 text-center">
+          {/* Avant : identifiants du super-admin affichés en clair sur la page de connexion (« Test : … / SuperAdmin@221! »). */}
           <p className="text-xs text-slate-500 mb-2">
-            Protected by advanced encryption. Unauthorized access is strictly prohibited.
+            Accès réservé aux administrateurs de la plateforme. Toute tentative d'accès non autorisé est journalisée.
           </p>
-          <div className="inline-block bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 font-mono">
-              Test: <strong>superadmin@ecole221.sn</strong> / <strong>SuperAdmin@221!</strong>
-            </p>
-          </div>
         </div>
       </div>
     </div>

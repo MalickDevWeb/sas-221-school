@@ -72,7 +72,7 @@ export const TenantsTable: React.FC<TenantsTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-300">{org.city || 'Sénégal'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/[0.04] text-slate-300 border border-white/10">
-                    {org.usersCount ? org.usersCount.toLocaleString() : '500+'}
+                    {org.usersCount != null ? org.usersCount.toLocaleString('fr-FR') : '—'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

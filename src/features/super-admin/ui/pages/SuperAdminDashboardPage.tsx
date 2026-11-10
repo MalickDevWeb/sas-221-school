@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { apiClient } from '@/shared/lib/apiClient';
 import { motion } from 'motion/react';
 import { Sparkles, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -9,11 +10,25 @@ import { SuperAdminPlatformPulse } from '../components/SuperAdminPlatformPulse';
 
 export const SuperAdminDashboardPage: React.FC = () => {
   const { tenants, isLoadingTenants, fetchTenants } = usePlatformStore();
+  const [comptes, setComptes] = useState<number | null>(null);
+  const [revenuMensuel, setRevenuMensuel] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTenants().catch(err => {
       console.warn("Impossible de récupérer les données :", err.message);
     });
+    // chiffres RÉELS (comptes, revenu des abonnements actifs) ; « — » si indisponibles
+    apiClient.get<unknown[]>('/v1/super-admin/users')
+      .then(r => setComptes(Array.isArray(r.data) ? r.data.length : null)).catch(() => setComptes(null));
+    Promise.all([
+      apiClient.get<{ id: string; priceMonthly?: number }[]>('/v1/super-admin/plans'),
+      apiClient.get<{ planId: string; status?: string }[]>('/v1/super-admin/subscriptions'),
+    ]).then(([p, s]) => {
+      const plans = Array.isArray(p.data) ? p.data : [];
+      const abonnements = Array.isArray(s.data) ? s.data : [];
+      setRevenuMensuel(abonnements.filter(a => a.status === 'ACTIVE')
+        .reduce((total, a) => total + Number(plans.find(x => x.id === a.planId)?.priceMonthly || 0), 0));
+    }).catch(() => setRevenuMensuel(null));
   }, [fetchTenants]);
 
   return (
@@ -72,7 +87,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
       </div>
 
       {/* 4 Stats Cards */}
-      <SuperAdminStatsGrid tenants={tenants} />
+      <SuperAdminStatsGrid tenants={tenants} comptes={comptes} revenuMensuel={revenuMensuel} />
 
       {/* Main Grid: Recent Schools Table + Platform Pulse Card */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

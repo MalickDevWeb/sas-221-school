@@ -99,7 +99,8 @@ export const SuperAdminLayout = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <div className="truncate">
               <p className="text-[11px] font-bold text-slate-200 truncate">{utilisateur?.nom || 'Super Admin'}</p>
-              <p className="text-[10px] text-slate-400 truncate">Opérationnel • Neon DB</p>
+              {/* avant : « Opérationnel • Neon DB » affiché sans aucune vérification */}
+              <p className="text-[10px] text-slate-400 truncate">{utilisateur?.email || 'Session super-admin'}</p>
             </div>
           </div>
 
