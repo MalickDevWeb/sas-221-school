@@ -17,10 +17,12 @@ interface Props {
   readonly onOpenSettings?: () => void; readonly onOpenSupport?: () => void;
   readonly triggerToast: (msg: string) => void; readonly onMoodSave?: () => void;
   readonly profileRef: React.RefObject<HTMLDivElement | null>;
+  /** Lien vers la page « Mon profil » de l'espace (facultatif). */
+  readonly profilPath?: string;
 }
 
 export function ProfileDropdown({
-  showProfile, setShowProfile, setShowNotifications, setShowCalendar, mood, tempMood, setTempMood, isEditingMood, setIsEditingMood, onOpenSettings, onOpenSupport, triggerToast, onMoodSave, profileRef
+  showProfile, setShowProfile, setShowNotifications, setShowCalendar, mood, tempMood, setTempMood, isEditingMood, setIsEditingMood, onOpenSettings, onOpenSupport, triggerToast, onMoodSave, profileRef, profilPath
 }: Props) {
   const navigate = useNavigate();
   const { utilisateur, deconnexion } = useAuthStore();
@@ -115,6 +117,11 @@ export function ProfileDropdown({
               </div>
             )}
             <ProfileDetails isProf={isProf} />
+            {profilPath && (
+              <button onClick={() => { setShowProfile(false); navigate(profilPath); }} className="w-full mb-2 py-2.5 bg-white hover:bg-brand-red-light/20 font-black text-xs text-[#1E293B] rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-neutral-gray-200">
+                <span translate="no" className="material-symbols-outlined text-base">account_circle</span>Mon profil
+              </button>
+            )}
             <button onClick={handleLogout} className="w-full py-2.5 bg-neutral-100 hover:bg-brand-red-light hover:text-brand-red-deep font-black text-xs text-secondary rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-neutral-200/50 hover:border-brand-red-deep/10">
               <LogOut className="h-3.5 w-3.5" />
               <span>Déconnexion</span>

@@ -81,6 +81,10 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
         </NavLink>
 
         <div className="pt-4 border-t border-neutral-gray-200">
+          <NavLink to={`${base}/profil`} className={({ isActive }) => `w-full flex flex-row items-center justify-start gap-3 px-3 py-2 font-label-md text-label-md rounded-lg cursor-pointer ${isActive ? 'bg-primary text-text-on-primary font-black' : 'text-secondary hover:bg-secondary-container/50'}`}>
+            <span translate="no" className="material-symbols-outlined text-[20px]">account_circle</span>
+            <span>Mon profil</span>
+          </NavLink>
           <button onClick={onOpenSettings} className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-secondary hover:bg-secondary-container/50 font-label-md text-label-md rounded-lg cursor-pointer">
             <span translate="no" className="material-symbols-outlined text-[20px]">settings</span>
             <span>Paramètres</span>
