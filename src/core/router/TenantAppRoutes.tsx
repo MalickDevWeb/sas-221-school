@@ -27,6 +27,7 @@ const CourseDetailPage = lazy(() => import('@/features/student').then(m => ({ de
 const StudentHomeworksPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentHomeworksPage })));
 const StudentSchedulePage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentSchedulePage })));
 const StudentGradesPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentGradesPage })));
+const StudentAbsencesPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentAbsencesPage })));
 const StudentTutorPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentTutorPage })));
 const CollaborationPage = lazy(() => import('@/features/collaboration/ui/pages/CollaborationPage').then(m => ({ default: m.CollaborationPage })));
 
@@ -74,6 +75,7 @@ export function renderTenantAppRoutes() {
           <Route path="etudiant/devoirs" element={<StudentHomeworksPage />} />
           <Route path="etudiant/planning" element={<StudentSchedulePage />} />
           <Route path="etudiant/notes" element={<StudentGradesPage />} />
+          <Route path="etudiant/absences" element={<StudentAbsencesPage />} />
           <Route path="etudiant/tuteur" element={<StudentTutorPage />} />
           <Route path="etudiant/collaboration" element={<CollaborationPage />} />
         </Route>
