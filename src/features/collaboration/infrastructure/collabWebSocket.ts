@@ -18,6 +18,12 @@ export class CollabWebSocket {
 
     this.client = new Client({
       webSocketFactory: () => new SockJS(this.wsUrl),
+      // APP-QA-02 : le serveur refuse toute connexion STOMP sans jeton valide (même jeton que l'API REST)
+      beforeConnect: (client) => {
+        let jeton: string | null = null;
+        try { jeton = localStorage.getItem('auth_token') || localStorage.getItem('access_token'); } catch { /* stockage indisponible */ }
+        client.connectHeaders = jeton ? { Authorization: `Bearer ${jeton}` } : {};
+      },
       reconnectDelay: 5000,
       debug: (str) => console.log('[STOMP]', str),
     });
