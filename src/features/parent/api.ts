@@ -10,6 +10,7 @@ import type {
   EnrollChildPayload,
   ParentApplication,
   ParentProfile,
+  ParentDestinataire,
 } from './types';
 
 // ─── Enfants liés au compte parent ──────────────────────────
@@ -57,8 +58,15 @@ export const parentApi = {
     return data;
   },
 
-  sendMessage: async (destinataireId: string, sujet: string, message: string): Promise<void> => {
-    await apiClient.post('/parent/messages', { destinataireId, sujet, message });
+  /** Message réellement enregistré ; renvoie le message tel que stocké. */
+  sendMessage: async (destinataireId: string, sujet: string, message: string): Promise<ParentMessage> => {
+    const { data } = await apiClient.post('/parent/messages', { destinataireId, sujet, message });
+    return data;
+  },
+
+  getDestinataires: async (): Promise<ParentDestinataire[]> => {
+    const { data } = await apiClient.get('/parent/messages/destinataires');
+    return Array.isArray(data) ? data : [];
   },
 
   markMessageRead: async (messageId: string): Promise<void> => {

@@ -11,6 +11,7 @@ export function ProfessorSidebarNav({ activeTab, onSelectTab }: NavProps) {
     { id: 'classroom', label: 'Salle de Classe', icon: 'co_present' },
     { id: 'schedule', label: 'Mon Emploi du Temps', icon: 'calendar_today' },
     { id: 'collaboration', label: 'Espace Collaboration', icon: 'groups' },
+    { id: 'messages-parents', label: 'Messages des parents', icon: 'mail' },
   ];
 
   return (

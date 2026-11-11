@@ -60,7 +60,10 @@ export function useChildDetails(enfantId: string | null) {
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, lu: true } : m)));
     try {
       await parentApi.markMessageRead(msgId);
-    } catch { /* silencieux */ }
+    } catch {
+      // non enregistré côté serveur : le message redevient « non lu » (pas de faux état)
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, lu: false } : m)));
+    }
   }, []);
 
   const retry = useCallback(() => {
@@ -85,6 +88,7 @@ export function useChildDetails(enfantId: string | null) {
     errors,
     retry,
     markRead,
+    refreshMessages: fetchMessages,
     unreadCount: messages.filter((m) => !m.lu).length,
   };
 }
