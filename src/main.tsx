@@ -8,6 +8,10 @@ import '@/shared/design/tokens.css'
 import '@/shared/design/validation.css'
 import { installerValidationPersonnalisee } from '@/shared/lib/validationPersonnalisee'
 import { purgerAncienFormat } from '@/features/auth/infrastructure/local/identifiantsHorsLigne'
+import { installerSurveillanceErreursDev } from '@/shared/lib/surveillanceErreursDev'
+
+// Bandeau des erreurs d'exécution : développement seulement (APP-SEC-07)
+installerSurveillanceErreursDev();
 
 // On s'assure de réappliquer le thème CSS depuis le localStorage (si l'utilisateur fait F5)
 useTenantStore.getState().rehydrateTheme();
