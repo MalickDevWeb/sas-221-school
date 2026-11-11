@@ -14,6 +14,8 @@ export const SuperAdminBillingPage = () => {
   const [showCreatePlan, setShowCreatePlan] = useState(false);
   const [showAssignPlan, setShowAssignPlan] = useState(false);
   const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions'>('plans');
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['superadmin', 'billing', 'all'],
@@ -40,7 +42,7 @@ export const SuperAdminBillingPage = () => {
     .filter(s => s.status === 'ACTIVE')
     .reduce((acc, s) => acc + (plans.find(p => p.id === s.planId)?.priceMonthly || 0), 0);
 
-  const expiringCount = subscriptions.filter(s => s.endDate && new Date(s.endDate) < new Date(Date.now() + 30 * 86400000)).length;
+  const expiringCount = subscriptions.filter(s => s.endDate && new Date(s.endDate) < new Date(maintenant + 30 * 86400000)).length;
 
   return (
     <div className="p-6 md:p-8 space-y-6">

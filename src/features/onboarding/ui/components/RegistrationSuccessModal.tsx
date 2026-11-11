@@ -29,11 +29,11 @@ export const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> =
     if (formData.adminEmail) {
       try {
         localStorage.setItem(`tenant_admin_${slugToAccess}`, formData.adminEmail);
-      } catch (e) {}
+      } catch { /* stockage indisponible : l'email sera simplement à ressaisir */ }
     }
     try {
       localStorage.setItem(`tenant_theme_${slugToAccess}`, JSON.stringify(branding));
-    } catch (e) {}
+    } catch { /* stockage indisponible : thème par défaut à la première connexion */ }
     useTenantStore.getState().applyTheme(branding);
     onClose();
     navigate(`/t/${slugToAccess}/login`);

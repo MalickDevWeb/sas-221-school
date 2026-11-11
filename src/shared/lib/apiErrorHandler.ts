@@ -52,7 +52,7 @@ function handleAuthRedirect(currentPath: string) {
       const parsed = JSON.parse(stored);
       tenantSlug = parsed?.state?.currentTenant?.slug || '';
     }
-  } catch {}
+  } catch { /* état persisté illisible : pas d'école pour la redirection */ }
 
   if (currentPath.startsWith('/super-admin')) {
     window.location.href = '/super-admin';

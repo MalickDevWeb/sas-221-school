@@ -56,7 +56,7 @@ export const useTenantStore = create<TenantState>()(
         try {
           localStorage.setItem('tenant_id', tenant.id);
           localStorage.setItem('tenant_slug', slug);
-        } catch {}
+        } catch { /* stockage indisponible (navigation privée, quota) : l'école reste résolue en mémoire */ }
 
         const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
         let branding: TenantBranding = isEcole221
@@ -71,7 +71,7 @@ export const useTenantStore = create<TenantState>()(
         try {
           const cached = localStorage.getItem(`tenant_theme_${slug}`);
           if (cached && !isEcole221) branding = JSON.parse(cached);
-        } catch {}
+        } catch { /* cache de thème illisible ou absent : thème par défaut */ }
 
         const tenantInfo: TenantInfo = {
           id: tenant.id,
@@ -98,7 +98,7 @@ export const useTenantStore = create<TenantState>()(
         get().applyTheme(newBranding);
         try {
           localStorage.setItem(`tenant_theme_${current.slug}`, JSON.stringify(newBranding));
-        } catch {}
+        } catch { /* stockage indisponible : le thème est appliqué sans être mis en cache */ }
       },
 
       resolveTenant: async (slug: string) => {
@@ -115,7 +115,7 @@ export const useTenantStore = create<TenantState>()(
           if (cached) {
             localCachedBranding = JSON.parse(cached);
           }
-        } catch {}
+        } catch { /* cache de thème illisible : ignoré */ }
 
         if (localCachedBranding) {
           const tenantInfo: TenantInfo = {
@@ -155,7 +155,7 @@ export const useTenantStore = create<TenantState>()(
             localStorage.setItem('tenant_id', tenantInfo.id);
             localStorage.setItem('tenant_slug', tenantInfo.slug);
             localStorage.setItem(`tenant_theme_${slug}`, JSON.stringify(tenantInfo.branding));
-          } catch {}
+          } catch { /* stockage indisponible : l'école reste résolue en mémoire */ }
 
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
@@ -169,7 +169,7 @@ export const useTenantStore = create<TenantState>()(
                 localStorage.removeItem('tenant_slug');
                 localStorage.removeItem('tenant_id');
               }
-            } catch {}
+            } catch { /* stockage indisponible : rien à nettoyer */ }
             set({ currentTenant: null, isLoading: false, error: `introuvable:${slug}` });
             return;
           }
@@ -202,7 +202,7 @@ export const useTenantStore = create<TenantState>()(
               palette,
               logoUrl: branding.logoUrl,
             }));
-          } catch {}
+          } catch { /* stockage indisponible : le thème est appliqué sans être mis en cache */ }
         }
 
         const inject = (varName: string, hex: string) => {
@@ -245,7 +245,7 @@ export const useTenantStore = create<TenantState>()(
               const parsed = JSON.parse(raw);
               tenant = parsed?.state?.currentTenant;
             }
-          } catch {}
+          } catch { /* état persisté illisible : aucune école en cache */ }
         }
         if (tenant?.branding) {
           get().applyTheme(tenant.branding);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function StatCard({ icon, label, value, sub, color, pulse, onClick }: {
@@ -28,6 +28,8 @@ function StatCard({ icon, label, value, sub, color, pulse, onClick }: {
 }
 
 export function ParentDashboardStats({ stats }: { stats: any }) {
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
   const navigate = useNavigate();
   const location = useLocation();
   const match = location.pathname.match(/\/t\/([^/]+)/);
@@ -93,7 +95,7 @@ export function ParentDashboardStats({ stats }: { stats: any }) {
                     <p className="text-[10px] text-neutral-500 font-semibold">Salle: {exam.salle}</p>
                   </div>
                   <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-200 border-solid px-2 py-1 rounded-full shrink-0">
-                    J-{Math.max(0, Math.ceil((new Date(exam.date).getTime() - Date.now()) / 86400000))}
+                    J-{Math.max(0, Math.ceil((new Date(exam.date).getTime() - maintenant) / 86400000))}
                   </span>
                 </div>
               ))}

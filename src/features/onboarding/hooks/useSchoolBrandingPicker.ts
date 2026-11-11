@@ -37,7 +37,7 @@ export function useSchoolBrandingPicker(slug?: string, schoolName?: string) {
       if (slug) {
         try {
           localStorage.setItem(`tenant_theme_${slug}`, JSON.stringify({ primaryColor: p.primary, palette: p }));
-        } catch {}
+        } catch { /* stockage indisponible : la palette est appliquée sans être mise en cache */ }
       }
     },
     [isEcole221, slug]
