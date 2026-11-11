@@ -9,10 +9,22 @@ import type {
   ParentMessage,
   EnrollChildPayload,
   ParentApplication,
+  ParentProfile,
 } from './types';
 
 // ─── Enfants liés au compte parent ──────────────────────────
 export const parentApi = {
+  getProfile: async (): Promise<ParentProfile> => {
+    const { data } = await apiClient.get('/parent/profil');
+    return data;
+  },
+
+  /** Enregistre téléphone, adresse et profession ; renvoie le profil réellement enregistré. */
+  updateProfile: async (profil: Omit<ParentProfile, 'email'>): Promise<ParentProfile> => {
+    const { data } = await apiClient.patch('/parent/profil', profil);
+    return data;
+  },
+
   getChildren: async (): Promise<ChildProfile[]> => {
     const { data } = await apiClient.get('/parent/enfants');
     return data;
@@ -102,5 +114,22 @@ export function useParentApplications() {
   return useQuery({
     queryKey: ['parent', 'applications'],
     queryFn: parentApi.getApplications,
+  });
+}
+
+export function useParentProfile() {
+  return useQuery({
+    queryKey: ['parent', 'profil'],
+    queryFn: parentApi.getProfile,
+  });
+}
+
+export function useUpdateParentProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: parentApi.updateProfile,
+    onSuccess: (profil) => {
+      queryClient.setQueryData(['parent', 'profil'], profil);
+    },
   });
 }

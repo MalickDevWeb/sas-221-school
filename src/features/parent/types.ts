@@ -130,3 +130,11 @@ export interface ParentApplication {
   etape: string;
   commentaire?: string;
 }
+
+/** Coordonnées du parent (GET/PATCH /parent/profil). L'email est celui du compte, non modifiable ici. */
+export interface ParentProfile {
+  email: string | null;
+  telephone: string | null;
+  adresse: string | null;
+  profession: string | null;
+}
