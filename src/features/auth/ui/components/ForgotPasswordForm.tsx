@@ -1,70 +1,31 @@
 import React from 'react';
 
-interface ForgotPasswordFormProps {
-  resetEmail: string;
-  setResetEmail: (email: string) => void;
-  resetLoading: boolean;
-  resetError: string;
-  handleResetSubmit: (e: React.FormEvent) => void;
-  setCurrentView: (view: 'CONNEXION' | 'MOT_DE_PASSE_OUBLIE' | 'SUCCESS') => void;
-}
-
-export function ForgotPasswordForm({
-  resetEmail,
-  setResetEmail,
-  resetLoading,
-  resetError,
-  handleResetSubmit,
-  setCurrentView
-}: ForgotPasswordFormProps) {
+/**
+ * « Mot de passe oublié ».
+ * Avant : un champ email puis, après 1,2 s d'attente simulée et sans aucun appel au serveur, l'écran
+ * « Lien envoyé — instructions de réinitialisation envoyées à … ». Aucun email n'était jamais envoyé.
+ * Tant qu'aucune réinitialisation en ligne n'existe côté serveur, on dit la vérité et la démarche à suivre.
+ */
+export function ForgotPasswordForm({ onRetour }: { onRetour: () => void }) {
   return (
-    <form onSubmit={handleResetSubmit} className="space-y-3.5 md:space-y-4 lg:space-y-5 animate-fade-in">
-      {resetError && (
-        <div className="p-2.5 text-xs text-primary bg-primary-light rounded-xl border border-primary/20 font-semibold">
-          {resetError}
-        </div>
-      )}
-
-      <div className="space-y-1">
-        <p className="text-[#8E7977] text-[11px] md:text-xs leading-relaxed mb-2.5">
-          Saisissez l'adresse e-mail associée à votre compte. Nous vous enverrons un lien de réinitialisation sécurisé.
+    <div className="space-y-3.5 md:space-y-4 animate-fade-in" id="mot-de-passe-oublie">
+      <div role="status" className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed space-y-1.5">
+        <p className="font-black">La réinitialisation en ligne n'est pas encore disponible.</p>
+        <p>
+          Contactez l'administration de votre école : après vérification de votre identité, elle vous remettra un
+          mot de passe provisoire, à changer dès votre prochaine connexion.
         </p>
-        <label className="text-[12px] font-bold text-[#3E2927] block" htmlFor="resetEmail">
-          Adresse e-mail <span className="text-status-danger font-bold">*</span>
-        </label>
-        <div className="relative group">
-          <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-primary transition-colors">mail</span>
-          <input
-            className="w-full h-11 md:h-12 pl-10 pr-4 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-1 focus:ring-primary/10 text-[#291715] transition-all outline-none"
-            id="resetEmail"
-            name="resetEmail"
-            placeholder="votre_adresse@ecole.sn"
-            required
-            type="email"
-            value={resetEmail}
-            onChange={(e) => setResetEmail(e.target.value)}
-          />
-        </div>
       </div>
-
-      <button
-        className="w-full h-11 bg-primary hover:opacity-95 text-text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-primary/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        type="submit"
-        disabled={resetLoading}
-      >
-        <span>{resetLoading ? 'Envoi du lien...' : 'Envoyer le lien'}</span>
-      </button>
-
       <div className="flex justify-center pt-1">
         <button
           type="button"
-          onClick={() => setCurrentView('CONNEXION')}
+          onClick={onRetour}
           className="flex items-center gap-1 text-[11px] font-bold text-[#8E7977] hover:text-primary transition-colors cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-[15px]">arrow_back</span>
           <span>Retour à la connexion</span>
         </button>
       </div>
-    </form>
+    </div>
   );
 }
