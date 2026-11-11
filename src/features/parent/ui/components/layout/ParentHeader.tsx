@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useParentContext } from './ParentLayout';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { useAuthStore } from '@/core/store/authStore';
 import { getPushPermission, requestPushPermission, testPushNotification } from '@/shared/lib/pushNotifier';
 
 export function ParentHeader() {
@@ -12,6 +13,10 @@ export function ParentHeader() {
   const [pushPerm, setPushPerm] = useState<NotificationPermission>(() => getPushPermission());
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name || 'École 221';
+  // Initiales du compte connecté (avant : « MD » codé en dur pour tous les parents)
+  const utilisateur = useAuthStore((s) => s.utilisateur);
+  const prenomCompte = (utilisateur as { prenom?: string } | null)?.prenom?.trim() || '';
+  const initiales = `${prenomCompte[0] ?? ''}${utilisateur?.nom?.trim()?.[0] ?? ''}`.toUpperCase() || '—';
 
   const match = location.pathname.match(/\/t\/([^/]+)/);
   const activeSlug = match ? match[1] : 'ecole-221';
@@ -105,7 +110,7 @@ export function ParentHeader() {
         </div>
 
         <div onClick={() => navigate(`${base}/profil`)} className="hidden md:flex items-center gap-2 pl-4 border-l border-neutral-200 cursor-pointer hover:opacity-80 active:scale-95 transition-all" title="Mon Profil">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#0D47A1] text-white flex items-center justify-center text-xs font-black shadow-sm">MD</div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#0D47A1] text-white flex items-center justify-center text-xs font-black shadow-sm" id="parent-header-initiales">{initiales}</div>
         </div>
       </div>
     </header>

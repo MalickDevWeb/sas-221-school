@@ -1,25 +1,99 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/core/store/authStore';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { useParentProfile, useUpdateParentProfile } from '../../api';
+
+type Champs = { telephone: string; adresse: string; profession: string };
+type Erreurs = Partial<Record<keyof Champs, string>>;
+
+const TELEPHONE = /^\+?[0-9][0-9 .-]{6,18}[0-9]$/;   // même règle que le serveur
+
+/** Règles affichées au parent, champ par champ (le serveur applique les mêmes). */
+function valider(c: Champs): Erreurs {
+  const e: Erreurs = {};
+  const tel = c.telephone.trim();
+  if (tel && !TELEPHONE.test(tel)) {
+    e.telephone = `« ${tel} » n'est pas un numéro valide : chiffres uniquement, indicatif facultatif (ex. +221 77 123 45 67).`;
+  }
+  if (c.adresse.trim().length > 255) e.adresse = `Adresse trop longue : ${c.adresse.trim().length} caractères sur 255 autorisés.`;
+  if (c.profession.trim().length > 255) e.profession = `Profession trop longue : ${c.profession.trim().length} caractères sur 255 autorisés.`;
+  return e;
+}
 
 export function ParentProfilePage() {
-  // Données réelles du compte connecté uniquement. Le backend n'enregistre pas encore
-  // la modification du profil parent (PATCH /parent/profil non persistant) :
-  // les champs sont donc en lecture seule, sans faux « succès ».
+  // Prénom, nom et email viennent du compte (non modifiables ici) ; téléphone, adresse et
+  // profession sont réellement enregistrés via PATCH /parent/profil.
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const prenom = (utilisateur as { prenom?: string } | null)?.prenom?.trim() || '';
   const nom = utilisateur?.nom?.trim() || '';
-  const email = utilisateur?.email?.trim() || '';
+  const { data: profil, isLoading, isError, error: erreurChargement } = useParentProfile();
+  const enregistrer = useUpdateParentProfile();
+  const email = profil?.email?.trim() || utilisateur?.email?.trim() || '';
   const initiales = `${prenom[0] ?? ''}${nom[0] ?? ''}`.toUpperCase() || '—';
-  const fields: { label: string; value: string; wide?: boolean }[] = [
-    { label: 'Prénom', value: prenom },
-    { label: 'Nom', value: nom },
-    { label: 'Email', value: email },
-    { label: 'Téléphone', value: '' },
-    { label: 'Adresse complète', value: '', wide: true },
-    { label: 'Profession', value: '', wide: true },
-  ];
 
-  const inputCls = "w-full h-11 px-4 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder-neutral-300";
+  const [champs, setChamps] = useState<Champs>({ telephone: '', adresse: '', profession: '' });
+  const [erreurs, setErreurs] = useState<Erreurs>({});
+  const [erreurServeur, setErreurServeur] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+
+  useEffect(() => {
+    if (profil) {
+      setChamps({ telephone: profil.telephone ?? '', adresse: profil.adresse ?? '', profession: profil.profession ?? '' });
+    }
+  }, [profil]);
+
+  const modifie = !!profil && (
+    champs.telephone.trim() !== (profil.telephone ?? '') ||
+    champs.adresse.trim() !== (profil.adresse ?? '') ||
+    champs.profession.trim() !== (profil.profession ?? ''));
+
+  const changer = (cle: keyof Champs) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setChamps((c) => ({ ...c, [cle]: e.target.value }));
+    setErreurs((er) => ({ ...er, [cle]: undefined }));
+    setConfirmation('');
+    setErreurServeur('');
+  };
+
+  const soumettre = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const er = valider(champs);
+    setErreurs(er);
+    setConfirmation('');
+    setErreurServeur('');
+    if (Object.keys(er).length > 0) return;
+    try {
+      const enregistre = await enregistrer.mutateAsync({
+        telephone: champs.telephone.trim() || null,
+        adresse: champs.adresse.trim() || null,
+        profession: champs.profession.trim() || null,
+      });
+      const faits = [enregistre.telephone && 'téléphone', enregistre.adresse && 'adresse', enregistre.profession && 'profession']
+        .filter(Boolean).join(', ');
+      setConfirmation(faits ? `Coordonnées enregistrées (${faits}).` : 'Coordonnées effacées.');
+    } catch (err) {
+      setErreurServeur(resolveErrorMessage(err));   // rien n'a été enregistré : on le dit
+    }
+  };
+
+  const inputCls = "w-full h-11 px-4 bg-white border rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder-neutral-300";
+  const lectureCls = "w-full h-11 px-4 border border-neutral-200 rounded-xl text-xs font-semibold flex items-center bg-neutral-50 cursor-default";
+
+  const champ = (cle: keyof Champs, label: string, placeholder: string, wide = false, type = 'text') => (
+    <div className={`space-y-1.5${wide ? ' sm:col-span-2' : ''}`}>
+      <label htmlFor={`parent-profil-${cle}`} className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">{label}</label>
+      <input
+        id={`parent-profil-${cle}`}
+        type={type}
+        value={champs[cle]}
+        onChange={changer(cle)}
+        placeholder={placeholder}
+        aria-invalid={!!erreurs[cle]}
+        aria-describedby={erreurs[cle] ? `parent-profil-${cle}-erreur` : undefined}
+        className={`${inputCls} ${erreurs[cle] ? 'border-red-400' : 'border-neutral-200'}`}
+      />
+      {erreurs[cle] && <p id={`parent-profil-${cle}-erreur`} className="text-[11px] font-semibold text-red-600">{erreurs[cle]}</p>}
+    </div>
+  );
 
   return (
     <div className="p-4 md:p-8 max-w-[800px] mx-auto w-full animate-fade-in pb-28 md:pb-8">
@@ -52,23 +126,54 @@ export function ParentProfilePage() {
           </div>
         </div>
 
-        <div className="p-6 md:p-8 space-y-6">
-          <div id="parent-profile-readonly-note" className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-800 text-xs font-bold flex items-center gap-3">
-            <span translate="no" className="material-symbols-outlined text-blue-600">info</span>
-            Modification du profil bientôt disponible — contactez l'établissement
-          </div>
+        <form id="parent-profile-form" onSubmit={soumettre} noValidate className="p-6 md:p-8 space-y-6">
+          {isError && (
+            <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs font-bold">
+              Vos coordonnées n'ont pas pu être chargées : {resolveErrorMessage(erreurChargement)}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {fields.map((f) => (
-              <div key={f.label} className={`space-y-1.5${f.wide ? ' sm:col-span-2' : ''}`}>
+            {[
+              { label: 'Prénom', value: prenom },
+              { label: 'Nom', value: nom },
+            ].map((f) => (
+              <div key={f.label} className="space-y-1.5">
                 <span className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">{f.label}</span>
-                <div className={`${inputCls} flex items-center bg-neutral-50 cursor-default ${f.value ? '' : 'text-neutral-400'}`}>
-                  {f.value || 'Non renseigné'}
-                </div>
+                <div className={`${lectureCls} ${f.value ? 'text-neutral-800' : 'text-neutral-400'}`}>{f.value || 'Non renseigné'}</div>
               </div>
             ))}
+            <div className="space-y-1.5 sm:col-span-2">
+              <span className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">Email de connexion</span>
+              <div className={`${lectureCls} ${email ? 'text-neutral-800' : 'text-neutral-400'}`}>{email || 'Non renseigné'}</div>
+              <p className="text-[11px] text-neutral-500 font-semibold">Pour changer d'email, contactez l'établissement.</p>
+            </div>
+            {champ('telephone', 'Téléphone', '+221 77 123 45 67', false, 'tel')}
+            {champ('profession', 'Profession', 'Ex. comptable')}
+            {champ('adresse', 'Adresse complète', 'Quartier, ville', true)}
           </div>
-        </div>
+
+          {erreurServeur && (
+            <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs font-bold">
+              Rien n'a été enregistré : {erreurServeur}
+            </div>
+          )}
+          {confirmation && (
+            <div role="status" className="p-4 bg-green-50 border border-green-200 rounded-2xl text-green-800 text-xs font-bold">
+              {confirmation}
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isLoading || isError || !modifie || enregistrer.isPending}
+              className="h-11 px-6 rounded-xl bg-primary text-white text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {enregistrer.isPending ? 'Enregistrement…' : 'Enregistrer mes coordonnées'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
