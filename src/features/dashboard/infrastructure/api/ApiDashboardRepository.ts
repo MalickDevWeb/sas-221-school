@@ -54,9 +54,9 @@ export class ApiDashboardRepository implements DashboardRepository {
     return res.data; 
   }
 
+  /** Courbe réelle de l'élève connecté (APP-BE-13) : moyenne, moyenne de la classe et assiduité par mois. */
   async getPerformanceData(): Promise<PerformanceData[]> {
-    // Fonctionnalité non disponible : aucune route backend de performance étudiant
-    // (ex-GET /student/performance, à spécifier — APP-ARC-01). État vide explicite.
-    return [];
+    const { data } = await apiClient.get<PerformanceData[]>('/student/performance');
+    return Array.isArray(data) ? data : [];
   }
 }
