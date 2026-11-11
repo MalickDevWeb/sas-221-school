@@ -1,14 +1,15 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { Route } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
-
-const LandingPage = lazy(() => import('@/features/public/ui/pages/LandingPage').then(m => ({ default: m.LandingPage })));
-const TenantFinderPage = lazy(() => import('@/features/public/ui/pages/TenantFinderPage').then(m => ({ default: m.TenantFinderPage })));
-const SchoolRegistrationPage = lazy(() => import('@/features/onboarding/ui/pages/SchoolRegistrationPage').then(m => ({ default: m.SchoolRegistrationPage })));
-const TenantLoginPage = lazy(() => import('@/features/auth/ui/pages/TenantLoginPage').then(m => ({ default: m.TenantLoginPage })));
-const CandidaturePage = lazy(() => import('@/features/auth').then(m => ({ default: m.CandidaturePage })));
-const SuperAdminLoginPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminLoginPage').then(m => ({ default: m.SuperAdminLoginPage })));
-const AdminPortalLoginPage = lazy(() => import('@/features/admin/ui/pages/AdminPortalLoginPage').then(m => ({ default: m.AdminPortalLoginPage })));
+import {
+  LandingPage,
+  TenantFinderPage,
+  SchoolRegistrationPage,
+  TenantLoginPage,
+  CandidaturePage,
+  SuperAdminLoginPage,
+  AdminPortalLoginPage,
+} from './PublicPages';
 
 export function renderPublicRoutes() {
   return (

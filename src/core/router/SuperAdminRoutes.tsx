@@ -1,18 +1,19 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { ROLE_UTILISATEUR } from '@/shared/constants';
-
-const SuperAdminLayout = lazy(() => import('@/features/super-admin/ui/components/layout/SuperAdminLayout').then(m => ({ default: m.SuperAdminLayout })));
-const SuperAdminDashboardPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminDashboardPage').then(m => ({ default: m.SuperAdminDashboardPage })));
-const SuperAdminTenantsPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminTenantsPage').then(m => ({ default: m.SuperAdminTenantsPage })));
-const SuperAdminUsersPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminUsersPage').then(m => ({ default: m.SuperAdminUsersPage })));
-const SuperAdminBillingPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminBillingPage').then(m => ({ default: m.SuperAdminBillingPage })));
-const SuperAdminReportsPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminReportsPage').then(m => ({ default: m.SuperAdminReportsPage })));
-const SuperAdminAnalyticsPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminAnalyticsPage').then(m => ({ default: m.SuperAdminAnalyticsPage })));
-const SuperAdminSystemPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSystemPage').then(m => ({ default: m.SuperAdminSystemPage })));
-const SuperAdminSupportPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSupportPage').then(m => ({ default: m.SuperAdminSupportPage })));
-const SuperAdminSettingsPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminSettingsPage').then(m => ({ default: m.SuperAdminSettingsPage })));
+import {
+  SuperAdminLayout,
+  SuperAdminDashboardPage,
+  SuperAdminTenantsPage,
+  SuperAdminUsersPage,
+  SuperAdminBillingPage,
+  SuperAdminReportsPage,
+  SuperAdminAnalyticsPage,
+  SuperAdminSystemPage,
+  SuperAdminSupportPage,
+  SuperAdminSettingsPage,
+} from './SuperAdminPages';
 
 export function renderSuperAdminRoutes() {
   return (

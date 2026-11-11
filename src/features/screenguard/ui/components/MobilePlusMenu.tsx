@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, LogOut, Award, Shield, Cpu, Calendar, Building2, Users, Palette } from 'lucide-react';
 
-export const SEC_TABS = [
+const SEC_TABS = [
   { id: 'school', label: 'Gestion École', icon: Building2 },
   { id: 'schedule', label: 'Emploi du Temps', icon: Calendar },
   { id: 'personnel', label: 'Gestion Personnel', icon: Award },

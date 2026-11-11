@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AttendanceRecord } from '../../../../domain/PersonnelModels';
-import { dureeHeures } from './NewAttendanceModal';
+import { dureeHeures } from './dureeHeures';
 
 interface Props {
   record: AttendanceRecord;
