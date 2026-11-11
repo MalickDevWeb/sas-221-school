@@ -136,6 +136,10 @@ export interface EnrollChildPayload {
   etablissementPrecedent: string;
   anneeBac?: string;
   mentionBac?: string;
+  /** Liens des pièces réellement envoyées (POST /media/upload). */
+  photoIdentiteUrl: string;
+  relevesNotesUrl: string;
+  diplomeUrl: string;
 }
 
 export interface ParentApplication {

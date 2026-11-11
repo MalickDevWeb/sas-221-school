@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+import { useForm, useWatch, type FieldErrors, type UseFormRegister } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
+import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
 import { ROUTES } from '@/shared/constants';
 import { parentApi } from '@/features/parent/api';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
@@ -27,139 +31,162 @@ const FILIERES = [
 
 const NIVEAUX = ['L1', 'L2', 'L3', 'M1', 'M2'];
 
-interface FormData {
+const ANNEE = new Date().getFullYear();
+const TAILLE_MAX = 5 * 1024 * 1024;
+
+/**
+ * Règles du dossier (APP-FE-14 : react-hook-form + zod). Chaque étape ne laisse passer que si ses champs sont
+ * valides, avec un message précis sous le champ (avant : bouton « Suivant » grisé sans explication, email non vérifié).
+ */
+const schemaInscription = z.object({
   // Étape 1
-  prenom:          string;
-  nom:             string;
-  dateNaissance:   string;
-  lieuNaissance:   string;
-  nationalite:     string;
-  sexe:            'M' | 'F' | '';
-  email:           string;
-  telephone:       string;
-  adresse:         string;
+  prenom: z.string().trim().min(1, "Saisissez le prénom de l'enfant."),
+  nom: z.string().trim().min(1, "Saisissez le nom de famille de l'enfant."),
+  dateNaissance: z.string().min(1, 'Indiquez la date de naissance.')
+    .refine(v => !Number.isNaN(Date.parse(v)), 'Date de naissance invalide.')
+    .refine(v => new Date(v) < new Date(), 'La date de naissance doit être passée.')
+    .refine(v => new Date(v).getFullYear() >= 1950, 'Date de naissance invalide : vérifiez l’année.'),
+  lieuNaissance: z.string().trim().min(1, 'Indiquez le lieu de naissance.'),
+  nationalite: z.string().trim(),
+  sexe: z.string().refine((v): boolean => v === 'M' || v === 'F', "Indiquez le sexe de l'enfant."),
+  email: z.string().trim()
+    .min(1, "Saisissez l'adresse e-mail de l'enfant : elle sert au suivi du dossier.")
+    .email('Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@exemple.sn).'),
+  telephone: z.string().trim()
+    .refine(v => v === '' || /^\+?[\d\s.-]{7,20}$/.test(v), 'Numéro invalide : chiffres, espaces et « + » uniquement (ex. 77 123 45 67).'),
+  adresse: z.string().trim(),
   // Étape 2
-  filiere:         string;
-  niveau:          string;
-  diplomePrecedent: string;
-  etablissementPrecedent: string;
-  anneeBac:        string;
-  mentionBac:      string;
-  // Étape 3
-  photoId:         string; // base64 ou nom fichier
-  relevesNotes:    string;
-  diplomeBac:      string;
-  // Meta
-  accepteReglement: boolean;
-}
+  filiere: z.string().min(1, 'Choisissez la filière souhaitée.'),
+  niveau: z.string().min(1, "Choisissez le niveau d'entrée."),
+  diplomePrecedent: z.string().trim().min(1, 'Indiquez le dernier diplôme obtenu.'),
+  etablissementPrecedent: z.string().trim().min(1, "Indiquez l'établissement fréquenté."),
+  anneeBac: z.string().trim()
+    .refine(v => v === '' || (/^\d{4}$/.test(v) && Number(v) >= 1990 && Number(v) <= ANNEE),
+      `Année invalide : entre 1990 et ${ANNEE}.`),
+  mentionBac: z.string(),
+  // Étape 3 : liens renvoyés par le serveur après un envoi réussi
+  photoIdentiteUrl: z.string().min(1, "Joignez la photo d'identité de l'enfant."),
+  relevesNotesUrl: z.string().min(1, 'Joignez les relevés de notes.'),
+  diplomeUrl: z.string().min(1, 'Joignez le diplôme ou une attestation.'),
+  // Étape 4
+  accepteReglement: z.boolean().refine(v => v, 'Cochez la case pour attester de l’exactitude du dossier.'),
+});
+type FormData = z.infer<typeof schemaInscription>;
+type Champ = keyof FormData;
+
+const CHAMPS_ETAPE: Record<number, Champ[]> = {
+  1: ['prenom', 'nom', 'dateNaissance', 'lieuNaissance', 'nationalite', 'sexe', 'email', 'telephone', 'adresse'],
+  2: ['filiere', 'niveau', 'diplomePrecedent', 'etablissementPrecedent', 'anneeBac', 'mentionBac'],
+  3: ['photoIdentiteUrl', 'relevesNotesUrl', 'diplomeUrl'],
+  4: ['accepteReglement'],
+};
 
 const EMPTY_FORM: FormData = {
   prenom: '', nom: '', dateNaissance: '', lieuNaissance: '',
   nationalite: 'Sénégalaise', sexe: '', email: '', telephone: '', adresse: '',
   filiere: '', niveau: '', diplomePrecedent: '', etablissementPrecedent: '',
   anneeBac: '', mentionBac: '',
-  photoId: '', relevesNotes: '', diplomeBac: '',
+  photoIdentiteUrl: '', relevesNotesUrl: '', diplomeUrl: '',
   accepteReglement: false,
 };
 
+type Erreurs = FieldErrors<FormData>;
+type Enregistrer = UseFormRegister<FormData>;
+
 // ─── Composant champ de formulaire ──────────────────────────
 function Field({
-  label, required, children,
-}: { label: string; required?: boolean; children: React.ReactNode }) {
+  id, label, required, erreur, children, className = '',
+}: { id: Champ; label: string; required?: boolean; erreur?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label htmlFor={id} className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
+      {erreur && <p id={`${id}-erreur`} role="alert" className="text-[11px] font-bold text-red-600">{erreur}</p>}
     </div>
   );
 }
 
 const inputCls =
-  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder-neutral-300';
+  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder-neutral-300 aria-[invalid=true]:border-red-400';
 
 const selectCls =
-  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all';
+  'w-full h-10 px-3 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all aria-[invalid=true]:border-red-400';
+
+/** Attributs d'accessibilité communs : champ en erreur relié à son message. */
+function aria(errors: Erreurs, id: Champ) {
+  return errors[id] ? { 'aria-invalid': true as const, 'aria-describedby': `${id}-erreur` } : {};
+}
 
 // ─── Étape 1 : Infos personnelles ───────────────────────────
-function Step1({ form, set }: { form: FormData; set: (k: keyof FormData, v: string | boolean) => void }) {
+function Step1({ register, errors }: { register: Enregistrer; errors: Erreurs }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <Field label="Prénom" required>
-        <input className={inputCls} value={form.prenom} onChange={e => set('prenom', e.target.value)}
-          placeholder="Ex: Aminata" />
+      <Field id="prenom" label="Prénom" required erreur={errors.prenom?.message}>
+        <input id="prenom" className={inputCls} {...register('prenom')} {...aria(errors, 'prenom')} placeholder="Ex: Aminata" />
       </Field>
-      <Field label="Nom de famille" required>
-        <input className={inputCls} value={form.nom} onChange={e => set('nom', e.target.value)}
-          placeholder="Ex: Diallo" />
+      <Field id="nom" label="Nom de famille" required erreur={errors.nom?.message}>
+        <input id="nom" className={inputCls} {...register('nom')} {...aria(errors, 'nom')} placeholder="Ex: Diallo" />
       </Field>
-      <Field label="Date de naissance" required>
-        <input type="date" className={inputCls} value={form.dateNaissance}
-          onChange={e => set('dateNaissance', e.target.value)} />
+      <Field id="dateNaissance" label="Date de naissance" required erreur={errors.dateNaissance?.message}>
+        <input id="dateNaissance" type="date" className={inputCls} {...register('dateNaissance')} {...aria(errors, 'dateNaissance')} />
       </Field>
-      <Field label="Lieu de naissance" required>
-        <input className={inputCls} value={form.lieuNaissance}
-          onChange={e => set('lieuNaissance', e.target.value)} placeholder="Ex: Dakar" />
+      <Field id="lieuNaissance" label="Lieu de naissance" required erreur={errors.lieuNaissance?.message}>
+        <input id="lieuNaissance" className={inputCls} {...register('lieuNaissance')} {...aria(errors, 'lieuNaissance')} placeholder="Ex: Dakar" />
       </Field>
-      <Field label="Nationalité">
-        <input className={inputCls} value={form.nationalite}
-          onChange={e => set('nationalite', e.target.value)} placeholder="Ex: Sénégalaise" />
+      <Field id="nationalite" label="Nationalité" erreur={errors.nationalite?.message}>
+        <input id="nationalite" className={inputCls} {...register('nationalite')} placeholder="Ex: Sénégalaise" />
       </Field>
-      <Field label="Sexe" required>
-        <select className={selectCls} value={form.sexe} onChange={e => set('sexe', e.target.value)}>
+      <Field id="sexe" label="Sexe" required erreur={errors.sexe?.message}>
+        <select id="sexe" className={selectCls} {...register('sexe')} {...aria(errors, 'sexe')}>
           <option value="">— Sélectionner —</option>
           <option value="F">Féminin</option>
           <option value="M">Masculin</option>
         </select>
       </Field>
-      <Field label="Email de l'enfant" required>
-        <input type="email" className={inputCls} value={form.email}
-          onChange={e => set('email', e.target.value)} placeholder="enfant@email.com" />
+      <Field id="email" label="Email de l'enfant" required erreur={errors.email?.message}>
+        <input id="email" type="email" className={inputCls} {...register('email')} {...aria(errors, 'email')} placeholder="enfant@email.com" />
       </Field>
-      <Field label="Téléphone de l'enfant">
-        <input type="tel" className={inputCls} value={form.telephone}
-          onChange={e => set('telephone', e.target.value)} placeholder="77 XXX XX XX" />
+      <Field id="telephone" label="Téléphone de l'enfant" erreur={errors.telephone?.message}>
+        <input id="telephone" type="tel" className={inputCls} {...register('telephone')} {...aria(errors, 'telephone')} placeholder="77 XXX XX XX" />
       </Field>
-      <Field label="Adresse complète">
-        <input className={`${inputCls} sm:col-span-2`} value={form.adresse}
-          onChange={e => set('adresse', e.target.value)} placeholder="Quartier, ville" />
+      <Field id="adresse" label="Adresse complète" className="sm:col-span-2">
+        <input id="adresse" className={inputCls} {...register('adresse')} placeholder="Quartier, ville" />
       </Field>
     </div>
   );
 }
 
 // ─── Étape 2 : Scolarité ─────────────────────────────────────
-function Step2({ form, set }: { form: FormData; set: (k: keyof FormData, v: string | boolean) => void }) {
+function Step2({ register, errors }: { register: Enregistrer; errors: Erreurs }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <Field label="Filière souhaitée" required>
-        <select className={selectCls} value={form.filiere} onChange={e => set('filiere', e.target.value)}>
+      <Field id="filiere" label="Filière souhaitée" required erreur={errors.filiere?.message}>
+        <select id="filiere" className={selectCls} {...register('filiere')} {...aria(errors, 'filiere')}>
           <option value="">— Sélectionner —</option>
           {FILIERES.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
       </Field>
-      <Field label="Niveau d'entrée" required>
-        <select className={selectCls} value={form.niveau} onChange={e => set('niveau', e.target.value)}>
+      <Field id="niveau" label="Niveau d'entrée" required erreur={errors.niveau?.message}>
+        <select id="niveau" className={selectCls} {...register('niveau')} {...aria(errors, 'niveau')}>
           <option value="">— Sélectionner —</option>
           {NIVEAUX.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
       </Field>
-      <Field label="Diplôme précédent obtenu" required>
-        <input className={inputCls} value={form.diplomePrecedent}
-          onChange={e => set('diplomePrecedent', e.target.value)} placeholder="Ex: BAC S, BTS, Licence..." />
+      <Field id="diplomePrecedent" label="Diplôme précédent obtenu" required erreur={errors.diplomePrecedent?.message}>
+        <input id="diplomePrecedent" className={inputCls} {...register('diplomePrecedent')} {...aria(errors, 'diplomePrecedent')}
+          placeholder="Ex: BAC S, BTS, Licence..." />
       </Field>
-      <Field label="Établissement précédent" required>
-        <input className={inputCls} value={form.etablissementPrecedent}
-          onChange={e => set('etablissementPrecedent', e.target.value)}
+      <Field id="etablissementPrecedent" label="Établissement précédent" required erreur={errors.etablissementPrecedent?.message}>
+        <input id="etablissementPrecedent" className={inputCls} {...register('etablissementPrecedent')} {...aria(errors, 'etablissementPrecedent')}
           placeholder="Nom du lycée / université" />
       </Field>
-      <Field label="Année d'obtention du BAC">
-        <input type="number" min="2000" max="2030" className={inputCls} value={form.anneeBac}
-          onChange={e => set('anneeBac', e.target.value)} placeholder="Ex: 2024" />
+      <Field id="anneeBac" label="Année d'obtention du BAC" erreur={errors.anneeBac?.message}>
+        <input id="anneeBac" inputMode="numeric" className={inputCls} {...register('anneeBac')} {...aria(errors, 'anneeBac')} placeholder={`Ex: ${ANNEE}`} />
       </Field>
-      <Field label="Mention au BAC">
-        <select className={selectCls} value={form.mentionBac} onChange={e => set('mentionBac', e.target.value)}>
+      <Field id="mentionBac" label="Mention au BAC">
+        <select id="mentionBac" className={selectCls} {...register('mentionBac')}>
           <option value="">— Sélectionner —</option>
           <option value="Passable">Passable</option>
           <option value="Assez Bien">Assez Bien</option>
@@ -172,29 +199,58 @@ function Step2({ form, set }: { form: FormData; set: (k: keyof FormData, v: stri
 }
 
 // ─── Étape 3 : Documents ─────────────────────────────────────
-function UploadZone({ label, hint, value, onChange }: {
-  label: string; hint: string; value: string;
-  onChange: (v: string) => void;
+/**
+ * Envoi RÉEL du fichier (POST /media/upload, mode strict : aucun repli local). La pièce n'est marquée reçue
+ * qu'avec le lien renvoyé par le serveur ; en cas d'échec, le message du serveur s'affiche sous la zone.
+ * Avant : seul le nom du fichier restait dans le navigateur et rien n'était joint au dossier.
+ */
+function UploadZone({ id, label, hint, accept, types, nomFichier, erreur, onEnvoi, onEnvoye, onEchec }: {
+  id: Champ; label: string; hint: string; accept: string; types: string[];
+  nomFichier?: string; erreur?: string;
+  onEnvoi: (enCours: boolean) => void; onEnvoye: (url: string, nom: string) => void; onEchec: (message: string) => void;
 }) {
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [progression, setProgression] = useState<number | null>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => onChange(file.name);
-    reader.readAsDataURL(file);
+    if (!types.includes(file.type)) {
+      onEchec(`« ${file.name} » n'est pas accepté : ${hint}.`);
+      return;
+    }
+    if (file.size > TAILLE_MAX) {
+      onEchec(`« ${file.name} » fait ${(file.size / 1048576).toFixed(1)} Mo : 5 Mo maximum.`);
+      return;
+    }
+    setProgression(0);
+    onEnvoi(true);
+    try {
+      const url = await uploadToCloudinary(file, setProgression, { strict: true });
+      onEnvoye(url, file.name);
+    } catch (err) {
+      onEchec(err instanceof UploadError ? err.message : 'L’envoi du fichier a échoué. Veuillez réessayer.');
+    } finally {
+      setProgression(null);
+      onEnvoi(false);
+    }
   };
 
+  const recu = Boolean(nomFichier) && !erreur;
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">{label}</label>
+      <label htmlFor={id} className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">{label} <span className="text-red-500">*</span></label>
       <label className={`flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-        value ? 'border-emerald-400 bg-emerald-50' : 'border-neutral-200 bg-neutral-50 hover:border-primary hover:bg-blue-50/30'
+        erreur ? 'border-red-300 bg-red-50' : recu ? 'border-emerald-400 bg-emerald-50' : 'border-neutral-200 bg-neutral-50 hover:border-primary hover:bg-blue-50/30'
       }`}>
-        <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFile} />
-        {value ? (
+        <input id={id} type="file" accept={accept} className="sr-only" onChange={handleFile} disabled={progression !== null}
+          {...(erreur ? { 'aria-invalid': true, 'aria-describedby': `${id}-erreur` } : {})} />
+        {progression !== null ? (
+          <p className="text-[10px] font-black text-primary">Envoi… {progression} %</p>
+        ) : recu ? (
           <>
             <span translate="no" className="material-symbols-outlined text-[28px] text-emerald-500">check_circle</span>
-            <p className="text-[10px] font-black text-emerald-600 truncate max-w-[180px]">{value}</p>
+            <p className="text-[10px] font-black text-emerald-600 truncate max-w-[180px]">{nomFichier}</p>
           </>
         ) : (
           <>
@@ -203,11 +259,23 @@ function UploadZone({ label, hint, value, onChange }: {
           </>
         )}
       </label>
+      {erreur && <p id={`${id}-erreur`} role="alert" className="text-[11px] font-bold text-red-600">{erreur}</p>}
     </div>
   );
 }
 
-function Step3({ form, set }: { form: FormData; set: (k: keyof FormData, v: string | boolean) => void }) {
+const PIECES: { id: 'photoIdentiteUrl' | 'relevesNotesUrl' | 'diplomeUrl'; label: string; hint: string; accept: string; types: string[] }[] = [
+  { id: 'photoIdentiteUrl', label: "Photo d'identité", hint: 'JPG ou PNG', accept: '.jpg,.jpeg,.png', types: ['image/jpeg', 'image/png'] },
+  { id: 'relevesNotesUrl', label: 'Relevés de notes', hint: 'PDF, JPG ou PNG', accept: '.pdf,.jpg,.jpeg,.png', types: ['application/pdf', 'image/jpeg', 'image/png'] },
+  { id: 'diplomeUrl', label: 'Diplôme / Attestation', hint: 'PDF, JPG ou PNG', accept: '.pdf,.jpg,.jpeg,.png', types: ['application/pdf', 'image/jpeg', 'image/png'] },
+];
+
+function Step3({ errors, noms, setEnvoi, recevoir, echec }: {
+  errors: Erreurs; noms: Partial<Record<Champ, string>>;
+  setEnvoi: (id: Champ, enCours: boolean) => void;
+  recevoir: (id: Champ, url: string, nom: string) => void;
+  echec: (id: Champ, message: string) => void;
+}) {
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
@@ -215,22 +283,25 @@ function Step3({ form, set }: { form: FormData; set: (k: keyof FormData, v: stri
         <p className="text-[11px] text-blue-700 font-semibold leading-relaxed">
           Les documents doivent être lisibles et en cours de validité.
           Formats acceptés : <strong>PDF, JPG, PNG</strong> — max 5 Mo par fichier.
+          Chaque pièce est envoyée dès que vous la choisissez et jointe au dossier.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <UploadZone label="Photo d'identité *" hint="JPG ou PNG" value={form.photoId}
-          onChange={v => set('photoId', v)} />
-        <UploadZone label="Relevés de notes *" hint="PDF de la dernière année" value={form.relevesNotes}
-          onChange={v => set('relevesNotes', v)} />
-        <UploadZone label="Diplôme / Attestation *" hint="PDF ou scan" value={form.diplomeBac}
-          onChange={v => set('diplomeBac', v)} />
+        {PIECES.map(p => (
+          <UploadZone key={p.id} {...p} nomFichier={noms[p.id]} erreur={errors[p.id]?.message}
+            onEnvoi={enCours => setEnvoi(p.id, enCours)}
+            onEnvoye={(url, nom) => recevoir(p.id, url, nom)}
+            onEchec={message => echec(p.id, message)} />
+        ))}
       </div>
     </div>
   );
 }
 
 // ─── Étape 4 : Récapitulatif ─────────────────────────────────
-function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: string | boolean) => void }) {
+function Step4({ form, register, errors, noms }: {
+  form: FormData; register: Enregistrer; errors: Erreurs; noms: Partial<Record<Champ, string>>;
+}) {
   const rows = [
     ['Prénom', form.prenom], ['Nom', form.nom],
     ['Date de naissance', form.dateNaissance], ['Lieu de naissance', form.lieuNaissance],
@@ -258,33 +329,37 @@ function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: stri
         </div>
       </div>
 
-      {/* Documents */}
+      {/* Documents réellement envoyés */}
       <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Photo ID', val: form.photoId },
-          { label: 'Relevés de notes', val: form.relevesNotes },
-          { label: 'Diplôme', val: form.diplomeBac },
-        ].map(({ label, val }) => (
-          <div key={label} className={`p-3 rounded-xl border text-center ${val ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
-            <span translate="no" className={`material-symbols-outlined text-[20px] ${val ? 'text-emerald-500' : 'text-red-400'}`}>
-              {val ? 'check_circle' : 'cancel'}
-            </span>
-            <p className="text-[9px] font-black mt-1 truncate text-neutral-600">{label}</p>
-          </div>
-        ))}
+        {PIECES.map(({ id, label }) => {
+          const recu = Boolean(form[id]);
+          return (
+            <div key={id} className={`p-3 rounded-xl border text-center ${recu ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+              <span translate="no" className={`material-symbols-outlined text-[20px] ${recu ? 'text-emerald-500' : 'text-red-400'}`}>
+                {recu ? 'check_circle' : 'cancel'}
+              </span>
+              <p className="text-[9px] font-black mt-1 truncate text-neutral-600">{label}</p>
+              {recu && noms[id] && <p className="text-[9px] text-neutral-500 truncate">{noms[id]}</p>}
+            </div>
+          );
+        })}
       </div>
 
       {/* Acceptation règlement */}
-      <label className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 cursor-pointer group">
-        <input type="checkbox" checked={form.accepteReglement}
-          onChange={e => set('accepteReglement', e.target.checked)}
-          className="mt-0.5 w-4 h-4 accent-primary cursor-pointer" />
-        <p className="text-[11px] text-amber-800 font-semibold leading-relaxed">
-          J'atteste que les informations fournies sont exactes et j'accepte le
-          <strong className="text-amber-900"> règlement intérieur </strong>
-          et la <strong className="text-amber-900">politique de confidentialité</strong> d'École 221.
-        </p>
-      </label>
+      <div>
+        <label htmlFor="accepteReglement" className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 cursor-pointer group">
+          <input id="accepteReglement" type="checkbox" {...register('accepteReglement')} {...aria(errors, 'accepteReglement')}
+            className="mt-0.5 w-4 h-4 accent-primary cursor-pointer" />
+          <p className="text-[11px] text-amber-800 font-semibold leading-relaxed">
+            J'atteste que les informations fournies sont exactes et j'accepte le
+            <strong className="text-amber-900"> règlement intérieur </strong>
+            et la <strong className="text-amber-900">politique de confidentialité</strong> d'École 221.
+          </p>
+        </label>
+        {errors.accepteReglement && (
+          <p id="accepteReglement-erreur" role="alert" className="mt-1 text-[11px] font-bold text-red-600">{errors.accepteReglement.message}</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -293,56 +368,87 @@ function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: stri
 export function ParentEnrollChildPage() {
   const navigate = useNavigate();
   const [step, setStep]     = useState(1);
-  const [form, setForm]     = useState<FormData>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]   = useState('');
   const [dossierId, setDossierId] = useState('');
+  const [noms, setNoms] = useState<Partial<Record<Champ, string>>>({});
+  const [envois, setEnvois] = useState<Partial<Record<Champ, boolean>>>({});
 
-  const set = (k: keyof FormData, v: string | boolean) =>
-    setForm(prev => ({ ...prev, [k]: v }));
+  const {
+    register, handleSubmit, trigger, setValue, setError: setErreurChamp, clearErrors, control, reset, getValues,
+    formState: { errors },
+  } = useForm<FormData>({ resolver: zodResolver(schemaInscription), defaultValues: EMPTY_FORM, mode: 'onTouched' });
+  const form = useWatch({ control }) as FormData;
+  const envoiEnCours = Object.values(envois).some(Boolean);
 
-  // Validation par étape
-  const canNext = () => {
-    if (step === 1) return !!(form.prenom && form.nom && form.dateNaissance && form.sexe && form.email);
-    if (step === 2) return !!(form.filiere && form.niveau && form.diplomePrecedent && form.etablissementPrecedent);
-    if (step === 3) return !!(form.photoId && form.relevesNotes && form.diplomeBac);
-    if (step === 4) return form.accepteReglement;
-    return true;
+  const recevoir = (id: Champ, url: string, nom: string) => {
+    setValue(id, url, { shouldValidate: true });
+    setNoms(n => ({ ...n, [id]: nom }));
+  };
+  const echec = (id: Champ, message: string) => {
+    // La pièce n'est PAS jointe : on retire un éventuel envoi précédent pour ne jamais afficher un faux « reçu ».
+    setValue(id, '');
+    setNoms(n => ({ ...n, [id]: undefined }));
+    setErreurChamp(id, { type: 'envoi', message });
   };
 
-  const handleNext = () => { if (canNext()) setStep(s => s + 1); };
-  const handleBack = () => setStep(s => s - 1);
+  const handleNext = async () => {
+    setError('');
+    if (envoiEnCours) {
+      setError('Patientez : une pièce est encore en cours d’envoi.');
+      return;
+    }
+    // Les champs de l'étape sont vérifiés : chaque erreur s'affiche sous son champ, le premier reçoit le focus.
+    if (await trigger(CHAMPS_ETAPE[step], { shouldFocus: true })) setStep(s => s + 1);
+  };
+  const handleBack = () => { setError(''); setStep(s => s - 1); };
 
-  const handleSubmit = async () => {
+  const deposer = async (valeurs: FormData) => {
     setLoading(true);
     setError('');
     try {
       const depot = await parentApi.enrollChild({
-        prenom: form.prenom,
-        nom: form.nom,
-        dateNaissance: form.dateNaissance,
-        lieuNaissance: form.lieuNaissance,
-        nationalite: form.nationalite,
-        sexe: form.sexe,
-        email: form.email,
-        telephone: form.telephone,
-        adresse: form.adresse,
-        filiere: form.filiere,
-        niveau: form.niveau,
-        diplomePrecedent: form.diplomePrecedent,
-        etablissementPrecedent: form.etablissementPrecedent,
-        anneeBac: form.anneeBac,
-        mentionBac: form.mentionBac,
+        prenom: valeurs.prenom,
+        nom: valeurs.nom,
+        dateNaissance: valeurs.dateNaissance,
+        lieuNaissance: valeurs.lieuNaissance,
+        nationalite: valeurs.nationalite,
+        sexe: valeurs.sexe as 'M' | 'F',
+        email: valeurs.email,
+        telephone: valeurs.telephone,
+        adresse: valeurs.adresse,
+        filiere: valeurs.filiere,
+        niveau: valeurs.niveau,
+        diplomePrecedent: valeurs.diplomePrecedent,
+        etablissementPrecedent: valeurs.etablissementPrecedent,
+        anneeBac: valeurs.anneeBac,
+        mentionBac: valeurs.mentionBac,
+        photoIdentiteUrl: valeurs.photoIdentiteUrl,
+        relevesNotesUrl: valeurs.relevesNotesUrl,
+        diplomeUrl: valeurs.diplomeUrl,
       });
       setDossierId(depot.dossierId);
       setSuccess(true);
     } catch (e) {
       // Plus de « succès » affiché en cas d'échec : le dossier n'est PAS enregistré, le parent doit le savoir.
-      setError(resolveErrorMessage(e));
+      setError(`Le dossier n'a pas été enregistré : ${resolveErrorMessage(e)}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const soumettre = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step < STEPS.length) {
+      void handleNext();   // « Entrée » dans un champ = étape suivante, jamais un dépôt incomplet
+      return;
+    }
+    void handleSubmit(deposer, (erreurs) => {
+      // Une erreur d'une étape précédente (ex. pièce retirée) : on y retourne pour la montrer.
+      const etape = [1, 2, 3, 4].find(n => CHAMPS_ETAPE[n].some(c => c in erreurs));
+      if (etape && etape !== step) setStep(etape);
+    })();
   };
 
   // ─── Succès ───────────────────────────────────────────────
@@ -355,8 +461,8 @@ export function ParentEnrollChildPage() {
         <div>
           <h2 className="text-2xl font-black text-neutral-900 mb-2">Dossier soumis !</h2>
           <p className="text-sm text-neutral-500 font-semibold leading-relaxed max-w-sm mx-auto">
-            Le dossier d'inscription de <strong className="text-neutral-700">{form.prenom} {form.nom}</strong> a
-            bien été enregistré et transmis à l'administration de l'école. Vous pouvez suivre son
+            Le dossier d'inscription de <strong className="text-neutral-700">{getValues('prenom')} {getValues('nom')}</strong> a
+            bien été enregistré, avec ses trois pièces, et transmis à l'administration de l'école. Vous pouvez suivre son
             avancement dans « Mes candidatures ».
           </p>
         </div>
@@ -368,7 +474,7 @@ export function ParentEnrollChildPage() {
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full">
           <button
-            onClick={() => { setSuccess(false); setForm(EMPTY_FORM); setStep(1); }}
+            onClick={() => { setSuccess(false); reset(EMPTY_FORM); setNoms({}); clearErrors(); setStep(1); }}
             className="flex-1 h-11 border border-neutral-200 rounded-xl text-xs font-black text-neutral-600 hover:bg-neutral-50 transition-all"
           >
             Inscrire un autre enfant
@@ -439,6 +545,7 @@ export function ParentEnrollChildPage() {
         ))}
       </div>
 
+      <form onSubmit={soumettre} noValidate data-validation-externe>
       {/* Contenu de l'étape */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm p-6 md:p-8 mb-6">
         <h2 className="text-sm font-black text-neutral-800 mb-6 flex items-center gap-2">
@@ -447,15 +554,18 @@ export function ParentEnrollChildPage() {
           </span>
           {STEPS[step - 1].label}
         </h2>
-        {step === 1 && <Step1 form={form} set={set} />}
-        {step === 2 && <Step2 form={form} set={set} />}
-        {step === 3 && <Step3 form={form} set={set} />}
-        {step === 4 && <Step4 form={form} set={set} />}
+        {step === 1 && <Step1 register={register} errors={errors} />}
+        {step === 2 && <Step2 register={register} errors={errors} />}
+        {step === 3 && (
+          <Step3 errors={errors} noms={noms} recevoir={recevoir} echec={echec}
+            setEnvoi={(id, enCours) => { setEnvois(v => ({ ...v, [id]: enCours })); if (enCours) clearErrors(id); }} />
+        )}
+        {step === 4 && <Step4 form={form} register={register} errors={errors} noms={noms} />}
       </div>
 
       {/* Erreur */}
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700">
+        <div role="alert" id="erreur-depot" className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700">
           {error}
         </div>
       )}
@@ -463,6 +573,7 @@ export function ParentEnrollChildPage() {
       {/* Navigation */}
       <div className="flex items-center justify-between gap-4">
         <button
+          type="button"
           onClick={handleBack}
           disabled={step === 1}
           className="h-11 px-6 border border-neutral-200 rounded-xl text-xs font-black text-neutral-600 hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
@@ -472,16 +583,17 @@ export function ParentEnrollChildPage() {
         <p className="text-[10px] font-bold text-neutral-400">Étape {step} / {STEPS.length}</p>
         {step < STEPS.length ? (
           <button
-            onClick={handleNext}
-            disabled={!canNext()}
+            type="button"
+            onClick={() => void handleNext()}
+            disabled={envoiEnCours}
             className="h-11 px-8 bg-primary hover:bg-[#0D47A1] active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Suivant →
           </button>
         ) : (
           <button
-            onClick={handleSubmit}
-            disabled={!canNext() || loading}
+            type="submit"
+            disabled={loading || envoiEnCours}
             className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-emerald-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {loading && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
@@ -489,6 +601,7 @@ export function ParentEnrollChildPage() {
           </button>
         )}
       </div>
+      </form>
     </div>
   );
 }

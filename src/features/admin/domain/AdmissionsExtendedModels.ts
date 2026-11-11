@@ -68,6 +68,11 @@ export interface CandidateDetails {
   cniRejectReason?: string;
   cniVerifiedAt?: string;
 
+  // Pièces réellement envoyées (dossier déposé par un parent) : liens http(s) ou null
+  photoUrl?: string | null;
+  transcriptsUrl?: string | null;
+  diplomaUrl?: string | null;
+
   // Paiement des frais de dossier
   paymentMethod?: string;
   paymentTransactionRef?: string;

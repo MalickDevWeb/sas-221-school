@@ -18,6 +18,12 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
   const cniUrl = candidate.details?.cniUrl || null;
   const nin = candidate.details?.cniNumber || '—';
   const pieceVisible = Boolean(cniUrl) && !imgError;
+  // Pièces envoyées par le parent (liens fournis par le serveur, http(s) uniquement) ; rien d'affiché sinon
+  const pieces = [
+    { libelle: "Photo d'identité", url: candidate.details?.photoUrl },
+    { libelle: 'Relevés de notes', url: candidate.details?.transcriptsUrl },
+    { libelle: 'Diplôme / attestation', url: candidate.details?.diplomaUrl },
+  ].filter((p): p is { libelle: string; url: string } => typeof p.url === 'string' && /^https?:\/\//i.test(p.url));
 
   const handleValidate = () => {
     const updated: ExtendedCandidate = {
@@ -63,6 +69,17 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
         <span className="text-neutral-500 font-bold">NIN / N° Pièce :</span>
         <span className="font-mono font-black text-neutral-900 bg-white px-2.5 py-0.5 rounded-md border border-neutral-200 shadow-2xs">{nin}</span>
       </div>
+
+      {pieces.length > 0 && (
+        <ul className="bg-neutral-50 px-3 py-2 rounded-xl border border-neutral-200 text-xs space-y-1" aria-label="Pièces envoyées">
+          {pieces.map(p => (
+            <li key={p.libelle} className="flex items-center justify-between gap-2">
+              <span className="text-neutral-600 font-bold">{p.libelle}</span>
+              <a href={p.url} target="_blank" rel="noopener noreferrer" className="font-black text-primary hover:underline">Ouvrir</a>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div
         className="relative group rounded-xl overflow-hidden border-2 border-neutral-200 bg-gradient-to-br from-slate-800 to-slate-900 h-48 w-full cursor-pointer flex items-center justify-center shadow-inner"
