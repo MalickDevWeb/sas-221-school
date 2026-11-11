@@ -30,6 +30,8 @@ interface ParentContextType {
   retry: () => void;
   unreadCount: number;
   markRead: (id: string) => void;
+  /** Recharge les échanges (après un envoi). */
+  refreshMessages: () => Promise<void>;
 }
 
 export const ParentContext = createContext<ParentContextType>({} as ParentContextType);

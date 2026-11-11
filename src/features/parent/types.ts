@@ -60,15 +60,34 @@ export interface ChildDashboardStats {
   coursAujourdhui: ChildScheduleItem[];
 }
 
+/** Message d'un échange parent ↔ école (GET /parent/messages). */
 export interface ParentMessage {
   id: string;
-  de: string;
-  role: string;
+  /** Auteur affiché (« Administration — Prénom Nom » pour une réponse de l'administration). */
+  de: string | null;
+  role: 'PARENT' | 'PROFESSEUR' | 'ADMINISTRATION' | string;
   sujet: string;
   message: string;
+  /** AAAA-MM-JJ */
   date: string;
+  /** Côté parent : réponse de l'école lue ; ses propres envois sont toujours « lus ». */
   lu: boolean;
-  avatar?: string;
+  /** true = envoyé par le parent. */
+  envoye?: boolean;
+  /** Professeur, ou ADMINISTRATION. */
+  interlocuteurId?: string;
+  interlocuteur?: string | null;
+  envoyeLe?: string;
+  /** L'autre partie a-t-elle lu le message ? */
+  luParDestinataire?: boolean;
+  repondA?: string | null;
+}
+
+/** GET /parent/messages/destinataires : l'administration puis les professeurs actifs de l'école. */
+export interface ParentDestinataire {
+  id: string;
+  nom: string;
+  role: 'ADMINISTRATION' | 'PROFESSEUR';
 }
 
 /** Élément de GET /api/parent/rdv (docs/api-contract.md, interface ParentAppointment). */
