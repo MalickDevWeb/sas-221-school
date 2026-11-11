@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StaffMember, libelleRole } from '../../../../domain/PersonnelModels';
 import type { NouveauPointage } from '../AttendanceTab';
+import { dureeHeures } from './dureeHeures';
 
 interface Props {
   /** Personnel réel de l'école : la personne pointée est choisie dans cette liste. */
@@ -8,15 +9,6 @@ interface Props {
   onClose: () => void;
   /** Résolue à true après confirmation du serveur ; la fenêtre reste ouverte en cas d'échec. */
   onAdd: (record: NouveauPointage) => Promise<boolean>;
-}
-
-/** Durée en heures entre deux heures « HH:MM » ; null si incalculable (jamais de durée supposée). */
-export function dureeHeures(debut: string, fin: string): number | null {
-  const [inH, inM] = debut.split(':').map(Number);
-  const [outH, outM] = fin.split(':').map(Number);
-  if ([inH, inM, outH, outM].some((n) => isNaN(n))) return null;
-  const diff = (outH * 60 + outM - (inH * 60 + inM)) / 60;
-  return diff > 0 ? Math.round(diff * 100) / 100 : null;
 }
 
 export const NewAttendanceModal: React.FC<Props> = ({ staff, onClose, onAdd }) => {
