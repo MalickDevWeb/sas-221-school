@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import { LIBELLE_FRAIS, LIBELLE_STATUT, type DossierCandidat } from '../suiviApi';
 
 interface Props {
-  candidate: ExtendedCandidate;
+  candidate: DossierCandidat;
   onGoToDashboard: () => void;
 }
 
@@ -23,9 +23,9 @@ export function StepSuccessReceipt({ candidate, onGoToDashboard }: Props) {
         <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase tracking-wider border border-emerald-200">
           Dossier Déposé & Enregistré avec Succès
         </span>
-        <h2 className="text-xl font-black text-neutral-900 tracking-tight">Félicitations, {candidate.name} !</h2>
+        <h2 className="text-xl font-black text-neutral-900 tracking-tight">Merci, {[candidate.prenom, candidate.nom].filter(Boolean).join(' ')} !</h2>
         <p className="text-xs text-neutral-500 max-w-md mx-auto">
-          Votre dossier d'admission pour <strong>{candidate.course}</strong> a bien été transmis au comité pédagogique.
+          Votre dossier d'admission pour <strong>{candidate.formation ?? '—'}</strong> est enregistré par l'école. Suivez sa décision en ligne avec votre email et votre mot de passe de suivi.
         </p>
       </div>
 
@@ -36,7 +36,7 @@ export function StepSuccessReceipt({ candidate, onGoToDashboard }: Props) {
         </div>
         <div className="flex justify-between items-center text-xs">
           <span className="text-neutral-500 font-medium">Cursus sollicité :</span>
-          <span className="font-bold text-neutral-800 text-right">{candidate.course}</span>
+          <span className="font-bold text-neutral-800 text-right">{candidate.formation ?? '—'}</span>
         </div>
         <div className="flex justify-between items-center text-xs">
           <span className="text-neutral-500 font-medium">Email candidat :</span>
@@ -44,11 +44,13 @@ export function StepSuccessReceipt({ candidate, onGoToDashboard }: Props) {
         </div>
         <div className="flex justify-between items-center text-xs">
           <span className="text-neutral-500 font-medium">Frais d'évaluation :</span>
-          <span className="font-bold text-emerald-600">Paiement Validé ✓</span>
+          <span className={`font-bold ${candidate.frais === 'CONFIRMES' ? 'text-emerald-700' : candidate.frais === 'DECLARES' ? 'text-amber-700' : 'text-neutral-500'}`}>
+            {LIBELLE_FRAIS[candidate.frais]}
+          </span>
         </div>
         <div className="flex justify-between items-center text-xs">
           <span className="text-neutral-500 font-medium">Statut actuel :</span>
-          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-black uppercase">En Examen</span>
+          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-black uppercase">{LIBELLE_STATUT[candidate.statut]}</span>
         </div>
       </div>
 

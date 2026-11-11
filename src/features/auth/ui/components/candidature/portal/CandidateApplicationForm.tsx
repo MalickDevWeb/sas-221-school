@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { Campaign } from './admissionsDb';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import type { Campaign } from './admissionsTypes';
+import type { DossierCandidat } from './suiviApi';
 import { useCandidateApplicationState } from './useCandidateApplicationState';
 import { StepIdentity } from './steps/StepIdentity';
 import { StepGuardian } from './steps/StepGuardian';
@@ -14,13 +14,13 @@ import { StepSuccessReceipt } from './steps/StepSuccessReceipt';
 
 interface Props {
   campaign: Campaign;
-  onSuccess: (candidate: ExtendedCandidate) => void;
+  onSuccess: (dossier: DossierCandidat) => void;
   onCancel: () => void;
 }
 
 export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Props) {
   const ecoleContact = useTenantStore((st) => st.currentTenant);   // coordonnées réelles de l'école
-  const [createdCandidate, setCreatedCandidate] = useState<ExtendedCandidate | null>(null);
+  const [createdCandidate, setCreatedCandidate] = useState<DossierCandidat | null>(null);
 
   const state = useCandidateApplicationState(campaign, (candidate) => {
     setCreatedCandidate(candidate);

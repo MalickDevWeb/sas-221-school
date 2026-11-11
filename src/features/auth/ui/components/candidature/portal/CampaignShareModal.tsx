@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { Campaign } from './admissionsDb';
+import type { Campaign } from './admissionsTypes';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {

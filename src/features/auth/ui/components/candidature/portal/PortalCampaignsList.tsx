@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Campaign } from './admissionsDb';
+import type { Campaign } from './admissionsTypes';
 import { CampaignShareModal } from './CampaignShareModal';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';

@@ -27,7 +27,7 @@ export function StepAccount({ credentials, setCredentials, onSubmit, onPrev, isS
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Mot de passe candidat *</label>
-          <input required type="password" placeholder="Au moins 6 caractères" value={credentials.password} onChange={e => setCredentials((c: any) => ({ ...c, password: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
+          <input required type="password" placeholder="Au moins 8 caractères" value={credentials.password} onChange={e => setCredentials((c: any) => ({ ...c, password: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
         </div>
         <div>
           <label className="text-[11px] font-bold text-neutral-700 block mb-1">Confirmer le mot de passe *</label>
