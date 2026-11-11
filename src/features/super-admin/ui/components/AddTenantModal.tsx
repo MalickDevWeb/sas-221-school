@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { usePlatformStore } from '../../store/usePlatformStore';
 import type { CreateTenantCommand } from '../../domain/models/PlatformModels';
 import { TenantFormSections } from './tenants/TenantFormSections';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface AddTenantModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ export const AddTenantModal: React.FC<AddTenantModalProps> = ({ isOpen, onClose 
   const { createTenant } = usePlatformStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateTenantCommand>(EMPTY_FORM);
+  // Identifiants de l'administrateur créé, affichés UNE fois (avant : mot de passe devinable « e-mail + 221! »)
+  const [identifiants, setIdentifiants] = useState<{ ecole: string; email: string; motDePasse: string } | null>(null);
+  const [copie, setCopie] = useState(false);
 
   if (!isOpen) return null;
 
@@ -35,16 +39,46 @@ export const AddTenantModal: React.FC<AddTenantModalProps> = ({ isOpen, onClose 
     }
     setIsSubmitting(true);
     try {
-      await createTenant(formData);
-      toast.success(`L'établissement "${formData.name}" a été créé avec succès.`);
+      const cree = await createTenant(formData);
+      toast.success(`L'établissement "${formData.name}" a été créé.`);
+      if (cree?.motDePasseProvisoireAdmin) {
+        setIdentifiants({ ecole: formData.name, email: formData.adminEmail, motDePasse: cree.motDePasseProvisoireAdmin });
+      } else {
+        onClose();
+      }
       setFormData(EMPTY_FORM);
-      onClose();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message ?? "Erreur lors de la création.");
+      toast.error(resolveErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (identifiants) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div className="bg-[#0B0F1F] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 text-sm text-slate-200" role="dialog" aria-label="Identifiants de l'administrateur">
+          <h2 className="text-base font-bold text-white">Établissement « {identifiants.ecole} » créé</h2>
+          <p>Identifiant de connexion de l'administrateur : <span className="font-mono text-white">{identifiants.email}</span></p>
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+            <p className="text-xs font-bold text-amber-300">Mot de passe provisoire à transmettre :</p>
+            <div className="flex gap-2">
+              <code className="flex-1 px-3 py-2 rounded-lg bg-black/40 font-mono text-white select-all break-all">{identifiants.motDePasse}</code>
+              <button type="button" className="px-3 rounded-lg bg-amber-500 text-black text-xs font-bold"
+                onClick={async () => { try { await navigator.clipboard.writeText(identifiants.motDePasse); setCopie(true); } catch { /* copie manuelle */ } }}>
+                {copie ? 'Copié' : 'Copier'}
+              </button>
+            </div>
+            <p className="text-[11px] text-amber-200">Il ne sera plus affiché après la fermeture de cette fenêtre.</p>
+          </div>
+          <div className="flex justify-end">
+            <button type="button" onClick={() => { setIdentifiants(null); setCopie(false); onClose(); }}
+              className="px-4 py-2 rounded-xl bg-indigo-500 text-white text-xs font-bold">J'ai transmis le mot de passe</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">

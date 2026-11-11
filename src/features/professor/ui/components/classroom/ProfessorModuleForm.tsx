@@ -33,6 +33,8 @@ export function ProfessorModuleForm({
             value={newModuleTitle}
             onChange={(e) => setNewModuleTitle(e.target.value)}
             placeholder="Ex: Module 1 — Algorithmes avancés"
+            required
+            data-msg-requis="Donnez un titre au module."
             className="mt-2 w-full rounded-2xl border border-neutral-gray-300 bg-white px-4 py-3 text-xs font-semibold focus:border-brand-red-deep focus:outline-none"
           />
         </div>

@@ -8,17 +8,18 @@ interface Props {
 export function HistoryAnalyticsStats({ campaigns }: Props) {
   const totalCampaigns = campaigns.length;
   const emergenciesCount = campaigns.filter(c => c.isEmergency).length;
-  const avgDelivery = totalCampaigns > 0
-    ? Math.round(campaigns.reduce((acc, c) => acc + c.deliveryRate, 0) / totalCampaigns)
-    : 100;
-  const avgOpen = totalCampaigns > 0
-    ? Math.round(campaigns.reduce((acc, c) => acc + c.openRate, 0) / totalCampaigns)
-    : 92;
+  // Moyenne sur les seules valeurs réellement mesurées ; aucune mesure → « — ».
+  const moyenne = (vals: Array<number | null>) => {
+    const reels = vals.filter((v): v is number => typeof v === 'number');
+    return reels.length ? `${Math.round(reels.reduce((a, v) => a + v, 0) / reels.length)}%` : '—';
+  };
+  const avgDelivery = moyenne(campaigns.map(c => c.deliveryRate));
+  const avgOpen = moyenne(campaigns.map(c => c.openRate));
 
   const STATS_CARDS = [
     { label: 'Campagnes Diffusées', value: totalCampaigns, icon: 'campaign', color: 'text-primary' },
-    { label: 'Taux Moyen de Délivrance', value: `${avgDelivery}%`, icon: 'verified', color: 'text-emerald-600' },
-    { label: 'Taux Moyen d\'Ouverture', value: `${avgOpen}%`, icon: 'mark_email_read', color: 'text-amber-600' },
+    { label: 'Taux Moyen de Délivrance', value: avgDelivery, icon: 'verified', color: 'text-emerald-600' },
+    { label: 'Taux Moyen d\'Ouverture', value: avgOpen, icon: 'mark_email_read', color: 'text-amber-600' },
     { label: 'Alertes d\'Urgence', value: emergenciesCount, icon: 'emergency', color: 'text-red-600' },
   ];
 

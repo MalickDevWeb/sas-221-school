@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/apiClient';
 import { Video, Sparkles, AlertCircle } from 'lucide-react';
+
+interface CourseItem {
+  classeId?: string;
+  classe?: string;
+}
+
+interface PromotionItem {
+  id: string;
+  name?: string;
+}
 
 interface Props {
   readonly onSchedule: (
@@ -15,7 +27,32 @@ interface Props {
 }
 
 export function MeetScheduler({ onSchedule, teacherName }: Props) {
-  const [selectedClass, setSelectedClass] = useState<string>('L3-INFO');
+  const [selectedClass, setSelectedClass] = useState<string>('');
+
+  const { data: classes = [], isLoading: chargement } = useQuery({
+    queryKey: ['meet-scheduler-classes'],
+    queryFn: async () => {
+      const trouvees = new Map<string, string>();
+      try {
+        const { data } = await apiClient.get<CourseItem[] | { content: CourseItem[] }>('/professor/courses');
+        const cours = Array.isArray(data) ? data : (data?.content || []);
+        cours.forEach((c) => { if (c.classeId) trouvees.set(c.classeId, c.classe || c.classeId); });
+      } catch { /* rôle sans espace professeur */ }
+      if (trouvees.size === 0) {
+        try {
+          const { data } = await apiClient.get<{ promotions?: PromotionItem[] }>('/admin/users');
+          (data?.promotions || []).forEach((p) => trouvees.set(p.id, p.name || p.id));
+        } catch { /* pas d'accès administration */ }
+      }
+      return Array.from(trouvees, ([id, nom]) => ({ id, nom }));
+    }
+  });
+
+  React.useEffect(() => {
+    if (classes.length > 0 && !selectedClass) {
+      setSelectedClass(classes[0].id);
+    }
+  }, [classes, selectedClass]);
   const [subject, setSubject] = useState('');
   const [meetLink, setMeetLink] = useState('');
   const [autoGen, setAutoGen] = useState(false);
@@ -23,8 +60,9 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const className = selectedClass === 'L3-INFO' ? 'L3 Informatique' : 'M1 Spécialité IA';
-    onSchedule([selectedClass], [className], subject || 'Cours Général', teacherName, meetLink, autoGen, restrict);
+    if (!selectedClass || !subject.trim()) return;   // champs « required » : messages personnalisés affichés
+    const className = classes.find(c => c.id === selectedClass)?.nom || selectedClass;
+    onSchedule([selectedClass], [className], subject.trim(), teacherName, meetLink, autoGen, restrict);
     setSubject('');
     setMeetLink('');
   };
@@ -47,10 +85,14 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
+            required
+            data-msg-requis="Choisissez la classe concernée."
             className="w-full text-xs font-semibold px-3 py-2 border border-neutral-gray-200 rounded-xl focus:outline-none"
           >
-            <option value="L3-INFO">L3 Informatique</option>
-            <option value="M1-IA">M1 Spécialité IA (Assigné)</option>
+            {classes.length === 0 && (
+              <option value="">{chargement ? 'Chargement…' : 'Aucune classe : aucun cours ne vous est attribué'}</option>
+            )}
+            {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
         </div>
 
@@ -69,13 +111,16 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
         <div className="flex items-center justify-between bg-neutral-gray-50 p-3 rounded-xl">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-brand-red-deep" />
-            <span className="text-xs font-bold text-gray-800">Générer via Google Workspace API</span>
+            <span className="text-xs font-bold text-gray-800">Générer via Google Workspace API <span className="font-semibold text-neutral-400">(non disponible)</span></span>
           </div>
           <input
             type="checkbox"
-            checked={autoGen}
+            checked={false}
+            disabled
+            aria-disabled="true"
+            title="Fonctionnalité non disponible : aucune intégration Google Workspace"
             onChange={(e) => setAutoGen(e.target.checked)}
-            className="h-4 w-4 text-brand-red-deep border-gray-300 rounded focus:ring-brand-red-deep"
+            className="cursor-not-allowed opacity-50 h-4 w-4 text-brand-red-deep border-gray-300 rounded focus:ring-brand-red-deep"
           />
         </div>
 

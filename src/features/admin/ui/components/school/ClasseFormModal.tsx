@@ -14,8 +14,8 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
   const [level, setLevel] = useState(classe?.level || 'L1');
   const [filiereId, setFiliereId] = useState(classe?.filiereId || filieres[0]?.id || '');
   const [name, setName] = useState(classe?.name || '');
-  const [capacity, setCapacity] = useState(classe?.capacityMax?.toString() || '40');
-  const [price, setPrice] = useState(classe?.price?.toString() || '900000');
+  const [capacity, setCapacity] = useState(classe?.capacityMax?.toString() || '');
+  const [price, setPrice] = useState(classe?.price?.toString() || '');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +51,10 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-neutral-400">Filière d'Étude</label>
-                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
+                <select value={filiereId} onChange={e => setFiliereId(e.target.value)} required
+                  data-msg-requis={filieres.length === 0 ? "Aucune filière : créez-en une dans « Filières & Spécialités »." : "Choisissez la filière de la classe."}
+                  className="w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-bold focus:outline-none focus:border-primary">
+                  {filieres.length === 0 && <option value="">Aucune filière — créez-en une d'abord</option>}
                   {filieres.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               </div>

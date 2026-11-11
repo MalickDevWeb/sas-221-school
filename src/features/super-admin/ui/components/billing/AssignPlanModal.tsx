@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Building2, X, Crown, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import type { PlanDto, Tenant, AssignPlanCommand } from '@/features/super-admin/domain/models/PlatformModels';
 import { planBg } from './billingConstants';
@@ -14,23 +16,31 @@ interface AssignPlanModalProps {
 
 export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({ plans, tenants, onClose, onAssigned }) => {
   const [form, setForm] = useState<AssignPlanCommand>({ organizationId: '', planId: '', endDate: null });
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await apiClient.post('/v1/super-admin/subscriptions', form);
+  const assignMutation = useMutation({
+    mutationFn: async (payload: AssignPlanCommand) => {
+      // le champ date donne « AAAA-MM-JJ » ; le serveur attend une date-heure (avant : toute date choisie → erreur)
+      const corps = { ...payload, endDate: payload.endDate ? `${String(payload.endDate).slice(0, 10)}T23:59:59` : null };
+      const res = await apiClient.post('/v1/super-admin/subscriptions', corps);
+      return res.data;
+    },
+    onSuccess: () => {
       const tenant = tenants.find(t => t.id === form.organizationId);
       const plan = plans.find(p => p.id === form.planId);
       toast.success(`✅ "${tenant?.name}" abonné au plan "${plan?.name}" !`);
       onAssigned();
       onClose();
-    } catch {
-      toast.error("Erreur lors de l'assignation du plan.");
-    } finally {
-      setLoading(false);
-    }
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    },
+  });
+
+  const loading = assignMutation.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    assignMutation.mutate(form);
   };
 
   return (

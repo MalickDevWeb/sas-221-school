@@ -32,25 +32,27 @@ export function useStudentDocuments(studentId: string) {
 
   const uploadFile = async (file: File) => {
     setUploading(true);
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const upRes = await apiClient.post('/upload', { fileStr: reader.result as string });
-        if (upRes.data?.url) {
-          const docRes = await apiClient.post(`/admin/students/${studentId}/documents`, {
-            name: file.name,
-            size: `${(file.size / (1024 * 1024)).toFixed(2)} Mo`,
-            url: upRes.data.url
-          });
-          setDocs(docRes.data?.documents || []);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setUploading(false);
+    try {
+      // Route réelle : UploadController POST /media/upload (multipart, champ « file ») — APP-ARC-01
+      const form = new FormData();
+      form.append('file', file);
+      form.append('userId', studentId);
+      const upRes = await apiClient.post<{ url?: string }>('/media/upload', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (upRes.data?.url) {
+        const docRes = await apiClient.post(`/admin/students/${studentId}/documents`, {
+          name: file.name,
+          size: `${(file.size / (1024 * 1024)).toFixed(2)} Mo`,
+          url: upRes.data.url
+        });
+        setDocs(docRes.data?.documents || []);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return { docs, loading, uploading, uploadFile };

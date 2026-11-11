@@ -5,9 +5,22 @@ import { AppRouter } from '@/core/router/AppRouter'
 import { useTenantStore } from '@/core/store/tenantStore'
 import '@/shared/design/reset.css'
 import '@/shared/design/tokens.css'
+import '@/shared/design/validation.css'
+import { installerValidationPersonnalisee } from '@/shared/lib/validationPersonnalisee'
+import { purgerAncienFormat } from '@/features/auth/infrastructure/local/identifiantsHorsLigne'
+import { installerSurveillanceErreursDev } from '@/shared/lib/surveillanceErreursDev'
+
+// Bandeau des erreurs d'exécution : développement seulement (APP-SEC-07)
+installerSurveillanceErreursDev();
 
 // On s'assure de réappliquer le thème CSS depuis le localStorage (si l'utilisateur fait F5)
 useTenantStore.getState().rehydrateTheme();
+
+// Messages de validation personnalisés sous les champs (plus de bulles natives du navigateur)
+installerValidationPersonnalisee();
+
+// Connexion hors-ligne : suppression des anciens mots de passe stockés en base64 (lisibles)
+purgerAncienFormat();
 
 // Global safety patch to catch unhandled promise rejections from play() interruptions
 // (e.g., when a camera video or audio beep element is removed from the DOM mid-play)

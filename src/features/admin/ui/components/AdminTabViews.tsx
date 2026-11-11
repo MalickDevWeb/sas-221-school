@@ -12,6 +12,9 @@ import { AdminSecurityAuditTrail } from './AdminSecurityAuditTrail';
 import { AdminSubscriptionManager } from './AdminSubscriptionManager';
 import { AdminBrandingManager } from './branding/AdminBrandingManager';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
+import { AdminReferentielsManager } from '@/features/referentiels';
+import { AdminJustificatifsAbsence } from './justificatifs/AdminJustificatifsAbsence';
+import { BoiteMessagesParents } from '@/features/messagerie-parents/BoiteMessagesParents';
 
 interface AdminTabViewsProps {
   activeTab: string;
@@ -26,12 +29,18 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     schedule: <AdminGlobalScheduler />,
     personnel: <AdminPersonnelRH />,
     students: <AdminStudentManager />,
+    justificatifs: <AdminJustificatifsAbsence />,
+    messages_parents: (
+      <BoiteMessagesParents boite="/admin/messages-parents" titre="Messages des parents"
+        description="Boîte partagée par les administrateurs : messages adressés à l'administration de l'école." />
+    ),
     admissions: <AdminAdmissionsKanban />,
     finances: <AdminFinanceDashboard />,
     collaboration: <CollaborationPage />,
     billing: <AdminSubscriptionManager />,
     notifications: <AdminNotificationsHub />,
     branding: <AdminBrandingManager />,
+    referentiels: <AdminReferentielsManager />,
     ai: <AdminPredictiveAIEngine />,
     security: <AdminSecurityAuditTrail />,
   };

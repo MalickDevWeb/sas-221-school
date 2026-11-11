@@ -10,10 +10,12 @@ interface Props {
   onUpdateStudents: (list: Student[]) => void;
   onViewProfile: (student: Student) => void;
   onToggleFinancialStatus?: (id: string, newStatus: 'En Règle' | 'En Retard') => void;
+  /** Suspension / réactivation réelle (PATCH /admin/students/{id}/toggle-status). */
+  onToggleQrStatus?: (id: string) => void;
   onRefresh?: () => void;
 }
 
-export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleFinancialStatus, onRefresh }: Props) {
+export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleFinancialStatus, onToggleQrStatus, onRefresh }: Props) {
   const { isMobile } = useDeviceStore();
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('ALL');
@@ -21,8 +23,10 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
   const [filterQr, setFilterQr] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Plus de bascule locale : l'état affiché ne change qu'après confirmation du serveur
   const toggleQrStatus = (id: string) => {
-    onUpdateStudents(students.map(s => s.id === id ? { ...s, qrStatus: s.qrStatus === 'AUTORISÉ' ? 'SUSPENDU' : 'AUTORISÉ' } : s));
+    if (onToggleQrStatus) onToggleQrStatus(id);
+    else toast.error("Action indisponible : la suspension n'est pas reliée au serveur ici.");
   };
 
   if (isMobile) {
@@ -105,7 +109,7 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
                         if (onToggleFinancialStatus) {
                           onToggleFinancialStatus(s.id, nextStatus);
                         } else {
-                          onUpdateStudents(students.map(st => st.id === s.id ? { ...st, financialStatus: nextStatus } : st));
+                          toast.error("Action indisponible : le statut de frais n'est pas relié au serveur ici.");
                         }
                       }}
                       className={`px-2 py-0.5 rounded-full text-[8.5px] border font-black uppercase cursor-pointer hover:opacity-80 transition-opacity ${

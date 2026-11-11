@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import type { AdminPromotion, AdminProfessor } from '../../domain/AdminModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+
+/** Niveaux proposés (champ obligatoire côté serveur). */
+const NIVEAUX = ['L1', 'L2', 'L3', 'M1', 'M2'];
 
 interface ClassFiliereProps {
   promotions: AdminPromotion[];
@@ -11,35 +17,55 @@ interface ClassFiliereProps {
 export function AdminClassFiliereManager({ promotions, professors, onCreated }: ClassFiliereProps) {
   const [promoName, setPromoName] = useState('');
   const [filiere, setFiliere] = useState('');
-  const [faculte, setFaculte] = useState('Sciences & Technologies');
+  const [niveau, setNiveau] = useState('');
+  const [capacite, setCapacite] = useState('');
   
   const [courseTitre, setCourseTitre] = useState('');
-  const [coef, setCoef] = useState('3');
+  const [heures, setHeures] = useState('');
   const [profId, setProfId] = useState('');
   const [promoId, setPromoId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const createPromoMutation = useMutation({
+    mutationFn: async (payload: { name: string; filiere: string; level: string; capacity: string }) => {
+      const { data } = await apiClient.post('/admin/promotions', payload);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Classe ${variables.name} créée.`);
+      setPromoName(''); setFiliere(''); setNiveau(''); setCapacite('');
+      onCreated();
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    }
+  });
+
+  const createCourseMutation = useMutation({
+    mutationFn: async (payload: Record<string, string>) => {
+      const { data } = await apiClient.post('/admin/courses', payload);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Matière ${variables.titre} créée.`);
+      setCourseTitre(''); setHeures('');
+      onCreated();
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    }
+  });
+
+  const loading = createPromoMutation.isPending || createCourseMutation.isPending;
 
   const handleCreatePromo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!promoName || !filiere) return;
-    setLoading(true);
-    try {
-      await apiClient.post('/admin/promotions', { name: promoName, filiere, faculte });
-      setPromoName(''); setFiliere('');
-      onCreated();
-    } catch { /* handled by apiClient interceptor */ } finally { setLoading(false); }
+    if (!promoName || !filiere || !niveau || !capacite) return;   // champs « required » : messages personnalisés affichés
+    createPromoMutation.mutate({ name: promoName.trim(), filiere: filiere.trim(), level: niveau, capacity: capacite });
   };
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    const activePromo = promoId || (promotions[0]?.id || '');
-    if (!courseTitre || !activePromo) return;
-    setLoading(true);
-    try {
-      await apiClient.post('/admin/courses', { titre: courseTitre, coefficient: coef, professeur_id: profId, promotion_id: activePromo });
-      setCourseTitre(''); setCoef('3');
-      onCreated();
-    } catch { /* handled by apiClient interceptor */ } finally { setLoading(false); }
+    if (!courseTitre || !promoId || !profId || !heures) return;   // classe et enseignant obligatoires (plus de choix implicite)
+    createCourseMutation.mutate({ titre: courseTitre.trim(), professeur_id: profId, promotion_id: promoId, volumeHoraire: heures });
   };
 
   return (
@@ -54,6 +80,11 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
         <div className="grid grid-cols-2 gap-2">
           <input value={promoName} onChange={e => setPromoName(e.target.value)} placeholder="Nom (ex: 221-CD)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
           <input value={filiere} onChange={e => setFiliere(e.target.value)} placeholder="Spécialité / Filière" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
+          <select value={niveau} onChange={e => setNiveau(e.target.value)} className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg text-[11px] px-1 font-bold" required data-msg-requis="Choisissez le niveau de la classe.">
+            <option value="">-- Niveau --</option>
+            {NIVEAUX.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <input value={capacite} type="number" min="1" max="1000" onChange={e => setCapacite(e.target.value)} placeholder="Capacité (places)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required data-msg-requis="Indiquez le nombre de places." />
         </div>
         <button type="submit" disabled={loading} className="w-full h-8 bg-[#3E2927] hover:bg-[#291715] text-white font-bold uppercase rounded-lg tracking-wider text-[10px]">Créer la Classe</button>
       </form>
@@ -63,15 +94,15 @@ export function AdminClassFiliereManager({ promotions, professors, onCreated }: 
         <div className="space-y-1.5">
           <input value={courseTitre} onChange={e => setCourseTitre(e.target.value)} placeholder="Nom du Cours (ex: Intelligence Artificielle)" className="w-full h-8 bg-white border border-[#E2DCDA] rounded-lg px-2 text-[11px]" required />
           <div className="grid grid-cols-3 gap-1.5">
-            <select value={promoId} onChange={e => setPromoId(e.target.value)} className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-1 font-bold">
+            <select value={promoId} onChange={e => setPromoId(e.target.value)} className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-1 font-bold" required data-msg-requis="Choisissez la classe.">
               <option value="">-- Classe --</option>
               {promotions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <select value={profId} onChange={e => setProfId(e.target.value)} className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-1">
+            <select value={profId} onChange={e => setProfId(e.target.value)} className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-1" required data-msg-requis="Choisissez l'enseignant.">
               <option value="">-- Enseignant --</option>
               {professors.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <input value={coef} type="number" onChange={e => setCoef(e.target.value)} placeholder="Coef" className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-2" min="1" max="10" />
+            <input value={heures} type="number" onChange={e => setHeures(e.target.value)} placeholder="Heures" title="Volume horaire (obligatoire)" className="bg-white border border-[#E2DCDA] h-8 rounded-lg text-[10px] px-2" min="1" max="500" required data-msg-requis="Indiquez le volume horaire." />
           </div>
         </div>
         <button type="submit" disabled={loading} className="w-full h-8 bg-primary hover:bg-[#8F1316] text-white font-bold uppercase rounded-lg tracking-wider text-[10px]">Ajouter la Matière</button>

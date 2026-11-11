@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SecuritySubSidebar } from './security/SecuritySubSidebar';
 import { AuditTrailTab } from './security/AuditTrailTab';
 import { TerminalsTab } from './security/TerminalsTab';
 import { CryptoKeysTab } from './security/CryptoKeysTab';
 import { VigilRealtimeLogs } from './security/VigilRealtimeLogs';
-import { AuditLog, AccessTerminal, INITIAL_AUDIT_LOGS, INITIAL_TERMINALS } from '../../domain/SecurityModels';
+import { AuditLog, AccessTerminal } from '../../domain/SecurityModels';
+import { apiClient } from '@/shared/lib/apiClient';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
 export function AdminSecurityAuditTrail() {
   const [activeTab, setActiveTab] = useState('audit');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [logs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
-  const [terminals, setTerminals] = useState<AccessTerminal[]>(INITIAL_TERMINALS);
+  // Journal d'audit RÉEL (GET /audit/logs/recent) — avant : entrées inventées affichées en permanence
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [logsError, setLogsError] = useState('');
+  // Aucune source réelle des terminaux d'accès : liste vide (avant : terminaux inventés)
+  const [terminals, setTerminals] = useState<AccessTerminal[]>([]);
+
+  useEffect(() => {
+    apiClient.get<any[]>('/audit/logs/recent', { params: { limit: 100 } })
+      .then((res) => {
+        setLogs((Array.isArray(res.data) ? res.data : []).map((l: any) => ({
+          id: l.id,
+          time: l.timestamp || '',
+          user: l.userId || '',
+          role: '',
+          action: l.action || '',
+          details: l.description || '',
+          ip: l.ipAddress || '',
+          agent: l.userAgent || '',
+        })));
+        setLogsError('');
+      })
+      .catch(() => setLogsError("Journal d'audit indisponible."));
+  }, []);
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -71,6 +93,7 @@ export function AdminSecurityAuditTrail() {
           </div>
         )}
 
+        {activeTab === 'audit' && logsError && <p className="text-sm text-rose-600 p-4">{logsError}</p>}
         {activeTab === 'audit' && <AuditTrailTab logs={logs} />}
 
         {activeTab === 'realtime' && <VigilRealtimeLogs />}

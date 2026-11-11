@@ -1,8 +1,9 @@
 export interface ProfessorCourse {
   readonly id: string;
   readonly titre: string;
-  readonly coefficient: number;
-  readonly progress: number;
+  /** undefined = non renseigné par le serveur (affiché « — ») */
+  readonly coefficient?: number;
+  readonly progress?: number;
   readonly unites: string[];
   readonly prochainCours: string;
   readonly salle: string;
@@ -22,10 +23,11 @@ export interface StudentGrade {
   readonly studentId: string;
   readonly studentNom: string;
   readonly courseId: string;
-  readonly cc: number;
-  readonly examen: number;
-  readonly finalGrade: number;
-  readonly status: 'Validé' | 'Rattrapage';
+  /** null = pas encore noté (l'élève figure quand même dans la liste pour pouvoir être noté) */
+  readonly cc: number | null;
+  readonly examen: number | null;
+  readonly finalGrade: number | null;
+  readonly status: 'Validé' | 'Rattrapage' | 'Non noté';
 }
 
 export interface ProfessorHomework {

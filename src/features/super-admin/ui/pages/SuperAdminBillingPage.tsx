@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Building2, Crown, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import type { PlanDto, SubscriptionDto, Tenant } from '../../domain/models/PlatformModels';
 import { BillingPlanCard } from '../components/billing/BillingPlanCard';
@@ -10,37 +11,38 @@ import { CreatePlanModal } from '../components/billing/CreatePlanModal';
 import { AssignPlanModal } from '../components/billing/AssignPlanModal';
 
 export const SuperAdminBillingPage = () => {
-  const [plans, setPlans] = useState<PlanDto[]>([]);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionDto[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showCreatePlan, setShowCreatePlan] = useState(false);
   const [showAssignPlan, setShowAssignPlan] = useState(false);
   const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions'>('plans');
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
 
-  const fetchAll = async () => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['superadmin', 'billing', 'all'],
+    queryFn: async () => {
       const [plansRes, subsRes, tenantsRes] = await Promise.all([
         apiClient.get<PlanDto[]>('/v1/super-admin/plans').catch(() => ({ data: [] })),
         apiClient.get<SubscriptionDto[]>('/v1/super-admin/subscriptions').catch(() => ({ data: [] })),
         apiClient.get<Tenant[]>('/v1/super-admin/tenants').catch(() => ({ data: [] })),
       ]);
-      setPlans(plansRes.data || []);
-      setSubscriptions(subsRes.data || []);
-      setTenants(tenantsRes.data || []);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return {
+        plans: plansRes.data || [],
+        subscriptions: subsRes.data || [],
+        tenants: tenantsRes.data || [],
+      };
+    },
+  });
 
-  useEffect(() => { fetchAll(); }, []);
+  const plans = data?.plans || [];
+  const subscriptions = data?.subscriptions || [];
+  const tenants = data?.tenants || [];
+  const fetchAll = () => { refetch(); };
 
   const totalMonthlyRevenue = subscriptions
     .filter(s => s.status === 'ACTIVE')
     .reduce((acc, s) => acc + (plans.find(p => p.id === s.planId)?.priceMonthly || 0), 0);
 
-  const expiringCount = subscriptions.filter(s => s.endDate && new Date(s.endDate) < new Date(Date.now() + 30 * 86400000)).length;
+  const expiringCount = subscriptions.filter(s => s.endDate && new Date(s.endDate) < new Date(maintenant + 30 * 86400000)).length;
 
   return (
     <div className="p-6 md:p-8 space-y-6">
@@ -117,7 +119,7 @@ export const SuperAdminBillingPage = () => {
         <BillingSubscriptionsTable subscriptions={subscriptions} plans={plans} />
       )}
 
-      {showCreatePlan && <CreatePlanModal onClose={() => setShowCreatePlan(false)} onCreated={p => setPlans(prev => [...prev, p])} />}
+      {showCreatePlan && <CreatePlanModal onClose={() => setShowCreatePlan(false)} onCreated={() => { refetch(); setShowCreatePlan(false); }} />}
       {showAssignPlan && <AssignPlanModal plans={plans} tenants={tenants} onClose={() => setShowAssignPlan(false)} onAssigned={fetchAll} />}
     </div>
   );

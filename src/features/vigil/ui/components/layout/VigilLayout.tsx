@@ -11,10 +11,10 @@ import { VigilMobileNav } from './nav/VigilMobileNav';
 export function VigilLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { deconnexion } = useAuthStore();
+  const { deconnexion, utilisateur } = useAuthStore();
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name || 'École 221';
-  const guardAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80";
+  const initialesVigile = (utilisateur?.nom || '').trim().split(/\s+/).filter(Boolean).map(m => m[0]).join('').slice(0, 2).toUpperCase() || '—';
 
   const match = location.pathname.match(/\/t\/([^/]+)/);
   const basePath = match ? `/t/${match[1]}/vigile` : '/vigile';
@@ -44,12 +44,9 @@ export function VigilLayout() {
               className="h-9 w-9 rounded-full overflow-hidden border border-primary/20 cursor-pointer hover:opacity-80 active:scale-95 transition-transform duration-150 flex items-center justify-center p-0 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm"
               title="Voir mon profil"
             >
-              <img 
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover" 
-                src={guardAvatar} 
-                alt="Profil du gardien" 
-              />
+              <span className="h-full w-full bg-neutral-100 text-neutral-600 text-xs font-black flex items-center justify-center" aria-label="Profil du gardien">
+                {initialesVigile}
+              </span>
             </button>
           </div>
         </header>

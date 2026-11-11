@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface Props {
   isOpen: boolean;
@@ -7,10 +7,12 @@ interface Props {
 }
 
 export function RetraitEleveModal({ isOpen, onClose, child }: Props) {
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
   if (!isOpen) return null;
 
   const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-  const qrData = encodeURIComponent(`RETRAIT|${child.matricule}|${child.prenom}_${child.nom}|${Date.now()}`);
+  const qrData = encodeURIComponent(`RETRAIT|${child.matricule}|${child.prenom}_${child.nom}|${maintenant}`);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
 
   return (

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '@/shared/lib/apiClient';
 import { Star, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SubscriptionPlanCard } from './subscription/SubscriptionPlanCard';
@@ -6,23 +7,38 @@ import { SubscriptionQuotaSection } from './subscription/SubscriptionQuotaSectio
 import { SubscriptionInvoicesTable } from './subscription/SubscriptionInvoicesTable';
 import { SubscriptionPaymentModal } from './subscription/SubscriptionPaymentModal';
 import { SubscriptionUpgradeModal } from './subscription/SubscriptionUpgradeModal';
-import { INITIAL_PLAN, INITIAL_INVOICES, INITIAL_PAYMENT_METHODS } from './subscription/subscriptionData';
-import { SubscriptionPlan, PaymentMethodInfo } from './subscription/subscriptionModels';
+import { SubscriptionPlan, PaymentMethodInfo, InvoiceItem } from './subscription/subscriptionModels';
 
 export const AdminSubscriptionManager: React.FC = () => {
-  const [plan, setPlan] = useState<SubscriptionPlan>(INITIAL_PLAN);
-  const [invoices] = useState(INITIAL_INVOICES);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>(INITIAL_PAYMENT_METHODS);
+  // Offre RÉELLE de l'école (GET /admin/abonnement) — avant : offre « Avancé » inventée
+  const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
+  const [etat, setEtat] = useState<'chargement' | 'aucun' | 'erreur' | 'ok'>('chargement');
+  const charger = () => {
+    apiClient.get('/admin/abonnement')
+      .then((res) => {
+        if (res.data?.disponible && res.data.plan) {
+          const p = res.data.plan;
+          setPlan({ ...p, priceMonthly: Number(p.priceMonthly) || 0, priceYearly: Number(p.priceYearly) || 0,
+            features: (p.features || []).map((f: any) => ({ ...f, used: f.used ?? 0, iconName: f.code === 'MAX_TEACHERS' ? 'teachers' : f.code === 'MAX_CLASSES' ? 'classes' : 'users' })) });
+          setEtat('ok');
+        } else {
+          setPlan(null);
+          setEtat('aucun');
+        }
+      })
+      .catch(() => setEtat('erreur'));
+  };
+  useEffect(charger, []);
+  const [invoices] = useState<InvoiceItem[]>([]);   // aucune facture inventée
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>([]);   // aucun moyen de paiement inventé
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const handleUpgradeSuccess = (newPlanName: string, newPrice: number) => {
-    setPlan((prev) => ({
-      ...prev,
-      name: newPlanName,
-      priceMonthly: newPrice,
-      features: prev.features.map(f => ({ ...f, limit: f.limit * 2 }))
-    }));
+    // Pas de changement d'offre simulé localement (avant : quotas doublés sans rien enregistrer) :
+    // l'offre affichée est relue depuis le serveur.
+    void newPlanName; void newPrice;
+    charger();
   };
 
   const handleSelectDefaultMethod = (type: string) => {
@@ -60,6 +76,14 @@ export const AdminSubscriptionManager: React.FC = () => {
 
       {/* ── MAIN GRID ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        {etat !== 'ok' && (
+          <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600">
+            {etat === 'chargement' && 'Chargement de votre abonnement…'}
+            {etat === 'aucun' && "Aucun abonnement n'est encore enregistré pour votre établissement. Contactez l'administrateur de la plateforme."}
+            {etat === 'erreur' && "Impossible de charger votre abonnement pour le moment."}
+          </div>
+        )}
+        {plan && (<>
         {/* Left Column: Plan Card */}
         <div className="lg:col-span-1">
           <SubscriptionPlanCard
@@ -78,6 +102,7 @@ export const AdminSubscriptionManager: React.FC = () => {
 
           <SubscriptionInvoicesTable invoices={invoices} />
         </div>
+        </>)}
       </div>
 
       {/* ── INTERACTIVE MODALS ── */}

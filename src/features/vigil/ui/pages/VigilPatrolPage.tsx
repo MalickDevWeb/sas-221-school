@@ -69,7 +69,7 @@ export function VigilPatrolPage() {
             <div className="flex flex-col gap-1 text-xs text-neutral-400 font-bold uppercase tracking-wider">
               <p className="text-neutral-700 font-extrabold flex items-center gap-1.5 justify-center">
                 <span className="h-2.5 w-2.5 bg-green-500 rounded-full animate-pulse" />
-                {activeCheckpoint?.gate || 'Portail Principal'} • Vigile: {activeCheckpoint?.guard || 'Diallo A.'}
+                {activeCheckpoint?.gate || 'Poste non assigné'} • Vigile : {activeCheckpoint?.guard || '—'}
               </p>
               <p className="text-[10px] text-neutral-400 mt-1">Scanner ce code pour enregistrer l'entrée</p>
             </div>

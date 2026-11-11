@@ -33,15 +33,33 @@ export function useProfessorCourseDetails(selectedCourseId: string) {
     let isMounted = true;
     async function loadCourseDetails() {
       try {
-        const loadedGrades = await getGradesUseCase(selectedCourseId);
-        const loadedHomeworks = await getHomeworksUseCase(selectedCourseId);
-        const loadedReminders = await getRemindersUseCase(selectedCourseId);
-        const loadedLessons = await getLessonsUseCase(selectedCourseId);
-        const loadedModules = await getModulesUseCase(selectedCourseId);
-        const loadedQuizzes = await getQuizzesUseCase(selectedCourseId);
-        const loadedStudents = await getStudentsUseCase(selectedCourseId);
+        // chargements indépendants : un échec (ex. rappels) ne vide plus toute la salle de classe
+        const id = selectedCourseId as string;
+        const r = await Promise.allSettled([
+          getGradesUseCase(id), getHomeworksUseCase(id), getRemindersUseCase(id), getLessonsUseCase(id),
+          getModulesUseCase(id), getQuizzesUseCase(id), getStudentsUseCase(id),
+        ]);
+        const val = <T,>(i: number, defaut: T): T => (r[i].status === 'fulfilled' ? (r[i] as PromiseFulfilledResult<T>).value : defaut);
+        const loadedGrades = val<any[]>(0, []);
+        const loadedHomeworks = val<any[]>(1, []);
+        const loadedReminders = val<any[]>(2, []);
+        const loadedLessons = val<any[]>(3, []);
+        const loadedModules = val<any[]>(4, []);
+        const loadedQuizzes = val<any[]>(5, []);
+        const loadedStudents = val<any[]>(6, []);
+        r.forEach((x) => { if (x.status === 'rejected') console.warn('Salle de classe : chargement partiel', x.reason); });
+        // TOUS les élèves de la classe figurent dans les notes, notés ou non (avant : seuls les déjà notés →
+        // impossible de saisir une première note — test navigateur du 2026-11-10)
+        const notes = new Map(loadedGrades.map((g: any) => [g.studentId, g]));
+        const fusion = [
+          ...loadedGrades,
+          ...loadedStudents.filter((s: any) => !notes.has(s.id)).map((s: any) => ({
+            id: '', studentId: s.id, studentNom: `${s.prenom || ''} ${s.nom || ''}`.trim() || s.email || s.id,
+            courseId: id, cc: null, examen: null, finalGrade: null, status: 'Non noté',
+          })),
+        ];
         if (isMounted) {
-          setGrades(loadedGrades);
+          setGrades(fusion);
           setHomeworks(loadedHomeworks);
           setReminders(loadedReminders);
           setLessons(loadedLessons);

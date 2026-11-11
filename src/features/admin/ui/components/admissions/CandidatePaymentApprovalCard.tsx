@@ -10,8 +10,9 @@ interface Props {
 
 export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: Props) {
   const isPaid = candidate.registrationFeePaid;
-  const method = candidate.details?.paymentMethod || 'ORANGE_MONEY';
-  const ref = candidate.details?.paymentTransactionRef || 'OM-SN-737385';
+  // APP-FE-09 : aucun moyen ni référence de paiement inventés
+  const method = candidate.details?.paymentMethod || 'Non renseigné';
+  const ref = candidate.details?.paymentTransactionRef || 'Référence non fournie';
 
   const handleConfirmPayment = () => {
     const updated: ExtendedCandidate = {

@@ -1,5 +1,6 @@
 import React from 'react';
-import { ProfessorAttendanceSection } from './classroom/ProfessorAttendanceSection';
+import { FeuilleAppelSeance } from './classroom/FeuilleAppelSeance';
+import { EvaluationsView } from './evaluations/EvaluationsView';
 import { ProfessorClassroomHeader } from './classroom/ProfessorClassroomHeader';
 import { ProfessorLessonReminderForms } from './classroom/ProfessorLessonReminderForms';
 import { ProfessorModuleForm } from './classroom/ProfessorModuleForm';
@@ -10,8 +11,6 @@ import { ProfessorHomeworkView } from './ProfessorHomeworkView';
 import { ProfessorGradesView } from './ProfessorGradesView';
 import { ModuleDetailModal } from './classroom/ModuleDetailModal';
 import type { ClassroomProps } from './classroom/ClassroomProps';
-
-const EMPTY_ATTENDANCE = {};
 
 interface ProfessorClassroomContentProps extends ClassroomProps {
   subTab: string;
@@ -55,14 +54,18 @@ export function ProfessorClassroomContent(props: ProfessorClassroomContentProps)
 
   if (subTab === 'homework') return <ProfessorHomeworkView {...classroomProps} />;
   
+  if (subTab === 'evaluations') {
+    return <EvaluationsView key={classroomProps.selectedCourse?.id ?? 'aucun'} courseId={classroomProps.selectedCourse?.id} coursTitre={classroomProps.selectedCourse?.titre} />;
+  }
   if (subTab === 'grades') return <ProfessorGradesView {...classroomProps} />;
   
   if (subTab === 'attendance') {
     return (
-      <ProfessorAttendanceSection
-        students={classroomProps.students}
-        attendance={classroomProps.attendance ?? EMPTY_ATTENDANCE}
-        onMarkAttendance={classroomProps.onMarkAttendance}
+      // Appel par séance (lot A) : feuille relue sur le serveur, enregistrée en un seul envoi.
+      <FeuilleAppelSeance
+        key={classroomProps.selectedCourse?.id ?? 'aucun'}
+        courseId={classroomProps.selectedCourse?.id}
+        triggerToast={classroomProps.triggerToast}
       />
     );
   }

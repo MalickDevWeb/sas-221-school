@@ -18,7 +18,7 @@ export function AcademicUploadField({ label, icon, value, onChange, accept = '.p
     setUploading(true);
     setError('');
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(file, undefined, { strict: true });   // APP-FE-09 : pas de repli DataURL (envoi refusé = erreur visible)
       onChange(url);
     } catch (err: any) {
       setError(err.message || 'Téléversement échoué');

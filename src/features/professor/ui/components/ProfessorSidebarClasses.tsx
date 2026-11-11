@@ -42,7 +42,7 @@ export function ProfessorSidebarClasses({
               </span>
               <div className="flex flex-col truncate min-w-0 flex-grow">
                 <span className={`truncate text-xs font-black leading-tight ${isSelected ? 'text-brand-red-deep' : 'text-[#291715]'}`}>
-                  {course.classe || 'L3-GL'}
+                  {course.classe || '—'}
                 </span>
                 <span className="truncate text-[10px] text-neutral-400 font-bold leading-tight mt-0.5">
                   {course.titre}

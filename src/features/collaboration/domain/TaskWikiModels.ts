@@ -23,7 +23,7 @@ export interface AuditLog {
   readonly timestamp: string;
   readonly userName: string;
   readonly action: string;
-  readonly ipAddress: string;
+  readonly ipAddress?: string;
 }
 
 export interface GroupEvaluation {
@@ -35,8 +35,9 @@ export interface GroupEvaluation {
   readonly criteria: {
     readonly quality: number;
     readonly collaboration: number;
-    readonly commitFrequency: number;
-    readonly promptness: number;
+    /** Non évalués dans le formulaire : jamais inventés */
+    readonly commitFrequency?: number;
+    readonly promptness?: number;
   };
   readonly gradedBy: string;
 }

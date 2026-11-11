@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Classe, PlanningSlot } from '../../../domain/SchoolModels';
+import React from 'react';
+import { PlanningSlot } from '../../../domain/SchoolModels';
 
 interface Props {
   conflict: {
@@ -15,15 +15,6 @@ interface Props {
 }
 
 export function ConflictModal({ conflict, onClose, onForce }: Props) {
-  const [callStatus, setCallStatus] = useState<string | null>(null);
-
-  const handleCall = () => {
-    setCallStatus("Appel en cours... 📞");
-    setTimeout(() => {
-      setCallStatus("Le professeur confirme qu'il est disponible à un autre horaire si besoin, ou accepte l'aménagement.");
-    }, 2000);
-  };
-
   return (
     <div className="fixed inset-0 bg-[#0F172A]/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4" id="conflict-modal-root">
       <div className="bg-white rounded-2xl shadow-2xl p-6 border border-red-200 w-full max-w-md space-y-5">
@@ -53,8 +44,10 @@ export function ConflictModal({ conflict, onClose, onForce }: Props) {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={handleCall}
-              className="px-3 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-[#1E293B] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-neutral-200"
+              disabled
+              aria-disabled="true"
+              title="Fonctionnalité non disponible : aucune source de données"
+              className="px-3 py-2.5 bg-neutral-100 text-neutral-400 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed border border-neutral-200"
             >
               <span translate="no" className="material-symbols-outlined text-xs">phone</span>
               <span>Contacter le Prof</span>
@@ -70,11 +63,9 @@ export function ConflictModal({ conflict, onClose, onForce }: Props) {
           </div>
         </div>
 
-        {callStatus && (
-          <div className="bg-amber-50 text-amber-900 border border-amber-200 rounded-xl p-3 text-[11px] font-bold animate-pulse">
-            {callStatus}
-          </div>
-        )}
+        <p className="text-[10px] text-neutral-400 font-semibold">
+          « Contacter le Prof » : fonctionnalité non disponible (aucun service d'appel ou de messagerie relié).
+        </p>
 
         <div className="flex justify-end gap-2 pt-2 border-t border-neutral-100">
           <button

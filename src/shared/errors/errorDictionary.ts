@@ -42,11 +42,38 @@ export const ERROR_MESSAGES: Record<string, string> = {
 /**
  * Résout le meilleur message d'erreur pour l'utilisateur
  */
+/** Codes trop vagues pour l'utilisateur : le message précis renvoyé par le serveur est préféré. */
+const CODES_GENERIQUES = new Set<string>([
+  ERROR_CODES.VALIDATION_ERROR, ERROR_CODES.RESOURCE_NOT_FOUND, ERROR_CODES.OPERATION_NOT_ALLOWED,
+]);
+
+/** Marque posée sur une erreur dont l'écran affiche lui-même le message (évite le double message global). */
+export const ERREUR_AFFICHEE = '__erreurAffichee';
+
+/**
+ * Message lisible d'une erreur d'API, à afficher par l'écran.
+ * Appeler cette fonction signale que l'écran gère l'affichage : le message global « Erreur 4xx »
+ * n'est alors pas affiché en double (voir apiErrorHandler).
+ */
 export function resolveErrorMessage(error: any): string {
+  if (error && typeof error === 'object') {
+    try { error[ERREUR_AFFICHEE] = true; } catch { /* objet gelé */ }
+  }
+  return messageErreur(error);
+}
+
+/** Même calcul, sans marquer l'erreur comme affichée (usage interne du gestionnaire global). */
+export function messageErreur(error: any): string {
   if (!error) return "Une erreur inattendue est survenue.";
 
-  // 1. Détection via ErrorCode applicatif retourné par le backend
+  // 1. Détection via ErrorCode applicatif retourné par le backend.
+  // Codes GÉNÉRIQUES : le message précis du serveur passe en priorité (avant : « Veuillez vérifier les
+  // informations… » à la place de « Cette adresse e-mail est déjà utilisée. » — test navigateur 2026-11-09).
   const data = error.response?.data;
+  const precis = typeof data?.message === 'string' && data.message.trim().length > 0 ? data.message.trim() : null;
+  if (data?.code && CODES_GENERIQUES.has(data.code) && precis) {
+    return precis;
+  }
   if (data?.code && ERROR_MESSAGES[data.code]) {
     return ERROR_MESSAGES[data.code];
   }
@@ -63,6 +90,11 @@ export function resolveErrorMessage(error: any): string {
   const status = error.response?.status;
   if (status === 409) return "Cette information (email, téléphone ou identifiant) est déjà enregistrée.";
   if (status === 404) return "La ressource demandée n'a pas été trouvée.";
+  // Refus CORS (réponse texte « Invalid CORS request ») : l'adresse du site n'est pas autorisée par le serveur
+  if (status === 403 && typeof data === 'string' && /cors/i.test(data)) {
+    return "Le serveur refuse les requêtes venant de cette adresse (" + window.location.origin + "). " +
+      "Ouvrez l'application depuis son adresse officielle, ou ajoutez cette origine à CORS_ALLOWED_ORIGINS.";
+  }
   if (status === 403) return "Vous n'avez pas l'autorisation d'effectuer cette action.";
   if (status === 401) return "Veuillez vous connecter pour continuer.";
   if (status === 500) return "Le serveur a rencontré une difficulté momentanée. Veuillez réessayer.";
@@ -72,6 +104,12 @@ export function resolveErrorMessage(error: any): string {
     return ERROR_MESSAGES[ERROR_CODES.NETWORK_OFFLINE];
   }
 
-  return error.message || "Une erreur inattendue est survenue.";
+  // Jamais le message technique d'axios (« Request failed with status code … ») à l'écran
+  if (status === 400) return "Données invalides : vérifiez les champs du formulaire.";
+  if (status === 429) return "Trop de demandes : réessayez dans quelques instants.";
+  if (status === 503) return "Service momentanément indisponible. Réessayez plus tard.";
+  if (status) return `Le serveur a refusé la demande (code ${status}).`;
+  if (error.message && !/^Request failed with status code/i.test(error.message)) return error.message;
+  return "Une erreur inattendue est survenue.";
 }
 

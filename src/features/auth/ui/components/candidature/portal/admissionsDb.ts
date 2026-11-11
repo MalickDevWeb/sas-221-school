@@ -1,6 +1,5 @@
 import { publicApiClient } from '@/shared/lib/apiClient';
 import { ExtendedCandidate } from "@/features/admin/domain/AdmissionsExtendedModels";
-import { INITIAL_EXTENDED_CANDIDATES } from "@/features/admin/domain/AdmissionsExtendedMock";
 import { Campaign, AuditLog, Message } from "./admissionsTypes";
 export * from "./admissionsTypes";
 
@@ -16,7 +15,7 @@ export function getAdmissionsDb() {
 
   const stored = localStorage.getItem("e221_candidates");
   const parsed = stored ? JSON.parse(stored) : [];
-  const candidates = parsed && parsed.length > 0 ? parsed : INITIAL_EXTENDED_CANDIDATES;
+  const candidates = Array.isArray(parsed) ? parsed : [];   // plus de candidats fictifs amorcés
 
   return {
     candidates: candidates as ExtendedCandidate[],

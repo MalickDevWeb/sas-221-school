@@ -77,7 +77,7 @@ export class InMemoryProfessorRepository implements ProfessorRepository {
           dateStr: s.dateStr, jour: s.jour, courseId: s.courseId,
           classe: s.courseId ? (COURSE_CLASS_MAP[s.courseId] || 'L3-GL') : 'L3-GL'
         }));
-      } catch {}
+      } catch { /* données de démonstration illisibles : liste vide */ }
     }
     return profId === 'usr-prof-02' ? MOCK_SCHEDULE_T2 : MOCK_SCHEDULE_T1;
   }

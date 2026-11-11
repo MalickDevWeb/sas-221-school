@@ -16,31 +16,33 @@ export const publicApiClient = axios.create({
   withCredentials: false,
 });
 
+/**
+ * Le navigateur n'envoie QUE X-Tenant-Slug (fiche 04) : le serveur résout l'école
+ * (slug, puis id, puis sous-domaine) et vérifie l'appartenance de l'utilisateur (SEC-003).
+ */
 function injectTenantHeaders<T extends InternalAxiosRequestConfig>(config: T): T {
+  let slug: string | null = null;
+
   const urlSlugMatch = window.location.pathname.match(/\/t\/([^/]+)/);
-  if (urlSlugMatch && urlSlugMatch[1]) {
-    const slug = urlSlugMatch[1].trim();
-    config.headers['X-Tenant-Slug'] = slug;
-    if (slug === 'ecole221' || slug === 'ecole-221') {
-      config.headers['X-Tenant-ID'] = 'default-tenant-id';
+  if (urlSlugMatch && urlSlugMatch[1]) slug = urlSlugMatch[1].trim();
+
+  // Sous-domaine d'école (ex. lycee-thies.myschool.sn) : seulement si l'URL ne désigne pas déjà
+  // l'école, et jamais pour une adresse IP (192.168.1.239 donnait slug « 192 » et écrasait /t/<école>).
+  const hote = window.location.hostname;
+  const estAdresseIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(hote) || hote.includes(':');
+  const parts = hote.split('.');
+  if (!slug && !estAdresseIp && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app') slug = parts[0];
+
+  if (!slug) {
+    try {
+      // tenant_id : ancien stockage sans slug — le serveur accepte aussi un id d'école.
+      slug = localStorage.getItem('tenant_slug') || localStorage.getItem('tenant_id');
+    } catch {
+      slug = null;
     }
   }
 
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  if (parts.length > 2) {
-    const subdomain = parts[0];
-    if (subdomain !== 'www' && subdomain !== 'app') {
-      config.headers['X-Tenant-Slug'] = subdomain;
-      config.headers['X-Tenant-ID'] = subdomain;
-    }
-  }
-
-  const forcedTenant = localStorage.getItem('tenant_id');
-  if (forcedTenant && !config.headers['X-Tenant-ID']) config.headers['X-Tenant-ID'] = forcedTenant;
-  const forcedSlug = localStorage.getItem('tenant_slug');
-  if (forcedSlug && !config.headers['X-Tenant-Slug']) config.headers['X-Tenant-Slug'] = forcedSlug;
-
+  if (slug) config.headers['X-Tenant-Slug'] = slug;
   return config;
 }
 

@@ -12,7 +12,7 @@ import { CourseParcoursTab } from '../components/course-details/CourseParcoursTa
 
 export function CourseDetailPage() {
   const state = useCourseDetailState();
-  const { navigate, course, details, isLoading, showToast, activeTab, courseReminders, triggerToast } = state;
+  const { navigate, course, details, detailsError, isLoading, showToast, activeTab, courseReminders, triggerToast } = state;
 
   if (isLoading) return <div className="p-12 text-center text-xs font-bold text-neutral-500">Chargement du cours...</div>;
   if (!course) return <div className="p-12 text-center text-xs font-bold text-red-500">Cours introuvable</div>;
@@ -44,6 +44,11 @@ export function CourseDetailPage() {
           <div className="flex-grow flex flex-col">
             <CourseTabsNav state={state} />
             <div className="p-5 md:p-6 space-y-5">
+              {detailsError && (
+                <div id="course-details-empty" className="bg-white border border-neutral-gray-200 rounded-2xl p-4 text-xs font-bold text-neutral-500 flex items-center gap-2">
+                  <span translate="no" className="material-symbols-outlined text-base">info</span> {detailsError}
+                </div>
+              )}
               {activeTab === 'parcours' && <CourseParcoursTab course={course} details={details} />}
               {activeTab === 'chapters' && (
                 <>

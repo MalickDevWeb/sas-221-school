@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 
 interface Config {
@@ -25,26 +26,44 @@ export function AdminAdmissionConfig() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const { data: settingsData } = useQuery({
+    queryKey: ['candidatures-settings'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<Partial<Config>>('/candidatures/settings');
+      return data;
+    }
+  });
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const { data } = await apiClient.get('/admin/candidatures/settings');
-        if (data) setConfig(data as Config);
-      } catch (err) { console.warn('[AdminAdmissionConfig] Could not load settings from API:', err); }
-    };
-    load();
-  }, []);
+    if (settingsData) {
+      setConfig(p => ({ ...p, ...settingsData, docsRequis: { ...p.docsRequis, ...(settingsData.docsRequis ?? {}) } }));
+    }
+  }, [settingsData]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (payload: Config) => {
+      await Promise.all([
+        apiClient.post('/candidatures/settings', payload),
+        apiClient.post('/admin/candidatures/settings', payload),
+      ]);
+    },
+    onSuccess: () => {
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    },
+    onError: (err) => {
+      console.error('[AdminAdmissionConfig] Save error:', err);
+    }
+  });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setSuccess(false);
     try {
-      await apiClient.post('/admin/candidatures/settings', config);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      console.error('[AdminAdmissionConfig] Save error:', err);
-    } finally { setLoading(false); }
+      await saveMutation.mutateAsync(config);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleDoc = (key: keyof Config['docsRequis']) => {

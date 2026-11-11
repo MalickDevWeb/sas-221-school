@@ -5,6 +5,13 @@ import type {
   ProfessorHomework, ProfessorSchedule, VigilCheckIn,
   ClassroomReminder, ProfessorLesson, CourseModule, CourseQuiz, QuizQuestion
 } from '../../domain/ProfessorModels';
+
+/** Accepte un tableau ou une page { content: [...] }. */
+function liste<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  const contenu = (data as { content?: unknown })?.content;
+  return Array.isArray(contenu) ? (contenu as T[]) : [];
+}
 import { ApiProfessorScheduleRepository } from './ApiProfessorScheduleRepository';
 
 const scheduleRepo = new ApiProfessorScheduleRepository();
@@ -23,9 +30,10 @@ export class ApiProfessorRepository implements ProfessorRepository {
   async getReminders(courseId: string): Promise<ClassroomReminder[]> { return scheduleRepo.getReminders(courseId); }
   async createReminder(courseId: string, content: string, isUrgent: boolean): Promise<ClassroomReminder> { return scheduleRepo.createReminder(courseId, content, isUrgent); }
 
+  // Listes : tableau attendu (avant : une page était renvoyée → « modules is not iterable », salle de classe plantée)
   async getLessons(courseId: string): Promise<ProfessorLesson[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/lessons`);
-    return r.data;
+    return liste(r.data);
   }
 
   async createLesson(courseId: string, title: string, description: string, attachmentName?: string, attachmentUrl?: string, moduleId?: string): Promise<ProfessorLesson> {
@@ -35,7 +43,7 @@ export class ApiProfessorRepository implements ProfessorRepository {
 
   async getModules(courseId: string): Promise<CourseModule[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/modules`);
-    return r.data;
+    return liste(r.data);
   }
 
   async createModule(courseId: string, title: string, description: string): Promise<CourseModule> {
@@ -45,7 +53,7 @@ export class ApiProfessorRepository implements ProfessorRepository {
 
   async getQuizzes(courseId: string): Promise<CourseQuiz[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/quizzes`);
-    return r.data;
+    return liste(r.data);
   }
 
   async createQuiz(moduleId: string, title: string, description: string, questions: QuizQuestion[]): Promise<CourseQuiz> {

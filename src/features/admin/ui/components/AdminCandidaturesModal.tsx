@@ -11,6 +11,39 @@ interface Candidature {
   nomFichierCni?: string; nomFichierBulletin?: string; nomFichierDiplome?: string;
 }
 
+/** Forme renvoyée par CandidaturesController GET /candidatures/candidatures. */
+interface CandidatureApi {
+  id: string;
+  nom?: string; prenom?: string; nomComplet?: string;
+  email?: string; telephone?: string; filiere?: string;
+  statut?: string; dateSoumission?: string; motivation?: string;
+  typeDepot?: string;
+}
+
+/** Clé CandidateStatus backend (ou ancienne variante) → libellé de l'écran. */
+function toStatutLabel(raw?: string): Candidature['statut'] {
+  const key = (raw ?? '').normalize('NFD').replace(/\p{M}/gu, '').toUpperCase();
+  if (['ACCEPTED', 'ACCEPTE', 'ACCEPTEE', 'VALIDE', 'FINALISE', 'FINALISEE'].includes(key)) return 'Accepté';
+  if (['REJECTED', 'REFUSE', 'REJETE'].includes(key)) return 'Refusé';
+  return 'En attente';
+}
+
+const STATUT_KEYS: Record<'Accepté' | 'Refusé', string> = { 'Accepté': 'ACCEPTED', 'Refusé': 'REJECTED' };
+
+function toCandidature(c: CandidatureApi): Candidature {
+  return {
+    id: c.id,
+    nomComplet: c.nomComplet ?? `${c.prenom ?? ''} ${c.nom ?? ''}`.trim(),
+    email: c.email ?? '',
+    telephone: c.telephone ?? '',
+    typeDepot: c.typeDepot === 'Présentiel' ? 'Présentiel' : 'En ligne',
+    promotionNom: c.filiere ?? '',
+    motivation: c.motivation ?? '',
+    statut: toStatutLabel(c.statut),
+    dateSoumission: c.dateSoumission ?? '',
+  };
+}
+
 export function AdminCandidaturesModal({ onClose, onRefreshData }: { onClose: () => void; onRefreshData: () => Promise<void> }) {
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const [activeTab, setActiveTab] = useState<'list' | 'settings'>('list');
@@ -20,8 +53,9 @@ export function AdminCandidaturesModal({ onClose, onRefreshData }: { onClose: ()
 
   const fetchCandidatures = async () => {
     try {
-      const { data } = await apiClient.get('/admin/candidatures');
-      setCandidatures(data);
+      // Route réelle : @RequestMapping("/candidatures") + @GetMapping("/candidatures") — APP-ARC-01
+      const { data } = await apiClient.get<{ candidatures?: CandidatureApi[] }>('/candidatures/candidatures');
+      setCandidatures((data?.candidatures ?? []).map(toCandidature));
     } catch { /* handled by apiClient interceptor */ }
   };
 
@@ -32,7 +66,8 @@ export function AdminCandidaturesModal({ onClose, onRefreshData }: { onClose: ()
   const handleUpdateStatus = async (id: string, newStatus: 'Accepté' | 'Refusé') => {
     setProcessingId(id);
     try {
-      await apiClient.post(`/admin/candidatures/${id}/status`, { statut: newStatus });
+      // PATCH /candidatures/candidatures/{id}/statut, corps { statut } normalisé par CandidateStatus.from
+      await apiClient.patch(`/candidatures/candidatures/${id}/statut`, { statut: STATUT_KEYS[newStatus] });
       await fetchCandidatures();
       await onRefreshData();
     } catch { /* handled by apiClient interceptor */ } finally {

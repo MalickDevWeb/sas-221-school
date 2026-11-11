@@ -81,11 +81,11 @@ export const TenantsCardGrid: React.FC<Props> = ({
                 </div>
                 <div className="bg-white/[0.03] rounded-lg px-2.5 py-2 border border-white/[0.05]">
                   <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider mb-0.5">Ville</p>
-                  <p className="text-slate-300 truncate">{org.city || 'Sénégal'}</p>
+                  <p className="text-slate-300 truncate">{org.city || '—'}</p>
                 </div>
                 <div className="bg-white/[0.03] rounded-lg px-2.5 py-2 border border-white/[0.05]">
                   <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider mb-0.5">Élèves</p>
-                  <p className="text-white font-bold">{org.usersCount?.toLocaleString() || '500+'}</p>
+                  <p className="text-white font-bold">{org.usersCount != null ? org.usersCount.toLocaleString('fr-FR') : '—'}</p>
                 </div>
                 <div className="bg-white/[0.03] rounded-lg px-2.5 py-2 border border-white/[0.05]">
                   <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider mb-0.5">Inscrit le</p>

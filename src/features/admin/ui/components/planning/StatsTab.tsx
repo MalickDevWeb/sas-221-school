@@ -1,6 +1,5 @@
 import React from 'react';
 import { CalendarSlot, TeacherSubjectAssociation } from '../../../domain/PlanningModels';
-import { INITIAL_TEACHERS } from '../../../domain/PlanningMockData';
 
 interface Props {
   readonly associations: TeacherSubjectAssociation[];
@@ -54,22 +53,24 @@ export function StatsTab({ associations, slots, onRemoveAssociation }: Props) {
         <div className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3 shadow-sm">
           <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Volume Horaire Réparti (sur 2h/cours)</h4>
           <div className="space-y-3">
-            {INITIAL_TEACHERS.map((teacher) => {
+            {/* APP-FE-10 : enseignants réels du planning (avant : liste fictive) ; plafond horaire non renseigné */}
+            {Array.from(new Set(slots.map((s) => s.prof).filter(Boolean))).map((nom) => {
+              const teacher = { name: nom as string, maxHours: null as number | null };
               const currentHours = slots.filter((s) => s.prof === teacher.name).length * 2;
-              const ratio = Math.min((currentHours / teacher.maxHours) * 100, 100);
+              const ratio = teacher.maxHours ? Math.min((currentHours / teacher.maxHours) * 100, 100) : 0;
 
               return (
                 <div key={teacher.name} className="space-y-1.5">
                   <div className="flex justify-between items-center text-[10px]">
                     <span className="font-extrabold text-[#1E293B]">{teacher.name}</span>
                     <span className="font-black text-neutral-500">
-                      {currentHours}h / <span className="text-primary">{teacher.maxHours}h max</span>
+                      {currentHours}h{teacher.maxHours ? <> / <span className="text-primary">{teacher.maxHours}h max</span></> : null}
                     </span>
                   </div>
                   <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        currentHours > teacher.maxHours ? 'bg-rose-600 animate-pulse' : ratio > 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                        teacher.maxHours && currentHours > teacher.maxHours ? 'bg-rose-600 animate-pulse' : ratio > 80 ? 'bg-amber-500' : 'bg-emerald-500'
                       }`}
                       style={{ width: `${ratio}%` }}
                     />

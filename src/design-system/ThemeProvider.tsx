@@ -1,19 +1,10 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ThemeContext, type ThemeContextValue } from './ThemeContext';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { generatePaletteFromHex } from '@/shared/utils/colorExtractor';
 import type { SchoolTheme, ThemeColors } from './theme.types';
 
-interface ThemeContextValue {
-  theme: SchoolTheme;
-  colors: ThemeColors;
-  setPreviewPalette: (primaryHex: string) => void;
-  clearPreview: () => void;
-  isPreviewActive: boolean;
-  saveTheme: (primaryHex: string) => Promise<void>;
-  resetToDefault: () => void;
-}
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function buildFullColors(palette: ReturnType<typeof generatePaletteFromHex>): ThemeColors {
   return {
@@ -117,12 +108,3 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     </ThemeContext.Provider>
   );
 }
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme doit être utilisé à l\'intérieur d\'un ThemeProvider');
-  }
-  return context;
-}
-

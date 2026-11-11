@@ -3,7 +3,7 @@ import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { ROLE_UTILISATEUR } from '@/shared/constants';
 
-export const getActiveTenantSlug = () => {
+const getActiveTenantSlug = () => {
   const storedSlug = localStorage.getItem('tenant_slug');
   const tenant = useTenantStore.getState().currentTenant;
   const user = useAuthStore.getState().utilisateur;

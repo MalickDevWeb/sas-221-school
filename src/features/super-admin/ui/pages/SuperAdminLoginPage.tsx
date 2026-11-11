@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export const SuperAdminLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,15 +14,23 @@ export const SuperAdminLoginPage = () => {
   const { utilisateur, deconnexion } = useAuthStore();
   const navigate = useNavigate();
 
+  const isSuperAdmin = utilisateur && (utilisateur.role === 'SUPER_ADMIN' || utilisateur.role === 'PLATFORM_OWNER');
+
+  useQuery({
+    queryKey: ['superadmin', 'me', utilisateur?.email],
+    queryFn: async () => {
+      const res = await apiClient.get('/auth/me');
+      navigate('/super-admin/dashboard');
+      return res.data;
+    },
+    enabled: Boolean(isSuperAdmin),
+  });
+
   React.useEffect(() => {
-    if (!utilisateur) return;
-    if (utilisateur.role !== 'SUPER_ADMIN' && utilisateur.role !== 'PLATFORM_OWNER') {
-      deconnexion(); return;
+    if (utilisateur && !isSuperAdmin) {
+      deconnexion();
     }
-    import('@/shared/lib/apiClient').then(({ apiClient }) => {
-      apiClient.get('/auth/me').then(() => navigate('/super-admin/dashboard')).catch(() => deconnexion());
-    });
-  }, [utilisateur, navigate, deconnexion]);
+  }, [utilisateur, isSuperAdmin, deconnexion]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,14 +113,10 @@ export const SuperAdminLoginPage = () => {
         </div>
         
         <div className="mt-8 text-center">
+          {/* Avant : identifiants du super-admin affichés en clair sur la page de connexion (« Test : … / SuperAdmin@221! »). */}
           <p className="text-xs text-slate-500 mb-2">
-            Protected by advanced encryption. Unauthorized access is strictly prohibited.
+            Accès réservé aux administrateurs de la plateforme. Toute tentative d'accès non autorisé est journalisée.
           </p>
-          <div className="inline-block bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 font-mono">
-              Test: <strong>superadmin@ecole221.sn</strong> / <strong>SuperAdmin@221!</strong>
-            </p>
-          </div>
         </div>
       </div>
     </div>

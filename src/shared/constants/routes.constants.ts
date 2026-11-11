@@ -12,6 +12,8 @@ export const ROUTES = {
     devoirs:   '/etudiant/devoirs',
     planning:  '/etudiant/planning',
     notes:     '/etudiant/notes',
+    absences:  '/etudiant/absences',
+    profil:    '/etudiant/profil',
     tuteur:    '/etudiant/tuteur',
     collaboration: '/etudiant/collaboration',
   },

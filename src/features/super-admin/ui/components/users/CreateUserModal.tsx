@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { superAdminService } from '@/services/superAdminService';
 import type { CreateGlobalUserPayload } from '@/types/superAdmin';
 
@@ -24,11 +25,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSuc
       onSuccess();
       onClose();
     } catch (error: any) {
-      if (error.response?.status === 409) {
-        toast.error('Conflit', { description: error.response.data?.message || 'Cet email est déjà utilisé' });
-      } else {
-        toast.error('Erreur', { description: 'Impossible de créer l\'utilisateur' });
-      }
+      // message RÉEL du serveur (avant : « Impossible de créer l'utilisateur » pour toute erreur)
+      toast.error(resolveErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }

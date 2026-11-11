@@ -58,6 +58,7 @@ export function MedicalCard({ bloodGroup, setBloodGroup, allergies, setAllergies
           <input
             type="text"
             value={bloodGroup}
+            placeholder="Non renseigné"
             onChange={(e) => setBloodGroup(e.target.value)}
             className="w-full mt-1 p-1 border border-neutral-200 rounded-lg text-xs font-bold text-neutral-800"
           />
@@ -67,6 +68,7 @@ export function MedicalCard({ bloodGroup, setBloodGroup, allergies, setAllergies
           <input
             type="text"
             value={allergies}
+            placeholder="Non renseigné"
             onChange={(e) => setAllergies(e.target.value)}
             className="w-full mt-1 p-1 border border-neutral-200 rounded-lg text-xs font-bold text-neutral-800"
           />

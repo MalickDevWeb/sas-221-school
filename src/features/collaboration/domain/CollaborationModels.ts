@@ -128,6 +128,6 @@ export interface MeetAttendance {
   readonly entryTime: string;
   readonly exitTime?: string;
   readonly durationMinutes?: number;
-  readonly participationScore: number;
+  readonly participationScore?: number;
   readonly isAuthorizedAccount: boolean;
 }

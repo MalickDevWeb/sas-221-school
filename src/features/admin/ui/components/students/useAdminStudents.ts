@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { apiClient } from '@/shared/lib/apiClient';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 
 export function useAdminStudents() {
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);   // données réelles uniquement (plus d'élèves fictifs au départ ni en repli)
   const [loading, setLoading] = useState(false);
 
   const fetchStudents = useCallback(async () => {
@@ -17,24 +19,10 @@ export function useAdminStudents() {
         : Array.isArray(data?.content)
         ? data.content
         : [];
-
-      if (studentList.length > 0) {
-        const mapped: Student[] = studentList.map((s: any, idx: number) => ({
-          id: s.id || `s-${idx + 1}`,
-          matricule: s.matricule || `2026-STU-00${idx + 1}`,
-          name: s.name || `${s.prenom || ''} ${s.nom || ''}`.trim() || 'Étudiant',
-          email: s.email || 'etudiant@ecole221.sn',
-          classe: s.classe || s.promotion || 'L1 Génie Civil',
-          financialStatus: s.statutFrais === 'En Retard' || s.debt > 0 ? 'En Retard' : 'En Règle',
-          qrStatus: s.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ',
-          avatar: s.avatar || s.photoUrl,
-          gpa: s.gpa || (s.moyenne ? `${s.moyenne}/20` : '15.0/20'),
-          phoneParent: s.phoneParent || s.telephone || '+221 77 000 00 00'
-        }));
-        setStudents(mapped);
-      }
-    } catch {
-      // Keep initial students
+      setStudents(studentList.map((s: any, idx: number) => mapStudentFromApi(s, idx)));
+    } catch (err) {
+      // erreur : liste inchangée (vide au départ), jamais d'élèves fictifs
+      toast.error(resolveErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -42,22 +30,29 @@ export function useAdminStudents() {
 
   const updateFinancialStatus = useCallback(async (studentId: string, status: 'En Règle' | 'En Retard') => {
     try {
-      await apiClient.patch(`/admin/students/${studentId}/status`, { statutFrais: status });
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, financialStatus: status } : s));
+      const { data } = await apiClient.patch<any>(`/admin/students/${studentId}/status`, { statutFrais: status });
+      const confirme = data?.status === 'En Retard' || data?.status === 'En Règle' ? data.status : status;
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, financialStatus: confirme } : s));
       return true;
-    } catch {
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
       return false;
     }
   }, []);
 
-  const toggleQrStatus = useCallback((studentId: string) => {
-    setStudents(prev =>
-      prev.map(s =>
-        s.id === studentId
-          ? { ...s, qrStatus: s.qrStatus === 'AUTORISÉ' ? 'SUSPENDU' : 'AUTORISÉ' }
-          : s
-      )
-    );
+  /** Suspension / réactivation réelle de l'élève (badge et connexion) : l'état affiché vient de la réponse serveur. */
+  const toggleQrStatus = useCallback(async (studentId: string) => {
+    try {
+      const { data } = await apiClient.patch<any>(`/admin/students/${studentId}/toggle-status`);
+      const qrStatus: Student['qrStatus'] = data?.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
+      const status: Student['status'] = data?.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, qrStatus, status } : s));
+      toast.success(qrStatus === 'SUSPENDU' ? 'Élève suspendu : accès refusé.' : 'Élève réactivé : accès autorisé.');
+      return true;
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+      return false;
+    }
   }, []);
 
   useEffect(() => {

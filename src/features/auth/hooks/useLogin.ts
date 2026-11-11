@@ -43,7 +43,7 @@ export function useLogin() {
       if (targetSlug) {
         try {
           await useTenantStore.getState().resolveTenant(targetSlug);
-        } catch {}
+        } catch { /* école introuvable : l'écran de connexion affiche lui-même l'erreur de résolution */ }
       }
 
       setEtat('SUCCES');

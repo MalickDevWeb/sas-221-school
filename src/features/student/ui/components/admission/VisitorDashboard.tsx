@@ -1,37 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useAuthStore } from '@/core/store/authStore';
-import { LogOut, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { motion } from 'motion/react';
-import { apiClient } from '@/shared/lib/apiClient';
 
 export function VisitorDashboard() {
-  const { utilisateur, deconnexion, connexionReussie, token } = useAuthStore();
-  const [statut, setStatut] = useState<'En attente' | 'Accepté' | 'Refusé'>('En attente');
+  const { utilisateur, deconnexion } = useAuthStore();
 
-  useEffect(() => {
-    let active = true;
-    const fetchStatus = async () => {
-      if (!utilisateur?.email) return;
-      try {
-        const { data: d } = await apiClient.get(`/student/admission-status?email=${encodeURIComponent(utilisateur.email)}`);
-        if (!active) return;
-        setStatut(d.statut);
-        if (d.role === 'ETUDIANT') {
-          connexionReussie({ utilisateur: { ...utilisateur, role: 'ETUDIANT' }, token: token || 'active' });
-          window.location.reload();
-        }
-      } catch { /* handled by apiClient interceptor */ }
-    };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 4000);
-    return () => { active = false; clearInterval(interval); };
-  }, [utilisateur, token, connexionReussie]);
-
-  const steps = [
-    { title: "Dossier Déposé", desc: "Candidature enregistrée avec succès", status: "complete", icon: CheckCircle2, color: "text-emerald-500 bg-emerald-500/10" },
-    { title: "Vérification Académique", desc: "Dossier en cours d'examen par le jury", status: statut === "En attente" ? "active" : "complete", icon: Clock, color: "text-amber-500 bg-amber-500/10" },
-    { title: "Décision Finale", desc: statut === "Accepté" ? "Félicitations, vous êtes admis !" : statut === "Refusé" ? "Dossier refusé" : "En attente de décision", status: statut === "Accepté" ? "complete" : "pending", icon: Sparkles, color: "text-primary/80 bg-primary/80/10" }
-  ];
+  // Compte sans rôle dans cette école (VISITEUR). Avant : « Dossier déposé ✓ » et « En attente » affichés à
+  // tout visiteur, qu'il ait déposé un dossier ou non. Le suivi réel d'une candidature se fait sur le portail
+  // candidat (email + mot de passe de suivi, APP-BE-12).
+  const slug = window.location.pathname.match(/\/t\/([^/]+)/)?.[1] ?? 'ecole-221';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-primary/80 selection:text-white" id="visitor-dashboard">
@@ -49,21 +27,17 @@ export function VisitorDashboard() {
       <main className="flex-grow flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="max-w-xl w-full bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-primary to-transparent" />
-          <h2 className="text-lg font-black tracking-tight text-white mb-2 text-center">Suivi de votre Candidature</h2>
-          <p className="text-xs text-slate-400 font-semibold mb-8 text-center">Votre dossier est en cours de traitement en temps réel</p>
-
-          <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
-            {steps.map((s, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.15 }} className="flex gap-4 items-start relative z-10">
-                <div className={`p-2 rounded-xl shrink-0 ${s.color}`}>
-                  <s.icon className="h-5 w-5" />
-                </div>
-                <div className="space-y-0.5">
-                  <h3 className="text-sm font-bold text-white">{s.title}</h3>
-                  <p className="text-xs text-slate-400 font-semibold">{s.desc}</p>
-                </div>
-              </motion.div>
-            ))}
+          <h2 className="text-lg font-black tracking-tight text-white mb-2 text-center">Aucun espace associé à ce compte</h2>
+          <p className="text-xs text-slate-400 font-semibold mb-6 text-center">
+            Votre compte n'est encore rattaché à aucun espace de l'école (élève, parent, enseignant…).
+            Si vous avez déposé une candidature, suivez sa décision depuis le portail candidat avec l'email du dossier
+            et le mot de passe choisi lors du dépôt.
+          </p>
+          <div className="flex justify-center">
+            <a href={`/t/${slug}/candidature`} id="visiteur-suivi-candidature"
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-black uppercase tracking-wider">
+              Suivre ma candidature
+            </a>
           </div>
         </motion.div>
       </main>

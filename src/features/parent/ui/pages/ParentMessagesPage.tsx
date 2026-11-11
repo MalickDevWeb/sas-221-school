@@ -1,30 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
-import type { ParentMessage } from '@/features/parent/types';
+import type { ParentMessage, ParentAppointment, ParentProfesseur, ParentDestinataire } from '@/features/parent/types';
 import { apiClient } from '@/shared/lib/apiClient';
+import { parentApi } from '@/features/parent/api';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
+
+const SUJET_MAX = 200;
+const MESSAGE_MAX = 5000;
+
+const initiales = (nom: string | null | undefined) =>
+  (nom ?? '').split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '—';
+
+/** Libellé du correspondant : l'école pour un message reçu, le destinataire pour un envoi. */
+const correspondant = (m: ParentMessage) =>
+  m.envoye ? `Vous → ${m.interlocuteur ?? 'destinataire'}` : (m.de ?? m.interlocuteur ?? 'École');
+
+const roleAffiche = (m: ParentMessage) =>
+  m.envoye ? 'Message envoyé' : m.role === 'ADMINISTRATION' ? 'Administration' : m.role === 'PROFESSEUR' ? 'Professeur' : m.role;
 
 function MessageCard({ msg, onOpen }: { msg: ParentMessage; onOpen: (m: ParentMessage) => void }) {
   return (
     <button
       onClick={() => onOpen(msg)}
+      data-message-id={msg.id}
       className={`w-full text-left bg-white rounded-2xl border border-solid shadow-sm hover:shadow-md transition-all p-5 ${msg.lu ? 'border-neutral-100' : 'border-blue-200 ring-2 ring-blue-50'}`}
     >
       <div className="flex items-start gap-4">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${msg.lu ? 'bg-neutral-100 text-neutral-500' : 'bg-blue-100 text-blue-700'}`}>
-          {msg.de.split(' ').map(w => w[0]).join('').slice(0, 2)}
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${msg.envoye ? 'bg-emerald-50 text-emerald-700' : msg.lu ? 'bg-neutral-100 text-neutral-500' : 'bg-blue-100 text-blue-700'}`}>
+          {msg.envoye
+            ? <span translate="no" className="material-symbols-outlined text-[18px]">send</span>
+            : initiales(msg.de ?? msg.interlocuteur)}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            <p className={`text-sm font-black truncate ${msg.lu ? 'text-neutral-700' : 'text-neutral-900'}`}>{msg.de}</p>
-            {!msg.lu && <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0 animate-pulse" />}
+            <p className={`text-sm font-black truncate ${msg.lu ? 'text-neutral-700' : 'text-neutral-900'}`}>{correspondant(msg)}</p>
+            {!msg.lu && <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0 animate-pulse" aria-label="non lu" />}
           </div>
-          <p className="text-[10px] text-neutral-400 font-semibold mb-1">{msg.role}</p>
+          <p className="text-[10px] text-neutral-400 font-semibold mb-1">
+            {roleAffiche(msg)}
+            {msg.envoye && (msg.luParDestinataire ? ' · lu par le destinataire' : ' · pas encore lu')}
+          </p>
           <p className={`text-xs font-black truncate ${msg.lu ? 'text-neutral-500' : 'text-neutral-800'}`}>{msg.sujet}</p>
           <p className="text-[10px] text-neutral-400 font-semibold mt-0.5 line-clamp-1">{msg.message}</p>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[9px] text-neutral-400 font-semibold">
-            {new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+            {new Date(msg.envoyeLe ?? msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
           </p>
         </div>
       </div>
@@ -32,52 +54,179 @@ function MessageCard({ msg, onOpen }: { msg: ParentMessage; onOpen: (m: ParentMe
   );
 }
 
-function MessageModal({ msg, onClose }: { msg: ParentMessage; onClose: () => void }) {
+function MessageModal({ msg, onClose, onReply }: { msg: ParentMessage; onClose: () => void; onReply: (m: ParentMessage) => void }) {
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div role="dialog" aria-modal="true" aria-label={msg.sujet} className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 animate-fade-in">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-base font-black shrink-0">
-            {msg.de.split(' ').map(w => w[0]).join('').slice(0, 2)}
+            {initiales(msg.envoye ? msg.interlocuteur : msg.de)}
           </div>
           <div>
-            <p className="font-black text-neutral-900">{msg.de}</p>
-            <p className="text-[10px] text-neutral-400 font-semibold">{msg.role}</p>
+            <p className="font-black text-neutral-900">{correspondant(msg)}</p>
+            <p className="text-[10px] text-neutral-400 font-semibold">{roleAffiche(msg)}</p>
           </div>
-          <button onClick={onClose} className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center">
+          <button onClick={onClose} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center">
             <span translate="no" className="material-symbols-outlined text-[16px] text-neutral-600">close</span>
           </button>
         </div>
         <div className="bg-blue-50 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-black text-blue-700 mb-1">Sujet</p>
+          <p className="text-xs font-black text-blue-700 mb-1">Objet</p>
           <p className="text-sm font-bold text-neutral-800">{msg.sujet}</p>
         </div>
-        <p className="text-sm text-neutral-600 leading-relaxed">{msg.message}</p>
+        <p className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap break-words">{msg.message}</p>
         <p className="text-[10px] text-neutral-400 font-semibold mt-4">
-          Reçu le {new Date(msg.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          {msg.envoye ? 'Envoyé' : 'Reçu'} le {new Date(msg.envoyeLe ?? msg.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          {msg.envoye && (msg.luParDestinataire ? ' · lu par le destinataire' : ' · pas encore lu par le destinataire')}
         </p>
+        {!msg.envoye && msg.interlocuteurId && (
+          <div className="flex justify-end mt-5">
+            <button onClick={() => onReply(msg)} className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black flex items-center gap-2">
+              <span translate="no" className="material-symbols-outlined text-[16px]">reply</span>
+              Répondre
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+type Brouillon = { destinataireId: string; sujet: string; message: string };
+type ErreursBrouillon = Partial<Record<keyof Brouillon, string>>;
+
+function validerBrouillon(b: Brouillon): ErreursBrouillon {
+  const e: ErreursBrouillon = {};
+  if (!b.destinataireId) e.destinataireId = 'Choisissez à qui écrire : un professeur ou l\'administration.';
+  const sujet = b.sujet.trim();
+  if (!sujet) e.sujet = 'Indiquez l\'objet du message (ex. « Absence de lundi »).';
+  else if (sujet.length > SUJET_MAX) e.sujet = `Objet trop long : ${sujet.length} caractères sur ${SUJET_MAX} autorisés.`;
+  const message = b.message.trim();
+  if (!message) e.message = 'Le message est vide : écrivez ce que vous souhaitez dire à l\'école.';
+  else if (message.length > MESSAGE_MAX) e.message = `Message trop long : ${message.length} caractères sur ${MESSAGE_MAX} autorisés.`;
+  return e;
+}
+
+function ComposeModal({ initial, onClose, onSent }: { initial: Brouillon; onClose: () => void; onSent: (m: ParentMessage) => void }) {
+  const [destinataires, setDestinataires] = useState<ParentDestinataire[] | null>(null);
+  const [erreurListe, setErreurListe] = useState('');
+  const [b, setB] = useState<Brouillon>(initial);
+  const [erreurs, setErreurs] = useState<ErreursBrouillon>({});
+  const [erreurServeur, setErreurServeur] = useState('');
+  const [envoi, setEnvoi] = useState(false);
+
+  useEffect(() => {
+    parentApi.getDestinataires()
+      .then(setDestinataires)
+      .catch((e) => { setDestinataires([]); setErreurListe(resolveErrorMessage(e)); });
+  }, []);
+
+  const changer = (cle: keyof Brouillon) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setB((x) => ({ ...x, [cle]: e.target.value }));
+    setErreurs((x) => ({ ...x, [cle]: undefined }));
+    setErreurServeur('');
+  };
+
+  const envoyer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const er = validerBrouillon(b);
+    setErreurs(er);
+    if (Object.keys(er).length > 0) return;
+    setEnvoi(true);
+    try {
+      onSent(await parentApi.sendMessage(b.destinataireId, b.sujet.trim(), b.message.trim()));
+    } catch (err) {
+      setErreurServeur(resolveErrorMessage(err));
+    } finally {
+      setEnvoi(false);
+    }
+  };
+
+  const champCls = (k: keyof Brouillon) =>
+    `w-full px-4 bg-white border rounded-xl text-sm text-neutral-800 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none ${erreurs[k] ? 'border-red-400' : 'border-neutral-200'}`;
+  const erreur = (k: keyof Brouillon) => erreurs[k] && (
+    <p id={`message-${k}-erreur`} className="text-[11px] font-semibold text-red-600 mt-1">{erreurs[k]}</p>
+  );
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Écrire à l'école" className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <form id="parent-message-form" onSubmit={envoyer} noValidate className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 animate-fade-in space-y-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-black text-neutral-900">Écrire à l'école</h3>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center">
+            <span translate="no" className="material-symbols-outlined text-[16px] text-neutral-600">close</span>
+          </button>
+        </div>
+
+        <div>
+          <label htmlFor="message-destinataireId" className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">Destinataire</label>
+          <select id="message-destinataireId" value={b.destinataireId} onChange={changer('destinataireId')}
+            aria-invalid={!!erreurs.destinataireId} className={`${champCls('destinataireId')} h-11 mt-1`} disabled={destinataires === null}>
+            <option value="">{destinataires === null ? 'Chargement…' : 'Choisir…'}</option>
+            {(destinataires ?? []).map((d) => (
+              <option key={d.id} value={d.id}>{d.role === 'ADMINISTRATION' ? d.nom : `${d.nom} (professeur)`}</option>
+            ))}
+          </select>
+          {erreur('destinataireId')}
+          {erreurListe && <p className="text-[11px] font-semibold text-red-600 mt-1">Liste des destinataires indisponible : {erreurListe}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="message-sujet" className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">Objet</label>
+          <input id="message-sujet" value={b.sujet} onChange={changer('sujet')} maxLength={SUJET_MAX + 50}
+            aria-invalid={!!erreurs.sujet} placeholder="Ex. Absence de lundi" className={`${champCls('sujet')} h-11 mt-1`} />
+          {erreur('sujet')}
+        </div>
+
+        <div>
+          <label htmlFor="message-message" className="text-[11px] font-black text-neutral-600 uppercase tracking-wider">Message</label>
+          <textarea id="message-message" value={b.message} onChange={changer('message')} rows={6}
+            aria-invalid={!!erreurs.message} className={`${champCls('message')} py-3 mt-1 resize-y`} />
+          <div className="flex justify-between">
+            {erreur('message') || <span />}
+            <span className={`text-[10px] font-semibold mt-1 ${b.message.trim().length > MESSAGE_MAX ? 'text-red-600' : 'text-neutral-400'}`}>
+              {b.message.trim().length} / {MESSAGE_MAX}
+            </span>
+          </div>
+        </div>
+
+        {erreurServeur && (
+          <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold">
+            Message non envoyé : {erreurServeur}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-neutral-100 text-neutral-700 text-xs font-black">Annuler</button>
+          <button type="submit" disabled={envoi} className="px-5 py-2 rounded-xl bg-primary text-white text-xs font-black disabled:opacity-50">
+            {envoi ? 'Envoi…' : 'Envoyer'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function ParentMessagesPage() {
-  const { messages, unreadCount, markRead } = useParentContext();
+  const { messages, unreadCount, markRead, errors, retry, refreshMessages } = useParentContext();
+  const [brouillon, setBrouillon] = useState<Brouillon | null>(null);
+  const [confirmation, setConfirmation] = useState('');
+  const messagesError = errors?.messages ?? null;
   const [selected, setSelected] = useState<ParentMessage | null>(null);
   const [showRdv, setShowRdv] = useState(false);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [professeurs, setProfesseurs] = useState<{ id: string; displayName: string; nom?: string }[]>([]);
+  const [appointments, setAppointments] = useState<ParentAppointment[]>([]);
+  const [professeurs, setProfesseurs] = useState<ParentProfesseur[]>([]);
   const [selectedProf, setSelectedProf] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [rdvMotif, setRdvMotif] = useState('');
   const [submittingRdv, setSubmittingRdv] = useState(false);
 
   useEffect(() => {
-    apiClient.get('/parent/rdv')
+    apiClient.get<ParentAppointment[]>('/parent/rdv')
       .then(res => setAppointments(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error('Erreur chargement RDV:', err));
 
-    apiClient.get('/parent/professeurs')
+    apiClient.get<ParentProfesseur[]>('/parent/professeurs')
       .then(res => {
         const list = Array.isArray(res.data) ? res.data : [];
         setProfesseurs(list);
@@ -89,15 +238,16 @@ export function ParentMessagesPage() {
   }, []);
 
   const handleSendRdv = async () => {
-    if (!selectedDate || !rdvMotif.trim()) return;
+    // APP-FE-07 : plus de professeur de repli inventé ; un professeur réel doit être choisi.
+    if (!selectedProf || !selectedDate || !rdvMotif.trim()) return;
     setSubmittingRdv(true);
     try {
       await apiClient.post('/parent/rdv', {
-        professeurId: selectedProf || (professeurs[0]?.displayName || 'Professeur Principal'),
+        professeurId: selectedProf,
         dateSouhaitee: selectedDate,
         motif: rdvMotif
       });
-      const res = await apiClient.get('/parent/rdv');
+      const res = await apiClient.get<ParentAppointment[]>('/parent/rdv');
       setAppointments(Array.isArray(res.data) ? res.data : []);
       setShowRdv(false);
       setRdvMotif('');
@@ -120,7 +270,31 @@ export function ParentMessagesPage() {
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">
 
-      {selected && <MessageModal msg={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <MessageModal
+          msg={selected}
+          onClose={() => setSelected(null)}
+          onReply={(m) => {
+            setSelected(null);
+            setBrouillon({
+              destinataireId: m.interlocuteurId ?? '',
+              sujet: /^re\s*:/i.test(m.sujet) ? m.sujet : `Re : ${m.sujet}`.slice(0, SUJET_MAX),
+              message: '',
+            });
+          }}
+        />
+      )}
+      {brouillon && (
+        <ComposeModal
+          initial={brouillon}
+          onClose={() => setBrouillon(null)}
+          onSent={(m) => {
+            setBrouillon(null);
+            setConfirmation(`Message envoyé à ${m.interlocuteur ?? 'l\'école'} : « ${m.sujet} ».`);
+            void refreshMessages();
+          }}
+        />
+      )}
 
       {/* Modal Demande RDV */}
       {showRdv && (
@@ -145,6 +319,7 @@ export function ParentMessagesPage() {
                 <select 
                   value={selectedProf} 
                   onChange={e => setSelectedProf(e.target.value)}
+                  disabled={professeurs.length === 0}
                   className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary outline-none"
                 >
                   {professeurs.length > 0 ? (
@@ -154,10 +329,7 @@ export function ParentMessagesPage() {
                       </option>
                     ))
                   ) : (
-                    <>
-                      <option>Dr. Sall — Algorithmique & Systèmes</option>
-                      <option>Prof. Ndiaye — Bases de Données</option>
-                    </>
+                    <option value="">Aucun professeur disponible</option>
                   )}
                 </select>
               </div>
@@ -184,7 +356,7 @@ export function ParentMessagesPage() {
             <div className="mt-6">
               <button 
                 onClick={handleSendRdv} 
-                disabled={submittingRdv || !selectedDate || !rdvMotif.trim()}
+                disabled={submittingRdv || !selectedProf || !selectedDate || !rdvMotif.trim()}
                 className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <span translate="no" className="material-symbols-outlined text-[16px]">send</span>
@@ -199,7 +371,7 @@ export function ParentMessagesPage() {
       <div className="mb-6 pb-4 border-b border-neutral-200 border-solid flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight">Messages</h2>
-          <p className="text-xs text-neutral-500 font-semibold mt-1">Communications école → parent</p>
+          <p className="text-xs text-neutral-500 font-semibold mt-1">Vos échanges avec les professeurs et l'administration</p>
         </div>
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
@@ -207,6 +379,14 @@ export function ParentMessagesPage() {
               {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
             </span>
           )}
+          <button
+            id="parent-ecrire"
+            onClick={() => { setConfirmation(''); setBrouillon({ destinataireId: '', sujet: '', message: '' }); }}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black transition-colors"
+          >
+            <span translate="no" className="material-symbols-outlined text-[16px]">edit</span>
+            Écrire
+          </button>
           <button
             onClick={() => setShowRdv(true)}
             className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black transition-colors"
@@ -256,10 +436,10 @@ export function ParentMessagesPage() {
 
                   <h3 className="font-black text-sm text-neutral-900 mb-1 flex items-center gap-2">
                     <span translate="no" className="material-symbols-outlined text-[18px] text-blue-600">person</span>
-                    {apt.professeurId || 'Enseignant référent'}
+                    {apt.professeurNom || apt.professeurId || '—'}
                   </h3>
                   <p className="text-xs text-neutral-600 line-clamp-2 mb-4 bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
-                    "{apt.motif || 'Entretien de suivi pédagogique'}"
+                    {apt.motif ? `"${apt.motif}"` : '—'}
                   </p>
                 </div>
 
@@ -284,11 +464,20 @@ export function ParentMessagesPage() {
         </div>
       )}
 
-      {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <span translate="no" className="material-symbols-outlined text-[48px] text-neutral-200 mb-3">mark_email_read</span>
-          <p className="font-bold text-neutral-400 text-sm">Aucun message</p>
+      {confirmation && (
+        <div role="status" className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-800 text-xs font-bold">
+          {confirmation}
         </div>
+      )}
+
+      {messagesError ? (
+        <ParentErrorState message={messagesError} onRetry={retry} />
+      ) : messages.length === 0 ? (
+        <ParentEmptyState
+          icon="mark_email_read"
+          title="Aucun échange pour le moment."
+          description="Écrivez à un professeur ou à l'administration avec le bouton « Écrire » ; leurs réponses apparaîtront ici."
+        />
       ) : (
         <>
           {nonLus.length > 0 && (
@@ -301,7 +490,7 @@ export function ParentMessagesPage() {
           )}
           {lus.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-3">Lus ({lus.length})</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-3">Historique ({lus.length})</p>
               <div className="flex flex-col gap-3">
                 {lus.map(m => <MessageCard key={m.id} msg={m} onOpen={handleOpen} />)}
               </div>

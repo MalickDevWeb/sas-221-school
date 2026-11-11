@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { useTheme } from '@/design-system/ThemeProvider';
+import { useTheme } from '@/design-system/useTheme';
 import { ThemePreview } from './ThemePreview';
 import { generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
 import {

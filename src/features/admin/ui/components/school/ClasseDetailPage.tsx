@@ -3,9 +3,16 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
+import { MotDePasseProvisoireModal } from '../MotDePasseProvisoireModal';
 import { apiClient } from '@/shared/lib/apiClient';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { afficherErreur } from '@/shared/lib/validationPersonnalisee';
+
+const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const fcfa = (n: number | null | undefined) => (n == null ? '—' : `${n.toLocaleString('fr-FR')} FCFA`);
 
 interface Props {
   classe: Classe;
@@ -21,7 +28,7 @@ export function ClasseDetailPage({
   classe,
   filieres,
   slots,
-  allStudents = INITIAL_STUDENTS,
+  allStudents = [],
   onBack,
   onEditClasse,
   onUpdateStudents,
@@ -35,20 +42,15 @@ export function ClasseDetailPage({
   // Form states for manual student add
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentEmail, setNewStudentEmail] = useState('');
-  const [newStudentMatricule, setNewStudentMatricule] = useState(`2026-${classe.level}-${Math.floor(100 + Math.random() * 900)}`);
-  const [newStudentPhone, setNewStudentPhone] = useState('+221 77 ');
+  const [newStudentMatricule, setNewStudentMatricule] = useState('');   // vide = généré par le serveur
+  const [newStudentPhone, setNewStudentPhone] = useState('');
+  const [enrolling, setEnrolling] = useState(false);
+  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; email: string; motDePasse: string } | null>(null);
 
-  // Filter students for this class
-  const [classStudents, setClassStudents] = useState<Student[]>(() => {
-    const matched = allStudents.filter(
-      s => s.classe?.toLowerCase() === classe.name.toLowerCase() ||
-           s.classe?.toLowerCase().includes(classe.level.toLowerCase())
-    );
-    if (matched.length === 0) {
-      return allStudents.slice(0, 2).map(s => ({ ...s, classe: classe.name }));
-    }
-    return matched;
-  });
+  // Élèves de cette classe : uniquement ceux que le serveur rattache à la classe (aucun élève emprunté à d'autres classes)
+  const [classStudents, setClassStudents] = useState<Student[]>(() =>
+    allStudents.filter(s => (s.classeId ? s.classeId === classe.id : !!s.classe && s.classe.toLowerCase() === classe.name.toLowerCase()))
+  );
 
   const filiereName = filieres.find(f => f.id === classe.filiereId)?.name || 'Tronc Commun / Multidisciplinaire';
   const classSlots = slots.filter(s => s.classeId === classe.id || s.classeId === classe.name);
@@ -65,15 +67,19 @@ export function ClasseDetailPage({
   });
   const subjectsList = Array.from(subjectsMap.values());
 
-  // Financial calculations
+  // Calculs financiers : uniquement à partir du tarif réel de la classe (aucun tarif ni capacité supposés)
+  const price = classe.price ?? null;
+  const capacity = classe.capacityMax ?? null;
   const totalStudents = classStudents.length;
-  const expectedRevenue = totalStudents * (classe.price || 450000);
   const paidCount = classStudents.filter(s => s.financialStatus === 'En Règle').length;
-  const lateCount = totalStudents - paidCount;
-  const collectedRevenue = paidCount * (classe.price || 450000);
-  const remainingRevenue = lateCount * (classe.price || 450000);
-  const collectionRate = totalStudents > 0 ? Math.round((collectedRevenue / expectedRevenue) * 100) : 100;
-  const occupancyRate = Math.min(100, Math.round((totalStudents / (classe.capacityMax || 35)) * 100));
+  const lateCount = classStudents.filter(s => s.financialStatus === 'En Retard').length;
+  const unknownCount = totalStudents - paidCount - lateCount;
+  const expectedRevenue = price != null ? totalStudents * price : null;
+  const collectedRevenue = price != null ? paidCount * price : null;
+  const remainingRevenue = price != null ? lateCount * price : null;
+  const knownCount = paidCount + lateCount;
+  const collectionRate = knownCount > 0 ? Math.round((paidCount / knownCount) * 100) : null;
+  const occupancyRate = capacity ? Math.min(100, Math.round((totalStudents / capacity) * 100)) : null;
 
   const filteredStudents = classStudents.filter(s => {
     const matchesSearch =
@@ -88,38 +94,46 @@ export function ClasseDetailPage({
 
   const handleManualEnroll = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStudentName.trim()) return;
+    if (enrolling) return;
+    const form = e.currentTarget as HTMLFormElement;
+    const nom = newStudentName.trim();
+    const email = newStudentEmail.trim();
+    if (!nom) {
+      const champ = form.querySelector<HTMLInputElement>('input[name="nom"]');
+      if (champ) afficherErreur(champ, 'Le nom et le prénom de l\'élève sont obligatoires.');
+      return;
+    }
+    if (!EMAIL_VALIDE.test(email)) {
+      const champ = form.querySelector<HTMLInputElement>('input[name="email"]');
+      if (champ) afficherErreur(champ, 'Une adresse e-mail valide est obligatoire (identifiant de connexion).');
+      return;
+    }
 
-    const newStudent: Student = {
-      id: `s-${Date.now()}`,
-      matricule: newStudentMatricule.trim() || `2026-${classe.level}-001`,
-      name: newStudentName.trim(),
-      email: newStudentEmail.trim() || `${newStudentName.toLowerCase().replace(/\s+/g, '.')}@ecole221.sn`,
-      classe: classe.name,
-      financialStatus: 'En Règle',
-      qrStatus: 'AUTORISÉ',
-      gpa: '15.0/20',
-      phoneParent: newStudentPhone.trim() || '+221 77 000 00 00',
-    };
+    const body: Record<string, string> = { name: nom, email, classeId: classe.id };
+    if (newStudentPhone.trim()) body.telephone = newStudentPhone.trim();
+    if (newStudentMatricule.trim()) body.matricule = newStudentMatricule.trim();
 
-    const updated = [newStudent, ...classStudents];
-    setClassStudents(updated);
-    if (onUpdateStudents) onUpdateStudents(updated);
-
+    setEnrolling(true);
     try {
-      await apiClient.post('/admin/students', {
-        name: newStudent.name,
-        matricule: newStudent.matricule,
-        promotion_id: classe.id,
-        classe: classe.name,
-      });
-    } catch {}
-
-    toast.success(`Élève ${newStudent.name} inscrit avec succès !`);
-    setNewStudentName('');
-    setNewStudentEmail('');
-    setNewStudentMatricule(`2026-${classe.level}-${Math.floor(100 + Math.random() * 900)}`);
-    setIsAddingStudent(false);
+      const { data } = await apiClient.post<any>('/admin/students', body);
+      const cree = mapStudentFromApi(data);
+      const updated = [cree, ...classStudents];
+      setClassStudents(updated);
+      if (onUpdateStudents) onUpdateStudents(updated);
+      toast.success(`Compte élève créé pour ${cree.name}.`);
+      if (data?.motDePasseProvisoire) {
+        setMotDePasseInfo({ nom: cree.name, email: cree.email, motDePasse: data.motDePasseProvisoire });
+      }
+      setNewStudentName('');
+      setNewStudentEmail('');
+      setNewStudentMatricule('');
+      setNewStudentPhone('');
+      setIsAddingStudent(false);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));   // formulaire conservé, liste inchangée
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   const handleBulkImportComplete = (imported: Student[]) => {
@@ -128,36 +142,48 @@ export function ClasseDetailPage({
     if (onUpdateStudents) onUpdateStudents(updated);
   };
 
-  const toggleStudentFinancialStatus = (id: string) => {
-    setClassStudents(prev =>
-      prev.map(s => {
-        if (s.id === id) {
-          const next = s.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
-          toast.info(`${s.name} passé à : ${next}`);
-          return { ...s, financialStatus: next };
-        }
-        return s;
-      })
-    );
+  const toggleStudentFinancialStatus = async (id: string) => {
+    const st = classStudents.find(s => s.id === id);
+    if (!st) return;
+    const next: 'En Règle' | 'En Retard' = st.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
+    try {
+      const { data } = await apiClient.patch<any>(`/admin/students/${id}/status`, { statutFrais: next });
+      const confirme: Student['financialStatus'] = data?.status === 'En Retard' || data?.status === 'En Règle' ? data.status : next;
+      setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, financialStatus: confirme } : s)));
+      toast.success(`${st.name} : statut de frais « ${confirme} » enregistré.`);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+    }
   };
 
-  const toggleStudentQrStatus = (id: string) => {
-    setClassStudents(prev =>
-      prev.map(s => {
-        if (s.id === id) {
-          const next = s.qrStatus === 'AUTORISÉ' ? 'SUSPENDU' : 'AUTORISÉ';
-          toast.info(`Accès badge QR de ${s.name} : ${next}`);
-          return { ...s, qrStatus: next };
-        }
-        return s;
-      })
-    );
+  const toggleStudentQrStatus = async (id: string) => {
+    const st = classStudents.find(s => s.id === id);
+    if (!st) return;
+    try {
+      const { data } = await apiClient.patch<any>(`/admin/students/${id}/toggle-status`);
+      const qrStatus: Student['qrStatus'] = data?.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
+      const status: Student['status'] = data?.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, qrStatus, status } : s)));
+      toast.success(qrStatus === 'SUSPENDU' ? `${st.name} est suspendu : accès refusé.` : `${st.name} est réactivé : accès autorisé.`);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+    }
   };
 
-  const handleRemoveStudent = (id: string, name: string) => {
-    if (window.confirm(`Confirmez-vous le retrait de ${name} de cette promotion ?`)) {
-      setClassStudents(prev => prev.filter(s => s.id !== id));
-      toast.success(`${name} a été retiré de la promotion.`);
+  const handleRemoveStudent = async (id: string, name: string) => {
+    // Le serveur ne stocke pas l'affectation aux classes : le seul retrait réel est le retrait de l'école
+    if (!(await demanderConfirmation(
+      `Retirer ${name} de l'école ? Son compte sera supprimé s'il n'appartient à aucune autre école.`,
+      { titre: 'Retirer un élève', confirmer: 'Retirer' }
+    ))) return;
+    try {
+      await apiClient.delete(`/admin/students/${id}`);
+      const updated = classStudents.filter(s => s.id !== id);
+      setClassStudents(updated);
+      if (onUpdateStudents) onUpdateStudents(updated);
+      toast.success(`${name} a été retiré de l'école.`);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
     }
   };
 
@@ -169,10 +195,9 @@ export function ClasseDetailPage({
       'Matricule': s.matricule,
       'Email': s.email,
       'Promotion': classe.name,
-      'Moyenne': s.gpa,
       'Statut Frais': s.financialStatus,
       'Badge Accès': s.qrStatus,
-      'Contact Tuteur': s.phoneParent,
+      'Téléphone': s.phoneParent || '—',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -190,8 +215,8 @@ export function ClasseDetailPage({
     doc.setFontSize(12);
     doc.text(`Classe : ${classe.name} (${classe.level})`, 14, 30);
     doc.text(`Filière : ${filiereName}`, 14, 38);
-    doc.text(`Effectif : ${totalStudents} élèves • Frais annuels : ${classe.price.toLocaleString('fr-FR')} FCFA`, 14, 46);
-    doc.text(`Taux de Recouvrement : ${collectionRate}% (${paidCount} à jour / ${lateCount} en retard)`, 14, 54);
+    doc.text(`Effectif : ${totalStudents} élèves • Frais annuels : ${fcfa(price)}`, 14, 46);
+    doc.text(`Taux de Recouvrement : ${collectionRate == null ? '—' : `${collectionRate}%`} (${paidCount} à jour / ${lateCount} en retard / ${unknownCount} non renseigné)`, 14, 54);
 
     doc.setLineWidth(0.5);
     doc.line(14, 58, 196, 58);
@@ -202,8 +227,8 @@ export function ClasseDetailPage({
     doc.text('N°', 14, y);
     doc.text('Nom & Prénom', 26, y);
     doc.text('Matricule', 85, y);
-    doc.text('Moyenne', 125, y);
-    doc.text('Statut Frais', 150, y);
+    doc.text('Téléphone', 125, y);
+    doc.text('Statut Frais', 160, y);
 
     doc.setFont('helvetica', 'normal');
     classStudents.forEach((s, idx) => {
@@ -215,8 +240,8 @@ export function ClasseDetailPage({
       doc.text(String(idx + 1), 14, y);
       doc.text(s.name.substring(0, 28), 26, y);
       doc.text(s.matricule, 85, y);
-      doc.text(s.gpa, 125, y);
-      doc.text(s.financialStatus, 150, y);
+      doc.text(s.phoneParent || '—', 125, y);
+      doc.text(s.financialStatus, 160, y);
     });
 
     doc.save(`Fiche_Officielle_${classe.name.replace(/\s+/g, '_')}.pdf`);
@@ -298,7 +323,7 @@ export function ClasseDetailPage({
               {filiereName}
             </span>
             <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-              {classe.price.toLocaleString('fr-FR')} FCFA / an
+              {price == null ? 'Tarif non renseigné' : `${fcfa(price)} / an`}
             </span>
           </div>
 
@@ -316,11 +341,11 @@ export function ClasseDetailPage({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-white/10">
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Effectif Actuel</span>
-              <span className="text-xl font-black text-white mt-0.5 block">{totalStudents} / {classe.capacityMax}</span>
+              <span className="text-xl font-black text-white mt-0.5 block">{totalStudents} / {capacity ?? '—'}</span>
               <div className="w-full bg-white/20 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${occupancyRate}%` }} />
+                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${occupancyRate ?? 0}%` }} />
               </div>
-              <span className="text-[9px] text-neutral-400 block mt-1">{occupancyRate}% de remplissage</span>
+              <span className="text-[9px] text-neutral-400 block mt-1">{occupancyRate == null ? 'Capacité non renseignée' : `${occupancyRate}% de remplissage`}</span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
@@ -331,16 +356,16 @@ export function ClasseDetailPage({
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Taux Recouvrement</span>
-              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{collectionRate}%</span>
-              <span className="text-[10px] text-neutral-400 block mt-2">{paidCount} à jour • {lateCount} en retard</span>
+              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{collectionRate == null ? '—' : `${collectionRate}%`}</span>
+              <span className="text-[10px] text-neutral-400 block mt-2">{paidCount} à jour • {lateCount} en retard • {unknownCount} non renseigné</span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Budget Promotion</span>
               <span className="text-xl font-black text-white mt-0.5 block truncate">
-                {(expectedRevenue / 1000000).toFixed(1)}M FCFA
+                {expectedRevenue == null ? '—' : `${(expectedRevenue / 1000000).toFixed(1)}M FCFA`}
               </span>
-              <span className="text-[10px] text-emerald-300 block mt-2">{(collectedRevenue / 1000000).toFixed(1)}M déjà encaissé</span>
+              <span className="text-[10px] text-emerald-300 block mt-2">{collectedRevenue == null ? 'Tarif non renseigné' : `${(collectedRevenue / 1000000).toFixed(1)}M estimé à jour`}</span>
             </div>
           </div>
         </div>
@@ -471,6 +496,7 @@ export function ClasseDetailPage({
                     <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Nom & Prénom *</label>
                     <input
                       type="text"
+                      name="nom"
                       required
                       placeholder="ex. Fatou Sow"
                       value={newStudentName}
@@ -482,31 +508,39 @@ export function ClasseDetailPage({
                     <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Matricule</label>
                     <input
                       type="text"
+                      placeholder="Généré automatiquement si vide"
                       value={newStudentMatricule}
                       onChange={e => setNewStudentMatricule(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email</label>
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email * (identifiant de connexion)</label>
                     <input
                       type="email"
-                      placeholder="fatou.sow@ecole221.sn"
+                      name="email"
+                      required
+                      placeholder="prenom.nom@exemple.sn"
                       value={newStudentEmail}
                       onChange={e => setNewStudentEmail(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Téléphone Parent</label>
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Téléphone</label>
                     <input
-                      type="text"
+                      type="tel"
+                      placeholder="+221 …"
                       value={newStudentPhone}
                       onChange={e => setNewStudentPhone(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
+                <p className="text-[10px] text-neutral-500 font-semibold m-0">
+                  Le compte est créé dans l'école ; un mot de passe provisoire est généré par le serveur et affiché une seule fois.
+                  L'élève est affecté à cette classe.
+                </p>
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
@@ -517,9 +551,10 @@ export function ClasseDetailPage({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-1.5 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all border-0 cursor-pointer"
+                    disabled={enrolling}
+                    className="px-5 py-1.5 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all border-0 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                   >
-                    Inscrire dans la classe
+                    {enrolling ? 'Création en cours…' : 'Créer le compte élève'}
                   </button>
                 </div>
               </form>
@@ -532,18 +567,17 @@ export function ClasseDetailPage({
                   <tr className="bg-[#FAF8F6] text-[10px] font-black text-neutral-400 uppercase tracking-wider border-b border-neutral-200">
                     <th className="px-5 py-3.5">Élève</th>
                     <th className="px-5 py-3.5">Matricule</th>
-                    <th className="px-5 py-3.5">Moyenne (GPA)</th>
                     <th className="px-5 py-3.5">Statut Paiement</th>
                     <th className="px-5 py-3.5">Badge & Accès</th>
-                    <th className="px-5 py-3.5">Contact Parent</th>
+                    <th className="px-5 py-3.5">Téléphone</th>
                     <th className="px-5 py-3.5 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-10 text-center text-neutral-400 font-bold">
-                        Aucun élève trouvé. Utilisez l'import Excel ou le bouton d'inscription pour en ajouter.
+                      <td colSpan={6} className="px-5 py-10 text-center text-neutral-400 font-bold">
+                        Aucun élève affecté à cette classe pour le moment.
                       </td>
                     </tr>
                   ) : (
@@ -562,17 +596,14 @@ export function ClasseDetailPage({
                         </td>
                         <td className="px-5 py-3.5 font-mono text-[11px] text-neutral-700">{st.matricule}</td>
                         <td className="px-5 py-3.5">
-                          <span className="px-2.5 py-1 bg-amber-50 text-amber-800 font-black rounded-lg text-[11px]">
-                            {st.gpa}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
                           <button
                             onClick={() => toggleStudentFinancialStatus(st.id)}
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase cursor-pointer border-0 transition-all ${
                               st.financialStatus === 'En Règle'
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                : st.financialStatus === 'En Retard'
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                             }`}
                             title="Cliquer pour basculer le statut financier"
                           >
@@ -587,19 +618,19 @@ export function ClasseDetailPage({
                                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                 : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
                             }`}
-                            title="Cliquer pour basculer l'autorisation du badge QR"
+                            title="Cliquer pour suspendre / réactiver l'élève (badge et connexion)"
                           >
                             {st.qrStatus}
                           </button>
                         </td>
                         <td className="px-5 py-3.5 text-neutral-600 text-[11px] font-bold">
-                          {st.phoneParent}
+                          {st.phoneParent || '—'}
                         </td>
                         <td className="px-5 py-3.5 text-center">
                           <button
                             onClick={() => handleRemoveStudent(st.id, st.name)}
                             className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent inline-flex items-center"
-                            title="Retirer cet élève de la classe"
+                            title="Retirer cet élève de l'école"
                           >
                             <span translate="no" className="material-symbols-outlined text-sm font-bold">delete</span>
                           </button>
@@ -718,29 +749,31 @@ export function ClasseDetailPage({
                   Plan Financier & Recouvrement — {classe.name}
                 </h4>
                 <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
-                  Frais de scolarité annuels fixés à {classe.price.toLocaleString('fr-FR')} FCFA par élève.
+                  {price == null
+                    ? 'Tarif annuel non renseigné pour cette classe : montants indisponibles.'
+                    : `Frais de scolarité annuels fixés à ${fcfa(price)} par élève.`}
                 </p>
               </div>
               <div className="text-right">
                 <span className="text-xs font-black text-emerald-900 block">Taux de Recouvrement</span>
-                <span className="text-2xl font-black text-emerald-600">{collectionRate}%</span>
+                <span className="text-2xl font-black text-emerald-600">{collectionRate == null ? '—' : `${collectionRate}%`}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs">
                 <span className="text-[10px] uppercase font-bold text-neutral-400 block">Total Attendu</span>
-                <span className="text-xl font-black text-[#1E293B] block mt-1">{expectedRevenue.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-xl font-black text-[#1E293B] block mt-1">{fcfa(expectedRevenue)}</span>
                 <span className="text-[10px] text-neutral-500 font-semibold">{totalStudents} étudiants inscrits</span>
               </div>
               <div className="p-5 bg-white border border-emerald-200 rounded-2xl shadow-xs">
                 <span className="text-[10px] uppercase font-bold text-emerald-600 block">Total Déjà Encaissé</span>
-                <span className="text-xl font-black text-emerald-600 block mt-1">{collectedRevenue.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-xl font-black text-emerald-600 block mt-1">{fcfa(collectedRevenue)}</span>
                 <span className="text-[10px] text-emerald-700 font-semibold">{paidCount} étudiants à jour</span>
               </div>
               <div className="p-5 bg-white border border-rose-200 rounded-2xl shadow-xs">
                 <span className="text-[10px] uppercase font-bold text-rose-600 block">Reste à Recouvrer</span>
-                <span className="text-xl font-black text-rose-600 block mt-1">{remainingRevenue.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-xl font-black text-rose-600 block mt-1">{fcfa(remainingRevenue)}</span>
                 <span className="text-[10px] text-rose-700 font-semibold">{lateCount} étudiants débiteurs</span>
               </div>
             </div>
@@ -752,7 +785,7 @@ export function ClasseDetailPage({
                 </h5>
                 {lateCount > 0 && (
                   <button
-                    onClick={() => toast.success(`Relances SMS & WhatsApp envoyées avec succès aux ${lateCount} tuteurs d'élèves.`)}
+                    onClick={() => toast.info("Relances SMS / WhatsApp indisponibles : aucun service d'envoi n'est relié au serveur.")}
                     className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase cursor-pointer border-0 flex items-center gap-1.5 transition-all shadow-sm"
                   >
                     <span translate="no" className="material-symbols-outlined text-sm">send</span>
@@ -764,7 +797,7 @@ export function ClasseDetailPage({
               {lateCount === 0 ? (
                 <div className="py-4 text-emerald-600 text-xs font-bold flex items-center gap-2">
                   <span translate="no" className="material-symbols-outlined text-lg">check_circle</span>
-                  <span>Tous les élèves de cette promotion sont actuellement en règle de paiement.</span>
+                  <span>Aucun élève de cette classe n'est enregistré en retard de paiement.</span>
                 </div>
               ) : (
                 <div className="divide-y divide-neutral-100">
@@ -773,14 +806,14 @@ export function ClasseDetailPage({
                       <div>
                         <span className="text-xs font-black text-[#1E293B]">{s.name}</span>
                         <span className="text-[10px] text-neutral-400 font-mono ml-2">({s.matricule})</span>
-                        <p className="text-[10px] text-neutral-500 m-0">Tuteur: {s.phoneParent}</p>
+                        <p className="text-[10px] text-neutral-500 m-0">Téléphone : {s.phoneParent || '—'}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => toggleStudentFinancialStatus(s.id)}
                           className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-bold cursor-pointer border border-emerald-200"
                         >
-                          Encaisser
+                          Marquer en règle
                         </button>
                         <span className="px-3 py-1 bg-rose-100 text-rose-700 font-black text-[10px] rounded-full uppercase">
                           Solde en attente
@@ -803,6 +836,15 @@ export function ClasseDetailPage({
           classeId={classe.id}
           onClose={() => setShowExcelImport(false)}
           onImportComplete={handleBulkImportComplete}
+        />
+      )}
+
+      {motDePasseInfo && (
+        <MotDePasseProvisoireModal
+          nom={motDePasseInfo.nom}
+          identifiant={motDePasseInfo.email}
+          motDePasse={motDePasseInfo.motDePasse}
+          onClose={() => setMotDePasseInfo(null)}
         />
       )}
     </div>

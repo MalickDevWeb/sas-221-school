@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { AttendanceRecord, INITIAL_ATTENDANCE } from '../../../domain/PersonnelModels';
+import { AttendanceRecord, StaffMember } from '../../../domain/PersonnelModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { AttendanceHeader } from './attendance/AttendanceHeader';
 import { AttendanceStatsCard } from './attendance/AttendanceStatsCard';
 import { AttendanceTable } from './attendance/AttendanceTable';
@@ -9,10 +10,23 @@ import { NewAttendanceModal } from './attendance/NewAttendanceModal';
 
 interface Props {
   onShowToast?: (msg: string, success: boolean) => void;
+  /** Personnel réel de l'école (GET /admin/staff) pour choisir la personne pointée. */
+  staff?: StaffMember[];
 }
 
-export function AttendanceTab({ onShowToast }: Props) {
-  const [records, setRecords] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
+export type NouveauPointage = {
+  userId?: string | null;
+  name: string;
+  role: string;
+  checkIn: string;
+  checkOut: string;
+  hours: number | null;
+  status: string;
+  note: string;
+};
+
+export function AttendanceTab({ onShowToast, staff = [] }: Props) {
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);   // pointages réels uniquement
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedStaff, setSelectedStaff] = useState<AttendanceRecord | null>(null);
   const [search, setSearch] = useState('');
@@ -23,13 +37,10 @@ export function AttendanceTab({ onShowToast }: Props) {
     setLoading(true);
     try {
       const res = await apiClient.get('/admin/attendance');
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setRecords(res.data);
-      } else {
-        setRecords(INITIAL_ATTENDANCE);
-      }
-    } catch {
-      setRecords((prev) => (prev.length > 0 ? prev : INITIAL_ATTENDANCE));
+      setRecords(Array.isArray(res.data) ? res.data : []);   // jamais de pointages inventés
+    } catch (err) {
+      // erreur : liste inchangée, jamais de pointages inventés
+      onShowToast?.(resolveErrorMessage(err), false);
     } finally {
       setLoading(false);
     }
@@ -41,7 +52,7 @@ export function AttendanceTab({ onShowToast }: Props) {
     return records.filter((r) => {
       const matchStatus = statusFilter === 'Tous' || r.status === statusFilter;
       const q = search.toLowerCase().trim();
-      const matchQuery = !q || r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.role.toLowerCase().includes(q);
+      const matchQuery = !q || (r.name || '').toLowerCase().includes(q) || (r.role || '').toLowerCase().includes(q) || (r.date || '').includes(q);
       return matchStatus && matchQuery;
     });
   }, [records, statusFilter, search]);
@@ -53,26 +64,42 @@ export function AttendanceTab({ onShowToast }: Props) {
   const absentCount = records.filter((r) => r.status === 'Absent').length;
   const rate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
-  const handleSaveRecord = async (updated: AttendanceRecord) => {
-    setRecords((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    setSelectedStaff(null);
+  /** Mise à jour réelle : la ligne n'est remplacée que par la réponse du serveur. */
+  const handleSaveRecord = async (updated: AttendanceRecord): Promise<boolean> => {
     try {
-      await apiClient.put(`/admin/attendance/${updated.id}`, updated);
-      onShowToast?.(`Pointage mis à jour pour ${updated.name} avec succès !`, true);
-    } catch {
-      onShowToast?.(`Pointage sauvegardé localement pour ${updated.name}`, true);
+      const res = await apiClient.put(`/admin/attendance/${updated.id}`, {
+        checkIn: updated.checkIn,
+        checkOut: updated.checkOut,
+        hours: updated.hours,
+        status: updated.status,
+        note: updated.note ?? '',
+      });
+      const confirme: AttendanceRecord = res.data?.id ? res.data : updated;
+      setRecords((prev) => prev.map((r) => (r.id === confirme.id ? confirme : r)));
+      setSelectedStaff(null);
+      onShowToast?.(`Pointage mis à jour pour ${confirme.name}.`, true);
+      return true;
+    } catch (err) {
+      onShowToast?.(resolveErrorMessage(err), false);
+      return false;
     }
   };
 
-  const handleAddNewAttendance = async (newRec: Omit<AttendanceRecord, 'id'>) => {
-    const fullRecord: AttendanceRecord = { id: `att-${Date.now()}`, ...newRec };
-    setRecords((prev) => [...prev, fullRecord]);
-    setShowAddModal(false);
+  /** Création réelle : le pointage n'apparaît qu'avec l'identifiant attribué par le serveur. */
+  const handleAddNewAttendance = async (newRec: NouveauPointage): Promise<boolean> => {
     try {
-      await apiClient.post('/admin/attendance', fullRecord);
-      onShowToast?.(`Pointage enregistré pour ${fullRecord.name}`, true);
-    } catch {
-      onShowToast?.(`Pointage enregistré localement pour ${fullRecord.name}`, true);
+      const res = await apiClient.post('/admin/attendance', newRec);
+      if (!res.data?.id) {
+        onShowToast?.('Réponse du serveur incomplète : rechargez les pointages.', false);
+        return false;
+      }
+      setRecords((prev) => [res.data as AttendanceRecord, ...prev]);
+      setShowAddModal(false);
+      onShowToast?.(`Pointage enregistré pour ${res.data.name}.`, true);
+      return true;
+    } catch (err) {
+      onShowToast?.(resolveErrorMessage(err), false);
+      return false;
     }
   };
 
@@ -101,7 +128,7 @@ export function AttendanceTab({ onShowToast }: Props) {
         <StaffAttendanceDetailModal record={selectedStaff} onClose={() => setSelectedStaff(null)} onSave={handleSaveRecord} />
       )}
       {showAddModal && (
-        <NewAttendanceModal onClose={() => setShowAddModal(false)} onAdd={handleAddNewAttendance} />
+        <NewAttendanceModal staff={staff} onClose={() => setShowAddModal(false)} onAdd={handleAddNewAttendance} />
       )}
     </div>
   );

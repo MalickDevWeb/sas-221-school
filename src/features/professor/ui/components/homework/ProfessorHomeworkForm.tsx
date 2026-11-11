@@ -29,7 +29,13 @@ export function ProfessorHomeworkForm(props: Props) {
             <option value="haute">Haute</option>
           </select>
         </div>
-        <TextField label="Deadline" value={props.hwDeadline} onChange={props.setHwDeadline} placeholder="15 Octobre - 23h59" />
+        {/* vrai sélecteur de date (avant : texte libre « 15 Octobre - 23h59 », refusé par le serveur) */}
+        <div>
+          <label className="text-[10px] font-black uppercase text-secondary">Date limite</label>
+          <input type="date" required data-msg-requis="Choisissez la date limite du devoir." value={props.hwDeadline}
+            min={new Date().toISOString().slice(0, 10)} onChange={(e) => props.setHwDeadline(e.target.value)}
+            className="mt-2 w-full rounded-2xl border border-neutral-gray-300 bg-white px-4 py-3 text-xs font-semibold focus:border-brand-red-deep focus:outline-none" />
+        </div>
       </div>
       <button className="inline-flex items-center gap-2 rounded-2xl bg-brand-red-deep px-4 py-3 text-xs font-black text-white hover:bg-[#6B0E10] transition">
         <PlusCircle className="w-4 h-4" /> Assigner le devoir

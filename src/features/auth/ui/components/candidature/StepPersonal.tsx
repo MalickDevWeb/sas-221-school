@@ -23,7 +23,7 @@ export function StepPersonal({
     setUploading(true);
     setUploadError('');
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(file, undefined, { strict: true });   // APP-FE-09 : pas de repli DataURL (envoi refusé = erreur visible)
       setNomFichierCni(url);
     } catch (err: any) {
       setUploadError(err.message || 'Erreur lors du dépôt.');

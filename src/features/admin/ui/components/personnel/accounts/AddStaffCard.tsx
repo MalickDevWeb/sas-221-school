@@ -1,25 +1,41 @@
 import React, { useState } from 'react';
 import { StaffMember, STAFF_ROLES } from '../../../../domain/PersonnelModels';
 
-interface Props {
-  onAddStaff: (member: Omit<StaffMember, 'id'>) => Promise<any> | void;
-  onSuccess: (info: { id: string; pass: string }) => void;
+export interface NouveauCollaborateur {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
 }
 
-export const AddStaffCard: React.FC<Props> = ({ onAddStaff, onSuccess }) => {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Secrétaire' });
+export interface ResultatCreation {
+  member: StaffMember;
+  /** Renvoyé une seule fois par le serveur quand il a généré le mot de passe. */
+  motDePasseProvisoire: string | null;
+}
+
+interface Props {
+  onAddStaff: (member: NouveauCollaborateur) => Promise<ResultatCreation | null>;
+  onCreated: (res: ResultatCreation) => void;
+}
+
+const FORM_VIDE: NouveauCollaborateur = { firstName: '', lastName: '', email: '', phone: '', role: 'Secrétaire' };
+
+export const AddStaffCard: React.FC<Props> = ({ onAddStaff, onCreated }) => {
+  const [form, setForm] = useState<NouveauCollaborateur>(FORM_VIDE);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email || !form.phone) return;
+    if (!form.firstName || !form.lastName || !form.email || !form.phone || loading) return;
     setLoading(true);
     try {
-      const res: any = await onAddStaff({ ...form, status: 'Actif' });
+      const res = await onAddStaff({ ...form });
       if (res) {
-        const tempPass = Math.random().toString(36).slice(-8).toUpperCase();
-        onSuccess({ id: res.id || 'EMP-2026-OK', pass: tempPass });
-        setForm({ firstName: '', lastName: '', email: '', phone: '', role: 'Secrétaire' });
+        // succès confirmé par le serveur uniquement ; en cas d'échec le formulaire est conservé
+        onCreated(res);
+        setForm(FORM_VIDE);
       }
     } finally {
       setLoading(false);
@@ -33,7 +49,7 @@ export const AddStaffCard: React.FC<Props> = ({ onAddStaff, onSuccess }) => {
           <span translate="no" className="material-symbols-outlined text-primary text-base">person_add</span>
           + Ajouter un membre
         </h4>
-        <p className="text-[9px] text-neutral-400 font-semibold">Tous les champs sont requis.</p>
+        <p className="text-[9px] text-neutral-400 font-semibold">Tous les champs sont requis. Le mot de passe provisoire est généré par le serveur.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3 text-xs font-bold text-neutral-600">

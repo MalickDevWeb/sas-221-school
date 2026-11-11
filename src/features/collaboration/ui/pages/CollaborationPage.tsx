@@ -12,7 +12,6 @@ import { ActiveClassesList } from '../components/ActiveClassesList';
 import { WorkgroupsList } from '../components/WorkgroupsList';
 import { WorkspacePanels } from '../components/WorkspacePanels';
 import { CheckCircle } from 'lucide-react';
-import { INITIAL_WORKGROUPS, INITIAL_MEETS } from '../../domain/CollaborationMockData';
 
 export function CollaborationPage() {
   const { utilisateur } = useAuthStore();
@@ -20,8 +19,8 @@ export function CollaborationPage() {
   const { activeGroupId, setActiveGroupId } = state;
   const [activeMeetId, setActiveMeetId] = useState<string>('meet-1');
 
-  const activeGroup = state.workgroups.find((g) => g.id === activeGroupId) || state.workgroups[0] || INITIAL_WORKGROUPS[0];
-  const activeMeet = state.meets.find((m) => m.id === activeMeetId) || state.meets[0] || INITIAL_MEETS[0];
+  const activeGroup = state.workgroups.find((g) => g.id === activeGroupId) || state.workgroups[0];   // APP-BE-14 : pas de groupe inventé
+  const activeMeet = state.meets.find((m) => m.id === activeMeetId) || state.meets[0];   // APP-BE-14 : pas de classe virtuelle inventée
 
   const handleJoinMeetSimulate = (meetId: string, meetLink: string) => {
     const name = utilisateur?.nom || 'Invité';

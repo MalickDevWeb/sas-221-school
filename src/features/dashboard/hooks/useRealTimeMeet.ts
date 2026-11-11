@@ -6,7 +6,6 @@ export function useRealTimeMeet() {
   const [activeMeet, setActiveMeet] = useState<LiveSession | null>(null);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
     const fetchMeetStatus = async () => {
       try {
         const res = await apiClient.get('/meet/active');
@@ -18,7 +17,7 @@ export function useRealTimeMeet() {
 
     fetchMeetStatus();
     // Polling toutes les 15 s pour limiter la charge réseau
-    timer = setInterval(fetchMeetStatus, 15000);
+    const timer = setInterval(fetchMeetStatus, 15000);
 
     return () => {
       clearInterval(timer);

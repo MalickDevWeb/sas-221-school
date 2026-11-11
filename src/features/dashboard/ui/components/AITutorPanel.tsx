@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, MessageSquare, User, Brain } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 export function AITutorPanel() {
@@ -12,7 +13,8 @@ export function AITutorPanel() {
   const [chatLog, setChatLog] = useState<Array<{ sender: 'ai' | 'user'; text: string }>>([
     { 
       sender: 'ai', 
-      text: `Bonjour ! J'ai analysé votre profil académique de ${schoolName}. Je suis disponible pour répondre à vos questions sur les cours, vos performances, ou pour vous conseiller. En quoi puis-je vous aider ?` 
+      // Avant : « J'ai analysé votre profil académique… » alors qu'aucune analyse n'a lieu.
+      text: `Bonjour ! Posez votre question sur vos cours. Le tuteur IA répond si ${schoolName} l'a activé ; sinon, un message vous l'indiquera.` 
     }
   ]);
 
@@ -31,7 +33,7 @@ export function AITutorPanel() {
         text: log.text
       }));
 
-      const response = await axios.post('/api/student/tutor/chat', {
+      const response = await apiClient.post('/student/tutor/chat', {
         message: userMsg,
         history: history
       });
@@ -42,13 +44,11 @@ export function AITutorPanel() {
         throw new Error("Format de réponse inconnu");
       }
     } catch (error) {
-      console.error("Error with backend AI Tutor panel:", error);
-      setTimeout(() => {
-        setChatLog(prev => [...prev, { 
-          sender: 'ai' as const, 
-          text: `Je suis connecté au serveur de ${schoolName}. Vos notes et devoirs sont bien synchronisés.` 
-        }]);
-      }, 500);
+      // Avant : fausse réponse « Je suis connecté au serveur… Vos notes et devoirs sont bien synchronisés. »
+      setChatLog(prev => [...prev, {
+        sender: 'ai' as const,
+        text: `Le tuteur IA n'a pas pu répondre : ${resolveErrorMessage(error)}`
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +63,7 @@ export function AITutorPanel() {
             <h3 className="font-black text-xs text-[#291715] tracking-tight uppercase whitespace-nowrap">Conseiller Académique IA</h3>
           </div>
           <span className="text-[9px] font-black uppercase bg-primary-light text-primary border border-primary/20 px-2.5 py-0.5 rounded-lg flex items-center gap-1.5 select-none whitespace-nowrap">
-            <Sparkles className="w-3 h-3 text-primary" /> Assistant Actif
+            <Sparkles className="w-3 h-3 text-primary" /> Tuteur IA
           </span>
         </div>
       </div>

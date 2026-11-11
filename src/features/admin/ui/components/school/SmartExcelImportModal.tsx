@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
-import { Student } from '../../../domain/StudentModels';
+import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
 
 interface Props {
   classeName: string;
@@ -13,20 +15,57 @@ interface Props {
   onImportComplete: (importedStudents: Student[]) => void;
 }
 
-export interface EditableStudentRow extends Student {
-  warnings: string[];
-  isRepaired: boolean;
+/** Ligne du fichier, telle que lue : aucune valeur n'est inventée ou « réparée » automatiquement. */
+export interface EditableStudentRow {
+  id: string;
+  name: string;
+  matricule: string;   // vide = généré par le serveur
+  email: string;       // obligatoire (identifiant de connexion)
+  telephone: string;
+  statutFrais: 'En Règle' | 'En Retard' | null;   // null = non renseigné
+  warnings: string[];  // erreurs bloquantes (ligne non importable tant qu'elles existent)
   selected: boolean;
 }
 
-const SYSTEM_FIELDS: { field: keyof Student; label: string; keywords: string[]; required: boolean }[] = [
+type ImportField = 'name' | 'matricule' | 'email' | 'telephone' | 'statutFrais';
+
+const SYSTEM_FIELDS: { field: ImportField; label: string; keywords: string[]; required: boolean }[] = [
   { field: 'name', label: 'Nom & Prénom', keywords: ['nom', 'name', 'prenom', 'prénom', 'full', 'etudiant', 'élève', 'eleve'], required: true },
-  { field: 'matricule', label: 'Matricule / Identifiant', keywords: ['matr', 'id', 'num', 'numero', 'code', 'identifiant', 'carte', 'badge'], required: false },
-  { field: 'email', label: 'Email Étudiant', keywords: ['email', 'mail', 'courriel', 'adresse'], required: false },
-  { field: 'phoneParent', label: 'Téléphone Parent / Tuteur', keywords: ['tel', 'telephone', 'téléphone', 'portable', 'whatsapp', 'phone', 'contact', 'parent', 'tuteur'], required: false },
-  { field: 'gpa', label: 'Moyenne / Note (GPA)', keywords: ['moy', 'moyenne', 'gpa', 'note', 'score', 'average'], required: false },
-  { field: 'financialStatus', label: 'Statut Paiement / Frais', keywords: ['statut', 'frais', 'paiement', 'finance', 'regle', 'solde', 'retard', 'ecolage'], required: false },
+  { field: 'email', label: 'Email Étudiant (identifiant de connexion)', keywords: ['email', 'e-mail', 'mail', 'courriel'], required: true },
+  { field: 'matricule', label: 'Matricule / Identifiant', keywords: ['matr', 'numero', 'identifiant', 'carte', 'badge'], required: false },
+  { field: 'telephone', label: 'Téléphone', keywords: ['tel', 'telephone', 'téléphone', 'portable', 'whatsapp', 'phone', 'contact'], required: false },
+  { field: 'statutFrais', label: 'Statut Paiement / Frais', keywords: ['statut', 'frais', 'paiement', 'finance', 'regle', 'solde', 'retard', 'ecolage'], required: false },
 ];
+
+const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Erreurs bloquantes d'une ligne : nom et e-mail valide obligatoires (exigences du serveur). */
+function verifierLigne(r: Pick<EditableStudentRow, 'name' | 'email'>): string[] {
+  const erreurs: string[] = [];
+  if (!r.name.trim()) erreurs.push('Nom manquant');
+  if (!r.email.trim()) erreurs.push('Email manquant');
+  else if (!EMAIL_VALIDE.test(r.email.trim())) erreurs.push('Email invalide');
+  return erreurs;
+}
+
+function lireStatutFrais(brut: string): 'En Règle' | 'En Retard' | null {
+  const v = brut.trim().toLowerCase();
+  if (!v) return null;
+  if (v.includes('retard') || v.includes('impay')) return 'En Retard';
+  if (v.includes('règle') || v.includes('regle') || v.includes('payé') || v.includes('paye') || v.includes('a jour') || v.includes('à jour')) return 'En Règle';
+  return null;   // valeur non reconnue : non renseigné (jamais supposé)
+}
+
+interface ResultatImport {
+  inscrits: Student[];
+  echecs: { name: string; email: string; raison: string }[];
+  motsDePasse: { name: string; email: string; matricule: string; motDePasse: string }[];
+  avertissements: string[];
+}
+
+function champCsv(v: string): string {
+  return /[",;\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+}
 
 export function SmartExcelImportModal({
   classeName,
@@ -42,6 +81,8 @@ export function SmartExcelImportModal({
   const [previewStudents, setPreviewStudents] = useState<EditableStudentRow[]>([]);
   const [filterMode, setFilterMode] = useState<'ALL' | 'ANOMALIES' | 'VALID'>('ALL');
   const [isImporting, setIsImporting] = useState(false);
+  const [progression, setProgression] = useState(0);
+  const [resultat, setResultat] = useState<ResultatImport | null>(null);
 
   // File parsing (.xlsx, .xls, .csv)
   const handleFileProcess = (file: File) => {
@@ -89,8 +130,8 @@ export function SmartExcelImportModal({
   };
 
   const handleGeneratePreview = () => {
-    if (!mappings['name']) {
-      toast.error('Veuillez mapper au minimum la colonne contenant le "Nom & Prénom".');
+    if (!mappings['name'] || !mappings['email']) {
+      toast.error('Veuillez associer au minimum les colonnes « Nom & Prénom » et « Email » (identifiant de connexion obligatoire).');
       return;
     }
 
@@ -108,60 +149,19 @@ export function SmartExcelImportModal({
         return String(row[colIdx]).trim();
       };
 
-      const warnings: string[] = [];
-
-      let rawName = getVal('name');
-      if (!rawName) {
-        rawName = `Élève Inconnu ${idx + 1}`;
-        warnings.push('Nom manquant');
-      }
-
-      let rawMatr = getVal('matricule');
-      if (!rawMatr) {
-        rawMatr = `2026-${classeLevel}-${String(100 + idx + 1).padStart(3, '0')}`;
-        warnings.push('Matricule généré');
-      }
-
-      let rawEmail = getVal('email');
-      if (!rawEmail || !rawEmail.includes('@')) {
-        const safeSlug = rawName.toLowerCase().replace(/[^a-z0-9]/g, '.');
-        rawEmail = `${safeSlug}@ecole221.sn`;
-        warnings.push('Email auto-complété');
-      }
-
-      let rawPhone = getVal('phoneParent');
-      if (!rawPhone || rawPhone.length < 8) {
-        rawPhone = '+221 77 000 00 00';
-        warnings.push('Téléphone par défaut');
-      }
-
-      let rawGpa = getVal('gpa');
-      if (!rawGpa || isNaN(parseFloat(rawGpa))) {
-        rawGpa = '15.0/20';
-        warnings.push('Moyenne normalisée');
-      } else {
-        rawGpa = `${rawGpa}/20`;
-      }
-
-      const rawFin = getVal('financialStatus').toLowerCase();
-      const finStatus: 'En Règle' | 'En Retard' =
-        rawFin.includes('retard') || rawFin.includes('impay') || rawFin.includes('non')
-          ? 'En Retard'
-          : 'En Règle';
+      const name = getVal('name');
+      const email = getVal('email');
+      const erreurs = verifierLigne({ name, email });
 
       return {
-        id: `s-imp-${Date.now()}-${idx}`,
-        matricule: rawMatr,
-        name: rawName,
-        email: rawEmail,
-        classe: classeName,
-        financialStatus: finStatus,
-        qrStatus: 'AUTORISÉ',
-        gpa: rawGpa,
-        phoneParent: rawPhone,
-        warnings,
-        isRepaired: warnings.length > 0,
-        selected: true,
+        id: `ligne-${idx + 2}`,   // numéro de ligne dans le fichier (entête = ligne 1)
+        name,
+        matricule: getVal('matricule'),
+        email,
+        telephone: getVal('telephone'),
+        statutFrais: lireStatutFrais(getVal('statutFrais')),
+        warnings: erreurs,
+        selected: erreurs.length === 0,   // une ligne invalide n'est pas importée
       };
     });
 
@@ -169,10 +169,13 @@ export function SmartExcelImportModal({
     setStep('preview');
   };
 
-  const handleUpdateStudentField = (index: number, field: keyof Student, value: string) => {
+  const handleUpdateStudentField = (index: number, field: 'name' | 'matricule' | 'email' | 'telephone', value: string) => {
     setPreviewStudents(prev => {
       const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
+      const ligne = { ...copy[index], [field]: value };
+      ligne.warnings = verifierLigne(ligne);
+      if (ligne.warnings.length > 0) ligne.selected = false;
+      copy[index] = ligne;
       return copy;
     });
   };
@@ -180,103 +183,120 @@ export function SmartExcelImportModal({
   const toggleSelectStudent = (index: number) => {
     setPreviewStudents(prev => {
       const copy = [...prev];
+      if (copy[index].warnings.length > 0) {
+        toast.error('Corrigez d\'abord le nom et l\'e-mail de cette ligne.');
+        return prev;
+      }
       copy[index] = { ...copy[index], selected: !copy[index].selected };
       return copy;
     });
   };
 
   const toggleSelectAll = (select: boolean) => {
-    setPreviewStudents(prev => prev.map(s => ({ ...s, selected: select })));
-  };
-
-  const autoRepairAll = () => {
-    setPreviewStudents(prev =>
-      prev.map(s => {
-        let name = s.name.trim();
-        if (name.startsWith('Élève Inconnu')) {
-          name = `Étudiant Promotion ${classeLevel}`;
-        }
-        return {
-          ...s,
-          name,
-          email: s.email.includes('@') ? s.email : `${name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ecole221.sn`,
-          phoneParent: s.phoneParent.startsWith('+221') ? s.phoneParent : `+221 ${s.phoneParent}`,
-          warnings: [],
-          isRepaired: false,
-        };
-      })
-    );
-    toast.success("Toutes les données ont été normalisées et validées par l'algorithme !");
+    setPreviewStudents(prev => prev.map(s => ({ ...s, selected: select && s.warnings.length === 0 })));
   };
 
   const handleFinalImport = async () => {
-    const selectedStudents = previewStudents.filter(s => s.selected);
+    const selectedStudents = previewStudents.filter(s => s.selected && s.warnings.length === 0);
     if (selectedStudents.length === 0) {
-      toast.error('Veuillez sélectionner au moins un étudiant à inscrire.');
+      toast.error('Veuillez sélectionner au moins un élève valide à inscrire.');
       return;
     }
 
     setIsImporting(true);
+    setProgression(0);
+    const res: ResultatImport = { inscrits: [], echecs: [], motsDePasse: [], avertissements: [] };
     try {
-      for (const st of selectedStudents.slice(0, 20)) {
-        await apiClient.post('/admin/students', {
-          name: st.name,
-          matricule: st.matricule,
-          promotion_id: classeId,
-          classe: classeName,
-        }).catch(() => {});
+      // Tous les élèves sélectionnés sont envoyés, un par un ; seul le serveur fait foi
+      for (const st of selectedStudents) {
+        const body: Record<string, string> = { name: st.name.trim(), email: st.email.trim(), classeId };
+        if (st.matricule.trim()) body.matricule = st.matricule.trim();
+        if (st.telephone.trim()) body.telephone = st.telephone.trim();
+        try {
+          const { data } = await apiClient.post<any>('/admin/students', body);
+          let eleve = mapStudentFromApi(data);
+          if (data?.motDePasseProvisoire) {
+            res.motsDePasse.push({ name: eleve.name, email: eleve.email, matricule: eleve.matricule, motDePasse: data.motDePasseProvisoire });
+          }
+          if (st.statutFrais) {
+            try {
+              await apiClient.patch(`/admin/students/${eleve.id}/status`, { statutFrais: st.statutFrais });
+              eleve = { ...eleve, financialStatus: st.statutFrais };
+            } catch (err) {
+              res.avertissements.push(`${eleve.name} : compte créé, statut de frais non enregistré (${resolveErrorMessage(err)})`);
+            }
+          }
+          res.inscrits.push(eleve);
+        } catch (err) {
+          res.echecs.push({ name: st.name, email: st.email, raison: resolveErrorMessage(err) });
+        }
+        setProgression(p => p + 1);
       }
 
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#10B981', '#B3181C', '#F59E0B'],
-      });
-
-      toast.success(`🎉 Inscription réussie : ${selectedStudents.length} élèves inscrits dans ${classeName} !`);
-      onImportComplete(selectedStudents);
-      onClose();
+      if (res.inscrits.length > 0) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#10B981', '#B3181C', '#F59E0B'],
+        });
+        onImportComplete(res.inscrits);
+      }
+      const message = `${res.inscrits.length} inscrit${res.inscrits.length > 1 ? 's' : ''}, ${res.echecs.length} échec${res.echecs.length > 1 ? 's' : ''}`;
+      if (res.echecs.length === 0) toast.success(message);
+      else if (res.inscrits.length === 0) toast.error(`${message} (${res.echecs[0].raison})`);
+      else toast.warning(`${message} (${res.echecs[0].raison})`);
+      setResultat(res);
     } finally {
       setIsImporting(false);
     }
   };
 
-  const downloadCleanTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
-      ['Nom & Prénom', 'Matricule', 'Email', 'Téléphone Parent', 'Moyenne Semestre', 'Statut Frais'],
-      ['Moussa Diouf', '2026-GC-010', 'moussa.diouf@ecole221.sn', '+221 77 123 45 67', '16.5', 'En Règle'],
-      ['Aida Ndiaye', '2026-GC-011', 'aida.ndiaye@ecole221.sn', '+221 78 890 12 34', '14.0', 'En Retard'],
-      ['Ibrahima Ba', '2026-GC-012', 'ibrahima.ba@ecole221.sn', '+221 76 555 44 33', '17.2', 'En Règle'],
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Etudiants_Valides');
-    XLSX.writeFile(wb, `Modele_Standard_${classeName.replace(/\s+/g, '_')}.xlsx`);
-    toast.info('Modèle standard Excel téléchargé.');
+  /** Mots de passe provisoires : fichier CSV généré dans le navigateur, jamais envoyé ni journalisé. */
+  const telechargerMotsDePasse = () => {
+    if (!resultat || resultat.motsDePasse.length === 0) return;
+    const lignes = [
+      ['Nom', 'Email', 'Matricule', 'Mot de passe provisoire'].join(';'),
+      ...resultat.motsDePasse.map(m => [m.name, m.email, m.matricule, m.motDePasse].map(champCsv).join(';')),
+    ];
+    const blob = new Blob(['\uFEFF' + lignes.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Mots_de_passe_provisoires_${classeName.replace(/\s+/g, '_')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
-  const downloadErrorTestTemplate = () => {
+  const fermer = async () => {
+    if (resultat && resultat.motsDePasse.length > 0) {
+      const ok = await demanderConfirmation(
+        'Les mots de passe provisoires ne seront plus affichés. Avez-vous téléchargé le fichier CSV ?',
+        { titre: 'Fermer l\'import', confirmer: 'Fermer', annuler: 'Rester' }
+      );
+      if (!ok) return;
+    }
+    onClose();
+  };
+
+  const downloadCleanTemplate = () => {
+    // Modèle vierge : uniquement l'entête attendue (aucune personne fictive)
     const ws = XLSX.utils.aoa_to_sheet([
-      ['Nom Complet', 'Matricule Eleve', 'Courriel', 'WhatsApp / Tel', 'Moyenne', 'Statut Ecolage', 'Observation Test'],
-      ['Amadou Lamine Diallo', '2026-CYBER-001', 'amadou.diallo@ecole221.sn', '+221 77 123 45 67', '16.8', 'En Règle', 'Ligne 100% conforme'],
-      ['Fatou Bintou Sow', '2026-CYBER-002', 'fatou.sow@ecole221.sn', '+221 78 456 78 90', '15.2', 'En Retard', 'Élève avec impayé'],
-      ['Moussa Diouf', '', 'moussa.diouf_sans_domaine', '+221 70 999 88 77', '14.5', 'En Règle', 'Matricule vide + email invalide'],
-      ['Awa Ndiaye', '2026-CYBER-004', '', '', '17.0', 'Impayé', 'Email et Téléphone manquants'],
-      ['', '2026-CYBER-005', 'sansnom@ecole221.sn', '+221 76 111 22 33', '12.0', 'En Règle', 'Nom manquant (auto-nommé)'],
-      ['Khadim Fall', '2026-CYBER-006', 'khadim.fall@ecole221.sn', '77123', 'non_note', 'En Règle', 'Tel court et Moyenne texte'],
-      ['Mariama Ba', '2026-CYBER-007', 'mariama.ba@ecole221.sn', '+221 77 888 99 00', '18.5', 'Payé', 'Excellente élève, tout valide'],
+      ['Nom & Prénom', 'Email', 'Matricule', 'Téléphone', 'Statut Frais'],
     ]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Test_Avec_Erreurs');
-    XLSX.writeFile(wb, `Fichier_Test_Avec_Erreurs_${classeName.replace(/\s+/g, '_')}.xlsx`);
-    toast.info('Fichier de test avec anomalies téléchargé.');
+    XLSX.utils.book_append_sheet(wb, ws, 'Etudiants');
+    XLSX.writeFile(wb, `Modele_Standard_${classeName.replace(/\s+/g, '_')}.xlsx`);
+    toast.info('Modèle Excel vierge téléchargé.');
   };
 
   const totalWarnings = previewStudents.reduce((acc, s) => acc + s.warnings.length, 0);
   const selectedCount = previewStudents.filter(s => s.selected).length;
 
   const displayedPreviewStudents = previewStudents.filter(s => {
-    if (filterMode === 'ANOMALIES') return s.isRepaired || s.warnings.length > 0;
+    if (filterMode === 'ANOMALIES') return s.warnings.length > 0;
     if (filterMode === 'VALID') return s.warnings.length === 0;
     return true;
   });
@@ -295,12 +315,12 @@ export function SmartExcelImportModal({
                 Inscription Massive Excel • {classeName}
               </h3>
               <p className="text-[11px] text-white/80 font-semibold">
-                Analyse sémantique intelligente, tolérance aux erreurs, édition en direct et auto-mapping
+                Association automatique des colonnes, vérification des lignes et édition avant envoi
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={fermer}
             className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer border-0"
           >
             <span translate="no" className="material-symbols-outlined text-base">close</span>
@@ -362,7 +382,7 @@ export function SmartExcelImportModal({
                 <div>
                   <h4 className="text-sm font-black text-[#1E293B]">Glissez-déposez votre fichier Excel ou CSV ici</h4>
                   <p className="text-xs text-neutral-500 mt-1">
-                    Supporte les fichiers <strong>.xlsx, .xls, .csv</strong> sans contrainte de formatage
+                    Fichiers <strong>.xlsx, .xls, .csv</strong> — colonnes obligatoires : <strong>Nom & Prénom</strong> et <strong>Email</strong>
                   </p>
                 </div>
                 <input
@@ -381,35 +401,16 @@ export function SmartExcelImportModal({
                 </label>
               </div>
 
-              {/* Fichiers d'exemple et de test */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-center justify-between gap-3">
-                  <div>
-                    <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded text-[9px] font-black uppercase">
-                      Test & Démo
-                    </span>
-                    <h5 className="text-xs font-black text-[#1E293B] mt-1">Fichier de Test Avec Erreurs</h5>
-                    <p className="text-[10px] text-neutral-500 font-semibold mt-0.5">
-                      Contient des emails invalides, matricules vides et données à réparer.
-                    </p>
-                  </div>
-                  <button
-                    onClick={downloadErrorTestTemplate}
-                    className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1 shrink-0 cursor-pointer border-0 shadow-xs"
-                  >
-                    <span translate="no" className="material-symbols-outlined text-sm">download</span>
-                    <span>Tester .xlsx</span>
-                  </button>
-                </div>
-
+              {/* Modèle vierge */}
+              <div className="grid grid-cols-1 gap-3 text-left">
                 <div className="p-4 bg-[#FAF8F6] border border-neutral-200 rounded-2xl flex items-center justify-between gap-3">
                   <div>
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[9px] font-black uppercase">
-                      Modèle Propre
+                      Modèle Vierge
                     </span>
-                    <h5 className="text-xs font-black text-[#1E293B] mt-1">Feuille Standard Vierge</h5>
+                    <h5 className="text-xs font-black text-[#1E293B] mt-1">Feuille Standard</h5>
                     <p className="text-[10px] text-neutral-500 font-semibold mt-0.5">
-                      Modèle officiel pré-rempli avec les 6 colonnes recommandées.
+                      Entête attendue : Nom & Prénom, Email, Matricule (généré si vide), Téléphone, Statut Frais.
                     </p>
                   </div>
                   <button
@@ -432,10 +433,10 @@ export function SmartExcelImportModal({
                   <span translate="no" className="material-symbols-outlined text-emerald-600 text-xl">auto_awesome</span>
                   <div>
                     <h5 className="text-xs font-black text-emerald-900">
-                      Mappage Automatique Réussi ({rawRows.length} lignes détectées)
+                      Association des colonnes ({rawRows.length} lignes détectées)
                     </h5>
                     <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-                      Le moteur a identifié vos colonnes. Vérifiez les associations et réassignez si nécessaire.
+                      Vérifiez les colonnes proposées et réassignez-les si nécessaire.
                     </p>
                   </div>
                 </div>
@@ -550,25 +551,20 @@ export function SmartExcelImportModal({
                       onClick={() => setFilterMode('ANOMALIES')}
                       className={`px-2 py-1 rounded cursor-pointer border-0 ${filterMode === 'ANOMALIES' ? 'bg-white text-amber-700 font-black shadow-xs' : 'text-neutral-600'}`}
                     >
-                      Anomalies ({previewStudents.filter(s => s.warnings.length > 0).length})
+                      Invalides ({previewStudents.filter(s => s.warnings.length > 0).length})
                     </button>
                     <button
                       onClick={() => setFilterMode('VALID')}
                       className={`px-2 py-1 rounded cursor-pointer border-0 ${filterMode === 'VALID' ? 'bg-white text-emerald-700 font-black shadow-xs' : 'text-neutral-600'}`}
                     >
-                      100% Conformes ({previewStudents.filter(s => s.warnings.length === 0).length})
+                      Valides ({previewStudents.filter(s => s.warnings.length === 0).length})
                     </button>
                   </div>
 
                   {totalWarnings > 0 && (
-                    <button
-                      onClick={autoRepairAll}
-                      className="px-3 py-1.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase flex items-center gap-1 shadow-xs hover:bg-[#921316] transition-all cursor-pointer border-0"
-                      title="Nettoyer automatiquement les emails, téléphones et matricules avec l'IA"
-                    >
-                      <span translate="no" className="material-symbols-outlined text-xs">auto_fix_high</span>
-                      <span>Réparer Tout par IA</span>
-                    </button>
+                    <span className="px-3 py-1.5 bg-amber-100 text-amber-800 rounded-xl text-[10px] font-black">
+                      Lignes invalides exclues : corrigez le nom ou l'e-mail pour les inclure
+                    </span>
                   )}
                 </div>
               </div>
@@ -581,10 +577,10 @@ export function SmartExcelImportModal({
                       <th className="px-3 py-3 w-8 text-center">Inclure</th>
                       <th className="px-3 py-3">Nom & Prénom (Éditable)</th>
                       <th className="px-3 py-3">Matricule</th>
-                      <th className="px-3 py-3">Courriel</th>
-                      <th className="px-3 py-3">Téléphone Parent</th>
-                      <th className="px-3 py-3">Moyenne</th>
-                      <th className="px-3 py-3">Diagnostic Qualité</th>
+                      <th className="px-3 py-3">Email *</th>
+                      <th className="px-3 py-3">Téléphone</th>
+                      <th className="px-3 py-3">Statut Frais</th>
+                      <th className="px-3 py-3">Vérification</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100">
@@ -596,6 +592,7 @@ export function SmartExcelImportModal({
                             <input
                               type="checkbox"
                               checked={st.selected}
+                              disabled={st.warnings.length > 0}
                               onChange={() => toggleSelectStudent(origIndex)}
                               className="rounded text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                             />
@@ -612,6 +609,7 @@ export function SmartExcelImportModal({
                             <input
                               type="text"
                               value={st.matricule}
+                              placeholder="Généré si vide"
                               onChange={e => handleUpdateStudentField(origIndex, 'matricule', e.target.value)}
                               className="w-28 px-2 py-1 bg-white border border-neutral-200 rounded-lg text-xs font-mono text-neutral-700 focus:border-primary focus:outline-none"
                             />
@@ -627,20 +625,20 @@ export function SmartExcelImportModal({
                           <td className="px-3 py-2.5">
                             <input
                               type="text"
-                              value={st.phoneParent}
-                              onChange={e => handleUpdateStudentField(origIndex, 'phoneParent', e.target.value)}
+                              value={st.telephone}
+                              onChange={e => handleUpdateStudentField(origIndex, 'telephone', e.target.value)}
                               className="w-32 px-2 py-1 bg-white border border-neutral-200 rounded-lg text-xs text-neutral-600 focus:border-primary focus:outline-none"
                             />
                           </td>
                           <td className="px-3 py-2.5">
                             <span className="px-2 py-0.5 bg-amber-50 text-amber-800 rounded font-black text-[11px]">
-                              {st.gpa}
+                              {st.statutFrais ?? 'Non renseigné'}
                             </span>
                           </td>
                           <td className="px-3 py-2.5">
                             {st.warnings.length === 0 ? (
                               <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-black uppercase">
-                                ✓ Parfait
+                                ✓ Valide
                               </span>
                             ) : (
                               <div className="flex flex-wrap gap-1 max-w-xs">
@@ -668,13 +666,58 @@ export function SmartExcelImportModal({
                 </button>
                 <button
                   onClick={handleFinalImport}
-                  disabled={isImporting || selectedCount === 0}
+                  disabled={isImporting || selectedCount === 0 || resultat !== null}
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer border-0 disabled:opacity-50"
                 >
                   <span translate="no" className="material-symbols-outlined text-sm font-black">how_to_reg</span>
-                  <span>{isImporting ? 'Inscription en cours...' : `Confirmer & Inscrire les ${selectedCount} élèves sélectionnés`}</span>
+                  <span>{isImporting ? `Inscription en cours… (${progression} / ${selectedCount})` : `Confirmer & Inscrire les ${selectedCount} élèves sélectionnés`}</span>
                 </button>
               </div>
+
+              {/* Bilan réel de l'import (réponses du serveur) */}
+              {resultat && (
+                <div className="p-4 border border-neutral-200 rounded-2xl space-y-3 bg-[#FAF8F6]">
+                  <h5 className="text-xs font-black text-[#1E293B] m-0">
+                    Bilan : {resultat.inscrits.length} inscrit{resultat.inscrits.length > 1 ? 's' : ''}, {resultat.echecs.length} échec{resultat.echecs.length > 1 ? 's' : ''}
+                  </h5>
+                  {resultat.echecs.length > 0 && (
+                    <ul className="text-[11px] text-red-700 font-semibold space-y-0.5 max-h-32 overflow-y-auto m-0 pl-4">
+                      {resultat.echecs.map((e, i) => (
+                        <li key={i}>{e.name || '(sans nom)'} — {e.email || '(sans e-mail)'} : {e.raison}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {resultat.avertissements.length > 0 && (
+                    <ul className="text-[11px] text-amber-800 font-semibold space-y-0.5 m-0 pl-4">
+                      {resultat.avertissements.map((a, i) => <li key={i}>{a}</li>)}
+                    </ul>
+                  )}
+                  {resultat.motsDePasse.length > 0 && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[11px] text-amber-900 font-bold m-0">
+                        {resultat.motsDePasse.length} mot{resultat.motsDePasse.length > 1 ? 's' : ''} de passe provisoire{resultat.motsDePasse.length > 1 ? 's' : ''} à transmettre — ils ne seront plus affichés après la fermeture.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={telechargerMotsDePasse}
+                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-black border-0 cursor-pointer flex items-center gap-1"
+                      >
+                        <span translate="no" className="material-symbols-outlined text-sm">download</span>
+                        Télécharger (CSV)
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={fermer}
+                      className="px-5 py-2 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all border-0 cursor-pointer"
+                    >
+                      Terminer
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

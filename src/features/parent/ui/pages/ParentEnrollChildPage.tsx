@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { parentApi } from '@/features/parent/api';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 // ─── Étapes du processus ────────────────────────────────────
 const STEPS = [
@@ -296,6 +297,7 @@ export function ParentEnrollChildPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]   = useState('');
+  const [dossierId, setDossierId] = useState('');
 
   const set = (k: keyof FormData, v: string | boolean) =>
     setForm(prev => ({ ...prev, [k]: v }));
@@ -316,8 +318,7 @@ export function ParentEnrollChildPage() {
     setLoading(true);
     setError('');
     try {
-      // Appel API — à connecter au backend
-      await parentApi.enrollChild({
+      const depot = await parentApi.enrollChild({
         prenom: form.prenom,
         nom: form.nom,
         dateNaissance: form.dateNaissance,
@@ -334,10 +335,11 @@ export function ParentEnrollChildPage() {
         anneeBac: form.anneeBac,
         mentionBac: form.mentionBac,
       });
+      setDossierId(depot.dossierId);
       setSuccess(true);
-    } catch {
-      // Fallback : afficher succès en mode démo
-      setSuccess(true);
+    } catch (e) {
+      // Plus de « succès » affiché en cas d'échec : le dossier n'est PAS enregistré, le parent doit le savoir.
+      setError(resolveErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -354,10 +356,12 @@ export function ParentEnrollChildPage() {
           <h2 className="text-2xl font-black text-neutral-900 mb-2">Dossier soumis !</h2>
           <p className="text-sm text-neutral-500 font-semibold leading-relaxed max-w-sm mx-auto">
             Le dossier d'inscription de <strong className="text-neutral-700">{form.prenom} {form.nom}</strong> a
-            bien été transmis à l'administration. Vous recevrez une confirmation par email sous 48h.
+            bien été enregistré et transmis à l'administration de l'école. Vous pouvez suivre son
+            avancement dans « Mes candidatures ».
           </p>
         </div>
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 w-full text-left space-y-2">
+          <div className="flex justify-between text-xs"><span className="text-neutral-500 font-semibold">N° de dossier</span><span className="font-black text-neutral-800">{dossierId}</span></div>
           <div className="flex justify-between text-xs"><span className="text-neutral-500 font-semibold">Filière</span><span className="font-black text-neutral-800">{form.filiere}</span></div>
           <div className="flex justify-between text-xs"><span className="text-neutral-500 font-semibold">Niveau</span><span className="font-black text-neutral-800">{form.niveau}</span></div>
           <div className="flex justify-between text-xs"><span className="text-neutral-500 font-semibold">Statut</span><span className="font-black text-amber-600">En attente de validation</span></div>

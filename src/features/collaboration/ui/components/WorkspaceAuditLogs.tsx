@@ -15,7 +15,7 @@ export function WorkspaceAuditLogs({ audits, groupId }: Props) {
     const matchesQuery = query.trim() === '' ||
       log.userName.toLowerCase().includes(query.toLowerCase()) ||
       log.action.toLowerCase().includes(query.toLowerCase()) ||
-      log.ipAddress.includes(query);
+      (log.ipAddress ?? '').includes(query);
     return matchesGroup && matchesQuery;
   });
 
@@ -53,7 +53,7 @@ export function WorkspaceAuditLogs({ audits, groupId }: Props) {
                 <div className="flex items-center gap-2 text-neutral-400 font-bold">
                   <span>👤 {log.userName}</span>
                   <span>•</span>
-                  <span>🖥️ IP : {log.ipAddress}</span>
+                  <span>🖥️ IP : {log.ipAddress || '—'}</span>
                 </div>
               </div>
               <span className="shrink-0 font-mono text-[8px] text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded font-black">{log.timestamp}</span>

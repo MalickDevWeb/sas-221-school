@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const AVAILABLE_CAMPAIGN_DOCS = [
+const AVAILABLE_CAMPAIGN_DOCS = [
   { id: 'CNI', label: "Carte Nationale d'Identité (Recto/Verso) ou Passeport", required: true, icon: 'badge' },
   { id: 'BAC_DIPLOME', label: 'Attestation de Réussite ou Diplôme du Baccalauréat', required: false, icon: 'school' },
   { id: 'RELEVES_NOTES', label: 'Relevé de notes officiel ou Bulletins scolaires', required: false, icon: 'description' },

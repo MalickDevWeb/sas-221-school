@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Campaign } from './admissionsDb';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import { useTenantStore } from '@/core/store/tenantStore';
+import type { Campaign } from './admissionsTypes';
+import type { DossierCandidat } from './suiviApi';
 import { useCandidateApplicationState } from './useCandidateApplicationState';
 import { StepIdentity } from './steps/StepIdentity';
 import { StepGuardian } from './steps/StepGuardian';
@@ -13,12 +14,13 @@ import { StepSuccessReceipt } from './steps/StepSuccessReceipt';
 
 interface Props {
   campaign: Campaign;
-  onSuccess: (candidate: ExtendedCandidate) => void;
+  onSuccess: (dossier: DossierCandidat) => void;
   onCancel: () => void;
 }
 
 export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Props) {
-  const [createdCandidate, setCreatedCandidate] = useState<ExtendedCandidate | null>(null);
+  const ecoleContact = useTenantStore((st) => st.currentTenant);   // coordonnées réelles de l'école
+  const [createdCandidate, setCreatedCandidate] = useState<DossierCandidat | null>(null);
 
   const state = useCandidateApplicationState(campaign, (candidate) => {
     setCreatedCandidate(candidate);
@@ -26,7 +28,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
 
   const {
     step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, uploadDoc, uploadingDoc, uploadProgress, simulateDocUpload, removeDoc,
+    academic, setAcademic, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress, simulateDocUpload, removeDoc,
     payment, declarePayment, credentials, setCredentials,
     error, isSubmitting, handleFinalSubmit
   } = state;
@@ -92,10 +94,12 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
             </div>
           </div>
 
-          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3 text-amber-900 text-[11px] font-medium">
-            <span translate="no" className="material-symbols-outlined text-amber-700 text-lg">support_agent</span>
-            <div>Assistance inscriptions : <strong>+221 33 800 00 00</strong></div>
-          </div>
+          {(ecoleContact?.phone || ecoleContact?.email) && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3 text-amber-900 text-[11px] font-medium">
+              <span translate="no" className="material-symbols-outlined text-amber-700 text-lg">support_agent</span>
+              <div>Assistance inscriptions : <strong>{ecoleContact.phone || ecoleContact.email}</strong></div>
+            </div>
+          )}
         </div>
 
         {/* Right Dynamic Form Container */}
@@ -104,7 +108,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
             {step === 1 && <StepIdentity key="step1" personal={personal} setPersonal={setPersonal} onNext={() => setStep(2)} />}
             {step === 2 && <StepGuardian key="step2" guardian={guardian} setGuardian={setGuardian} onNext={() => setStep(3)} onPrev={() => setStep(1)} />}
             {step === 3 && <StepAcademic key="step3" academic={academic} setAcademic={setAcademic} onNext={() => setStep(4)} onPrev={() => setStep(2)} />}
-            {step === 4 && <StepDocuments key="step4" docs={docs} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => setStep(5)} onPrev={() => setStep(3)} />}
+            {step === 4 && <StepDocuments key="step4" docs={docs} docErrors={docErrors} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => setStep(5)} onPrev={() => setStep(3)} />}
             {step === 5 && <StepPayment key="step5" payment={payment} declarePayment={declarePayment} onNext={() => setStep(6)} onPrev={() => setStep(4)} />}
             {step === 6 && <StepAccount key="step6" credentials={credentials} setCredentials={setCredentials} onSubmit={handleFinalSubmit} onPrev={() => setStep(5)} isSubmitting={isSubmitting} error={error} />}
           </AnimatePresence>

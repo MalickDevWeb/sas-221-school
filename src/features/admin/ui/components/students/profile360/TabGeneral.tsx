@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 import { AdmissionCard, MedicalCard } from './GeneralCards';
 
 interface Props {
@@ -11,11 +11,11 @@ interface Props {
 }
 
 export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdateProfileFields }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = (erpData || PROFIL_VIDE) as any;
   const [phone, setPhone] = useState(selectedStudent.phoneParent);
   const [email, setEmail] = useState(selectedStudent.email);
-  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || 'O+');
-  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || 'Aucune');
+  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || ''   /* APP-BE-17 : pas de groupe sanguin inventé */);
+  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || ''   /* APP-BE-17 : pas d'allergie présumée */);
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = async () => {

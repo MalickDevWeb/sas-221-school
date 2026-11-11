@@ -7,10 +7,19 @@ interface IdentityStepFormProps {
   formData: SchoolRegistrationFormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
+  fieldErrors?: Record<string, string>;
 }
 
 const inputClass =
   'w-full rounded-xl border border-slate-700/80 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder-slate-500 shadow-inner focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all duration-200';
+
+/** Message d'erreur sous un champ (même style que l'étape 3). */
+const ErreurChamp: React.FC<{ message: string }> = ({ message }) => (
+  <p role="alert" className="mt-1.5 text-xs text-rose-400 font-medium flex items-center gap-1.5 bg-rose-950/40 border border-rose-800/40 rounded-lg p-2">
+    <Icon icon="solar:danger-circle-bold" className="text-rose-400 text-sm shrink-0" />
+    <span>{message}</span>
+  </p>
+);
 
 /**
  * Formulaire de l'Étape 1 : Identité de l'établissement (SRP).
@@ -19,6 +28,7 @@ export const IdentityStepForm: React.FC<IdentityStepFormProps> = ({
   formData,
   onChange,
   onNext,
+  fieldErrors = {},
 }) => {
   return (
     <motion.div
@@ -40,8 +50,10 @@ export const IdentityStepForm: React.FC<IdentityStepFormProps> = ({
           value={formData.schoolName}
           onChange={onChange}
           placeholder="ex: Lycée Technique de Thiès"
-          className={inputClass}
+          aria-invalid={fieldErrors.schoolName ? true : undefined}
+          className={`${inputClass} ${fieldErrors.schoolName ? 'border-rose-500' : ''}`}
         />
+        {fieldErrors.schoolName && <ErreurChamp message={fieldErrors.schoolName} />}
       </div>
 
       <div>
@@ -61,8 +73,10 @@ export const IdentityStepForm: React.FC<IdentityStepFormProps> = ({
             onChange={onChange}
             className="flex-1 px-4 py-3 text-sm text-white bg-transparent focus:outline-none placeholder-slate-500 font-mono"
             placeholder="lycee-thies"
+            aria-invalid={fieldErrors.slug ? true : undefined}
           />
         </div>
+        {fieldErrors.slug && <ErreurChamp message={fieldErrors.slug} />}
         {formData.slug && (
           <p className="mt-1.5 text-xs text-slate-400">
             URL directe :{' '}

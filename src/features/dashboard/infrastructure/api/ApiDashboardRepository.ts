@@ -10,8 +10,19 @@ export class ApiDashboardRepository implements DashboardRepository {
       apiClient.get('/student/attendances?page=0&size=20').catch(() => ({ data: [] })),
       apiClient.get('/student/live-sessions?page=0&size=10').catch(() => ({ data: [] }))
     ]);
+    // /student/profile renvoie prenom / nom / classe (compte réel) : on compose le nom affiché
+    // (avant : la page lisait « name », absent → « Bonjour ! » sans prénom).
+    const brut = p.data;
+    const profile = brut ? {
+      ...brut,
+      id: brut.id ?? '',
+      name: brut.name || [brut.prenom, brut.nom].filter(Boolean).join(' '),
+      matricule: brut.matricule ?? '',
+      promotion: brut.promotion || brut.classe || brut.niveau || '',
+      gpa: brut.gpa ?? '—',
+    } : null;
     return {
-      profile: p.data,
+      profile,
       // Unwrap paginated response; fall back to array if backend returns plain array
       attendances: Array.isArray(a.data) ? a.data : (a.data?.content ?? []),
       liveSessions: Array.isArray(l.data) ? l.data : (l.data?.content ?? [])
@@ -43,8 +54,9 @@ export class ApiDashboardRepository implements DashboardRepository {
     return res.data; 
   }
 
+  /** Courbe réelle de l'élève connecté (APP-BE-13) : moyenne, moyenne de la classe et assiduité par mois. */
   async getPerformanceData(): Promise<PerformanceData[]> {
-    const res = await apiClient.get('/student/performance');
-    return res.data;
+    const { data } = await apiClient.get<PerformanceData[]>('/student/performance');
+    return Array.isArray(data) ? data : [];
   }
 }

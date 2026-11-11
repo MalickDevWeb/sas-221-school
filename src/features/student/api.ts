@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   StudentProfile,
   StudentDashboard,
@@ -94,8 +95,8 @@ export const getCourses = async (): Promise<CourseDto[]> => {
   return data;
 };
 
-export const getCourseDetails = async (courseId: string) => {
-  const { data } = await apiClient.get(`/student/courses/${courseId}/details`);
+export const getCourseDetails = async (courseId: string): Promise<Record<string, unknown>> => {
+  const { data } = await apiClient.get<Record<string, unknown>>(`/student/courses/${courseId}/details`);
   return data;
 };
 
@@ -146,3 +147,50 @@ export const requestConfirmation = async (payload: { type: string; target: strin
   const { data } = await apiClient.post('/student/request-confirmation', payload);
   return data;
 };
+
+// --- Hooks React Query ---
+export function useStudentProfile() {
+  return useQuery({
+    queryKey: ['student', 'profile'],
+    queryFn: getStudentProfile,
+  });
+}
+
+export function useStudentDashboard() {
+  return useQuery({
+    queryKey: ['student', 'dashboard'],
+    queryFn: getStudentDashboard,
+  });
+}
+
+export function useStudentGrades() {
+  return useQuery({
+    queryKey: ['student', 'grades'],
+    queryFn: getGrades,
+  });
+}
+
+export function useStudentCourses() {
+  return useQuery({
+    queryKey: ['student', 'courses'],
+    queryFn: getCourses,
+  });
+}
+
+export function useStudentHomeworks() {
+  return useQuery({
+    queryKey: ['student', 'homeworks'],
+    queryFn: getHomeworks,
+  });
+}
+
+export function useSubmitHomework() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ courseId, homeworkId, file, comment }: { courseId: string; homeworkId: string; file: File; comment?: string }) =>
+      submitHomework(courseId, homeworkId, file, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['student', 'homeworks'] });
+    },
+  });
+}

@@ -29,54 +29,6 @@
     </style>
   </head>
   <body class="font-body-md text-on-surface antialiased">
-    <script>
-      window.addEventListener('error', function(event) {
-        const msg = (event.message || '').toLowerCase();
-        const stack = (event.error && event.error.stack ? event.error.stack : '').toLowerCase();
-        if (msg.includes('websocket') || stack.includes('websocket')) {
-          return;
-        }
-        const errDiv = document.createElement('div');
-        errDiv.style.position = 'fixed';
-        errDiv.style.top = '0';
-        errDiv.style.left = '0';
-        errDiv.style.width = '100%';
-        errDiv.style.background = '#fee2e2';
-        errDiv.style.color = '#991b1b';
-        errDiv.style.padding = '16px';
-        errDiv.style.zIndex = '999999';
-        errDiv.style.borderBottom = '4px solid #ef4444';
-        errDiv.style.fontFamily = 'monospace';
-        errDiv.style.whiteSpace = 'pre-wrap';
-        errDiv.style.fontSize = '12px';
-        errDiv.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
-        errDiv.innerHTML = '<strong>[Runtime Error]:</strong> ' + event.message + '\n' + (event.error ? event.error.stack : '');
-        document.body.appendChild(errDiv);
-      });
-      window.addEventListener('unhandledrejection', function(event) {
-        const reasonStr = event.reason ? String(event.reason).toLowerCase() : '';
-        const stackStr = (event.reason && event.reason.stack ? String(event.reason.stack) : '').toLowerCase();
-        if (reasonStr.includes('websocket') || stackStr.includes('websocket')) {
-          return;
-        }
-        const errDiv = document.createElement('div');
-        errDiv.style.position = 'fixed';
-        errDiv.style.top = '0';
-        errDiv.style.left = '0';
-        errDiv.style.width = '100%';
-        errDiv.style.background = '#fffbeb';
-        errDiv.style.color = '#92400e';
-        errDiv.style.padding = '16px';
-        errDiv.style.zIndex = '999999';
-        errDiv.style.borderBottom = '4px solid #f59e0b';
-        errDiv.style.fontFamily = 'monospace';
-        errDiv.style.whiteSpace = 'pre-wrap';
-        errDiv.style.fontSize = '12px';
-        errDiv.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
-        errDiv.innerHTML = '<strong>[Unhandled Promise Rejection]:</strong> ' + event.reason + '\n' + (event.reason && event.reason.stack ? event.reason.stack : '');
-        document.body.appendChild(errDiv);
-      });
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

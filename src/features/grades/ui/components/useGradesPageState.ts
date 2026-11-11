@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { AcademicYear, PREVIOUS_YEARS } from './GradesData';
+import { AcademicYear } from './GradesData';
 import { Grade } from '@/features/grades/domain/Grade';
 import { downloadPreviousYearPDF } from './GradesPdfGenerator';
 import { downloadCurrentYearPDF } from './CurrentGradesPdfGenerator';
+
+// Aucun endpoint backend ne fournit l'historique des années précédentes :
+// on n'affiche donc aucune année inventée (état vide honnête).
+const PREVIOUS_YEARS: AcademicYear[] = [];
 
 export function useGradesPageState(grades: Grade[], simulateGradeChange: (m: string, f: 'cc' | 'examen', v: number) => void) {
   const [activeModule, setActiveModule] = useState<Grade | null>(null);
@@ -60,6 +64,10 @@ export function useGradesPageState(grades: Grade[], simulateGradeChange: (m: str
   };
 
   const handleShowPreviousYears = () => {
+    if (PREVIOUS_YEARS.length === 0) {
+      triggerToast("Aucun historique disponible pour les années précédentes.");
+      return;
+    }
     const years = onlyOneYearMode ? [PREVIOUS_YEARS[0]] : PREVIOUS_YEARS;
     if (years.length === 1) {
       setSelectedYear(years[0]);

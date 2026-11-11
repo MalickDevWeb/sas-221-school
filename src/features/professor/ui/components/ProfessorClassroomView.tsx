@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, BookOpen, PenTool, Award, Users, Bell, GraduationCap } from 'lucide-react';
+import { ArrowLeft, BookOpen, PenTool, Award, Users, Bell, GraduationCap, ClipboardList } from 'lucide-react';
 import { ProfessorClassroomCards } from './classroom/ProfessorClassroomCards';
 import { ProfessorClassroomMobileNav } from './classroom/ProfessorClassroomMobileNav';
 import { ProfessorClassroomContent } from './ProfessorClassroomContent';
@@ -10,6 +10,7 @@ const EMPTY_ATTENDANCE = {};
 const CLASSROOM_TABS = [
   { id: 'modules', label: 'Chapitres', icon: BookOpen },
   { id: 'homework', label: 'Devoirs', icon: PenTool },
+  { id: 'evaluations', label: 'Évaluations', icon: ClipboardList },
   { id: 'grades', label: 'Notes', icon: Award },
   { id: 'attendance', label: 'Appel', icon: Users },
   { id: 'announcements', label: 'Rappels', icon: Bell },

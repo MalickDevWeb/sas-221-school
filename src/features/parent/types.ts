@@ -14,21 +14,28 @@ export interface ChildProfile {
 export interface ChildAttendance {
   id: string;
   date: string;
-  statut: 'PRESENT' | 'ABSENT' | 'RETARD';
+  /** Normalisé par le serveur comme la feuille d'appel du professeur (EXCUSE = absence justifiée acceptée). */
+  statut: 'PRESENT' | 'ABSENT' | 'RETARD' | 'EXCUSE';
   cours: string;
   professeur: string;
   heure: string;
 }
 
+/**
+ * Réponse de GET /parent/enfants/{id}/notes (backend 1085787).
+ * cc, examen, moyenne, mention et ects peuvent être null (note non saisie) :
+ * l'UI affiche « — » et ne calcule jamais de mention à la place du backend.
+ * mention : chaîne libre renvoyée par le backend (valeurs non contractualisées à ce jour).
+ */
 export interface ChildGrade {
   id: string;
   module: string;
   professeur: string;
-  cc: number;
-  examen: number;
-  moyenne: number;
-  mention: 'Excellent' | 'Bien' | 'Assez Bien' | 'Passable' | 'Insuffisant';
-  ects: number;
+  cc: number | null;
+  examen: number | null;
+  moyenne: number | null;
+  mention: string | null;
+  ects: number | null;
 }
 
 export interface ChildScheduleItem {
@@ -43,25 +50,66 @@ export interface ChildScheduleItem {
 }
 
 export interface ChildDashboardStats {
-  tauxPresence: number;
-  nombreAbsences: number;
-  nombreRetards: number;
-  moyenneGenerale: number;
-  creditValides: number;
-  devoirsEnRetard: number;
+  tauxPresence: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  nombreAbsences: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  nombreRetards: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  moyenneGenerale: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  creditValides: number | null;   // null = aucune donnée réelle (APP-BE-19)
+  devoirsEnRetard: number | null;   // null = aucune donnée réelle (APP-BE-19)
   prochainsExamens: { titre: string; date: string; salle: string }[];
   coursAujourdhui: ChildScheduleItem[];
 }
 
+/** Message d'un échange parent ↔ école (GET /parent/messages). */
 export interface ParentMessage {
   id: string;
-  de: string;
-  role: string;
+  /** Auteur affiché (« Administration — Prénom Nom » pour une réponse de l'administration). */
+  de: string | null;
+  role: 'PARENT' | 'PROFESSEUR' | 'ADMINISTRATION' | string;
   sujet: string;
   message: string;
+  /** AAAA-MM-JJ */
   date: string;
+  /** Côté parent : réponse de l'école lue ; ses propres envois sont toujours « lus ». */
   lu: boolean;
-  avatar?: string;
+  /** true = envoyé par le parent. */
+  envoye?: boolean;
+  /** Professeur, ou ADMINISTRATION. */
+  interlocuteurId?: string;
+  interlocuteur?: string | null;
+  envoyeLe?: string;
+  /** L'autre partie a-t-elle lu le message ? */
+  luParDestinataire?: boolean;
+  repondA?: string | null;
+}
+
+/** GET /parent/messages/destinataires : l'administration puis les professeurs actifs de l'école. */
+export interface ParentDestinataire {
+  id: string;
+  nom: string;
+  role: 'ADMINISTRATION' | 'PROFESSEUR';
+}
+
+/** Élément de GET /api/parent/rdv (docs/api-contract.md, interface ParentAppointment). */
+export interface ParentAppointment {
+  id: string;
+  parentId: string;
+  professeurId: string;
+  professeurNom: string;
+  dateSouhaitee: string;
+  motif: string;
+  status: string;
+  meetUrl: string | null;
+  createdAt: string;
+}
+
+/** Élément de GET /api/parent/professeurs (docs/api-contract.md, interface ParentProfesseur). */
+export interface ParentProfesseur {
+  id: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  displayName: string;
 }
 
 export interface RealtimePresenceEvent {
@@ -102,3 +150,10 @@ export interface ParentApplication {
   commentaire?: string;
 }
 
+/** Coordonnées du parent (GET/PATCH /parent/profil). L'email est celui du compte, non modifiable ici. */
+export interface ParentProfile {
+  email: string | null;
+  telephone: string | null;
+  adresse: string | null;
+  profession: string | null;
+}

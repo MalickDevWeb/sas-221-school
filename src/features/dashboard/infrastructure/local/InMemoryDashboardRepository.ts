@@ -1,7 +1,7 @@
 import { DashboardRepository } from '../../domain/DashboardRepository';
 import { DashboardData, Attendance, LiveSession, PerformanceData } from '../../domain/Dashboard';
 import { apiClient } from '@/shared/lib/apiClient';
-import { MOCK_LIVE_SESSIONS, MOCK_PROFILE, MOCK_PERFORMANCE_DATA } from './DashboardMockData';
+import { MOCK_LIVE_SESSIONS, MOCK_PROFILE } from './DashboardMockData';
 
 export class InMemoryDashboardRepository implements DashboardRepository {
   private attendances: Attendance[] = [];
@@ -69,7 +69,8 @@ export class InMemoryDashboardRepository implements DashboardRepository {
     }
   }
 
+  /** Aucune courbe inventée, même en mode démonstration : liste vide. */
   async getPerformanceData(): Promise<PerformanceData[]> {
-    return MOCK_PERFORMANCE_DATA;
+    return [];
   }
 }

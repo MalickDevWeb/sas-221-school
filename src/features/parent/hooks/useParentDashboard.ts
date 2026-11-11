@@ -1,87 +1,94 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { parentApi } from '../api';
 import type { ChildProfile, ChildDashboardStats } from '../types';
-import { sendPushNotification } from '@/shared/lib/pushNotifier';
 
-const MOCK_CHILDREN: ChildProfile[] = [{
-  id: 'child-1', nom: 'Diallo', prenom: 'Aminata', matricule: 'E221-2024-001',
-  filiere: 'Informatique', niveau: 'L2', classe: 'L2-INFO-A', photoUrl: undefined,
-}];
-
-const MOCK_STATS: ChildDashboardStats = {
-  tauxPresence: 87, nombreAbsences: 3, nombreRetards: 2, moyenneGenerale: 14.5,
-  creditValides: 24, devoirsEnRetard: 1,
-  prochainsExamens: [
-    { titre: 'Algorithmique Avancée', date: '2026-08-20', salle: 'A101' },
-    { titre: 'Base de Données', date: '2026-08-25', salle: 'B203' },
-  ],
-  coursAujourdhui: [
-    { id: 'c1', jour: 'Mardi', heure: '08h00 - 10h00', cours: 'Algorithmique Avancée', professeur: 'Dr. Sall', salle: 'A101', type: 'CM', enCours: true },
-    { id: 'c2', jour: 'Mardi', heure: '10h30 - 12h30', cours: 'Base de Données', professeur: 'Prof. Ndiaye', salle: 'B203', type: 'TD' },
-    { id: 'c3', jour: 'Mardi', heure: '14h00 - 16h00', cours: 'Réseaux Informatiques', professeur: 'Dr. Mbaye', salle: 'Lab 3', type: 'TP' },
-  ],
-};
+// APP-FE-07 : aucune donnée de repli (plus d'enfant ni de statistiques inventés).
+// - liste vide renvoyée par GET /parent/enfants → children = [] (l'écran affiche un message dédié) ;
+// - échec d'un appel → erreur explicite exposée, aucune valeur fictive.
+const ERREUR_ENFANTS = 'Impossible de charger la liste de vos enfants. Veuillez réessayer.';
+const ERREUR_STATS = 'Impossible de charger le suivi de cet enfant. Veuillez réessayer.';
 
 export function useParentDashboard() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [stats, setStats] = useState<ChildDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [realtimeAlert, setRealtimeAlert] = useState<string | null>(null);
+  const [childrenError, setChildrenError] = useState<string | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  // Ignore les réponses arrivées après un changement d'enfant (réponse périmée).
+  const statsRequestRef = useRef(0);
 
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
+  const loadStats = useCallback(async (enfantId: string) => {
+    const requestId = ++statsRequestRef.current;
+    setStats(null);
+    setStatsError(null);
+    try {
+      const s = await parentApi.getChildStats(enfantId);
+      if (requestId === statsRequestRef.current) setStats(s);
+    } catch {
+      if (requestId === statsRequestRef.current) setStatsError(ERREUR_STATS);
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setChildrenError(null);
     try {
-      const enfants = await parentApi.getChildren();
-      setChildren(enfants.length > 0 ? enfants : MOCK_CHILDREN);
-      const firstId = enfants[0]?.id ?? MOCK_CHILDREN[0].id;
+      const enfants = (await parentApi.getChildren()) ?? [];
+      setChildren(enfants);
+      const firstId = enfants[0]?.id ?? null;
       setSelectedChildId(firstId);
-      const s = await parentApi.getChildStats(firstId);
-      setStats(s);
+      if (firstId) {
+        await loadStats(firstId);
+      } else {
+        setStats(null);
+        setStatsError(null);
+      }
     } catch {
-      setChildren(MOCK_CHILDREN);
-      setSelectedChildId(MOCK_CHILDREN[0].id);
-      setStats(MOCK_STATS);
+      setChildren([]);
+      setSelectedChildId(null);
+      setStats(null);
+      setChildrenError(ERREUR_ENFANTS);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadStats]);
 
   const switchChild = useCallback(async (id: string) => {
     setSelectedChildId(id);
     setLoading(true);
     try {
-      const s = await parentApi.getChildStats(id);
-      setStats(s);
-    } catch {
-      setStats(MOCK_STATS);
+      await loadStats(id);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadStats]);
 
-  // Déclencheur d'alerte push en temps réel
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const alertMsg = '✅ Aminata vient de pointer sa présence en Algorithmique Avancée';
-      setRealtimeAlert(alertMsg);
-      sendPushNotification('École 221 - Pointage Présence', alertMsg, {
-        url: window.location.pathname.includes('/parent') ? window.location.pathname : '/parent/presences',
-        tag: 'parent-presence-alert'
-      });
-      setTimeout(() => setRealtimeAlert(null), 5000);
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, []);
+  /** Relance le chargement : liste des enfants si elle a échoué, sinon statistiques de l'enfant affiché. */
+  const reloadDashboard = useCallback(() => {
+    if (childrenError || !selectedChildId) {
+      void fetchData();
+    } else {
+      void switchChild(selectedChildId);
+    }
+  }, [childrenError, selectedChildId, fetchData, switchChild]);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [fetchData]);
 
   return {
-    children, selectedChild, selectedChildId,
-    stats: stats ?? MOCK_STATS, loading, realtimeAlert, switchChild,
+    children,
+    selectedChild,
+    selectedChildId,
+    stats,
+    loading,
+    childrenError,
+    statsError,
+    reloadDashboard,
+    switchChild,
   };
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { afficherErreur, effacerErreur } from '@/shared/lib/validationPersonnalisee';
 import { motion } from 'motion/react';
 import { PaymentDetails } from '../admissionsTypes';
 
@@ -12,6 +13,7 @@ interface Props {
 export function StepPayment({ payment, declarePayment, onNext, onPrev }: Props) {
   const [selectedMethod, setSelectedMethod] = useState<'WAVE' | 'ORANGE_MONEY' | 'CARD' | 'CASH'>(payment.method || 'ORANGE_MONEY');
   const [refInput, setRefInput] = useState(payment.transactionRef || '');
+  const refChamp = useRef<HTMLInputElement>(null);
 
   const methods = [
     { id: 'ORANGE_MONEY' as const, name: 'Orange Money', desc: 'Code #144# ou App Maxit', badge: 'bg-[#FF6600] text-white' },
@@ -20,7 +22,18 @@ export function StepPayment({ payment, declarePayment, onNext, onPrev }: Props) 
   ];
 
   const handleConfirmDeclaration = () => {
-    const finalRef = refInput.trim() || `${selectedMethod === 'WAVE' ? 'WAVE-SN' : selectedMethod === 'ORANGE_MONEY' ? 'OM-SN' : 'CAISSE'}-${Math.floor(100000 + Math.random() * 900000)}`;
+    // La référence est celle du reçu réel du candidat : jamais générée automatiquement.
+    const finalRef = refInput.trim();
+    if (finalRef.length < 4) {
+      if (refChamp.current) {
+        afficherErreur(refChamp.current, finalRef
+          ? 'Référence trop courte : recopiez le numéro exact de votre reçu.'
+          : 'Saisissez le numéro de transaction ou de reçu figurant sur votre paiement.');
+        refChamp.current.focus();
+      }
+      return;
+    }
+    if (refChamp.current) effacerErreur(refChamp.current);
     declarePayment(selectedMethod, finalRef);
   };
 
@@ -65,8 +78,11 @@ export function StepPayment({ payment, declarePayment, onNext, onPrev }: Props) 
         <label className="text-[11px] font-bold text-neutral-700 block">N° de Transaction / Reçu de versement :</label>
         <div className="flex gap-2">
           <input
+            ref={refChamp}
             type="text"
-            placeholder="Ex: OM-SN-737385 ou 77 123 45 67"
+            required
+            minLength={4}
+            placeholder="N° figurant sur votre reçu de paiement"
             value={refInput}
             onChange={e => setRefInput(e.target.value)}
             className="flex-1 h-10 px-3.5 bg-white border border-neutral-200 focus:border-primary rounded-xl text-xs font-mono font-bold text-neutral-800 outline-none"

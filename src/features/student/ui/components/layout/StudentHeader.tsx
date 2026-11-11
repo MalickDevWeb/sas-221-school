@@ -87,6 +87,7 @@ export function StudentHeader({
             isEditingMood={isEditingMood} setIsEditingMood={setIsEditingMood}
             onOpenSettings={onOpenSettings} onOpenSupport={onOpenSupport} triggerToast={triggerToast}
             onMoodSave={onMoodSave} profileRef={profileRef}
+            profilPath={`/t/${window.location.pathname.match(/\/t\/([^/]+)/)?.[1] ?? 'ecole-221'}/etudiant/profil`}
           />
         </div>
       </div>

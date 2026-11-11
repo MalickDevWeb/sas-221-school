@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { GroupMember } from '../../domain/CollaborationModels';
-import { COLLAB_STUDENTS_MOCK } from '../../domain/CollaborationMockData';
 import { StudentSelectionList } from './StudentSelectionList';
 import { LeaderSelectionDropdown } from './LeaderSelectionDropdown';
 import { apiClient } from '@/shared/lib/apiClient';
@@ -22,15 +21,13 @@ export function ManualGroupCreator({ onCreateManual }: Props) {
   const [classId, setClassId] = useState('L3-INFO');
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
   const [leaderId, setLeaderId] = useState('');
-  const [students, setStudents] = useState<readonly GroupMember[]>(COLLAB_STUDENTS_MOCK);
+  const [students, setStudents] = useState<readonly GroupMember[]>([]);   // APP-BE-14 : étudiants réels uniquement
 
   React.useEffect(() => {
     apiClient.get('/collaboration/students').then((res) => {
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        setStudents(res.data);
-      }
+      setStudents(Array.isArray(res.data) ? res.data : []);
     }).catch(() => {
-      setStudents(COLLAB_STUDENTS_MOCK);
+      setStudents([]);
     });
   }, []);
 

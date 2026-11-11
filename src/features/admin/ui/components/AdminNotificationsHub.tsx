@@ -9,7 +9,7 @@ import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/Tablet
 export function AdminNotificationsHub() {
   const [activeTab, setActiveTab] = useState('mass-send');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { campaigns, sendCampaign, triggerEmergency, deleteCampaign } = useNotificationsHub();
+  const { campaigns, loadError, sendCampaign, triggerEmergency, deleteCampaign } = useNotificationsHub();
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-notifications-hub-root">
@@ -31,6 +31,9 @@ export function AdminNotificationsHub() {
           <EmergencyTab onTriggerEmergency={triggerEmergency} />
         )}
 
+        {activeTab === 'history' && loadError && (
+          <p className="mb-3 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2.5">Historique indisponible : {loadError}</p>
+        )}
         {activeTab === 'history' && (
           <HistoryAnalyticsTab campaigns={campaigns} onDeleteCampaign={deleteCampaign} />
         )}
