@@ -1,5 +1,6 @@
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
+import { ObservationsEleve } from './ObservationsEleve';
 
 interface Props {
   selectedStudent: Student;
@@ -10,7 +11,7 @@ interface Props {
  * Assiduité : uniquement le registre de présences fourni par le dossier 360 (champ « attendance »).
  * Plus de registre statique ni de taux par défaut (92 %) ; les journaux d'accès ne sont pas des présences.
  */
-export function TabAttendance({ erpData }: Props) {
+export function TabAttendance({ selectedStudent, erpData }: Props) {
   const history: any[] = Array.isArray(erpData?.attendance) ? erpData.attendance : [];
 
   if (history.length === 0) {
@@ -21,6 +22,7 @@ export function TabAttendance({ erpData }: Props) {
           <p className="text-neutral-600 font-bold m-0">Aucune donnée disponible</p>
           <p className="text-[11px] text-neutral-400 m-0">Aucune présence n'a encore été enregistrée pour cet élève.</p>
         </div>
+        <ObservationsEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
       </div>
     );
   }
@@ -84,6 +86,7 @@ export function TabAttendance({ erpData }: Props) {
           </tbody>
         </table>
       </div>
+      <ObservationsEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
     </div>
   );
 }

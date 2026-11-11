@@ -74,7 +74,7 @@ export function AdminManageUsersModal({
           )}
 
           {tab === 'tracker' && (
-            <AdminStudentTracker students={students as any} onUpdate={onRefreshData} />
+            <AdminStudentTracker students={students} onUpdate={onRefreshData} />
           )}
 
           {tab === 'import' && (
