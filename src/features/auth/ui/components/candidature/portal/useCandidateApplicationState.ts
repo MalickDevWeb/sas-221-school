@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import {
-  Campaign, getAdmissionsDb, saveAdmissionsDb, addAuditLog,
-  PersonalDetails, GuardianDetails, AcademicDetails, DocumentsState, PaymentDetails
-} from './admissionsDb';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import type {
+  Campaign, PersonalDetails, GuardianDetails, AcademicDetails, DocumentsState, PaymentDetails
+} from './admissionsTypes';
+import { suiviApi, type DossierCandidat } from './suiviApi';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
 import { publicApiClient } from '@/shared/lib/apiClient';
+
+export const MOT_DE_PASSE_MIN = 8;
 
 export type DocKey = keyof DocumentsState;
 export type DocErrors = Partial<Record<DocKey, string>>;
@@ -28,7 +30,7 @@ const devSimulateDoc: ((key: DocKey, label: string) => NonNullable<DocumentsStat
       })
     : undefined;
 
-export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: ExtendedCandidate) => void) {
+export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dossier: DossierCandidat) => void) {
   const [step, setStep] = useState(1);
   const [personal, setPersonal] = useState<PersonalDetails>({
     firstName: '', lastName: '', gender: 'M', birthDate: '2005-09-15',
@@ -101,59 +103,37 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (c: 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (credentials.password.length < 6) return setError('Le mot de passe doit comporter au moins 6 caractères.');
-    if (credentials.password !== credentials.confirm) return setError('Les mots de passe ne correspondent pas.');
+    if (credentials.password.length < MOT_DE_PASSE_MIN) return setError(`Le mot de passe de suivi doit comporter au moins ${MOT_DE_PASSE_MIN} caractères.`);
+    if (credentials.password !== credentials.confirm) return setError('Les deux mots de passe ne correspondent pas.');
     if (!credentials.accept) return setError('Veuillez accepter la charte et le règlement des admissions.');
     setIsSubmitting(true);
 
-    // APP-FE-09 : le dossier n'est confirmé au candidat QUE si le serveur l'a reçu.
-    // Avant : l'échec était ignoré (« synchronisation locale ») et le candidat voyait un succès
-    // alors que l'établissement n'avait rien reçu.
-    // L'identifiant du dossier est celui attribué par le serveur (plus d'identifiant tiré au hasard).
-    let candId: string;
+    // Le dossier n'est confirmé au candidat QUE si le serveur l'a enregistré (identifiant attribué par le serveur).
+    // Le mot de passe choisi ici est enregistré (haché) : il sert au suivi en ligne du dossier (APP-BE-12).
+    // Avant : il n'était jamais envoyé, et le dossier était aussi rangé dans le navigateur (base locale).
     try {
-      const { data } = await publicApiClient.post('/candidatures/submit', {
+      await publicApiClient.post('/candidatures/submit', {
         nom: personal.lastName, prenom: personal.firstName,
         email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
         niveau: academic.targetLevel, fraisPayes: payment.isPaid,
         modePaiement: payment.method, referencePaiement: payment.transactionRef,
+        docs: { idCard: Boolean(docs.idCard), diploma: Boolean(docs.diploma) },
+        motDePasse: credentials.password,
       });
-      const idServeur = data?.candidatureId ?? data?.id;
-      if (!idServeur) throw new Error('Identifiant de dossier absent de la réponse');
-      candId = String(idServeur);
-    } catch {
+    } catch (err) {
       setIsSubmitting(false);
-      return setError("Votre dossier n'a pas pu être transmis à l'établissement. Vérifiez votre connexion et réessayez.");
+      return setError(`Votre dossier n'a pas été enregistré : ${resolveErrorMessage(err)}`);
     }
-
-
-    const db = getAdmissionsDb();
-    const newCandidate: ExtendedCandidate = {
-      id: candId,
-      name: `${personal.firstName} ${personal.lastName}`.trim(),
-      email: personal.email.trim(),
-      type: campaign.code,
-      course: academic.targetFiliere,
-      step: 'new',
-      docs: { idCard: Boolean(docs.idCard), diploma: Boolean(docs.diploma), transcripts: Boolean(docs.transcripts) },
-      registrationFeePaid: false,
-      details: {
-        cniNumber: personal.cniNumber,
-        cniUrl: docs.idCard?.url,   // APP-FE-09 : pas de pièce de démonstration
-        cniStatus: 'pending',
-        paymentMethod: payment.method,
-        paymentTransactionRef: payment.transactionRef || undefined,   // APP-FE-09 : pas de référence inventée
-        paymentStatus: 'pending'
-      },
-      notifications: [
-        { id: `not-${Date.now()}`, type: 'creation_compte', message: `Dossier #${candId} déposé. Frais de dossier déclarés (${payment.method}) en attente de validation comptable.`, sentAt: new Date().toISOString() }
-      ]
-    };
-
-    saveAdmissionsDb({ candidates: [...db.candidates, newCandidate] });
-    addAuditLog(candId, `Dépôt officiel candidature (${academic.targetFiliere})`, newCandidate.name);
-    setIsSubmitting(false);
-    onSuccess(newCandidate);
+    try {
+      const dossiers = await suiviApi.suivre(personal.email.trim(), credentials.password);
+      if (dossiers.length === 0) throw new Error('dossier introuvable');
+      onSuccess(dossiers[0]);
+    } catch {
+      // Le dossier EST enregistré : seul l'affichage du suivi a échoué.
+      setError("Votre dossier est bien enregistré, mais son suivi n'a pas pu s'afficher. Connectez-vous au suivi avec votre email et votre mot de passe.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {

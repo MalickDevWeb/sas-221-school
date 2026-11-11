@@ -3,8 +3,8 @@ import { PortalCampaignsList } from './candidature/portal/PortalCampaignsList';
 import { CandidateApplicationForm } from './candidature/portal/CandidateApplicationForm';
 import { CandidatePortalLogin } from './candidature/portal/CandidatePortalLogin';
 import { CandidateDashboardShell } from './candidature/portal/CandidateDashboardShell';
-import { getAdmissionsDb, Campaign } from './candidature/portal/admissionsDb';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import type { Campaign } from './candidature/portal/admissionsTypes';
+import { suiviApi, type DossierCandidat } from './candidature/portal/suiviApi';
 
 interface Props {
   onBack: () => void;
@@ -14,26 +14,25 @@ export function CandidatureForm({ onBack }: Props) {
   const [view, setView] = useState<'portal' | 'apply' | 'login' | 'dashboard'>('portal');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
-  const [activeCandidate, setActiveCandidate] = useState<ExtendedCandidate | null>(null);
+  const [dossiers, setDossiers] = useState<DossierCandidat[] | null>(null);
 
+  // Campagnes publiées de l'école (GET /candidatures/campagnes). Avant : lues dans la base locale du
+  // navigateur alimentée par /admissions/db, fermé au public : plus aucune campagne ne s'affichait.
   useEffect(() => {
-    const updateCampaigns = () => {
-      const db = getAdmissionsDb();
-      setCampaigns(db.campaigns);
-      const params = new URLSearchParams(window.location.search);
-      const targetId = params.get('campaignId');
-      if (targetId && db.campaigns.length > 0) {
-        const found = db.campaigns.find(c => c.id === targetId);
+    let actif = true;
+    suiviApi.campagnes()
+      .then((liste) => {
+        if (!actif) return;
+        setCampaigns(liste);
+        const targetId = new URLSearchParams(window.location.search).get('campaignId');
+        const found = targetId ? liste.find(c => c.id === targetId) : undefined;
         if (found) {
           setSelectedCampaign(found);
           setView('apply');
         }
-      }
-    };
-
-    updateCampaigns();
-    window.addEventListener('admissions_db_synced', updateCampaigns);
-    return () => window.removeEventListener('admissions_db_synced', updateCampaigns);
+      })
+      .catch(() => { if (actif) setCampaigns([]); });
+    return () => { actif = false; };
   }, []);
 
   return (
@@ -60,8 +59,8 @@ export function CandidatureForm({ onBack }: Props) {
       {view === 'apply' && selectedCampaign && (
         <CandidateApplicationForm
           campaign={selectedCampaign}
-          onSuccess={(cand) => {
-            setActiveCandidate(cand);
+          onSuccess={(dossier) => {
+            setDossiers([dossier]);
             setView('dashboard');
           }}
           onCancel={() => setView('portal')}
@@ -71,8 +70,8 @@ export function CandidatureForm({ onBack }: Props) {
       {view === 'login' && (
         <div className="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200/80 shadow-xs">
           <CandidatePortalLogin
-            onLoginSuccess={(cand) => {
-              setActiveCandidate(cand);
+            onLoginSuccess={(liste) => {
+              setDossiers(liste);
               setView('dashboard');
             }}
             onGoBack={() => setView('portal')}
@@ -80,12 +79,12 @@ export function CandidatureForm({ onBack }: Props) {
         </div>
       )}
 
-      {view === 'dashboard' && activeCandidate && (
+      {view === 'dashboard' && dossiers && dossiers.length > 0 && (
         <div className="max-w-5xl mx-auto">
           <CandidateDashboardShell
-            initialCandidate={activeCandidate}
+            dossiers={dossiers}
             onLogout={() => {
-              setActiveCandidate(null);
+              setDossiers(null);
               setView('portal');
             }}
           />
