@@ -50,11 +50,12 @@ export const parentApi = {
   },
 
   markMessageRead: async (messageId: string): Promise<void> => {
-    await apiClient.patch(`/parent/messages/${messageId}/read`);
+    await apiClient.patch(`/parent/messages/${messageId}/lu`);
   },
 
-  enrollChild: async (payload: EnrollChildPayload): Promise<ChildProfile> => {
-    const { data } = await apiClient.post('/parent/enfants/inscrire', payload);
+  /** Dépose un vrai dossier de candidature (admissions de l'école) ; renvoie son identifiant. */
+  enrollChild: async (payload: EnrollChildPayload): Promise<{ success: boolean; dossierId: string }> => {
+    const { data } = await apiClient.post('/parent/inscrire-enfant', payload);
     return data;
   },
 
