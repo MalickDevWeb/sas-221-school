@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from '@iconify/react';
@@ -7,8 +10,16 @@ import { useLogin } from '../../hooks/useLogin';
 import { useCandidatureSettings } from '../../hooks/useCandidatureSettings';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { ResetSuccessMessage } from './ResetSuccessMessage';
 import { ROUTES } from '@/shared/constants';
+
+/** Règles de saisie de la connexion (APP-FE-14 : react-hook-form + zod, décision APP-TL-08). */
+const schemaConnexion = z.object({
+  email: z.string().trim()
+    .min(1, 'Saisissez votre adresse e-mail.')
+    .email('Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@ecole.sn).'),
+  password: z.string().min(1, 'Saisissez votre mot de passe.'),
+});
+type Connexion = z.infer<typeof schemaConnexion>;
 
 interface LoginFormProps {
   isMobile?: boolean;
@@ -16,13 +27,12 @@ interface LoginFormProps {
 
 export function LoginForm({ isMobile = false }: LoginFormProps) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { register, handleSubmit, setValue, clearErrors, formState: { errors } } = useForm<Connexion>({
+    resolver: zodResolver(schemaConnexion),
+    defaultValues: { email: '', password: '' },
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [currentView, setCurrentView] = useState<'CONNEXION' | 'MOT_DE_PASSE_OUBLIE' | 'SUCCESS'>('CONNEXION');
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetError, setResetError] = useState('');
+  const [currentView, setCurrentView] = useState<'CONNEXION' | 'MOT_DE_PASSE_OUBLIE'>('CONNEXION');
   const { executer, etat, erreur } = useLogin();
   const { settings } = useCandidatureSettings();
 
@@ -90,49 +100,20 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
     }
   }, [success]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || loading || success) return;
-    executer({ email, motDePasse: password });
-  };
-
-  const handleResetSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) return;
-    setResetLoading(true);
-    setResetError('');
-    setTimeout(() => {
-      setResetLoading(false);
-      setCurrentView('SUCCESS');
-    }, 1200);
+  const seConnecter = (v: Connexion) => {
+    if (loading || success) return;
+    executer({ email: v.email, motDePasse: v.password });
   };
 
   if (currentView === 'MOT_DE_PASSE_OUBLIE') {
-    return (
-      <ForgotPasswordForm
-        resetEmail={resetEmail}
-        setResetEmail={setResetEmail}
-        resetLoading={resetLoading}
-        resetError={resetError}
-        handleResetSubmit={handleResetSubmit}
-        setCurrentView={setCurrentView}
-      />
-    );
-  }
-
-  if (currentView === 'SUCCESS') {
-    return (
-      <ResetSuccessMessage
-        resetEmail={resetEmail}
-        setCurrentView={setCurrentView}
-        setResetEmail={setResetEmail}
-      />
-    );
+    return <ForgotPasswordForm onRetour={() => setCurrentView('CONNEXION')} />;
   }
 
   return (
     <motion.form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(seConnecter)}
+      noValidate
+      data-validation-externe
       animate={etat === 'ERREUR' ? { x: [-8, 8, -6, 6, -3, 3, 0] } : {}}
       transition={{ duration: 0.4 }}
       className={`space-y-3.5 ${isMobile ? 'pt-1 space-y-3' : 'md:space-y-4'}`}
@@ -172,13 +153,15 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-4 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="email"
-            required
             type="email"
-            value={email}
+            autoComplete="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-erreur' : undefined}
             disabled={loading || success}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register('email')}
           />
         </div>
+        {errors.email && <p id="email-erreur" role="alert" className="text-[11px] font-semibold text-red-600">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -190,11 +173,12 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-10 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="password"
-            required
             type={showPassword ? 'text' : 'password'}
-            value={password}
+            autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'password-erreur' : undefined}
             disabled={loading || success}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register('password')}
           />
           <button
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E7977]/80 hover:text-[#1c1110] transition-colors p-1 flex items-center justify-center rounded-md cursor-pointer"
@@ -204,6 +188,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
             <Icon icon={showPassword ? 'solar:eye-closed-bold-duotone' : 'solar:eye-bold-duotone'} className="text-[18px]" />
           </button>
         </div>
+        {errors.password && <p id="password-erreur" role="alert" className="text-[11px] font-semibold text-red-600">{errors.password.message}</p>}
       </div>
 
       {/* Bouton d'action principal avec State Machine */}
@@ -258,7 +243,6 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           type="button"
           onClick={() => {
             setCurrentView('MOT_DE_PASSE_OUBLIE');
-            setResetEmail(email);
           }}
           className="text-[#8E7977] hover:text-primary hover:underline transition-colors cursor-pointer"
         >
@@ -279,8 +263,9 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
               key={key}
               type="button"
               onClick={() => {
-                setEmail(item.email);
-                setPassword(item.password);
+                setValue('email', item.email);
+                setValue('password', item.password);
+                clearErrors();
               }}
               title={`${item.label} : ${item.email}`}
               className={`px-2.5 py-1 text-[9.5px] font-black rounded-lg border transition-all cursor-pointer active:scale-95 ${item.badgeClass}`}

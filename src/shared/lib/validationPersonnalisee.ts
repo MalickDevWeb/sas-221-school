@@ -13,6 +13,9 @@
  * Personnalisation possible par champ :
  *   data-msg-requis="…"  (champ vide)      data-msg-format="…"  (pattern / type)
  *   setCustomValidity("…") depuis le code reste prioritaire.
+ *
+ * Formulaires validés par react-hook-form + zod (APP-FE-14) : marquer le <form> avec l'attribut
+ * data-validation-externe — ce module l'ignore alors (sinon deux messages s'afficheraient sous le champ).
  */
 
 type Champ = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -21,7 +24,8 @@ const CLASSE_MESSAGE = 'erreur-champ';
 let premierChampInvalide: Champ | null = null;
 
 function estChamp(cible: EventTarget | null): cible is Champ {
-  return cible instanceof HTMLInputElement || cible instanceof HTMLSelectElement || cible instanceof HTMLTextAreaElement;
+  return (cible instanceof HTMLInputElement || cible instanceof HTMLSelectElement || cible instanceof HTMLTextAreaElement)
+    && !cible.closest('[data-validation-externe]');   // formulaire validé par react-hook-form + zod
 }
 
 /** Message en français correspondant à l'état de validité du champ. */
