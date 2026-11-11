@@ -1,69 +1,151 @@
 import { useState } from 'react';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
-export function useExcelImport(onAddStudents: (newList: any[]) => void) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [previewList, setPreviewList] = useState<any[]>([]);
+/** Ligne envoyée à POST /admin/students/import (numéro de ligne du fichier compris). */
+export interface LigneImport { ligne: number; nom: string; email: string; matricule?: string; telephone?: string; classe?: string }
+
+/** Ligne du rapport renvoyé par le serveur. */
+export interface LigneRapport {
+  ligne: number; nom: string | null; email: string | null; classe: string | null;
+  statut: 'OK' | 'ERREUR' | 'CREE'; erreurs: string[];
+  id?: string; matricule?: string; motDePasseProvisoire?: string | null;
+}
+export interface RapportImport { simulation: boolean; valide: boolean; crees: number; erreurs: number; lignes: LigneRapport[] }
+
+export const COLONNES = 'Nom ; Email (obligatoires) — Matricule ; Téléphone ; Classe (facultatives)';
+
+const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** Découpe une ligne CSV (guillemets « "" » gérés). */
+function cellules(ligne: string, sep: string): string[] {
+  const res: string[] = [];
+  let cur = '', guill = false;
+  for (let i = 0; i < ligne.length; i++) {
+    const c = ligne[i];
+    if (guill) {
+      if (c === '"' && ligne[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') guill = false;
+      else cur += c;
+    } else if (c === '"') guill = true;
+    else if (c === sep) { res.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  res.push(cur.trim());
+  return res;
+}
+
+type Champ = 'nom' | 'prenom' | 'email' | 'matricule' | 'telephone' | 'classe';
+function champ(entete: string): Champ | null {
+  const h = sansAccents(entete);
+  if (h.startsWith('prenom') || h === 'first name' || h === 'firstname') return 'prenom';
+  if (h.includes('mail')) return 'email';
+  if (h.startsWith('matr')) return 'matricule';
+  if (h.startsWith('tel') || h.includes('phone')) return 'telephone';
+  if (h.includes('class') || h.includes('promo')) return 'classe';
+  if (h.startsWith('nom') || h === 'name' || h.includes('nom complet') || h === 'last name' || h === 'lastname') return 'nom';
+  return null;
+}
+
+/** Lit le texte d'un CSV ; renvoie les lignes ou un message d'erreur compréhensible. */
+export function lireCsv(texte: string): { lignes: LigneImport[] } | { erreur: string } {
+  const brutes = texte.replace(/^\uFEFF/, '').split(/\r?\n/);
+  const premiere = brutes.findIndex(l => l.trim() !== '');
+  if (premiere < 0) return { erreur: 'Le fichier est vide.' };
+  const entete = brutes[premiere];
+  const sep = entete.includes(';') ? ';' : entete.includes('\t') ? '\t' : ',';
+  const colonnes = cellules(entete, sep).map(champ);
+  if (!colonnes.includes('nom') || !colonnes.includes('email')) {
+    return { erreur: `En-têtes non reconnus : « ${entete.trim()} ». Colonnes attendues : ${COLONNES}.` };
+  }
+  const lignes: LigneImport[] = [];
+  for (let i = premiere + 1; i < brutes.length; i++) {
+    if (brutes[i].trim() === '') continue;
+    const c = cellules(brutes[i], sep);
+    const v: Partial<Record<Champ, string>> = {};
+    colonnes.forEach((k, j) => { if (k && c[j]) v[k] = c[j]; });
+    lignes.push({
+      ligne: i + 1,
+      nom: [v.prenom, v.nom].filter(Boolean).join(' '),
+      email: v.email ?? '',
+      matricule: v.matricule, telephone: v.telephone, classe: v.classe,
+    });
+  }
+  if (lignes.length === 0) return { erreur: "Le fichier ne contient que la ligne d'en-têtes : aucun élève à importer." };
+  return { lignes };
+}
+
+export function useExcelImport(onImported: () => void) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [nomFichier, setNomFichier] = useState('');
+  const [lignes, setLignes] = useState<LigneImport[]>([]);
+  const [rapport, setRapport] = useState<RapportImport | null>(null);
+  const [erreur, setErreur] = useState('');
+  const [chargement, setChargement] = useState(false);
+
+  const verifier = async (l: LigneImport[]) => {
+    setChargement(true); setErreur('');
+    try {
+      const { data } = await apiClient.post<RapportImport>('/admin/students/import?simulation=true', { eleves: l });
+      setRapport(data); setStep(2);
+    } catch (e) {
+      setErreur(resolveErrorMessage(e));
+    } finally {
+      setChargement(false);
+    }
+  };
 
   const handleFileUpload = (file: File) => {
+    setErreur(''); setRapport(null); setNomFichier(file.name);
+    if (!/\.(csv|txt)$/i.test(file.name)) {
+      setErreur(`« ${file.name} » n'est pas un fichier CSV. Dans Excel : Fichier → Enregistrer sous → CSV (séparateur : point-virgule).`);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length < 2) return;
-      
-      const separator = lines[0].includes(';') ? ';' : lines[0].includes(',') ? ',' : '\t';
-      const parsedHeaders = lines[0].split(separator).map(h => h.trim().toLowerCase());
-      const rows = lines.slice(1).map(line => line.split(separator).map(cell => cell.trim()));
-
-      const list = rows.map((row, idx) => {
-        const student: any = {
-          id: `s-imported-${Date.now()}-${idx}`,
-          financialStatus: 'En Règle',
-          qrStatus: 'AUTORISÉ',
-          gpa: '14.5/20',
-          phoneParent: '+221 77 000 00 00'
-        };
-        parsedHeaders.forEach((h, i) => {
-          if (h.includes('nom') || h.includes('name')) student.name = row[i];
-          else if (h.includes('matr') || h.includes('id')) student.matricule = row[i];
-          else if (h.includes('email')) student.email = row[i];
-          else if (h.includes('class') || h.includes('promo')) student.classe = row[i];
-        });
-        if (!student.name) student.name = `Etudiant ${idx + 1}`;
-        if (!student.matricule) student.matricule = `MAT-${Date.now()}-${idx}`;
-        if (!student.email) student.email = `${student.name.toLowerCase().replace(/\\s+/g, '.')}@ecole221.sn`;
-        if (!student.classe) student.classe = 'L1 Génie Civil';
-        return student;
-      });
-
-      setPreviewList(list);
-      setStep(2);
+      const lu = lireCsv(String(e.target?.result ?? ''));
+      if ('erreur' in lu) { setErreur(lu.erreur); return; }
+      setLignes(lu.lignes);
+      void verifier(lu.lignes);
     };
-    reader.readAsText(file);
+    reader.onerror = () => setErreur(`Lecture de « ${file.name} » impossible.`);
+    reader.readAsText(file, 'utf-8');
   };
 
-  const executeImport = () => {
-    onAddStudents(previewList);
-    setStep(1);
-    setPreviewList([]);
+  const executeImport = async () => {
+    setChargement(true); setErreur('');
+    try {
+      const { data } = await apiClient.post<RapportImport>('/admin/students/import', { eleves: lignes });
+      setRapport(data);
+      if (data.crees > 0) { setStep(3); onImported(); }
+    } catch (e) {
+      setErreur(resolveErrorMessage(e));   // rien n'a été créé
+    } finally {
+      setChargement(false);
+    }
   };
 
-  const downloadTemplate = () => {
-    const csvContent = "Nom;Matricule;Email;Classe\nMamadou Diagne;2026-GC-005;mamadou.diagne@ecole221.sn;L1 Génie Civil\nAmina Fall;2026-TI-099;amina.fall@ecole221.sn;Master 1 Spécialité IA";
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const recommencer = () => { setStep(1); setLignes([]); setRapport(null); setErreur(''); setNomFichier(''); };
+
+  const telecharger = (contenu: string, nom: string) => {
+    const blob = new Blob(['\uFEFF' + contenu], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = "modele_import_etudiants.csv";
-    link.click();
+    const a = document.createElement('a');
+    a.href = url; a.download = nom; a.click();
+    URL.revokeObjectURL(url);
   };
 
-  return {
-    step,
-    setStep,
-    previewList,
-    handleFileUpload,
-    executeImport,
-    downloadTemplate
+  /** Modèle vide : uniquement les en-têtes (aucun élève d'exemple qui serait importé par erreur). */
+  const downloadTemplate = () => telecharger('Nom;Email;Matricule;Téléphone;Classe\n', 'modele_import_eleves.csv');
+
+  const echapper = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const telechargerIdentifiants = () => {
+    if (!rapport) return;
+    const l = rapport.lignes.filter(r => r.statut === 'CREE')
+      .map(r => [r.nom, r.email, r.matricule, r.motDePasseProvisoire].map(echapper).join(';'));
+    telecharger(['Nom;Email;Matricule;Mot de passe provisoire', ...l].join('\n') + '\n', 'identifiants_eleves_importes.csv');
   };
+
+  return { step, nomFichier, lignes, rapport, erreur, chargement, handleFileUpload, executeImport, recommencer,
+    downloadTemplate, telechargerIdentifiants };
 }

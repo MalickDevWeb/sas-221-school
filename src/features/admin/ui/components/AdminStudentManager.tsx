@@ -42,7 +42,7 @@ export function AdminStudentManager() {
         {activeTab === 'import' && (
           <ExcelImportTab
             students={students}
-            onAddStudents={(newList) => setStudents([...students, ...newList])}
+            onImported={refetch}
           />
         )}
         {activeTab === 'profil360' && !selectedStudent && (
