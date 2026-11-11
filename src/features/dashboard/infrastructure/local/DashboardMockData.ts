@@ -1,4 +1,4 @@
-import { LiveSession, PerformanceData } from '../../domain/Dashboard';
+import { LiveSession } from '../../domain/Dashboard';
 
 export const MOCK_LIVE_SESSIONS: LiveSession[] = [
   {
@@ -23,10 +23,3 @@ export const MOCK_PROFILE = {
   gpa: "3.8/4.0"
 };
 
-export const MOCK_PERFORMANCE_DATA: PerformanceData[] = [
-  { mois: 'Janvier',  note: 14.2,  presence: 92, promoMoy: 13.8 },
-  { mois: 'Février',  note: 15.5,  presence: 95, promoMoy: 13.8 },
-  { mois: 'Mars',     note: 16.3,  presence: 98, promoMoy: 13.8 },
-  { mois: 'Avril',    note: 15.8,  presence: 94, promoMoy: 13.8 },
-  { mois: 'Mai',      note: 16.89, presence: 96, promoMoy: 13.8 }
-];

@@ -6,6 +6,7 @@ import { PresenceModal } from '../components/PresenceModal';
 import { ActiveLiveStream } from '../components/ActiveLiveStream';
 import { WeeklySchedule } from '../components/WeeklySchedule';
 import { AITutorPanel } from '../components/AITutorPanel';
+import { PerformanceChart } from '../components/PerformanceChart';
 import { StudentNotificationToast } from '../components/StudentNotificationToast';
 import { StudentHeaderBanner } from '../components/StudentHeaderBanner';
 import { LiveStreamBanner } from '../components/LiveStreamBanner';
@@ -84,6 +85,7 @@ export function StudentDashboardPage() {
           enCoursId={enCoursId}
           prochainId={prochainId}
         />
+        <PerformanceChart />
         <AITutorPanel />
       </div>
     </div>
