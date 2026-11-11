@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
@@ -8,6 +8,8 @@ interface Props {
 }
 
 export function AttestationModal({ isOpen, onClose, child }: Props) {
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name || 'École 221';
   const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -61,7 +63,7 @@ export function AttestationModal({ isOpen, onClose, child }: Props) {
           <div className="pt-4 flex items-end justify-between border-t border-slate-100">
             <div className="text-[10px] text-slate-500 space-y-1">
               <p>Délivré le : <strong>{today}</strong></p>
-              <p className="font-mono text-[9px] text-slate-400">Réf : CERT-{child.matricule}-{Date.now().toString().slice(-4)}</p>
+              <p className="font-mono text-[9px] text-slate-400">Réf : CERT-{child.matricule}-{maintenant.toString().slice(-4)}</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-bold text-slate-500 uppercase">Le Directeur Général</p>

@@ -43,7 +43,7 @@ export function getActiveTenantPdfTheme() {
         const parsed = JSON.parse(stored);
         tenant = parsed?.state?.currentTenant || null;
       }
-    } catch {}
+    } catch { /* état persisté illisible : en-tête PDF sans école */ }
   }
 
   // 2. Fallback via le profil auth stocké si disponible
@@ -65,7 +65,7 @@ export function getActiveTenantPdfTheme() {
           }
         }
       }
-    } catch {}
+    } catch { /* thème illisible : couleurs par défaut du PDF */ }
   }
 
   const schoolName = tenant?.name || 'École 221';
@@ -188,7 +188,7 @@ export async function addEcole221Header(
         doc.addImage(logoImg, 'PNG', logoX, logoY, logoWidth, logoHeight);
         logoDrawn = true;
       }
-    } catch {}
+    } catch { /* logo illisible ou d'un format non pris en charge : PDF sans logo */ }
   }
 
   if (!logoDrawn) {
