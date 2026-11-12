@@ -33,39 +33,32 @@ export function AdminPersonnelRH() {
 
   /** Création réelle : le collaborateur n'apparaît qu'avec la réponse du serveur (mot de passe provisoire inclus s'il a été généré). */
   const handleAddStaff = async (newMember: { firstName: string; lastName: string; email: string; phone: string; role: string }) => {
-    try {
-      const res = await apiClient.post('/admin/staff', newMember);
-      const { motDePasseProvisoire, ...created } = res.data ?? {};
-      if (!created?.id) {
-        showToast("Réponse du serveur incomplète : rechargez la liste du personnel.", false);
-        return null;
-      }
-      setStaff(prev => [...prev.filter(s => s.id !== created.id), created as StaffMember]);
-      showToast(`Compte pour ${created.firstName || newMember.firstName} créé.`, true);
-      return { member: created as StaffMember, motDePasseProvisoire: (motDePasseProvisoire as string | undefined) ?? null };
-    } catch (err) {
-      showToast(resolveErrorMessage(err), false);
+    // Une erreur du serveur est levée telle quelle : le formulaire l'affiche sous le champ concerné
+    // (ex. « Cette adresse e-mail est déjà utilisée. »), au lieu d'une simple notification.
+    const res = await apiClient.post('/admin/staff', newMember);
+    const { motDePasseProvisoire, ...created } = res.data ?? {};
+    if (!created?.id) {
+      showToast("Réponse du serveur incomplète : rechargez la liste du personnel.", false);
       return null;
     }
+    setStaff(prev => [...prev.filter(s => s.id !== created.id), created as StaffMember]);
+    showToast(`Compte pour ${created.firstName || newMember.firstName} créé.`, true);
+    return { member: created as StaffMember, motDePasseProvisoire: (motDePasseProvisoire as string | undefined) ?? null };
   };
 
   const handleUpdateStaff = async (updated: StaffMember): Promise<boolean> => {
-    try {
-      const res = await apiClient.put(`/admin/staff/${updated.id}`, {
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        email: updated.email,
-        phone: updated.phone,
-        role: updated.role,
-      });
-      const confirme: StaffMember = res.data?.id ? res.data : updated;
-      setStaff(prev => prev.map(s => s.id === updated.id ? confirme : s));
-      showToast(`Fiche de ${confirme.firstName} ${confirme.lastName} mise à jour.`, true);
-      return true;
-    } catch (err) {
-      showToast(resolveErrorMessage(err), false);
-      return false;
-    }
+    // Erreur du serveur levée telle quelle : la fenêtre de modification l'affiche sous le champ et reste ouverte
+    const res = await apiClient.put(`/admin/staff/${updated.id}`, {
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      email: updated.email,
+      phone: updated.phone,
+      role: updated.role,
+    });
+    const confirme: StaffMember = res.data?.id ? res.data : updated;
+    setStaff(prev => prev.map(s => s.id === updated.id ? confirme : s));
+    showToast(`Fiche de ${confirme.firstName} ${confirme.lastName} mise à jour.`, true);
+    return true;
   };
 
   const handleToggleStatus = async (id: string) => {
