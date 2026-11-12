@@ -1,89 +1,93 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import {
   StudentFinance,
   Expense,
 } from '../../../domain/FinancesModels';
 
+/** Clés de cache des finances de l'école (React Query, APP-FE-02). */
+export const CLES_FINANCES = {
+  depenses: ['admin', 'finances', 'depenses'] as const,
+  eleves: ['admin', 'finances', 'eleves'] as const,
+};
+
+type Brut = Record<string, unknown>;
+const texte = (v: unknown) => (v == null ? '' : String(v));
+
+const versDepense = (item: Brut, index: number): Expense => ({
+  // Clé stable non affichée quand le serveur n'a pas d'identifiant (jamais d'identifiant aléatoire)
+  id: item.id != null ? String(item.id) : `depense-${index}`,
+  label: texte(item.label || item.description) || 'Dépense',
+  category: typeof item.category === 'object' && item.category ? texte((item.category as Brut).value) : (texte(item.category) || 'Général'),
+  amount: Number(item.amount) || 0,
+  date: item.date ? String(item.date).substring(0, 10) : '—',
+});
+
+const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En Retard', 'En Avance'];
+const statutConnu = (s: string): StudentFinance['status'] =>
+  STATUTS.includes(s as StudentFinance['status']) ? (s as StudentFinance['status']) : 'Non renseigné';
+
+const versEleve = (item: Brut, index: number): StudentFinance => ({
+  id: item.id != null ? String(item.id) : `etudiant-${index}`,
+  name: texte(item.name) || `${texte(item.prenom)} ${texte(item.nom)}`.trim() || 'Étudiant',
+  classe: texte(item.classe || item.filiere),
+  status: Number(item.debt) > 0 ? 'En Retard' : statutConnu(texte(item.status)),   // jamais supposé en règle
+  debt: Number(item.debt) || 0,
+  paid: Number(item.paid) || 0,
+});
+
+/**
+ * Finances de l'école (React Query, APP-FE-02). Avant : chargement manuel dont les erreurs étaient avalées — un
+ * échec affichait des listes vides, qu'on pouvait prendre pour « aucune dépense ». L'erreur est maintenant exposée.
+ */
 export function useAdminFinances() {
-  const [students, setStudents] = useState<StudentFinance[]>([]);   // données réelles uniquement
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchFinances = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [expRes, stuRes] = await Promise.allSettled([
-        apiClient.get<any[]>('/finance/expenses'),
-        apiClient.get<any[]>('/finance/students')
-      ]);
-
-      if (expRes.status === 'fulfilled' && Array.isArray(expRes.value.data)) {
-        const mappedExpenses: Expense[] = expRes.value.data.map((item: any, index: number) => ({
-          // Clé stable non affichée quand le serveur n'a pas d'identifiant (jamais d'identifiant aléatoire)
-          id: item.id != null ? String(item.id) : `depense-${index}`,
-          label: item.label || item.description || 'Dépense',
-          category: typeof item.category === 'object' ? item.category.value : (item.category || 'Général'),
-          amount: Number(item.amount) || 0,
-          date: item.date ? String(item.date).substring(0, 10) : '—'
-        }));
-        setExpenses(mappedExpenses);
-      }
-
-      if (stuRes.status === 'fulfilled' && Array.isArray(stuRes.value.data)) {
-        const mappedStudents: StudentFinance[] = stuRes.value.data.map((item: any, index: number) => ({
-          id: item.id != null ? String(item.id) : `etudiant-${index}`,
-          name: item.name || `${item.prenom || ''} ${item.nom || ''}`.trim() || 'Étudiant',
-          classe: item.classe || item.filiere || '',
-          status: item.debt > 0 ? 'En Retard' : (item.status || 'Non renseigné'),   // jamais supposé en règle
-          debt: Number(item.debt) || 0,
-          paid: Number(item.paid) || 0
-        }));
-        setStudents(mappedStudents);
-      }
-    } catch (err) {
-      // erreur : listes inchangées (vides au départ), jamais de finances fictives
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFinances();
-  }, [fetchFinances]);
+  const client = useQueryClient();
+  const depenses = useQuery({
+    queryKey: CLES_FINANCES.depenses,
+    queryFn: async () => {
+      const { data } = await apiClient.get<Brut[]>('/finance/expenses');
+      return Array.isArray(data) ? data.map(versDepense) : [];
+    },
+  });
+  const eleves = useQuery({
+    queryKey: CLES_FINANCES.eleves,
+    queryFn: async () => {
+      const { data } = await apiClient.get<Brut[]>('/finance/students');
+      return Array.isArray(data) ? data.map(versEleve) : [];
+    },
+  });
 
   /**
    * Enregistre la dépense côté serveur. La liste n'est mise à jour qu'avec la réponse du serveur ;
    * en cas d'échec l'erreur est propagée (l'écran reste inchangé et affiche le message).
    */
-  const addExpense = async (newExp: Omit<Expense, 'id'>): Promise<Expense> => {
-    const { data } = await apiClient.post('/finance/expenses', {
-      label: newExp.label,
-      category: newExp.category,
-      amount: newExp.amount,
-      date: newExp.date || new Date().toISOString()
-    });
-    if (!data || data.id == null) {
-      throw new Error("Le serveur n'a pas confirmé l'enregistrement de la dépense.");
-    }
-    const created: Expense = {
-      id: String(data.id),
-      label: data.label || data.description || newExp.label,
-      category: typeof data.category === 'object' && data.category ? data.category.value : (data.category || newExp.category),
-      amount: data.amount != null ? Number(data.amount) : newExp.amount,
-      date: String(data.date || newExp.date).substring(0, 10)
-    };
-    setExpenses(prev => [created, ...prev]);
-    return created;
-  };
+  const ajout = useMutation({
+    mutationFn: async (newExp: Omit<Expense, 'id'>): Promise<Expense> => {
+      const { data } = await apiClient.post('/finance/expenses', {
+        label: newExp.label,
+        category: newExp.category,
+        amount: newExp.amount,
+        // Le serveur attend une date-heure : la date seule du champ « date » (AAAA-MM-JJ) était refusée (400),
+        // aucune dépense ne pouvait être saisie depuis l'écran.
+        date: /^\d{4}-\d{2}-\d{2}$/.test(newExp.date ?? '') ? `${newExp.date}T00:00:00` : (newExp.date || new Date().toISOString()),
+      });
+      if (!data || data.id == null) {
+        throw new Error("Le serveur n'a pas confirmé l'enregistrement de la dépense.");
+      }
+      return versDepense({ ...data, label: data.label || data.description || newExp.label,
+        category: data.category ?? newExp.category, amount: data.amount ?? newExp.amount, date: data.date || newExp.date }, 0);
+    },
+    onSuccess: (creee) => client.setQueryData<Expense[]>(CLES_FINANCES.depenses, (avant = []) => [creee, ...avant]),
+  });
 
+  const erreur = depenses.error ?? eleves.error;
   return {
-    students,
-    setStudents,
-    expenses,
-    setExpenses,
-    loading,
-    addExpense,
-    refetch: fetchFinances
+    students: eleves.data ?? [],
+    expenses: depenses.data ?? [],
+    loading: depenses.isLoading || eleves.isLoading,
+    error: erreur ? resolveErrorMessage(erreur) : null,
+    addExpense: ajout.mutateAsync,
+    refetch: () => Promise.all([depenses.refetch(), eleves.refetch()]),
   };
 }

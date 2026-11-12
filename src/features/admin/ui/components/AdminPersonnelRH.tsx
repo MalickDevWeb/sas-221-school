@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PersonnelSubSidebar } from './personnel/PersonnelSubSidebar';
 import { AccountsTab } from './personnel/AccountsTab';
 import { RbacTab } from './personnel/RbacTab';
@@ -8,10 +9,12 @@ import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/Tablet
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
+/** Clé de cache du personnel de l'école. */
+const CLE_PERSONNEL = ['admin', 'personnel'] as const;
+
 export function AdminPersonnelRH() {
   const [activeTab, setActiveTab] = useState('accounts');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [staff, setStaff] = useState<StaffMember[]>([]);   // personnel réel uniquement
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -19,17 +22,18 @@ export function AdminPersonnelRH() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  useEffect(() => {
-    async function loadStaff() {
-      try {
-        const res = await apiClient.get('/admin/staff');
-        setStaff(Array.isArray(res.data) ? res.data : []);   // jamais de personnel inventé
-      } catch (err) {
-        showToast(resolveErrorMessage(err), false);
-      }
-    }
-    loadStaff();
-  }, []);
+  // Personnel réel uniquement, mis en cache (React Query, APP-FE-02) ; jamais de personnel inventé
+  const client = useQueryClient();
+  const personnel = useQuery({
+    queryKey: CLE_PERSONNEL,
+    queryFn: async () => {
+      const res = await apiClient.get('/admin/staff');
+      return (Array.isArray(res.data) ? res.data : []) as StaffMember[];
+    },
+  });
+  const staff = personnel.data ?? [];
+  const setStaff = (maj: (avant: StaffMember[]) => StaffMember[]) =>
+    client.setQueryData<StaffMember[]>(CLE_PERSONNEL, (avant = []) => maj(avant));
 
   /** Création réelle : le collaborateur n'apparaît qu'avec la réponse du serveur (mot de passe provisoire inclus s'il a été généré). */
   const handleAddStaff = async (newMember: { firstName: string; lastName: string; email: string; phone: string; role: string }) => {
@@ -103,6 +107,12 @@ export function AdminPersonnelRH() {
             <span translate="no" className="material-symbols-outlined text-sm">{toast.success ? 'check_circle' : 'error'}</span>
             <span>{toast.message}</span>
           </div>
+        )}
+
+        {personnel.error && (
+          <p role="alert" id="personnel-erreur" className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+            La liste du personnel n'a pas pu être chargée : {resolveErrorMessage(personnel.error)}
+          </p>
         )}
 
         {activeTab === 'accounts' && (

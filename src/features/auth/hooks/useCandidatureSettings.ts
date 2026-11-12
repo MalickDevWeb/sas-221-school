@@ -1,10 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
-
-// Cache module-level : toutes les vues de login (Mobile/Tablet/Desktop) partagent une seule requête
-let _cache: { data: CandidatureSettings; ts: number } | null = null;
-let _pending: Promise<CandidatureSettings> | null = null;
-const CACHE_TTL_MS = 30_000; // 30 secondes
 
 export interface CandidatureSettings {
   ouvert: boolean;
@@ -20,78 +15,54 @@ export interface CandidatureSettings {
   };
 }
 
+/** Clé de cache des paramètres de candidature de l'école (React Query, APP-FE-02). */
+export const CLE_PARAMETRES_CANDIDATURE = ['candidatures', 'parametres'] as const;
+
+// Avant la réponse du serveur (ou s'il est injoignable) : FERMÉ et sans date — jamais de campagne
+// « ouverte » ni de dates inventées (avant : ouvert, 01/06 → 30/09/2026, « campagne officielle active »).
+const FERME: CandidatureSettings = { ouvert: false, dateOuverture: '', dateFermeture: '', messageAvis: '', showRegisterButton: false };
+
+/**
+ * Paramètres de candidature (React Query) : une seule requête partagée par toutes les vues (connexion mobile,
+ * tablette, bureau ; portail ; administration), remplace le cache fait main.
+ * Avant : la sauvegarde affichait la nouvelle valeur AVANT la réponse du serveur et avalait tout refus
+ * (Promise.allSettled), dont un appel à une route inexistante (/admin/candidatures/settings).
+ */
 export function useCandidatureSettings() {
-  // Avant la réponse du serveur (ou s'il est injoignable) : FERMÉ et sans date — jamais de campagne
-  // « ouverte » ni de dates inventées (avant : ouvert, 01/06 → 30/09/2026, « campagne officielle active »).
-  const [settings, setSettings] = useState<CandidatureSettings>({
-    ouvert: false,
-    dateOuverture: '',
-    dateFermeture: '',
-    messageAvis: '',
-    showRegisterButton: false
+  const client = useQueryClient();
+  const requete = useQuery({
+    queryKey: CLE_PARAMETRES_CANDIDATURE,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data } = await apiClient.get<CandidatureSettings>('/candidatures/settings');
+      return { ...FERME, ...data, showRegisterButton: data?.showRegisterButton !== false };
+    },
   });
-  const [loading, setLoading] = useState(true);
+  const settings = requete.data ?? FERME;
 
-  const fetchSettings = async () => {
-    // Cache encore valide ?
-    if (_cache && Date.now() - _cache.ts < CACHE_TTL_MS) {
-      setSettings({ ..._cache.data, showRegisterButton: _cache.data.showRegisterButton !== false });
-      setLoading(false);
-      return;
-    }
-    // Requête déjà en cours ? → on attend la même
-    if (!_pending) {
-      _pending = apiClient.get('/candidatures/settings')
-        .then(r => r.data as CandidatureSettings)
-        .catch((err: any) => {
-          const status = err.response?.status;
-          const isOffline = !err.response || (status === 500 && String(err.response?.data).includes('proxy'));
-          if (!isOffline) console.error('Erreur de chargement des paramètres:', err);
-          return null as any;
-        })
-        .finally(() => { _pending = null; });
-    }
-    try {
-      const data = await _pending;
-      if (data) {
-        _cache = { data, ts: Date.now() };
-        setSettings({ ...data, showRegisterButton: data.showRegisterButton !== false });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateSettings = async (next: Partial<CandidatureSettings>) => {
-    const updated = { ...settings, ...next };
-    setSettings(updated);
-    _cache = { data: updated, ts: Date.now() };
-    try {
-      await Promise.allSettled([
-        apiClient.post('/admin/candidatures/settings', { ...updated, enabled: updated.ouvert }),
-        apiClient.post('/candidatures/settings', updated)
-      ]);
-    } catch (err) {
-      console.error('Erreur de sauvegarde des paramètres:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const sauvegarde = useMutation({
+    mutationFn: async (next: Partial<CandidatureSettings>) => {
+      const { data } = await apiClient.post('/candidatures/settings', { ...settings, ...next });
+      return (data?.settings ?? { ...settings, ...next }) as CandidatureSettings;
+    },
+    onSuccess: (enregistres) => client.setQueryData(CLE_PARAMETRES_CANDIDATURE,
+      { ...FERME, ...enregistres, showRegisterButton: enregistres.showRegisterButton !== false }),
+  });
 
   const todayStr = new Date().toISOString().split('T')[0];
   const isPeriodStarted = !settings.dateOuverture || todayStr >= settings.dateOuverture;
-  const isPeriodEnded = settings.dateFermeture && todayStr > settings.dateFermeture;
+  const isPeriodEnded = Boolean(settings.dateFermeture) && todayStr > settings.dateFermeture;
   const isCampaignActive = settings.ouvert && isPeriodStarted && !isPeriodEnded;
 
   return {
     settings,
-    loading,
+    loading: requete.isLoading,
     isCampaignActive,
     isPeriodStarted,
     isPeriodEnded,
-    fetchSettings,
-    updateSettings
+    fetchSettings: requete.refetch,
+    /** Enregistre côté serveur ; lève l'erreur en cas de refus (l'affichage n'est mis à jour qu'en cas de succès). */
+    updateSettings: sauvegarde.mutateAsync,
+    savingSettings: sauvegarde.isPending,
   };
 }

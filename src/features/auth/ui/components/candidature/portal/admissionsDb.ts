@@ -1,4 +1,4 @@
-import { publicApiClient } from '@/shared/lib/apiClient';
+import { apiClient } from '@/shared/lib/apiClient';
 import { ExtendedCandidate } from "@/features/admin/domain/AdmissionsExtendedModels";
 import { Campaign, AuditLog, Message } from "./admissionsTypes";
 export * from "./admissionsTypes";
@@ -25,9 +25,14 @@ export function getAdmissionsDb() {
   };
 }
 
+/**
+ * Données d'admission de l'école, réservées à l'administration (décision APP-TL-10).
+ * Avant : lues et écrites avec le client PUBLIC (sans jeton) → 401 systématique, avalé en silence : l'écran ne
+ * montrait que le stockage du navigateur et aucune campagne créée ici n'atteignait le serveur ni le portail.
+ */
 export async function syncAdmissionsWithBackend() {
   try {
-    const { data } = await publicApiClient.get("/admissions/db");
+    const { data } = await apiClient.get("/admissions/db");
     if (data) {
       if (data.candidates && data.candidates.length > 0) {
         localStorage.setItem("e221_candidates", JSON.stringify(data.candidates));
@@ -42,25 +47,25 @@ export async function syncAdmissionsWithBackend() {
   }
 }
 
-export function saveAdmissionsDb(data: {
+/**
+ * Enregistre côté serveur PUIS met à jour le stockage du navigateur : en cas de refus, rien n'est modifié
+ * localement et l'erreur est propagée (l'écran l'affiche au lieu d'annoncer un succès).
+ */
+export async function saveAdmissionsDb(data: {
   candidates?: ExtendedCandidate[];
   campaigns?: Campaign[];
   auditLogs?: AuditLog[];
   messages?: Message[];
-}) {
-  const updates: Record<string, any> = {};
-
-  if (data.candidates) { localStorage.setItem("e221_candidates", JSON.stringify(data.candidates)); updates.candidates = data.candidates; }
-  if (data.campaigns)  { localStorage.setItem("e221_campaigns",  JSON.stringify(data.campaigns));  updates.campaigns  = data.campaigns;  }
-  if (data.auditLogs)  { localStorage.setItem("e221_audit_logs", JSON.stringify(data.auditLogs));  updates.auditLogs  = data.auditLogs;  }
-  if (data.messages)   { localStorage.setItem("e221_messages",   JSON.stringify(data.messages));   updates.messages   = data.messages;   }
-
-  publicApiClient.post("/admissions/db", updates).catch((err) =>
-    console.warn("Failed to push updates to backend (offline):", err)
-  );
+}): Promise<void> {
+  await apiClient.post("/admissions/db", data);
+  if (data.candidates) localStorage.setItem("e221_candidates", JSON.stringify(data.candidates));
+  if (data.campaigns)  localStorage.setItem("e221_campaigns",  JSON.stringify(data.campaigns));
+  if (data.auditLogs)  localStorage.setItem("e221_audit_logs", JSON.stringify(data.auditLogs));
+  if (data.messages)   localStorage.setItem("e221_messages",   JSON.stringify(data.messages));
+  window.dispatchEvent(new Event("admissions_db_synced"));
 }
 
-export function addAuditLog(candidateId: string, action: string, user: string) {
+export function addAuditLog(candidateId: string, action: string, user: string): Promise<void> {
   const db = getAdmissionsDb();
   const newLog: AuditLog = {
     id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -69,5 +74,5 @@ export function addAuditLog(candidateId: string, action: string, user: string) {
     timestamp: new Date().toISOString(),
     user
   };
-  saveAdmissionsDb({ auditLogs: [newLog, ...db.auditLogs] });
+  return saveAdmissionsDb({ auditLogs: [newLog, ...db.auditLogs] });
 }

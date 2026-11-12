@@ -1,38 +1,29 @@
-import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
-interface Props {
-  onTriggerRelances: () => void;
-  onTriggerBlocage: () => void;
-}
-
-export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
-  const [runningCampaign, setRunningCampaign] = useState<string | null>(null);
-  const [campaignProgress, setCampaignProgress] = useState(0);
-
-  const launchCampaign = (name: string, callback: () => void) => {
-    setRunningCampaign(name);
-    setCampaignProgress(0);
-    const interval = setInterval(() => {
-      setCampaignProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            callback();
-            setRunningCampaign(null);
-          }, 800);
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 200);
-  };
+/**
+ * Recouvrement : relances et blocage des débiteurs.
+ * Avant : barre de progression simulée puis « 42 SMS/WhatsApp envoyés » et « élèves débiteurs bloqués aux
+ * portiques », alors qu'aucun appel au serveur n'était fait (et 5 000 FCFA de dette étaient ajoutés à l'écran).
+ * Maintenant : la vraie route est appelée et sa réponse est affichée telle quelle (aujourd'hui : non disponible,
+ * faute d'échéancier et de solde par élève enregistrés).
+ */
+export function AutomationTab() {
+  const action = useMutation({
+    mutationFn: async (route: '/finance/payment-reminders' | '/finance/block-debtors') => {
+      const { data } = await apiClient.post(route);
+      return typeof data?.message === 'string' ? data.message : 'Action effectuée par le serveur.';
+    },
+  });
+  const resultat = action.isSuccess ? action.data : action.isError ? resolveErrorMessage(action.error) : null;
 
   return (
     <div className="space-y-6 text-xs font-bold text-[#4A5568]" id="automation-tab-root">
       <div className="pb-2 border-b border-neutral-100">
-        <h3 className="font-extrabold text-sm text-[#1E293B]">Planificateur & Recouvrement Automatique</h3>
+        <h3 className="font-extrabold text-sm text-[#1E293B]">Recouvrement</h3>
         <p className="text-[10px] text-neutral-400 font-semibold">
-          Gérez l'échéancier réglementaire de l'école de manière automatisée pour optimiser la trésorerie.
+          Relances des familles en retard de paiement et suspension de l'accès des débiteurs.
         </p>
       </div>
 
@@ -40,48 +31,46 @@ export function AutomationTab({ onTriggerRelances, onTriggerBlocage }: Props) {
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">sms</span>
-            <span className="text-[10px] font-black uppercase tracking-wider">Étape 1 : Campagne de Relances (Le 1er du mois)</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Relances de paiement</span>
           </div>
           <p className="text-[10px] text-neutral-400 font-semibold leading-normal">
-            Envoie instantanément un SMS et un message WhatsApp personnalisés à tous les parents d'élèves accusant un retard de scolarité.
+            Envoie un rappel aux familles des élèves en retard de paiement.
           </p>
           <button
-            onClick={() => launchCampaign('Envoi des Relances SMS/WhatsApp', onTriggerRelances)}
-            disabled={runningCampaign !== null}
+            type="button"
+            onClick={() => action.mutate('/finance/payment-reminders')}
+            disabled={action.isPending}
             className="w-full py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
           >
-            Déclencher la Campagne du 1er
+            Envoyer les relances
           </button>
         </div>
 
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">no_accounts</span>
-            <span className="text-[10px] font-black uppercase tracking-wider">Étape 2 : Suspension de l'accès (Le 5 du mois)</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Suspension de l'accès</span>
           </div>
           <p className="text-[10px] text-neutral-400 font-semibold leading-normal">
-            Verrouille automatiquement le QR Code d'accès aux portiques pour tous les élèves restés en situation d'impayé au-delà de la date limite.
+            Suspend le QR code d'accès des élèves restés en situation d'impayé.
           </p>
           <button
-            onClick={() => launchCampaign('Verrouillage des QR Codes Débiteurs', onTriggerBlocage)}
-            disabled={runningCampaign !== null}
+            type="button"
+            onClick={() => action.mutate('/finance/block-debtors')}
+            disabled={action.isPending}
             className="w-full py-2.5 bg-primary hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
           >
-            Appliquer les Blocages du 5
+            Suspendre les débiteurs
           </button>
         </div>
       </div>
 
-      {runningCampaign && (
-        <div className="bg-white border border-neutral-200 p-4 rounded-xl space-y-2 animate-pulse shadow-xs">
-          <div className="flex justify-between text-[10px] font-black text-[#1E293B] uppercase">
-            <span>Action en cours : {runningCampaign}...</span>
-            <span>{campaignProgress}%</span>
-          </div>
-          <div className="w-full bg-neutral-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-primary h-full transition-all duration-200" style={{ width: `${campaignProgress}%` }} />
-          </div>
-        </div>
+      {action.isPending && <p role="status" className="text-[11px] text-neutral-500">Envoi de la demande au serveur…</p>}
+      {resultat && (
+        <p role={action.isError ? 'alert' : 'status'} id="recouvrement-resultat"
+          className={`p-3 rounded-xl border text-[11px] ${action.isError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+          {resultat}
+        </p>
       )}
     </div>
   );

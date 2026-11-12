@@ -2,7 +2,7 @@ import React from 'react';
 import { useStudentDocuments } from './useStudentDocuments';
 
 export function CoffreSubTab({ studentId }: { studentId: string }) {
-  const { docs, loading, uploading, uploadFile } = useStudentDocuments(studentId);
+  const { docs, loading, uploading, uploadFile, error } = useStudentDocuments(studentId);
 
   return (
     <div className="space-y-3 text-xs" id="coffre-sub-tab">
@@ -34,6 +34,7 @@ export function CoffreSubTab({ studentId }: { studentId: string }) {
         </label>
       </div>
 
+      {error && <p role="alert" id="coffre-erreur" className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold">{error}</p>}
       {uploading && (
         <div className="text-center py-1.5 text-[9px] text-neutral-500 font-bold animate-pulse">
           ⏳ Téléversement Cloudinary...

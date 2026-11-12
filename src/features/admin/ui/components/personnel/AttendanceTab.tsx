@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AttendanceRecord, StaffMember } from '../../../domain/PersonnelModels';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
@@ -25,28 +26,30 @@ export type NouveauPointage = {
   note: string;
 };
 
+/** Clé de cache des pointages du personnel. */
+const CLE_POINTAGES = ['admin', 'pointages'] as const;
+
 export function AttendanceTab({ onShowToast, staff = [] }: Props) {
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);   // pointages réels uniquement
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedStaff, setSelectedStaff] = useState<AttendanceRecord | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Tous' | 'À l\'heure' | 'En retard' | 'Absent'>('Tous');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const fetchAttendance = async () => {
-    setLoading(true);
-    try {
+  // Pointages réels uniquement, mis en cache (React Query, APP-FE-02). Avant : chargement manuel, sans
+  // dépendances déclarées (avertissement react-hooks/exhaustive-deps).
+  const client = useQueryClient();
+  const pointages = useQuery({
+    queryKey: CLE_POINTAGES,
+    queryFn: async () => {
       const res = await apiClient.get('/admin/attendance');
-      setRecords(Array.isArray(res.data) ? res.data : []);   // jamais de pointages inventés
-    } catch (err) {
-      // erreur : liste inchangée, jamais de pointages inventés
-      onShowToast?.(resolveErrorMessage(err), false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchAttendance(); }, []);
+      return (Array.isArray(res.data) ? res.data : []) as AttendanceRecord[];
+    },
+  });
+  const records = useMemo(() => pointages.data ?? [], [pointages.data]);
+  const loading = pointages.isFetching;
+  const fetchAttendance = () => { void pointages.refetch(); };
+  const setRecords = (maj: (avant: AttendanceRecord[]) => AttendanceRecord[]) =>
+    client.setQueryData<AttendanceRecord[]>(CLE_POINTAGES, (avant = []) => maj(avant));
 
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
@@ -106,6 +109,11 @@ export function AttendanceTab({ onShowToast, staff = [] }: Props) {
   return (
     <div className="space-y-4" id="attendance-tab-root">
       <AttendanceHeader loading={loading} onRefresh={fetchAttendance} onOpenAdd={() => setShowAddModal(true)} />
+      {pointages.error && (
+        <p role="alert" id="pointages-erreur" className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+          Les pointages n'ont pas pu être chargés : {resolveErrorMessage(pointages.error)}
+        </p>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
         <AttendanceTable
           records={filteredRecords}

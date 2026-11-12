@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
-import { messagerieParentsApi, type BoiteParents, type MessageParentEcole } from './api';
+import { messagerieParentsApi, useMessagesParents, type BoiteParents, type MessageParentEcole } from './api';
 
 const MESSAGE_MAX = 5000;
 
@@ -23,25 +23,15 @@ function racine(m: MessageParentEcole, parId: Map<string, MessageParentEcole>): 
  * et par l'administration (boîte partagée par les administrateurs de l'école).
  */
 export function BoiteMessagesParents({ boite, titre, description }: { boite: BoiteParents; titre: string; description: string }) {
-  const [messages, setMessages] = useState<MessageParentEcole[] | null>(null);
-  const [erreur, setErreur] = useState('');
+  const boiteQ = useMessagesParents(boite);
+  const messages = boiteQ.data ?? null;
+  const [erreurAction, setErreur] = useState('');
+  const erreur = boiteQ.error ? resolveErrorMessage(boiteQ.error) : erreurAction;
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [reponse, setReponse] = useState('');
   const [erreurReponse, setErreurReponse] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [envoi, setEnvoi] = useState(false);
-
-  const charger = useCallback(async () => {
-    try {
-      setMessages(await messagerieParentsApi.lister(boite));
-      setErreur('');
-    } catch (e) {
-      setMessages([]);
-      setErreur(resolveErrorMessage(e));
-    }
-  }, [boite]);
-
-  useEffect(() => { void charger(); }, [charger]);
 
   const fils = useMemo(() => {
     const liste = messages ?? [];
@@ -66,7 +56,7 @@ export function BoiteMessagesParents({ boite, titre, description }: { boite: Boi
       if (!m.lu) {
         try {
           const maj = await messagerieParentsApi.marquerLu(boite, m.id);
-          setMessages((prev) => (prev ?? []).map((x) => (x.id === maj.id ? maj : x)));
+          boiteQ.remplacer(maj);
         } catch (e) {
           setErreur(resolveErrorMessage(e));
         }
@@ -86,7 +76,7 @@ export function BoiteMessagesParents({ boite, titre, description }: { boite: Boi
       const r = await messagerieParentsApi.repondre(boite, dernierDuParent.id, texte);
       setReponse('');
       setConfirmation(`Réponse envoyée à ${r.parent ?? 'au parent'}.`);
-      await charger();
+      await boiteQ.recharger();
     } catch (err) {
       setErreurReponse(resolveErrorMessage(err));
     } finally {
@@ -111,7 +101,8 @@ export function BoiteMessagesParents({ boite, titre, description }: { boite: Boi
       {erreur && <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold">{erreur}</div>}
 
       {messages === null ? (
-        <p className="text-sm text-neutral-500">Chargement des messages…</p>
+        // Échec de chargement : seul le message d'erreur s'affiche (avant : « Aucun message », trompeur)
+        boiteQ.error ? null : <p className="text-sm text-neutral-500">Chargement des messages…</p>
       ) : fils.length === 0 ? (
         <div className="p-8 text-center bg-white rounded-2xl border border-neutral-100">
           <p className="text-sm font-black text-neutral-700">Aucun message de parent pour le moment.</p>

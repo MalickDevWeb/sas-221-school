@@ -4,7 +4,8 @@ import { toneOf, useReferentiel } from '@/features/referentiels';
 
 interface Props {
   expenses: Expense[];
-  onAddExpense: (exp: Omit<Expense, 'id'>) => void;
+  /** Renvoie false si le serveur a refusé (la saisie est alors conservée). */
+  onAddExpense: (exp: Omit<Expense, 'id'>) => Promise<boolean> | void;
 }
 
 export function DepensesTab({ expenses, onAddExpense }: Props) {
@@ -14,16 +15,17 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
   const categories = useReferentiel('expense-category');
   const selectedCategory = categories.find(form.category) ? form.category : categories.values[0]?.code ?? '';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.label || !form.amount || !form.date || !selectedCategory) return;
-    onAddExpense({
+    const enregistree = await onAddExpense({
       label: form.label,
       category: selectedCategory,
       amount: Number(form.amount),
       date: form.date,
     });
-    setForm({ label: '', category: 'RH', amount: '', date: '' });
+    // Formulaire vidé seulement si le serveur a enregistré (avant : vidé même en cas d'échec, saisie perdue)
+    if (enregistree !== false) setForm({ label: '', category: 'RH', amount: '', date: '' });
   };
 
   const sortedExpenses = [...expenses].sort((a, b) => {

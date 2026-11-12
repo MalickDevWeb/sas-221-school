@@ -12,7 +12,7 @@ import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/Tablet
 export function AdminFinanceDashboard() {
   const [activeTab, setActiveTab] = useState('ecolages');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { students, setStudents, expenses, addExpense, loading } = useAdminFinances();
+  const { students, expenses, addExpense, error } = useAdminFinances();
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -24,24 +24,15 @@ export function AdminFinanceDashboard() {
     try {
       const created = await addExpense(newExp);
       showToast(`Dépense de ${created.amount.toLocaleString('fr-FR')} FCFA enregistrée.`, true);
+      return true;
     } catch (err) {
-      showToast(err instanceof Error && !(err as any).isAxiosError ? err.message : resolveErrorMessage(err), false);
+      showToast(err instanceof Error && !(err as { isAxiosError?: boolean }).isAxiosError ? err.message : resolveErrorMessage(err), false);
+      return false;
     }
   };
 
   const handleToggleStudentStatus = (id: string) => {
     // Optional toggler
-  };
-
-  const handleTriggerRelances = () => {
-    showToast('Simulation lancée : 42 SMS/WhatsApp de relance personnalisés envoyés aux retardataires.', true);
-  };
-
-  const handleTriggerBlocage = () => {
-    setStudents(
-      students.map((s) => (s.status === 'En Retard' ? { ...s, status: 'En Retard', debt: s.debt + 5000 } : s))
-    );
-    showToast("Alerte Sécurité : Tous les élèves débiteurs sont bloqués aux portiques d'accès ! QR Codes désactivés.", false);
   };
 
   return (
@@ -71,6 +62,12 @@ export function AdminFinanceDashboard() {
           </div>
         )}
 
+        {error && (
+          <p role="alert" id="finances-erreur" className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+            Les données financières n'ont pas pu être chargées : {error}
+          </p>
+        )}
+
         {activeTab === 'ecolages' && (
           <EcolagesTab students={students} onToggleStatus={handleToggleStudentStatus} />
         )}
@@ -82,10 +79,7 @@ export function AdminFinanceDashboard() {
         {activeTab === 'reports' && <ReportsTab />}
 
         {activeTab === 'recovery' && (
-          <AutomationTab
-            onTriggerRelances={handleTriggerRelances}
-            onTriggerBlocage={handleTriggerBlocage}
-          />
+          <AutomationTab />
         )}
       </div>
     </div>

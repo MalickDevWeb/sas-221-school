@@ -5,8 +5,7 @@ import { ValidationKanbanTab } from './admissions/ValidationKanbanTab';
 import { MatriculationTab } from './admissions/MatriculationTab';
 import { AdmissionsRulesEngine } from './admissions/AdmissionsRulesEngine';
 import { ExtendedCandidate } from '../../domain/AdmissionsExtendedModels';
-import { getAdmissionsDb } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
-import { publicApiClient } from '@/shared/lib/apiClient';
+import { getAdmissionsDb, saveAdmissionsDb } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
@@ -35,8 +34,8 @@ export function AdminAdmissionsKanban() {
   /** Enregistre la liste côté serveur ; l'écran n'est mis à jour qu'après réponse 2xx. */
   const persistCandidates = async (nextList: ExtendedCandidate[]): Promise<boolean> => {
     try {
-      await publicApiClient.post('/admissions/db', { candidates: nextList });
-      localStorage.setItem('e221_candidates', JSON.stringify(nextList));
+      // Client authentifié (avant : client public sans jeton → 401 à chaque décision, route réservée à l'administration)
+      await saveAdmissionsDb({ candidates: nextList });
       setCandidates(nextList);
       return true;
     } catch (err) {

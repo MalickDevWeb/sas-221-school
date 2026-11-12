@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { apiClient } from '@/shared/lib/apiClient';
@@ -33,6 +34,10 @@ export function EnrollTransferStudentModal({ isOpen, onClose, onSuccess }: Props
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<Saisie>({
     resolver: zodResolver(schemaInscription), defaultValues: { studentId: '' }, mode: 'onTouched',
   });
+  const inscription = useMutation({
+    mutationFn: ({ studentId, organizationId }: { studentId: string; organizationId: string }) =>
+      apiClient.post(`/platform/students/${encodeURIComponent(studentId)}/enroll`, { organizationId }),
+  });
 
   if (!isOpen) return null;
 
@@ -44,7 +49,7 @@ export function EnrollTransferStudentModal({ isOpen, onClose, onSuccess }: Props
       return;
     }
     try {
-      await apiClient.post(`/platform/students/${encodeURIComponent(studentId.trim())}/enroll`, { organizationId: currentTenant.id });
+      await inscription.mutateAsync({ studentId: studentId.trim(), organizationId: currentTenant.id });
       onSuccess();
       onClose();
     } catch (err) {
