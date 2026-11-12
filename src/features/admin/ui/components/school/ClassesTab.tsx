@@ -9,7 +9,8 @@ interface Props {
   filieres: Filiere[];
   slots?: PlanningSlot[];
   students?: Student[];
-  onUpdateClasses: (classes: Classe[]) => void;
+  /** Renvoie le message d'erreur du serveur (null si enregistré). */
+  onUpdateClasses: (classes: Classe[]) => Promise<string | null> | void;
 }
 
 export function ClassesTab({ classes, filieres, slots = [], students = [], onUpdateClasses }: Props) {
@@ -21,13 +22,13 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
   const safeClasses = Array.isArray(classes) ? classes : [];
   const safeFilieres = Array.isArray(filieres) ? filieres : [];
 
-  const handleSave = (saved: Classe) => {
-    if (activeClasseForEdit) {
-      onUpdateClasses(safeClasses.map(c => c.id === saved.id ? saved : c));
-    } else {
-      onUpdateClasses([...safeClasses, saved]);
-    }
-    setActiveClasseForEdit(undefined);
+  /** La fenêtre ne se ferme qu'une fois la classe enregistrée par le serveur ; sinon elle garde la saisie. */
+  const handleSave = async (saved: Classe): Promise<string | null> => {
+    const erreur = await onUpdateClasses(activeClasseForEdit
+      ? safeClasses.map(c => c.id === saved.id ? saved : c)
+      : [...safeClasses, saved]);
+    if (!erreur) setActiveClasseForEdit(undefined);
+    return erreur ?? null;
   };
 
   const handleDelete = (id: string) => {
@@ -82,9 +83,10 @@ export function ClassesTab({ classes, filieres, slots = [], students = [], onUpd
             classe={activeClasseForEdit}
             filieres={safeFilieres}
             onClose={() => setActiveClasseForEdit(undefined)}
-            onSave={(saved) => {
-              handleSave(saved);
-              setActiveClasseFor360(saved);
+            onSave={async (saved) => {
+              const erreur = await handleSave(saved);
+              if (!erreur) setActiveClasseFor360(saved);
+              return erreur;
             }}
             onDelete={(id) => {
               handleDelete(id);

@@ -109,15 +109,18 @@ export function useAdminSchoolState() {
   }, [loadData]);
 
   /** Enregistre la liste complète ; en cas d'échec, signale l'erreur et recharge l'état réel du serveur. */
-  const enregistrer = async (chemin: string, liste: unknown[], quoi: string) => {
+  /** Renvoie null si le serveur a enregistré, sinon le message d'erreur (la liste est alors rechargée). */
+  const enregistrer = async (chemin: string, liste: unknown[], quoi: string): Promise<string | null> => {
     try {
       await apiClient.put(`/admin/planning/${chemin}`, liste);
       setError(null);
+      return null;
     } catch (err) {
       const msg = messageErreur(err, quoi);
       setError(msg);
       toast.error(msg);
       await loadData();
+      return msg;
     }
   };
 
@@ -145,7 +148,7 @@ export function useAdminSchoolState() {
 
   const updateClasses = async (newClasses: Classe[]) => {
     setClasses(newClasses);
-    await enregistrer('classes', newClasses, 'classes');
+    return enregistrer('classes', newClasses, 'classes');
   };
 
   const updateSlots = async (newSlots: PlanningSlot[]) => {
