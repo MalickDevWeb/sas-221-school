@@ -8,3 +8,4 @@ export const TenantLoginPage = lazy(() => import('@/features/auth/ui/pages/Tenan
 export const CandidaturePage = lazy(() => import('@/features/auth').then(m => ({ default: m.CandidaturePage })));
 export const SuperAdminLoginPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminLoginPage').then(m => ({ default: m.SuperAdminLoginPage })));
 export const AdminPortalLoginPage = lazy(() => import('@/features/admin/ui/pages/AdminPortalLoginPage').then(m => ({ default: m.AdminPortalLoginPage })));
+export const ReinitialiserMotDePassePage = lazy(() => import('@/features/auth/ui/pages/ReinitialiserMotDePassePage').then(m => ({ default: m.ReinitialiserMotDePassePage })));

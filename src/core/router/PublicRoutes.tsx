@@ -9,6 +9,7 @@ import {
   CandidaturePage,
   SuperAdminLoginPage,
   AdminPortalLoginPage,
+  ReinitialiserMotDePassePage,
 } from './PublicPages';
 
 export function renderPublicRoutes() {
@@ -20,6 +21,8 @@ export function renderPublicRoutes() {
       <Route path="/register-school" element={<SchoolRegistrationPage />} />
       <Route path="/inscription-ecole" element={<SchoolRegistrationPage />} />
       <Route path="/t/:tenantSlug/login" element={<TenantLoginPage />} />
+      <Route path="/t/:tenantSlug/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePassePage />} />
+      <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePassePage />} />
       <Route path="/t/:tenantSlug" element={<TenantLoginPage />} />
       <Route path="/ecole221" element={<TenantLoginPage />} />
       <Route path="/ecole-221" element={<TenantLoginPage />} />
