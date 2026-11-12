@@ -570,10 +570,12 @@ export function ParentEnrollChildPage() {
         </div>
       )}
 
-      {/* Navigation */}
+      {/* Navigation. Les boutons ne prennent pas le focus à l'appui (onMouseDown) : sinon le champ quitté est
+          revalidé, son message disparaît, le bouton remonte sous le pointeur et le clic est perdu. */}
       <div className="flex items-center justify-between gap-4">
         <button
           type="button"
+          onMouseDown={e => e.preventDefault()}
           onClick={handleBack}
           disabled={step === 1}
           className="h-11 px-6 border border-neutral-200 rounded-xl text-xs font-black text-neutral-600 hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
@@ -584,6 +586,7 @@ export function ParentEnrollChildPage() {
         {step < STEPS.length ? (
           <button
             type="button"
+            onMouseDown={e => e.preventDefault()}
             onClick={() => void handleNext()}
             disabled={envoiEnCours}
             className="h-11 px-8 bg-primary hover:bg-[#0D47A1] active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
@@ -593,6 +596,7 @@ export function ParentEnrollChildPage() {
         ) : (
           <button
             type="submit"
+            onMouseDown={e => e.preventDefault()}
             disabled={loading || envoiEnCours}
             className="h-11 px-8 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-black shadow-md shadow-emerald-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >

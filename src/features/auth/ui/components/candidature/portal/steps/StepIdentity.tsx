@@ -1,18 +1,9 @@
-import React from 'react';
 import { motion } from 'motion/react';
-import { PersonalDetails } from '../admissionsTypes';
+import { Champ, ChoixBoutons, NavigationEtape } from './champs';
+import { inputCls, useChamp } from './champsCandidature';
 
-interface Props {
-  personal: PersonalDetails;
-  setPersonal: React.Dispatch<React.SetStateAction<PersonalDetails>>;
-  onNext: () => void;
-}
-
-export function StepIdentity({ personal, setPersonal, onNext }: Props) {
-  const isComplete = Boolean(
-    personal.firstName && personal.lastName && personal.phone && personal.email && personal.cniNumber
-  );
-
+export function StepIdentity({ onNext }: { onNext: () => void }) {
+  const champ = useChamp();
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
       <div>
@@ -21,71 +12,32 @@ export function StepIdentity({ personal, setPersonal, onNext }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Prénom(s) *</label>
-          <input required type="text" placeholder="Ex: Moussa" value={personal.firstName} onChange={e => setPersonal(p => ({ ...p, firstName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Nom de famille *</label>
-          <input required type="text" placeholder="Ex: Diop" value={personal.lastName} onChange={e => setPersonal(p => ({ ...p, lastName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
+        <Champ id="firstName" label="Prénom(s) *"><input type="text" placeholder="Ex: Moussa" className={inputCls} {...champ('firstName')} /></Champ>
+        <Champ id="lastName" label="Nom de famille *"><input type="text" placeholder="Ex: Diop" className={inputCls} {...champ('lastName')} /></Champ>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Genre</label>
-          <div className="flex gap-2">
-            {(['M', 'F'] as const).map(g => (
-              <button key={g} type="button" onClick={() => setPersonal(p => ({ ...p, gender: g }))} className={`flex-1 h-11 rounded-xl text-xs font-black transition-all border cursor-pointer ${personal.gender === g ? 'bg-primary text-white border-primary shadow-xs' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'}`}>
-                {g === 'M' ? 'Masculin' : 'Féminin'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Date de naissance</label>
-          <input type="date" value={personal.birthDate} onChange={e => setPersonal(p => ({ ...p, birthDate: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Lieu de naissance</label>
-          <input type="text" placeholder="Ex: Dakar" value={personal.birthPlace} onChange={e => setPersonal(p => ({ ...p, birthPlace: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
-        </div>
+        <Champ id="gender" label="Sexe *">
+          <ChoixBoutons id="gender" options={[{ valeur: 'M', libelle: 'Masculin' }, { valeur: 'F', libelle: 'Féminin' }]} />
+        </Champ>
+        <Champ id="birthDate" label="Date de naissance *"><input type="date" className={inputCls} {...champ('birthDate')} /></Champ>
+        <Champ id="birthPlace" label="Lieu de naissance *"><input type="text" placeholder="Ex: Dakar" className={inputCls} {...champ('birthPlace')} /></Champ>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Téléphone & WhatsApp *</label>
-          <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 focus-within:border-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 transition-all overflow-hidden h-11">
-            <div className="flex items-center gap-1.5 px-3 bg-neutral-100/80 border-r border-neutral-200 text-neutral-700 text-xs font-bold select-none shrink-0">
-              <span className="text-sm">🇸🇳</span>
-              <span className="font-mono font-bold text-neutral-800">+221</span>
-            </div>
-            <input required type="tel" placeholder="77 123 45 67" value={personal.phone} onChange={e => setPersonal(p => ({ ...p, phone: e.target.value }))} className="w-full h-full px-3.5 bg-transparent text-xs font-semibold text-neutral-800 placeholder-neutral-400 outline-none" />
-          </div>
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Email personnel *</label>
-          <input required type="email" placeholder="moussa.diop@gmail.com" value={personal.email} onChange={e => setPersonal(p => ({ ...p, email: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
+        <Champ id="phone" label="Téléphone & WhatsApp *"><input type="tel" placeholder="77 123 45 67" className={inputCls} {...champ('phone')} /></Champ>
+        <Champ id="email" label="Email personnel *"><input type="email" placeholder="moussa.diop@gmail.com" className={inputCls} {...champ('email')} /></Champ>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">N° CNI (NIN) ou Passeport *</label>
-          <input required type="text" placeholder="Ex: 1 751 2005 02841" value={personal.cniNumber} onChange={e => setPersonal(p => ({ ...p, cniNumber: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold font-mono text-neutral-800 outline-none" />
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Ville & Quartier de résidence</label>
-          <input type="text" placeholder="Ex: Sacré-Cœur 3, Dakar" value={personal.address} onChange={e => setPersonal(p => ({ ...p, address: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 rounded-xl text-xs font-semibold text-neutral-800 outline-none" />
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Champ id="cniNumber" label="N° CNI (NIN) ou Passeport *">
+          <input type="text" placeholder="Ex: 1 751 2005 02841" className={`${inputCls} font-mono`} {...champ('cniNumber')} />
+        </Champ>
+        <Champ id="nationality" label="Nationalité"><input type="text" placeholder="Ex: Sénégalaise" className={inputCls} {...champ('nationality')} /></Champ>
+        <Champ id="address" label="Ville & Quartier de résidence"><input type="text" placeholder="Ex: Sacré-Cœur 3, Dakar" className={inputCls} {...champ('address')} /></Champ>
       </div>
 
-      <div className="pt-3 border-t border-neutral-100 flex justify-end">
-        <button disabled={!isComplete} onClick={onNext} className="h-11 px-6 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer">
-          <span>Suivant : Tuteur / Garant</span>
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>
-        </button>
-      </div>
+      <NavigationEtape onNext={onNext} libelleSuivant="Suivant : Tuteur / Garant" />
     </motion.div>
   );
 }

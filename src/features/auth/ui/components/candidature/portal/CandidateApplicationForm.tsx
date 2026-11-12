@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { FormProvider } from 'react-hook-form';
 import { useTenantStore } from '@/core/store/tenantStore';
 import type { Campaign } from './admissionsTypes';
 import type { DossierCandidat } from './suiviApi';
@@ -27,10 +28,8 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
   });
 
   const {
-    step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress, simulateDocUpload, removeDoc,
-    payment, declarePayment, credentials, setCredentials,
-    error, isSubmitting, handleFinalSubmit
+    form, step, suivant, precedent, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress, simulateDocUpload, removeDoc,
+    payment, declarePayment, error, isSubmitting, handleFinalSubmit
   } = state;
 
   const stepLabels = ['Identité', 'Garant', 'Cursus', 'Documents', 'Frais', 'Compte'];
@@ -44,7 +43,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in" id="candidature-form-wizard">
+    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in" id="candidature-form-wizard" data-validation-externe>
       {/* Top Breadcrumb & Progress */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-2xs">
         <div className="flex items-center gap-2">
@@ -52,7 +51,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
             <span translate="no" className="material-symbols-outlined text-base">arrow_back</span>
           </button>
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-primary">{campaign.code} · Inscription 2026</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-primary">{campaign.code} · Candidature</span>
             <h2 className="text-sm font-black text-neutral-900 leading-tight">{campaign.title}</h2>
           </div>
         </div>
@@ -70,10 +69,11 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
         <div className="lg:col-span-4 space-y-4">
           <div className="bg-white p-5 rounded-3xl border border-neutral-200/80 shadow-2xs space-y-4">
             <div className="flex items-center gap-3">
-              <img src={campaign.imageUrl} alt={campaign.title} className="w-12 h-12 rounded-xl object-cover" />
+              {campaign.imageUrl && <img src={campaign.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" />}
               <div>
                 <h4 className="text-xs font-black text-neutral-900 leading-snug">{campaign.title}</h4>
-                <span className="text-[10px] text-neutral-500 font-medium">Session {campaign.intake || 'Octobre 2026'}</span>
+                {/* Session de la campagne uniquement (avant : « Octobre 2026 » inventé par défaut) */}
+                {campaign.intake && <span className="text-[10px] text-neutral-500 font-medium">Session {campaign.intake}</span>}
               </div>
             </div>
 
@@ -104,14 +104,19 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
 
         {/* Right Dynamic Form Container */}
         <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200/80 shadow-xs">
+          <FormProvider {...form}>
           <AnimatePresence mode="wait">
-            {step === 1 && <StepIdentity key="step1" personal={personal} setPersonal={setPersonal} onNext={() => setStep(2)} />}
-            {step === 2 && <StepGuardian key="step2" guardian={guardian} setGuardian={setGuardian} onNext={() => setStep(3)} onPrev={() => setStep(1)} />}
-            {step === 3 && <StepAcademic key="step3" academic={academic} setAcademic={setAcademic} onNext={() => setStep(4)} onPrev={() => setStep(2)} />}
-            {step === 4 && <StepDocuments key="step4" docs={docs} docErrors={docErrors} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => setStep(5)} onPrev={() => setStep(3)} />}
-            {step === 5 && <StepPayment key="step5" payment={payment} declarePayment={declarePayment} onNext={() => setStep(6)} onPrev={() => setStep(4)} />}
-            {step === 6 && <StepAccount key="step6" credentials={credentials} setCredentials={setCredentials} onSubmit={handleFinalSubmit} onPrev={() => setStep(5)} isSubmitting={isSubmitting} error={error} />}
+            {step === 1 && <StepIdentity key="step1" onNext={() => void suivant()} />}
+            {step === 2 && <StepGuardian key="step2" onNext={() => void suivant()} onPrev={precedent} />}
+            {step === 3 && <StepAcademic key="step3" campaign={campaign} onNext={() => void suivant()} onPrev={precedent} />}
+            {step === 4 && <StepDocuments key="step4" docs={docs} docErrors={docErrors} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => void suivant()} onPrev={precedent} />}
+            {step === 5 && <StepPayment key="step5" payment={payment} declarePayment={declarePayment} onNext={() => void suivant()} onPrev={precedent} />}
+            {step === 6 && <StepAccount key="step6" onSubmit={handleFinalSubmit} onPrev={precedent} isSubmitting={isSubmitting} error={error} />}
           </AnimatePresence>
+          </FormProvider>
+          {error && step !== 6 && (
+            <div role="alert" className="mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-bold">{error}</div>
+          )}
         </div>
       </div>
     </div>

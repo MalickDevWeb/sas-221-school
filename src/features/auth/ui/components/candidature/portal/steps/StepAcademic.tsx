@@ -1,100 +1,73 @@
-import React from 'react';
 import { motion } from 'motion/react';
-import { AcademicDetails } from '../admissionsTypes';
+import type { Campaign } from '../admissionsTypes';
+import { Champ, ChoixBoutons, NavigationEtape } from './champs';
+import { inputCls, useChamp } from './champsCandidature';
 
-interface Props {
-  academic: AcademicDetails;
-  setAcademic: React.Dispatch<React.SetStateAction<AcademicDetails>>;
-  onNext: () => void;
-  onPrev: () => void;
-}
+const SERIES_BAC = ['S1', 'S2', 'S3', "L'", 'L1', 'L2', 'G', 'STEG', 'T1', 'T2', 'Autre'];
+const MENTIONS = ['Passable', 'Assez Bien', 'Bien', 'Très Bien'];
+const NIVEAUX = ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
 
-export function StepAcademic({ academic, setAcademic, onNext, onPrev }: Props) {
-  const bacSeriesOptions = ['S1', 'S2', 'S3', "L'", 'L1', 'L2', 'G', 'STEG', 'T1', 'T2'];
-  const mentions = ['Passable', 'Assez Bien', 'Bien', 'Très Bien'];
-  const filieres = [
-    'Licence Génie Logiciel, Web & Mobile',
-    'Licence Cloud Computing & DevOps',
-    'Licence Réseaux Télécoms & Cybersécurité',
-    'Master Intelligence Artificielle & Data Science',
-    'Master Cybersécurité & Cloud Défense'
-  ];
-
+/**
+ * La filière, le niveau et la session viennent de la campagne choisie (publiée par l'école).
+ * Avant : une liste de filières inventée, sans lien avec la campagne, et une session « Février 2027 » fictive.
+ */
+export function StepAcademic({ campaign, onNext, onPrev }: { campaign: Campaign; onNext: () => void; onPrev: () => void }) {
+  const champ = useChamp();
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
       <div>
-        <h3 className="text-base font-black text-neutral-900 tracking-tight">3. Parcours Scolaire & Choix de Filière</h3>
-        <p className="text-xs text-neutral-500 font-medium">Diplôme d'entrée et orientation universitaire souhaitée pour la rentrée 2026/2027.</p>
+        <h3 className="text-base font-black text-neutral-900 tracking-tight">3. Parcours Scolaire & Formation demandée</h3>
+        <p className="text-xs text-neutral-500 font-medium">Diplôme d'entrée et formation pour laquelle vous candidatez.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Dernier établissement fréquenté *</label>
-          <input required type="text" placeholder="Ex: Lycée Lamine Guèye / Faculté FST" value={academic.previousSchool} onChange={e => setAcademic(a => ({ ...a, previousSchool: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Année d'obtention du Bac / Diplôme</label>
-          <select value={academic.bacYear} onChange={e => setAcademic(a => ({ ...a, bacYear: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none">
-            {['2026', '2025', '2024', '2023', '2022 ou antérieur'].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
+        <Champ id="previousSchool" label="Dernier établissement fréquenté *">
+          <input type="text" placeholder="Ex: Lycée Lamine Guèye / Faculté FST" className={inputCls} {...champ('previousSchool')} />
+        </Champ>
+        <Champ id="bacYear" label="Année d'obtention du Bac / Diplôme *">
+          <input inputMode="numeric" placeholder={`Ex: ${new Date().getFullYear()}`} className={inputCls} {...champ('bacYear')} />
+        </Champ>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Série du Baccalauréat</label>
-          <select value={academic.bacSeries} onChange={e => setAcademic(a => ({ ...a, bacSeries: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none">
-            {bacSeriesOptions.map(s => <option key={s} value={s}>Série {s}</option>)}
+        <Champ id="bacSeries" label="Série du Baccalauréat *">
+          <select className={inputCls} {...champ('bacSeries')}>
+            <option value="">— Choisir —</option>
+            {SERIES_BAC.map(s => <option key={s} value={s}>{s === 'Autre' ? 'Autre / équivalent' : `Série ${s}`}</option>)}
           </select>
-        </div>
+        </Champ>
+        <Champ id="bacMention" label="Mention obtenue">
+          <ChoixBoutons id="bacMention" options={MENTIONS.map(m => ({ valeur: m, libelle: m }))} />
+        </Champ>
+      </div>
+
+      <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
         <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Mention obtenue</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {mentions.map(m => (
-              <button key={m} type="button" onClick={() => setAcademic(a => ({ ...a, bacMention: m }))} className={`h-11 rounded-xl text-[11px] font-bold transition-all border ${academic.bacMention === m ? 'bg-primary text-white border-primary shadow-xs' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'}`}>
-                {m}
-              </button>
-            ))}
-          </div>
+          <span className="text-[11px] font-bold text-neutral-500 block">Formation demandée</span>
+          <span className="font-black text-neutral-900">{campaign.title}</span>
         </div>
-      </div>
-
-      <div className="space-y-3 pt-1">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Filière / Spécialisation souhaitée *</label>
-          <select value={academic.targetFiliere} onChange={e => setAcademic(a => ({ ...a, targetFiliere: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-bold text-neutral-800 outline-none">
-            {filieres.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {campaign.level ? (
           <div>
-            <label className="text-[11px] font-bold text-neutral-700 block mb-1">Niveau d'entrée sollicité</label>
-            <select value={academic.targetLevel} onChange={e => setAcademic(a => ({ ...a, targetLevel: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none">
-              {['Licence 1 (Post-Bac)', 'Licence 2 (Passerelle)', 'Licence 3 (Diplôme Pro)', 'Master 1', 'Master 2'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-            </select>
+            <span className="text-[11px] font-bold text-neutral-500 block">Niveau d'entrée</span>
+            <span className="font-black text-neutral-900">{campaign.level}</span>
           </div>
+        ) : (
+          <Champ id="targetLevel" label="Niveau d'entrée sollicité *">
+            <select className={inputCls} {...champ('targetLevel')}>
+              <option value="">— Choisir —</option>
+              {NIVEAUX.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </Champ>
+        )}
+        {campaign.intake && (
           <div>
-            <label className="text-[11px] font-bold text-neutral-700 block mb-1">Session de rentrée</label>
-            <select value={academic.intakeSession} onChange={e => setAcademic(a => ({ ...a, intakeSession: e.target.value }))} className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none">
-              <option value="Octobre 2026">Rentrée Principale - Octobre 2026</option>
-              <option value="Février 2027">Rentrée Décalée - Février 2027</option>
-            </select>
+            <span className="text-[11px] font-bold text-neutral-500 block">Session de rentrée</span>
+            <span className="font-black text-neutral-900">{campaign.intake}</span>
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="pt-3 border-t border-neutral-100 flex justify-between">
-        <button onClick={onPrev} className="h-11 px-5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_back</span>
-          <span>Précédent</span>
-        </button>
-        <button disabled={!academic.previousSchool} onClick={onNext} className="h-11 px-6 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer">
-          <span>Suivant : Pièces Justificatives</span>
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>
-        </button>
-      </div>
+      <NavigationEtape onPrev={onPrev} onNext={onNext} libelleSuivant="Suivant : Pièces Justificatives" />
     </motion.div>
   );
 }
-

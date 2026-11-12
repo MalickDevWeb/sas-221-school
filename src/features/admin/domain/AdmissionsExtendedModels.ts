@@ -72,6 +72,8 @@ export interface CandidateDetails {
   photoUrl?: string | null;
   transcriptsUrl?: string | null;
   diplomaUrl?: string | null;
+  /** Informations saisies au dépôt (clé → valeur), fournies par le serveur. */
+  dossier?: Record<string, string>;
 
   // Paiement des frais de dossier
   paymentMethod?: string;

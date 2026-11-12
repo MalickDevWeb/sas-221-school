@@ -41,7 +41,7 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div>
           <h3 className="text-base font-black text-neutral-900 tracking-tight">4. Dépôt des Pièces Justificatives</h3>
-          <p className="text-xs text-neutral-500 font-medium">Formats : PDF, PNG, JPG (stockage Cloudinary certifié).</p>
+          <p className="text-xs text-neutral-500 font-medium">Formats : PDF, PNG, JPG. Chaque pièce est envoyée dès que vous la choisissez.</p>
         </div>
         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
           <Icon icon="solar:cloud-check-bold" className="text-emerald-600 text-base" />
@@ -69,7 +69,7 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
                       <div className="space-y-1 mt-1">
                         <span className="text-[10px] text-primary font-bold flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                          <span>Téléversement Cloudinary : {uploadProgress}%</span>
+                          <span>Envoi : {uploadProgress}%</span>
                         </span>
                         <div className="w-32 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
                           <div className="bg-primary h-full transition-all duration-200 rounded-full" style={{ width: `${uploadProgress}%` }} />
@@ -77,11 +77,11 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
                       </div>
                     ) : doc ? (
                       <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1 mt-0.5 truncate">
-                        <span className="font-mono truncate">{doc.name}</span> · {doc.size} · Cloudinary <Icon icon="solar:check-read-bold" className="text-emerald-600 text-xs inline" />
+                        <span className="font-mono truncate">{doc.name}</span> · {doc.size} · envoyé <Icon icon="solar:check-read-bold" className="text-emerald-600 text-xs inline" />
                       </span>
                     ) : uploadError ? (
                       <p id={errorId} role="alert" className="text-[10px] text-rose-700 font-bold mt-0.5 break-words">
-                        Non envoyé : {uploadError}
+                        {uploadError}
                       </p>
                     ) : (
                       <span className="text-[10px] text-neutral-400 font-medium">{item.required ? 'Obligatoire' : 'Facultatif'}</span>
@@ -116,11 +116,11 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
       </div>
 
       <div className="pt-3 border-t border-neutral-100 flex justify-between">
-        <button onClick={onPrev} className="h-11 px-5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
+        <button type="button" onClick={onPrev} className="h-11 px-5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
           <Icon icon="solar:arrow-left-line-duotone" className="text-base" />
           <span>Précédent</span>
         </button>
-        <button disabled={!docs.idCard || !docs.diploma} onClick={onNext} className="h-11 px-6 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer">
+        <button type="button" onMouseDown={e => e.preventDefault()} disabled={Boolean(uploadingDoc)} onClick={onNext} className="h-11 px-6 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer">
           <span>Suivant : Frais de Dossier</span>
           <Icon icon="solar:arrow-right-line-duotone" className="text-base" />
         </button>

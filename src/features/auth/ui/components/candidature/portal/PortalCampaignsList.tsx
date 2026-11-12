@@ -83,14 +83,14 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: idx * 0.08 }} whileHover={{ y: -4 }} key={camp.id} className="group bg-white border border-neutral-200/90 hover:border-primary/50 rounded-3xl overflow-hidden shadow-2xs hover:shadow-xl hover:shadow-primary/10 transition-all flex flex-col justify-between">
               <div>
                 <div className="relative h-40 bg-neutral-900 overflow-hidden">
-                  <img src={camp.imageUrl} alt={camp.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 opacity-95" />
+                  {camp.imageUrl && <img src={camp.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 opacity-95" />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                   <span className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs ${isOpen ? 'bg-emerald-500 text-white' : 'bg-neutral-600 text-white'}`}>
                     {camp.state}
                   </span>
                   <div className="absolute bottom-3 left-3 text-white text-[11px] font-black flex items-center gap-1.5 drop-shadow-md">
                     <span className="w-2 h-2 rounded-full bg-primary" />
-                    <span>{camp.code} · Session 2026/2027</span>
+                    <span>{camp.code}{camp.intake ? ` · Session ${camp.intake}` : ''}</span>
                   </div>
                 </div>
 

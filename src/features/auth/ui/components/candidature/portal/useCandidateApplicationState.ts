@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import type {
-  Campaign, PersonalDetails, GuardianDetails, AcademicDetails, DocumentsState, PaymentDetails
-} from './admissionsTypes';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Campaign, DocumentsState, PaymentDetails } from './admissionsTypes';
+import { schemaCandidature, valeursInitiales, CHAMPS_ETAPE, type Candidature } from './schemaCandidature';
 import { suiviApi, type DossierCandidat } from './suiviApi';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
 import { publicApiClient } from '@/shared/lib/apiClient';
-
-export const MOT_DE_PASSE_MIN = 8;
 
 export type DocKey = keyof DocumentsState;
 export type DocErrors = Partial<Record<DocKey, string>>;
@@ -32,18 +31,10 @@ const devSimulateDoc: ((key: DocKey, label: string) => NonNullable<DocumentsStat
 
 export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dossier: DossierCandidat) => void) {
   const [step, setStep] = useState(1);
-  const [personal, setPersonal] = useState<PersonalDetails>({
-    firstName: '', lastName: '', gender: 'M', birthDate: '2005-09-15',
-    birthPlace: 'Dakar', nationality: 'Sénégalaise', cniNumber: '',
-    phone: '', email: '', address: 'Sacré-Cœur 3', city: 'Dakar'
-  });
-  const [guardian, setGuardian] = useState<GuardianDetails>({
-    fullName: '', relationship: 'Père', phone: '', email: '', profession: 'Cadre d’entreprise'
-  });
-  const [academic, setAcademic] = useState<AcademicDetails>({
-    previousSchool: 'Lycée Seydina Limamoulaye', bacSeries: 'S2', bacYear: '2026',
-    bacMention: 'Bien', targetLevel: campaign.level || 'Licence 1',
-    targetFiliere: campaign.title, intakeSession: campaign.intake || 'Octobre 2026'
+  const form = useForm<Candidature>({
+    resolver: zodResolver(schemaCandidature),
+    defaultValues: valeursInitiales(campaign),
+    mode: 'onTouched',
   });
   const [docs, setDocs] = useState<DocumentsState>({ idCard: null, diploma: null, transcripts: null, photo: null });
   const [docErrors, setDocErrors] = useState<DocErrors>({});
@@ -52,7 +43,6 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
   const [payment, setPayment] = useState<PaymentDetails>({
     method: 'WAVE', isPaid: false, transactionRef: '', amount: campaign.fees ?? 0
   });
-  const [credentials, setCredentials] = useState({ password: '', confirm: '', accept: false });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -78,7 +68,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
         ? err.message
         : 'L’envoi du fichier a échoué. Veuillez réessayer.';
       setDocs(prev => ({ ...prev, [key]: null }));
-      setDocErrors(prev => ({ ...prev, [key]: message }));
+      setDocErrors(prev => ({ ...prev, [key]: `Non envoyé : ${message}` }));
     } finally {
       setUploadingDoc(null);
       setUploadProgress(0);
@@ -100,32 +90,66 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
     setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees ?? 0 });
   };
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (credentials.password.length < MOT_DE_PASSE_MIN) return setError(`Le mot de passe de suivi doit comporter au moins ${MOT_DE_PASSE_MIN} caractères.`);
-    if (credentials.password !== credentials.confirm) return setError('Les deux mots de passe ne correspondent pas.');
-    if (!credentials.accept) return setError('Veuillez accepter la charte et le règlement des admissions.');
-    setIsSubmitting(true);
+  /** Pièces obligatoires manquantes → message sous chaque pièce (avant : bouton grisé sans explication). */
+  const verifierPieces = (): boolean => {
+    const manquantes: DocErrors = {};
+    for (const [cle, libelle] of PIECES_OBLIGATOIRES) {
+      if (!docs[cle]?.url) manquantes[cle] = `Pièce manquante : joignez ${libelle}.`;
+    }
+    setDocErrors(prev => ({ ...prev, ...manquantes }));
+    return Object.keys(manquantes).length === 0;
+  };
 
+  /** Étape suivante seulement si l'étape courante est valide ; les erreurs s'affichent sous les champs. */
+  const suivant = async () => {
+    setError('');
+    if (step === 4) {
+      if (uploadingDoc) return setError('Patientez : une pièce est encore en cours d’envoi.');
+      if (verifierPieces()) setStep(5);
+      return;
+    }
+    const champs = CHAMPS_ETAPE[step];
+    if (!champs || await form.trigger(champs, { shouldFocus: true })) setStep(s => s + 1);
+  };
+  const precedent = () => { setError(''); setStep(s => Math.max(1, s - 1)); };
+
+  const envoyer = async (v: Candidature) => {
+    if (!verifierPieces()) {
+      setStep(4);
+      return;
+    }
+    setIsSubmitting(true);
     // Le dossier n'est confirmé au candidat QUE si le serveur l'a enregistré (identifiant attribué par le serveur).
     // Le mot de passe choisi ici est enregistré (haché) : il sert au suivi en ligne du dossier (APP-BE-12).
-    // Avant : il n'était jamais envoyé, et le dossier était aussi rangé dans le navigateur (base locale).
+    // Toutes les informations saisies sont transmises (avant : seuls nom, email, téléphone et filière partaient ;
+    // le garant, le cursus et les fichiers des pièces étaient perdus).
     try {
       await publicApiClient.post('/candidatures/submit', {
-        nom: personal.lastName, prenom: personal.firstName,
-        email: personal.email, telephone: personal.phone, filiere: academic.targetFiliere,
-        niveau: academic.targetLevel, fraisPayes: payment.isPaid,
-        modePaiement: payment.method, referencePaiement: payment.transactionRef,
-        docs: { idCard: Boolean(docs.idCard), diploma: Boolean(docs.diploma) },
-        motDePasse: credentials.password,
+        nom: v.lastName, prenom: v.firstName,
+        email: v.email, telephone: v.phone, filiere: campaign.title,
+        niveau: v.targetLevel, sessionRentree: campaign.intake || undefined,
+        dateNaissance: v.birthDate, lieuNaissance: v.birthPlace, sexe: v.gender, nationalite: v.nationality,
+        numeroPiece: v.cniNumber, adresse: v.address,
+        etablissementPrecedent: v.previousSchool, serieBac: v.bacSeries, anneeBac: v.bacYear, mentionBac: v.bacMention,
+        garant: {
+          nom: v.guardianName, lien: v.guardianRelationship, telephone: v.guardianPhone,
+          email: v.guardianEmail, profession: v.guardianProfession,
+        },
+        pieces: {
+          pieceIdentite: docs.idCard?.url, diplome: docs.diploma?.url,
+          releves: docs.transcripts?.url, photo: docs.photo?.url,
+        },
+        fraisPayes: payment.isPaid,
+        modePaiement: payment.declared ? payment.method : undefined,
+        referencePaiement: payment.transactionRef,
+        motDePasse: v.password,
       });
     } catch (err) {
       setIsSubmitting(false);
       return setError(`Votre dossier n'a pas été enregistré : ${resolveErrorMessage(err)}`);
     }
     try {
-      const dossiers = await suiviApi.suivre(personal.email.trim(), credentials.password);
+      const dossiers = await suiviApi.suivre(v.email.trim(), v.password);
       if (dossiers.length === 0) throw new Error('dossier introuvable');
       onSuccess(dossiers[0]);
     } catch {
@@ -136,10 +160,25 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
     }
   };
 
+  const handleFinalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    void form.handleSubmit(envoyer, (erreurs) => {
+      // Erreur sur une étape précédente : on y retourne pour la montrer.
+      const etape = [1, 2, 3, 6].find(n => CHAMPS_ETAPE[n].some(c => c in erreurs));
+      if (etape && etape !== step) setStep(etape);
+    })();
+  };
+
   return {
-    step, setStep, personal, setPersonal, guardian, setGuardian,
-    academic, setAcademic, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress,
-    simulateDocUpload, removeDoc, payment, declarePayment,
-    credentials, setCredentials, error, setError, isSubmitting, handleFinalSubmit
+    form, step, setStep, suivant, precedent, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress,
+    simulateDocUpload, removeDoc, payment, declarePayment, error, setError, isSubmitting, handleFinalSubmit
   };
 }
+
+/** Pièces exigées (le serveur les exige aussi) ; la photo reste facultative. */
+const PIECES_OBLIGATOIRES: [DocKey, string][] = [
+  ['idCard', "votre pièce d'identité (CNI ou passeport)"],
+  ['diploma', 'votre diplôme ou attestation de réussite'],
+  ['transcripts', 'vos relevés de notes'],
+];
