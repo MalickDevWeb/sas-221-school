@@ -3,7 +3,7 @@ import { useTenantStore } from '@/core/store/tenantStore';
 import { NotificationDropdown } from './header/NotificationDropdown';
 import { ProfileDropdown } from '@/shared/components';
 interface NotificationItem {
-  id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
+  id: string; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
 }
 interface Props {
   notifications: NotificationItem[];
@@ -19,7 +19,7 @@ interface Props {
   studentMood: string; tempMood: string; setTempMood: (v: string) => void;
   isEditingMood: boolean; setIsEditingMood: (v: boolean) => void;
   onMarkAllRead: () => void;
-  onNotifClick: (id: number) => void;
+  onNotifClick: (id: string) => void;
   onOpenSettings: () => void;
   onOpenSupport: () => void;
   triggerToast: (msg: string) => void;

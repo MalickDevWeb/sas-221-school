@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import type { Dispatch, SetStateAction } from 'react';
 import { ROUTES } from '@/shared/constants';
-
-type Notification = { id: number; title: string; desc: string; read: boolean; [key: string]: any };
+import type { StudentNotification } from './useStudentNotifications';
 
 export function useStudentNotifActions(
-  notifications: any[],
-  setNotifications: any,
+  notifications: readonly StudentNotification[],
+  setNotifications: Dispatch<SetStateAction<StudentNotification[]>>,
   triggerToast: (msg: string, icon?: string) => void,
   setShowNotifications: (v: boolean) => void,
   setShowProfile: (v: boolean) => void,
@@ -13,12 +13,12 @@ export function useStudentNotifActions(
   const navigate = useNavigate();
 
   const handleMarkAllRead = () => {
-    setNotifications((prev: any[]) => prev.map((n: any) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     triggerToast('Toutes vos notifications ont été lues', 'notifications_active');
   };
 
-  const handleNotifClick = (id: number) => {
-    setNotifications((prev: any[]) => prev.map((n: any) => n.id === id ? { ...n, read: true } : n));
+  const handleNotifClick = (id: string) => {
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
     const item = notifications.find(n => n.id === id);
     if (!item) return;
     triggerToast(`Accès : ${item.title}`);

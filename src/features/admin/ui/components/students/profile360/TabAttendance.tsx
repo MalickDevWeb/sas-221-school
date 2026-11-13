@@ -1,10 +1,11 @@
+import type { Profil360 } from './profil360';
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { ObservationsEleve } from './ObservationsEleve';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 /**
@@ -12,7 +13,7 @@ interface Props {
  * Plus de registre statique ni de taux par défaut (92 %) ; les journaux d'accès ne sont pas des présences.
  */
 export function TabAttendance({ selectedStudent, erpData }: Props) {
-  const history: any[] = Array.isArray(erpData?.attendance) ? erpData.attendance : [];
+  const history = erpData?.attendance ?? [];
 
   if (history.length === 0) {
     return (
@@ -28,9 +29,9 @@ export function TabAttendance({ selectedStudent, erpData }: Props) {
   }
 
   const total = history.length;
-  const present = history.filter((h: any) => h.status === 'PRÉSENT').length;
-  const retard = history.filter((h: any) => h.status === 'RETARD').length;
-  const absent = history.filter((h: any) => h.status === 'ABSENT').length;
+  const present = history.filter((h) => h.status === 'PRÉSENT').length;
+  const retard = history.filter((h) => h.status === 'RETARD').length;
+  const absent = history.filter((h) => h.status === 'ABSENT').length;
   const taux = (n: number) => `${Math.round((n / total) * 100)}%`;
 
   return (
@@ -65,16 +66,16 @@ export function TabAttendance({ selectedStudent, erpData }: Props) {
             </tr>
           </thead>
           <tbody>
-            {history.map((row: any, idx: number) => (
+            {history.map((row, idx: number) => (
               <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
                 <td className="p-2.5">
-                  <p className="font-extrabold text-neutral-800">{row.date ?? '—'}</p>
+                  <p className="font-extrabold text-neutral-800">{row.date || '—'}</p>
                   <p className="text-[10px] text-neutral-400 font-bold">{row.time ?? ''}</p>
                 </td>
-                <td className="p-2.5 font-extrabold text-neutral-700">{row.course ?? '—'}</td>
+                <td className="p-2.5 font-extrabold text-neutral-700">{row.course || '—'}</td>
                 <td className="p-2.5">
                   <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${row.status === 'PRÉSENT' ? 'bg-emerald-50 text-emerald-800' : row.status === 'RETARD' ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'}`}>
-                    {row.status ?? '—'}
+                    {row.status || '—'}
                   </span>
                 </td>
                 <td className="p-2.5">

@@ -1,27 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { getDashboardComplete, getActivities } from '../../../dashboard/infrastructure/api/dashboardService';
+import { estObjet, listeBrute, nombreOuNull, ObjetBrut, texte, texteOuNull } from '@/shared/lib/lectureServeur';
 
 interface Props { currency: string; }
 
 interface ActivityItem { key: string; text: string; time: string; type: string; }
 interface KpiEntry { value?: string; trend?: string; trendValue?: string; currency?: string; name?: string; }
 interface RegionStat { regionName?: string; percentage?: number; colorCode?: string; }
+interface AlerteTableau { title: string | null; message: string | null; severity: string | null; alertType: string }
 
 const EMPTY = '—';
 
 /** Recherche un KPI réel (clé backend : recovery_rate, cash_flow, ebitda, qr_suspended, open_tickets…). */
-function findKpi(data: any, keys: string[]): KpiEntry | undefined {
+function findKpi(data: ObjetBrut | null, keys: string[]): KpiEntry | undefined {
   if (!data) return undefined;
   const groups = [data.financialKpis, data.academicKpis, data.securityKpis];
   for (const group of groups) {
-    if (!group || typeof group !== 'object') continue;
+    if (!estObjet(group)) continue;
     for (const k of keys) {
       const entry = group[k] ?? group[k.toUpperCase()];
-      if (entry && entry.value != null && String(entry.value).trim() !== '') return entry as KpiEntry;
+      if (estObjet(entry) && texteOuNull(entry.value) !== null) {
+        return {
+          value: texte(entry.value), trend: texteOuNull(entry.trend) ?? undefined, trendValue: texteOuNull(entry.trendValue) ?? undefined,
+          currency: texteOuNull(entry.currency) ?? undefined, name: texteOuNull(entry.name) ?? undefined,
+        };
+      }
     }
   }
   return undefined;
 }
+
+const versAlertes = (v: unknown): AlerteTableau[] => listeBrute(v).map((a) => ({
+  title: texteOuNull(a.title), message: texteOuNull(a.message), severity: texteOuNull(a.severity), alertType: texte(a.alertType),
+}));
 
 function mapActivityType(raw?: string): string {
   const t = (raw || '').toLowerCase();
@@ -33,7 +44,7 @@ function mapActivityType(raw?: string): string {
 }
 
 export function AdminCEODashboard({ currency }: Props) {
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<ObjetBrut | null>(null);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -45,15 +56,16 @@ export function AdminCEODashboard({ currency }: Props) {
         getDashboardComplete().catch(() => { failed = true; return null; }),
         getActivities(5).catch(() => { failed = true; return null; })
       ]);
-      if (completeRes) setDashboardData(completeRes);
+      if (estObjet(completeRes)) setDashboardData(completeRes);
       if (Array.isArray(activitiesRes)) {
-        setActivities(activitiesRes.map((act: any, i: number) => {
-          const ts = act.activityTime || act.createdAt || act.timestamp;
+        setActivities(listeBrute(activitiesRes).map((act, i) => {
+          const ts = texteOuNull(act.activityTime || act.createdAt || act.timestamp);
+          const type = texteOuNull(act.activityType);
           return {
-            key: String(act.id ?? `activite-${i}`),
-            text: act.description || (act.activityType ? `Action ${act.activityType}` : EMPTY),
+            key: texte(act.id) || `activite-${i}`,
+            text: texteOuNull(act.description) ?? (type ? `Action ${type}` : EMPTY),
             time: ts ? new Date(ts).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : EMPTY,
-            type: mapActivityType(act.activityType),
+            type: mapActivityType(type ?? undefined),
           };
         }));
       }
@@ -77,12 +89,15 @@ export function AdminCEODashboard({ currency }: Props) {
   const ebitdaNum = Number(String(ebitdaKpi?.value ?? '').replace(',', '.'));
   const hasEbitdaNum = ebitdaKpi != null && Number.isFinite(ebitdaNum);
 
-  const activeAlerts: any[] = Array.isArray(dashboardData?.activeAlerts) ? dashboardData.activeAlerts : [];
-  const urgentAlerts: any[] = Array.isArray(dashboardData?.urgentAlerts) ? dashboardData.urgentAlerts : [];
-  const qrBlocked: string = qrKpi?.value ?? (dashboardData ? String(activeAlerts.filter(a => (a.alertType || '').toLowerCase() === 'security').length) : EMPTY);
+  const activeAlerts = versAlertes(dashboardData?.activeAlerts);
+  const urgentAlerts = versAlertes(dashboardData?.urgentAlerts);
+  const qrBlocked: string = qrKpi?.value ?? (dashboardData ? String(activeAlerts.filter(a => a.alertType.toLowerCase() === 'security').length) : EMPTY);
   const urgentTickets: string = ticketsKpi?.value ?? (dashboardData ? String(urgentAlerts.length) : EMPTY);
   const bannerAlert = activeAlerts[0];
-  const regionalStats: RegionStat[] = Array.isArray(dashboardData?.regionalStats) ? dashboardData.regionalStats : [];
+  const regionalStats: RegionStat[] = listeBrute(dashboardData?.regionalStats).map((r) => ({
+    regionName: texteOuNull(r.regionName) ?? undefined, percentage: nombreOuNull(r.percentage) ?? undefined,
+    colorCode: texteOuNull(r.colorCode) ?? undefined,
+  }));
 
   if (loading) {
     return <div className="p-8 text-center text-xs font-bold text-neutral-500 animate-pulse tracking-widest uppercase">Synchronisation API...</div>;

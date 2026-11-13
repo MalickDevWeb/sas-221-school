@@ -1,8 +1,9 @@
+import type { ActiviteProfil, ConnexionProfil } from './profil360';
 import React from 'react';
 import { exportToCSV } from './utils/ExportUtils';
 
 interface ConnectionsProps {
-  connectionLogs: any[];
+  connectionLogs: ConnexionProfil[];
   studentName: string;
 }
 
@@ -29,7 +30,7 @@ export function ConnectionsTable({ connectionLogs, studentName }: ConnectionsPro
           </tr>
         </thead>
         <tbody>
-          {connectionLogs.map((log: any, idx: number) => (
+          {connectionLogs.map((log, idx) => (
             <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
               <td className="p-2.5 font-bold text-neutral-800">{log.timestamp}</td>
               <td className="p-2.5 font-bold">
@@ -47,7 +48,7 @@ export function ConnectionsTable({ connectionLogs, studentName }: ConnectionsPro
 }
 
 interface AuditProps {
-  activityTrail: any[];
+  activityTrail: ActiviteProfil[];
   studentName: string;
 }
 
@@ -74,7 +75,7 @@ export function AuditTrailTable({ activityTrail, studentName }: AuditProps) {
           </tr>
         </thead>
         <tbody>
-          {activityTrail.map((act: any, idx: number) => (
+          {activityTrail.map((act, idx) => (
             <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
               <td className="p-2.5 font-bold text-neutral-800">{act.timestamp}</td>
               <td className="p-2.5 text-primary font-black uppercase tracking-wider text-[10px]">{act.module}</td>

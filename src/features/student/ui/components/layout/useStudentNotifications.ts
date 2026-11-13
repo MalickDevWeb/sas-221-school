@@ -4,7 +4,8 @@ import { sendPushNotification } from '@/shared/lib/pushNotifier';
 
 /** Notification affichée à l'étudiant (reçue du dépôt de notifications — plus de notifications inventées). */
 export interface StudentNotification {
-  id: number;
+  /** Identifiant du serveur (UUID). Avant : déclaré nombre, contourné par `as any`. */
+  id: string;
   title: string;
   desc: string;
   time: string;
@@ -40,37 +41,30 @@ export function useStudentNotifications() {
         const existingIds = new Set(prev.map(n => String(n.id)));
         const updated = [...prev];
         let hasNew = false;
-        let newestNotif: any = null;
+        let newestNotif: StudentNotification | null = null;
 
-        fsNotifs.forEach((fn) => {
+        for (const fn of fsNotifs) {
           if (!existingIds.has(String(fn.id))) {
             hasNew = true;
-            if (fn.createdAt > startTime - 5000) {
-              newestNotif = fn;
-            }
-            updated.unshift({
-              id: fn.id as any,
+            const notif: StudentNotification = {
+              id: String(fn.id),
               title: fn.title,
               desc: fn.desc,
               time: fn.time,
               read: fn.read,
               icon: fn.icon,
               color: fn.color
-            });
+            };
+            if (fn.createdAt > startTime - 5000) {
+              newestNotif = notif;
+            }
+            updated.unshift(notif);
           }
-        });
+        }
 
         if (newestNotif) {
           sendPushNotification(newestNotif.title, newestNotif.desc, { tag: 'student-notification' });
-          setAlertNotif({
-            id: newestNotif.id,
-            title: newestNotif.title,
-            desc: newestNotif.desc,
-            time: newestNotif.time,
-            read: newestNotif.read,
-            icon: newestNotif.icon,
-            color: newestNotif.color
-          } as any);
+          setAlertNotif(newestNotif);
         }
 
         if (hasNew) {

@@ -56,12 +56,15 @@ export function StudentCard({ grade, onClick }: Props) {
 
         <div className="flex items-center gap-3">
           <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-            isPass 
+            finalGrade === null
+              ? 'bg-neutral-100 text-neutral-500 border border-neutral-200'
+              : isPass
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-500/10' 
               : 'bg-amber-50 text-amber-700 border border-amber-500/10'
           }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${isPass ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            {isPass ? 'Validé' : 'Rattrapage'}
+            <span className={`h-1.5 w-1.5 rounded-full ${finalGrade === null ? 'bg-neutral-400' : isPass ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            {/* note absente : « Non noté » (avant : « Rattrapage » pour un élève pas encore noté) */}
+            {finalGrade === null ? 'Non noté' : isPass ? 'Validé' : 'Rattrapage'}
           </span>
 
           <button className="h-8 w-8 rounded-xl bg-primary-light group-hover:bg-brand-red-deep flex items-center justify-center text-brand-red-deep group-hover:text-white border border-primary/10 group-hover:border-transparent transition-all duration-300">

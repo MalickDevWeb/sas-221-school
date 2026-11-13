@@ -1,3 +1,5 @@
+import type { Profil360 } from './profil360';
+import type { ChampsProfil360 } from './hooks/useStudentProfile360';
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { ProfileTabSection } from './ProfileSidebar';
@@ -15,8 +17,8 @@ interface TabContentProps {
   activeSection: ProfileTabSection;
   selectedStudent: Student;
   onUpdateStudent: (s: Student) => void;
-  erpData: any;
-  updateProfile: (fields: any) => Promise<boolean>;
+  erpData: Profil360 | null;
+  updateProfile: (fields: ChampsProfil360) => Promise<boolean>;
 }
 
 export function ProfileTabContent({

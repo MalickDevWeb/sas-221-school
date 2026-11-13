@@ -1,3 +1,4 @@
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { CoffreSubTab } from '../CoffreSubTab';
@@ -5,12 +6,12 @@ import { exportToCSV } from './utils/ExportUtils';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 export function TabFinances({ selectedStudent, erpData }: Props) {
   // APP-FE-04 : uniquement les données réelles du backend — plus de reçus fictifs (StudentMockData).
-  const payments: any[] = Array.isArray(erpData?.payments) ? erpData.payments : [];
+  const payments = erpData?.payments ?? [];
   const paiementsDisponibles = payments.length > 0 && erpData?.paymentsStatus !== 'non_disponible';
   const bourses: string = erpData?.extra?.bourses || 'Non renseigné';
   const [financeTab, setFinanceTab] = useState<'fees' | 'vault'>('fees');
@@ -82,7 +83,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
                     </td>
                   </tr>
                 )}
-                {paiementsDisponibles && payments.map((p: any, idx: number) => (
+                {paiementsDisponibles && payments.map((p, idx: number) => (
                   <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
                     <td className="p-2.5">
                       <p className="font-extrabold text-[#1E293B]">{p.label}</p>

@@ -1,6 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 
+/**
+ * Capacités et réglages de caméra hors du type DOM standard (zoom, mise au point…), exposés par Chrome/Android.
+ * APP-FE-03, 2026-11-13 : le code appelait `getRunningTrack`, méthode absente de l'API publique de html5-qrcode
+ * (masqué par `as any`) : zoom et mise au point automatique ne s'appliquaient jamais, l'erreur était avalée.
+ * L'API publique est utilisée : getRunningTrackCapabilities() / applyVideoConstraints().
+ */
+type CapacitesCamera = MediaTrackCapabilities & {
+  zoom?: { min?: number; max?: number };
+  focusMode?: string[];
+  exposureMode?: string[];
+  whiteBalanceMode?: string[];
+};
+type ReglagesCamera = MediaTrackConstraintSet & { zoom?: number; focusMode?: string; exposureMode?: string; whiteBalanceMode?: string };
+
+const capacites = (qr: Html5Qrcode): CapacitesCamera => qr.getRunningTrackCapabilities() as CapacitesCamera;
+const appliquer = (qr: Html5Qrcode, reglages: ReglagesCamera) => qr.applyVideoConstraints({ advanced: [reglages] });
+
 export function useQRCameraScanner(elementId: string, onScanComplete: (text: string) => void) {
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -13,14 +30,11 @@ export function useQRCameraScanner(elementId: string, onScanComplete: (text: str
   const applyZoom = async (val: number) => {
     if (!qrRef.current) return;
     try {
-      const track = (qrRef.current as any).getRunningTrack?.() || (qrRef.current as any).getRunningTrack;
-      if (track) {
-        const caps = track.getCapabilities() as any;
-        if (caps?.zoom) {
-          const clamped = Math.max(caps.zoom.min ?? 1, Math.min(val, caps.zoom.max ?? 1));
-          await track.applyConstraints({ advanced: [{ zoom: clamped }] } as any);
-          setCurrentZoom(clamped);
-        }
+      const caps = capacites(qrRef.current);
+      if (caps.zoom) {
+        const clamped = Math.max(caps.zoom.min ?? 1, Math.min(val, caps.zoom.max ?? 1));
+        await appliquer(qrRef.current, { zoom: clamped });
+        setCurrentZoom(clamped);
       }
     } catch (e) { console.warn("Apply zoom err", e); }
   };
@@ -29,7 +43,7 @@ export function useQRCameraScanner(elementId: string, onScanComplete: (text: str
     let isMounted = true;
     const html5QrCode = new Html5Qrcode(elementId);
     qrRef.current = html5QrCode;
-    let startPromise: Promise<any> | null = null;
+    let startPromise: Promise<unknown> | null = null;
 
     const startScanner = async () => {
       try {
@@ -64,23 +78,20 @@ export function useQRCameraScanner(elementId: string, onScanComplete: (text: str
           setIsScanning(true);
           setError(null);
           try {
-            const track = (html5QrCode as any).getRunningTrack?.() || (html5QrCode as any).getRunningTrack;
-            if (track) {
-              const caps = track.getCapabilities() as any;
-              const constraints: any = {};
-              if (caps?.focusMode?.includes("continuous")) constraints.focusMode = "continuous";
-              if (caps?.exposureMode?.includes("continuous")) constraints.exposureMode = "continuous";
-              if (caps?.whiteBalanceMode?.includes("continuous")) constraints.whiteBalanceMode = "continuous";
-              if (caps?.zoom) {
-                setZoomSupported(true);
-                setZoomCaps({ min: caps.zoom.min ?? 1, max: caps.zoom.max ?? 1 });
-                const initialZoom = Math.max(caps.zoom.min ?? 1, Math.min(1.6, caps.zoom.max ?? 1));
-                constraints.zoom = initialZoom;
-                setCurrentZoom(initialZoom);
-              }
-              if (Object.keys(constraints).length > 0) {
-                await track.applyConstraints({ advanced: [constraints] } as any);
-              }
+            const caps = capacites(html5QrCode);
+            const constraints: ReglagesCamera = {};
+            if (caps.focusMode?.includes("continuous")) constraints.focusMode = "continuous";
+            if (caps.exposureMode?.includes("continuous")) constraints.exposureMode = "continuous";
+            if (caps.whiteBalanceMode?.includes("continuous")) constraints.whiteBalanceMode = "continuous";
+            if (caps.zoom) {
+              setZoomSupported(true);
+              setZoomCaps({ min: caps.zoom.min ?? 1, max: caps.zoom.max ?? 1 });
+              const initialZoom = Math.max(caps.zoom.min ?? 1, Math.min(1.6, caps.zoom.max ?? 1));
+              constraints.zoom = initialZoom;
+              setCurrentZoom(initialZoom);
+            }
+            if (Object.keys(constraints).length > 0) {
+              await appliquer(html5QrCode, constraints);
             }
           } catch (e) { console.warn("Constraints apply err", e); }
         }

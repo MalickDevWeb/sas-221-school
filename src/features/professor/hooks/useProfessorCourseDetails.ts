@@ -40,20 +40,20 @@ export function useProfessorCourseDetails(selectedCourseId: string) {
           getModulesUseCase(id), getQuizzesUseCase(id), getStudentsUseCase(id),
         ]);
         const val = <T,>(i: number, defaut: T): T => (r[i].status === 'fulfilled' ? (r[i] as PromiseFulfilledResult<T>).value : defaut);
-        const loadedGrades = val<any[]>(0, []);
-        const loadedHomeworks = val<any[]>(1, []);
-        const loadedReminders = val<any[]>(2, []);
-        const loadedLessons = val<any[]>(3, []);
-        const loadedModules = val<any[]>(4, []);
-        const loadedQuizzes = val<any[]>(5, []);
-        const loadedStudents = val<any[]>(6, []);
+        const loadedGrades = val<StudentGrade[]>(0, []);
+        const loadedHomeworks = val<ProfessorHomework[]>(1, []);
+        const loadedReminders = val<ClassroomReminder[]>(2, []);
+        const loadedLessons = val<ProfessorLesson[]>(3, []);
+        const loadedModules = val<CourseModule[]>(4, []);
+        const loadedQuizzes = val<CourseQuiz[]>(5, []);
+        const loadedStudents = val<StudentEnrolled[]>(6, []);
         r.forEach((x) => { if (x.status === 'rejected') console.warn('Salle de classe : chargement partiel', x.reason); });
         // TOUS les élèves de la classe figurent dans les notes, notés ou non (avant : seuls les déjà notés →
         // impossible de saisir une première note — test navigateur du 2026-11-10)
-        const notes = new Map(loadedGrades.map((g: any) => [g.studentId, g]));
-        const fusion = [
+        const notes = new Map(loadedGrades.map((g) => [g.studentId, g]));
+        const fusion: StudentGrade[] = [
           ...loadedGrades,
-          ...loadedStudents.filter((s: any) => !notes.has(s.id)).map((s: any) => ({
+          ...loadedStudents.filter((s) => !notes.has(s.id)).map((s): StudentGrade => ({
             id: '', studentId: s.id, studentNom: `${s.prenom || ''} ${s.nom || ''}`.trim() || s.email || s.id,
             courseId: id, cc: null, examen: null, finalGrade: null, status: 'Non noté',
           })),

@@ -1,3 +1,4 @@
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { PROFIL_VIDE } from './utils/profilVide';
@@ -5,11 +6,11 @@ import { ConnectionsTable, AuditTrailTable } from './SecurityTables';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 export function TabSecurity({ selectedStudent, erpData }: Props) {
-  const finalErpData = (erpData || PROFIL_VIDE) as any;
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [secTab, setSecTab] = useState<'connections' | 'audit'>('connections');
 
   return (

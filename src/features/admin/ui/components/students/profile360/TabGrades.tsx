@@ -1,3 +1,4 @@
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { PROFIL_VIDE } from './utils/profilVide';
@@ -5,22 +6,22 @@ import { GradesChart, PerformanceReport } from './GradesSummary';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 export function TabGrades({ selectedStudent, erpData }: Props) {
-  const finalErpData = (erpData || PROFIL_VIDE) as any;
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [search, setSearch] = useState('');
 
-  const filteredGrades = finalErpData.ueList.filter((g: any) =>
+  const filteredGrades = finalErpData.ueList.filter((g) =>
     g.module.toLowerCase().includes(search.toLowerCase()) ||
     g.ue.toLowerCase().includes(search.toLowerCase())
   );
 
-  const chartData = finalErpData.ueList.map((g: any) => ({
+  const chartData = finalErpData.ueList.map((g) => ({
     name: g.module.substring(0, 15) + '...',
     Note: g.grade,
-    MoyenneClasse: 14.5
+    MoyenneClasse: g.moyenneClasse   // valeur du serveur uniquement (avant : 14,5 écrit en dur)
   }));
 
   return (
@@ -49,13 +50,13 @@ export function TabGrades({ selectedStudent, erpData }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filteredGrades.map((g: any, idx: number) => (
+            {filteredGrades.map((g, idx: number) => (
               <tr key={idx} className="border-b border-neutral-50 hover:bg-neutral-50/50 text-[11px]">
                 <td className="p-2.5">
                   <p className="font-extrabold text-neutral-800">{g.module}</p>
                   <p className="text-[10px] text-neutral-400 font-bold">{g.ue}</p>
                 </td>
-                <td className="p-2.5 text-center font-black text-primary">{g.grade}/20</td>
+                <td className="p-2.5 text-center font-black text-primary">{g.grade ?? "—"}/20</td>
                 <td className="p-2.5 text-center">
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[9px] font-black">{g.status}</span>
                 </td>

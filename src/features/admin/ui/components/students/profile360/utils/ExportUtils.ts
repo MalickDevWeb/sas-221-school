@@ -13,7 +13,7 @@ function celluleCsv(valeur: unknown): string {
   return `"${texte.replace(/"/g, '""')}"`;
 }
 
-export function exportToCSV(data: Record<string, unknown>[], filename: string) {
+export function exportToCSV<T extends object>(data: readonly T[], filename: string) {
   if (data.length === 0) return;
   const headers = Object.keys(data[0]).map(celluleCsv).join(',');
   const rows = data.map(row =>

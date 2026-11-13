@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { versProfil360 } from '../profil360';
 
 /** Clé de cache du dossier 360° d'un élève (React Query, APP-FE-02). */
 export const cleProfil360 = (studentId: string) => ['admin', 'eleves', studentId, 'profil360'] as const;
@@ -24,7 +25,7 @@ export function useStudentProfile360(studentId: string, _studentName?: string) {
     queryFn: async () => {
       const { data } = await apiClient.get(`/admin/students/${studentId}/profile360`);
       if (!data) throw new Error('Le serveur a renvoyé un dossier vide.');
-      return data;
+      return versProfil360(data);
     },
   });
 

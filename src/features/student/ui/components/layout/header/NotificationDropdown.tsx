@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getPushPermission, requestPushPermission, testPushNotification } from '@/shared/lib/pushNotifier';
 
 interface NotificationItem {
-  id: number; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
+  id: string; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
 }
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
   setShowProfile: (v: boolean) => void;
   setShowCalendar: (v: boolean) => void;
   onMarkAllRead: () => void;
-  onNotifClick: (id: number) => void;
+  onNotifClick: (id: string) => void;
   notifRef: React.RefObject<HTMLDivElement | null>;
 }
 

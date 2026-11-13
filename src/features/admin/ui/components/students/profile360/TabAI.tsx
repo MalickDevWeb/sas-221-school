@@ -1,9 +1,10 @@
+import type { Profil360 } from './profil360';
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 /**
@@ -11,8 +12,8 @@ interface Props {
  * calculée sur des données réelles (plus de scores statiques 94/100, 98 %, 2 %).
  */
 export function TabAI({ erpData }: Props) {
-  const analyse = erpData?.aiAnalysis ?? erpData?.analyse ?? null;
-  const pct = (v: any) => (typeof v === 'number' ? `${v}%` : '—');
+  const analyse = erpData?.analyse ?? null;
+  const pct = (v: number | null) => (typeof v === 'number' ? `${v}%` : '—');
 
   if (!analyse) {
     return (
@@ -59,7 +60,7 @@ export function TabAI({ erpData }: Props) {
             <span translate="no" className="material-symbols-outlined text-sm">notifications_active</span>
             Alertes de Suivi & Risques Détectés
           </h5>
-          {analyse.alertes.map((a: any, i: number) => (
+          {analyse.alertes.map((a, i) => (
             <p key={i} className="bg-white p-2.5 rounded-xl border border-neutral-150 text-[11px] text-neutral-700 font-bold m-0">{String(a)}</p>
           ))}
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Room, Filiere, Classe, PlanningSlot } from '../domain/SchoolModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { listeBrute, objetBrut, texte, texteOuNull, nombreOuNull, textes, vrai } from '@/shared/lib/lectureServeur';
 
 /*
  * Salles, filières, classes et créneaux de l'école courante, lus et enregistrés via /admin/planning/*
@@ -12,68 +13,62 @@ import { apiClient } from '@/shared/lib/apiClient';
  * est rechargé depuis le serveur (pas de faux succès).
  */
 
-const asList = (raw: any): any[] =>
-  Array.isArray(raw) ? raw : Array.isArray(raw?.content) ? raw.content : [];
-
-const str = (v: any): string => (v === null || v === undefined ? '' : String(v));
-
-function toRooms(raw: any): Room[] {
-  return asList(raw).map((r: any) => ({
-    id: str(r.id),
-    name: str(r.name ?? r.nom),
-    capacity: typeof r.capacity === 'number' ? r.capacity : 0,
-    equipment: Array.isArray(r.equipment)
-      ? r.equipment
-      : typeof r.equipment === 'string'
-      ? r.equipment.split(',').map((e: string) => e.trim()).filter(Boolean)
-      : [],
+function toRooms(raw: unknown): Room[] {
+  return listeBrute(raw).map((r) => ({
+    id: texte(r.id),
+    name: texte(r.name ?? r.nom),
+    capacity: nombreOuNull(r.capacity) ?? 0,
+    equipment: textes(r.equipment),
     // L'occupation des salles n'est pas suivie côté serveur : statut d'affichage seulement.
     status: r.status === 'Occupée' ? 'Occupée' : 'Disponible',
   }));
 }
 
-function toFilieres(raw: any): Filiere[] {
-  return asList(raw).map((f: any) => ({
-    id: str(f.id),
-    name: str(f.name ?? f.nom),
-    code: str(f.code),
-    description: str(f.description),
+function toFilieres(raw: unknown): Filiere[] {
+  return listeBrute(raw).map((f) => ({
+    id: texte(f.id),
+    name: texte(f.name ?? f.nom),
+    code: texte(f.code),
+    description: texte(f.description),
   }));
 }
 
-function toClasses(raw: any): Classe[] {
-  return asList(raw).map((c: any) => ({
-    id: str(c.id),
-    name: str(c.name ?? c.nom),
-    level: str(c.level ?? c.niveau),
-    filiereId: str(c.filiereId),
-    capacityMax: typeof (c.capacityMax ?? c.capacity) === 'number' ? (c.capacityMax ?? c.capacity) : null,
+function toClasses(raw: unknown): Classe[] {
+  return listeBrute(raw).map((c) => ({
+    id: texte(c.id),
+    name: texte(c.name ?? c.nom),
+    level: texte(c.level ?? c.niveau),
+    filiereId: texte(c.filiereId),
+    capacityMax: typeof (c.capacityMax ?? c.capacity) === 'number' ? Number(c.capacityMax ?? c.capacity) : null,
     price: typeof c.price === 'number' ? c.price : null,
   }));
 }
 
-function toSlots(raw: any): PlanningSlot[] {
-  return asList(raw).map((s: any) => {
-    const debut = str(s.heureDebut ?? s.startTime);
-    const fin = str(s.heureFin ?? s.endTime);
+function toSlots(raw: unknown): PlanningSlot[] {
+  return listeBrute(raw).map((s) => {
+    const debut = texte(s.heureDebut ?? s.startTime);
+    const fin = texte(s.heureFin ?? s.endTime);
     return {
-      id: str(s.id),
-      day: str(s.jour ?? s.day),
-      slot: str(s.slot) || (fin ? `${debut} - ${fin}` : debut),
-      classeId: str(s.classeId),
-      subject: str(s.nom ?? s.subject),
-      prof: str(s.professeur ?? s.prof),
-      roomName: str(s.salle ?? s.roomName),
-      isLive: s.isLive ?? false,
-      status: s.status,
-      isAbsent: s.isAbsent ?? false,
-      cancellationReason: s.cancellationReason,
+      id: texte(s.id),
+      day: texte(s.jour ?? s.day),
+      slot: texte(s.slot) || (fin ? `${debut} - ${fin}` : debut),
+      classeId: texte(s.classeId),
+      subject: texte(s.nom ?? s.subject),
+      prof: texte(s.professeur ?? s.prof),
+      roomName: texte(s.salle ?? s.roomName),
+      isLive: vrai(s.isLive),
+      status: texteOuNull(s.status) ?? undefined,
+      isAbsent: vrai(s.isAbsent),
+      cancellationReason: texteOuNull(s.cancellationReason) ?? undefined,
     };
   });
 }
 
-const messageErreur = (err: any, quoi: string) =>
-  err?.response?.data?.message || err?.message || `Échec de l'enregistrement des ${quoi}.`;
+const messageErreur = (err: unknown, quoi: string) => {
+  const e = objetBrut(err);
+  const reponse = objetBrut(e.response);
+  return texteOuNull(objetBrut(reponse.data).message) ?? texteOuNull(e.message) ?? `Échec de l'enregistrement des ${quoi}.`;
+};
 
 export function useAdminSchoolState() {
   const [rooms, setRooms] = useState<Room[]>([]);

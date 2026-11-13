@@ -1,3 +1,5 @@
+import type { ChampsProfil360 } from './hooks/useStudentProfile360';
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { PROFIL_VIDE } from './utils/profilVide';
@@ -6,16 +8,16 @@ import { AdmissionCard, MedicalCard } from './GeneralCards';
 interface Props {
   selectedStudent: Student;
   onUpdateStudent: (s: Student) => void;
-  erpData?: any;
-  onUpdateProfileFields?: (fields: any) => Promise<boolean>;
+  erpData?: Profil360 | null;
+  onUpdateProfileFields?: (fields: ChampsProfil360) => Promise<boolean>;
 }
 
 export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdateProfileFields }: Props) {
-  const finalErpData = (erpData || PROFIL_VIDE) as any;
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [phone, setPhone] = useState(selectedStudent.phoneParent);
   const [email, setEmail] = useState(selectedStudent.email);
-  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || ''   /* APP-BE-17 : pas de groupe sanguin inventé */);
-  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || ''   /* APP-BE-17 : pas d'allergie présumée */);
+  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra.sante   /* APP-BE-17 : pas de groupe sanguin inventé */);
+  const [allergies, setAllergies] = useState(finalErpData.extra.allergies   /* APP-BE-17 : pas d'allergie présumée */);
   const [isSaved, setIsSaved] = useState(false);
   const [echec, setEchec] = useState(false);
 
