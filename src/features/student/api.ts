@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   StudentProfile,
   StudentDashboard,
@@ -9,7 +9,6 @@ import {
   LiveSessionDto,
   GradeDto,
   CourseDto,
-  HomeworkDto,
 } from './types';
 
 // 5) Endpoints Student (24 REST)
@@ -101,11 +100,6 @@ export const getCourseDetails = async (courseId: string): Promise<Record<string,
 };
 
 // Devoirs
-export const getHomeworks = async (): Promise<HomeworkDto[]> => {
-  const { data } = await apiClient.get('/student/homeworks');
-  return data;
-};
-
 export const submitHomework = async (courseId: string, homeworkId: string, file: File, comment?: string) => {
   const form = new FormData();
   form.append('file', file);
@@ -115,18 +109,6 @@ export const submitHomework = async (courseId: string, homeworkId: string, file:
   });
   return data;
 };
-
-export const startHomework = async (homeworkId: string, startTime: string) => {
-  const { data } = await apiClient.post(`/student/homeworks/${homeworkId}/start`, { startTime });
-  return data;
-};
-
-export const progressHomework = async (homeworkId: string, payload: { progress: number; timeSpent: number }) => {
-  const { data } = await apiClient.post(`/student/homeworks/${homeworkId}/progress`, payload);
-  return data;
-};
-
-// Tuteur IA
 
 export const chatWithTutor = async (message: string) => {
   const { data } = await apiClient.post('/student/tutor/chat', { message });
@@ -163,20 +145,3 @@ export function useStudentCourses() {
   });
 }
 
-export function useStudentHomeworks() {
-  return useQuery({
-    queryKey: ['student', 'homeworks'],
-    queryFn: getHomeworks,
-  });
-}
-
-export function useSubmitHomework() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ courseId, homeworkId, file, comment }: { courseId: string; homeworkId: string; file: File; comment?: string }) =>
-      submitHomework(courseId, homeworkId, file, comment),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['student', 'homeworks'] });
-    },
-  });
-}
