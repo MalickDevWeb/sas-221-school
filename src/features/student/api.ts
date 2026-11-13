@@ -126,27 +126,13 @@ export const progressHomework = async (homeworkId: string, payload: { progress: 
   return data;
 };
 
-// Quiz & tuteur IA
-export const submitQuiz = async (courseId: string, payload: { quizId: string; answers: { questionId: string; answer: string }[] }) => {
-  const { data } = await apiClient.post(`/student/courses/${courseId}/quizzes/submit`, payload);
-  return data;
-};
+// Tuteur IA
 
 export const chatWithTutor = async (message: string) => {
   const { data } = await apiClient.post('/student/tutor/chat', { message });
   return data;
 };
 
-// Emails
-export const sendNotification = async (payload: { recipientId: string; content: string }) => {
-  const { data } = await apiClient.post('/student/send-notification', payload);
-  return data;
-};
-
-export const requestConfirmation = async (payload: { type: string; target: string }) => {
-  const { data } = await apiClient.post('/student/request-confirmation', payload);
-  return data;
-};
 
 // --- Hooks React Query ---
 export function useStudentProfile() {

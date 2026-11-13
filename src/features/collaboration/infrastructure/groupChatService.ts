@@ -164,8 +164,3 @@ export async function getGroupFrontend(groupId: string): Promise<Record<string, 
   const res = await apiClient.get<Record<string, unknown>>(`${BASE_URL}/groups/${groupId}/frontend`);
   return res.data;
 }
-
-export async function runTestAll(): Promise<Record<string, unknown>> {
-  const res = await apiClient.post<Record<string, unknown>>(`${BASE_URL}/test/run-all`);
-  return res.data;
-}
