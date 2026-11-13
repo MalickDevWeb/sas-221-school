@@ -14,6 +14,9 @@ export interface AccessTerminal {
   name: string;
   status: 'Actif' | 'Inactif' | 'Révoqué';
   location: string;
+  /** Vigile affecté (ses scans sont refusés si le terminal est inactif ou révoqué). */
+  vigilId?: string | null;
+  vigilName?: string | null;
 }
 
 export const INITIAL_AUDIT_LOGS: AuditLog[] = [
@@ -22,8 +25,3 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   { id: 'log-003', time: '2026-07-10 07:30', user: 'Ibrahima Faye', role: 'Comptable', action: 'Encaissement Dépense', details: 'A enregistré une dépense de 350,000 FCFA pour Senelec', ip: '196.207.240.18', agent: 'Chrome / Windows' },
 ];
 
-export const INITIAL_TERMINALS: AccessTerminal[] = [
-  { id: 'term-a', name: 'Portail Principal - Entrée A', status: 'Actif', location: 'Hall Central' },
-  { id: 'term-b', name: 'Scanner Vigile - Poste B', status: 'Actif', location: 'Parking Enseignants' },
-  { id: 'term-c', name: 'Borne Cafétéria - Lecteur C', status: 'Inactif', location: 'Espace Restauration' },
-];

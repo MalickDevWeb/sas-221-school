@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { audioService } from '../infrastructure/config/dependencies';
 import { securityService } from '@/shared/lib/apiService';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { applyVigilFilters, DateFilter } from './useVigilFilters';
 
 export interface ScanLogItem {
@@ -111,9 +112,10 @@ export function useVigilLocalState() {
         avatar: null
       };
       setScanLogs((prev) => [newLog, ...prev]);
-    } catch {
+    } catch (err) {
       audioService.playFailureBeep();
-      setFeedback({ success: false, message: "Échec du scan de badge" });
+      // Raison donnée par le serveur (ex. « Terminal … désactivé par l'administration : scan refusé. »)
+      setFeedback({ success: false, message: resolveErrorMessage(err) });
     }
     setTimeout(() => setFeedback(null), 4000);
     setResetKey(k => k + 1);
