@@ -7,4 +7,6 @@ export interface Notification {
   readonly icon: string;
   readonly color: string;
   readonly createdAt: number;
+  /** Classe dont les élèves sont prévenus (obligatoire à l'envoi). */
+  readonly classeId?: string;
 }

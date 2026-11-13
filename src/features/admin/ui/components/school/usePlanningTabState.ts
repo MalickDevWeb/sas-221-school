@@ -75,6 +75,7 @@ export function usePlanningTabState(
     setSuccessToast('Créneau mis à jour.');
     setTimeout(() => setSuccessToast(null), 3000);
     notificationRepository.sendNotification({
+      classeId: updated.classeId,
       title: `Planning Modifié : ${updated.subject}`,
       desc: `Le cours de ${updated.prof} (Classe: ${updated.classeId}) en salle ${updated.roomName || 'Sans salle'} a été mis à jour par l'administration.`,
       time: "À l'instant", read: false, icon: 'schedule', color: 'text-amber-600 bg-amber-50',
@@ -94,6 +95,7 @@ export function usePlanningTabState(
     setTimeout(() => setSuccessToast(null), 3000);
     if (target) {
       notificationRepository.sendNotification({
+        classeId: target.classeId,
         title: `Cours Annulé : ${target.subject}`,
         desc: `Le cours de ${target.prof} du ${target.day} (${target.slot}) a été annulé par l'administration.`,
         time: "À l'instant", read: false, icon: 'cancel', color: 'text-red-600 bg-red-50',
