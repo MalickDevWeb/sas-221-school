@@ -37,16 +37,22 @@ export function normalizeClasses(rawClasses: any): Classe[] {
   }));
 }
 
+/**
+ * Créneaux renvoyés par GET /admin/planning/slots. Le serveur renvoie « jour », « heureStr » (ou heureDebut /
+ * heureFin), « nom », « professeur », « salle », « classeId ». Avant : les noms lus (day, slot, subject, roomName)
+ * n'existaient pas → chaque créneau revenait « Cours », lundi, 08:00 - 10:00, sans salle, et un enregistrement
+ * suivant renvoyait ces valeurs inventées au serveur. Aucune valeur par défaut inventée : un champ absent reste vide.
+ */
 export function normalizeSlots(rawSlots: any): PlanningSlot[] {
   const list: any[] = Array.isArray(rawSlots) ? rawSlots : Array.isArray(rawSlots?.content) ? rawSlots.content : [];
-  return list.map((s: any) => ({
-    id: s.id || `slot-${Math.random()}`,
-    day: s.day || s.dayOfWeek || 'MONDAY',
-    slot: s.slot || `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
+  return list.map((s: any, index: number) => ({
+    id: s.id ? String(s.id) : `creneau-${index}`,
+    day: s.jour || s.day || s.dayOfWeek || '',
+    slot: s.heureStr || s.slot || (s.heureDebut ? `${s.heureDebut} - ${s.heureFin ?? ''}`.trim() : ''),
     classeId: s.classeId || '',
-    subject: s.subject || s.matiere || 'Cours',
-    prof: s.prof || s.professeur || '—',
-    roomName: s.roomName || s.room?.name || '—',
+    subject: s.nom || s.subject || s.matiere || '',
+    prof: s.professeur || s.prof || '',
+    roomName: s.salle || s.roomName || s.room?.name || '',
     isLive: s.isLive ?? false,
     status: s.status,
     isAbsent: s.isAbsent ?? false,

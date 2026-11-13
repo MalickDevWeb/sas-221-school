@@ -3,9 +3,13 @@ import { CalendarSlot, UnassignedCourse, ConflictAlert, TeacherSubjectAssociatio
 import { definirSallesReelles, checkSchedulingConflicts, autoSuggestSubject } from '../domain/PlanningRulesEngine';
 import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useAdminSchedulerState() {
-  const [slots, setSlots] = useState<CalendarSlot[]>([]);
+  const [slots, setSlotsBrut] = useState<CalendarSlot[]>([]);
+  /** Modifications locales pas encore enregistrées sur le serveur. */
+  const [modifie, setModifie] = useState(false);
+  const setSlots: typeof setSlotsBrut = (maj) => { setSlotsBrut(maj); setModifie(true); };
   const [unassigned, setUnassigned] = useState<UnassignedCourse[]>([]);
   const [conflicts, setConflicts] = useState<ConflictAlert[]>([]);
   const [associations, setAssociations] = useState<TeacherSubjectAssociation[]>([]);
@@ -20,39 +24,57 @@ export function useAdminSchedulerState() {
       .then((res) => definirSallesReelles((Array.isArray(res.data) ? res.data : [])
         .map((r: any) => ({ name: r.name, capacity: Number(r.capacity) || 0 }))))
       .catch(() => definirSallesReelles([]));
-    apiClient.get('/admin/planning/slots')
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          // Si le backend renvoie des créneaux formatés, les convertir
-          const mappedSlots: CalendarSlot[] = res.data.map((item: any) => ({
-            id: item.id || `slot-${Math.random()}`,
-            subject: item.subject || item.name || '',
-            prof: item.prof || item.professorName || '',
-            room: item.room || item.roomName || 'Salle non assignée',
-            classe: item.classe || item.className || '',
-            day: item.day || '',   // pas de jour inventé : un créneau incomplet n'est pas placé
-            slot: item.slot || item.startTime || '',
-            type: item.type || 'CM',
-            faculte: item.faculte || '',
-            departement: item.departement || '',
-            filiere: item.filiere || '',
-            niveau: item.niveau || '',
-            semestre: item.semestre || '',
-            anneeAcademique: item.anneeAcademique || '',
-            groupe: item.groupe || 'Aucun',
-            building: item.building || '',
-            capacityRequired: item.capacityRequired || 0,
-            isPublished: Boolean(item.isPublished),
-            weekNumber: item.weekNumber || 1
-          }));
-          setSlots(mappedSlots);
-        }
+    // Créneaux réels. Le serveur renvoie jour, heureStr, nom, professeur, salle, classeId : avant, les noms lus
+    // (subject, prof, room, classe, slot) n'existaient pas → matière et professeur vides, « Salle non assignée ».
+    Promise.all([apiClient.get('/admin/planning/slots'), apiClient.get('/admin/planning/classes').catch(() => ({ data: [] }))])
+      .then(([res, cls]) => {
+        const nomsClasses = new Map<string, string>((Array.isArray(cls.data) ? cls.data : [])
+          .map((c: { id?: string; name?: string }) => [String(c.id), c.name ?? ''] as [string, string]));
+        const brut: Array<Record<string, any>> = Array.isArray(res.data) ? res.data : [];
+        const mappedSlots: CalendarSlot[] = brut.map((item, index) => ({
+          id: item.id ? String(item.id) : `creneau-${index}`,
+          subject: item.nom || item.subject || '',
+          prof: item.professeur || item.prof || '',
+          room: item.salle || item.room || '',
+          classe: nomsClasses.get(item.classeId) || item.classeId || '',
+          classeId: item.classeId || '',
+          day: item.jour || item.day || '',   // pas de jour inventé : un créneau incomplet n'est pas placé
+          slot: item.heureStr || item.slot || '',
+          type: item.type === 'TD' || item.type === 'TP' ? item.type : 'CM',
+          faculte: '', departement: '', filiere: '', niveau: '', semestre: '', anneeAcademique: '',
+          groupe: 'Aucun', building: '', capacityRequired: 0, isPublished: true, weekNumber: 1,
+        }));
+        setSlotsBrut(mappedSlots);
+        setModifie(false);
       })
       .catch((err) => {
-        console.warn("Impossible de charger les créneaux réels depuis /admin/planning/slots:", err?.message);
-        setSlots([]);
+        setSlotsBrut([]);
+        setModifie(false);
+        setToast({ message: `Créneaux non chargés : ${resolveErrorMessage(err)}`, success: false });
       });
   }, []);
+
+  /**
+   * Enregistre le planning sur le serveur (PUT /admin/planning/slots, qui refuse les doubles réservations).
+   * Avant : aucune modification du planificateur n'était enregistrée, et « Publier » annonçait l'envoi de SMS.
+   * Renvoie null si enregistré, sinon le message à afficher.
+   */
+  const enregistrer = useCallback(async (): Promise<string | null> => {
+    const sansClasse = slots.filter(s => !s.classeId);
+    if (sansClasse.length > 0) {
+      return `${sansClasse.length} créneau(x) sans classe rattachée (${sansClasse.map(s => s.subject || s.id).slice(0, 3).join(', ')}) : impossible de les enregistrer.`;
+    }
+    try {
+      await apiClient.put('/admin/planning/slots', slots.map(s => ({
+        id: s.id, day: s.day, slot: s.slot, classeId: s.classeId, subject: s.subject,
+        prof: s.prof, roomName: s.room, type: s.type,
+      })));
+      setModifie(false);
+      return null;
+    } catch (err) {
+      return resolveErrorMessage(err);
+    }
+  }, [slots]);
 
   useEffect(() => { recharger(); }, [recharger]);
 
@@ -77,7 +99,7 @@ export function useAdminSchedulerState() {
     const finalSubject = autoSuggestSubject(course.prof, course.classe, associations) || course.subject;
     const newSlot: CalendarSlot = {
       id: `slot-${Date.now()}`, subject: finalSubject, prof: course.prof, room: targetRoom,
-      classe: course.classe, day, slot: slotTime, type: course.type, faculte: course.faculte,
+      classe: course.classe, classeId: course.classeId, day, slot: slotTime, type: course.type, faculte: course.faculte,
       departement: course.departement, filiere: course.filiere, niveau: course.niveau,
       semestre: 'Semestre 1', anneeAcademique: anneeAcademique(), groupe: 'Aucun',
       building: targetRoom.includes('Amphi') ? 'Bâtiment Central' : 'Bâtiment B',
@@ -108,7 +130,7 @@ export function useAdminSchedulerState() {
     const s = slots.find(item => item.id === id);
     if (!s) return;
     setUnassigned(p => [...p, {
-      id: `un-${Date.now()}`, subject: s.subject, prof: s.prof, room: s.room, classe: s.classe,
+      id: `un-${Date.now()}`, subject: s.subject, prof: s.prof, room: s.room, classe: s.classe, classeId: s.classeId,
       duration: '2h', faculte: s.faculte, departement: s.departement, filiere: s.filiere,
       niveau: s.niveau, type: s.type, capacityRequired: s.capacityRequired
     }]);
@@ -147,5 +169,5 @@ export function useAdminSchedulerState() {
     showToast(`Cours dupliqué avec succès !`, true);
   }, [slots, week, addLog, showToast]);
 
-  return { recharger, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts, associations, setAssociations, logs, setLogs, week, setWeek, toast, showToast, addLog, scheduleCourse, removeSlot, moveCourse, duplicateCourse };
+  return { recharger, enregistrer, modifie, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts, associations, setAssociations, logs, setLogs, week, setWeek, toast, showToast, addLog, scheduleCourse, removeSlot, moveCourse, duplicateCourse };
 }

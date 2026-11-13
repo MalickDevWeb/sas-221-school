@@ -4,6 +4,8 @@ export interface CalendarSlot {
   readonly prof: string;
   readonly room: string;
   readonly classe: string;
+  /** Identifiant de la classe côté serveur (obligatoire pour enregistrer le créneau). */
+  readonly classeId?: string;
   readonly day: string; // 'Lundi', 'Mardi', etc.
   readonly slot: string; // '08h - 10h', etc.
   readonly type: 'CM' | 'TD' | 'TP';
@@ -26,6 +28,7 @@ export interface UnassignedCourse {
   readonly prof: string;
   readonly room: string;
   readonly classe: string;
+  readonly classeId?: string;
   readonly duration: string;
   readonly faculte: string;
   readonly departement: string;

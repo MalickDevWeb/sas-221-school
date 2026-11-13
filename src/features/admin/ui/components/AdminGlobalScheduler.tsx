@@ -15,7 +15,7 @@ export function AdminGlobalScheduler() {
   const [isPublished, setIsPublished] = useState(false);
 
   const {
-    recharger, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
+    recharger, enregistrer, modifie, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
     associations, setAssociations, logs, setLogs, week, setWeek, toast, showToast, addLog,
     scheduleCourse, removeSlot, moveCourse, duplicateCourse
   } = useAdminSchedulerState();
@@ -32,10 +32,16 @@ export function AdminGlobalScheduler() {
     showToast(`${assigned.length} cours planifiés sans aucun conflit ! ✨`, true);
   };
 
-  const handlePublish = () => {
+  /** Enregistre réellement le planning (avant : rien n'était enregistré et des SMS étaient annoncés). */
+  const handlePublish = async () => {
+    const erreur = await enregistrer();
+    if (erreur) {
+      showToast(`Planning non enregistré : ${erreur}`, false);
+      return;
+    }
     setIsPublished(true);
-    addLog('Modification', 'Tous les cours', 'Brouillon', 'Publié', 'Publication et alertes synchrones');
-    showToast("Planning publié ! Notification SMS envoyée aux étudiants et courriels aux professeurs. 📡", true);
+    addLog('Modification', 'Tous les cours', 'Brouillon', 'Enregistré', 'Enregistrement du planning');
+    showToast('Planning enregistré sur le serveur.', true);
   };
 
   return (
@@ -82,14 +88,15 @@ export function AdminGlobalScheduler() {
           </div>
         </div>
 
-        {/* Sync Status Banner */}
-        {isPublished && (
-          <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex items-center justify-between text-[10px] text-blue-800 font-bold">
-            <span className="flex items-center gap-2">
-              <span translate="no" className="material-symbols-outlined text-sm animate-pulse text-blue-600">sensors</span>
-              <span>Synchronisation en cours : portails étudiants, portails enseignants, écrans d'affichage, Google Calendar & Outlook.</span>
-            </span>
-            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[9px] uppercase font-black">Actif</span>
+        {/* État réel de l'enregistrement (avant : « synchronisation en cours » vers Google Calendar, Outlook et
+            écrans d'affichage, alors que rien n'était enregistré ni synchronisé) */}
+        {modifie ? (
+          <div role="status" id="planning-non-enregistre" className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[10px] text-amber-900 font-bold">
+            Modifications non enregistrées : cliquez sur « Publier le planning » pour les enregistrer.
+          </div>
+        ) : isPublished && (
+          <div role="status" id="planning-enregistre" className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-[10px] text-emerald-800 font-bold">
+            Planning enregistré sur le serveur.
           </div>
         )}
 

@@ -36,7 +36,9 @@ export function RbacTab({ onShowToast }: Props) {
     if (vigilDeletesFinance || teacherDeletesStaff) {
       onShowToast("Avertissement Sécurité : Des permissions de suppression critique ont été attribuées !", false);
     } else {
-      onShowToast("Matrice RBAC mise à jour et appliquée en temps réel avec succès !", true);
+      // La matrice n'est gardée que dans ce navigateur : elle règle l'affichage des menus sur cet appareil, pas les
+      // droits réels (appliqués par le serveur selon le rôle). Avant : « appliquée en temps réel avec succès ».
+      onShowToast("Matrice enregistrée dans ce navigateur : elle règle l'affichage des menus sur cet appareil. Les droits réels restent appliqués par le serveur selon le rôle de chaque compte.", true);
     }
   };
 
