@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Expense } from '../../../domain/FinancesModels';
 import { toneOf, useReferentiel } from '@/features/referentiels';
 
@@ -8,25 +11,53 @@ interface Props {
   onAddExpense: (exp: Omit<Expense, 'id'>) => Promise<boolean> | void;
 }
 
+const MONTANT_MAX = 10_000_000_000;
+/** Règles d'une dépense (erreurs humaines : espaces seuls, montant nul / négatif / décimal / démesuré, date absurde). */
+const schemaDepense = z.object({
+  label: z.string().trim().min(1, 'Saisissez le libellé de la dépense.').max(200, '200 caractères au maximum.'),
+  amount: z.string().trim().min(1, 'Saisissez le montant en FCFA.')
+    .refine(v => /^\d+$/.test(v.replace(/\s/g, '')), 'Montant invalide : un nombre entier de FCFA, sans virgule ni signe.')
+    .refine(v => Number(v.replace(/\s/g, '')) > 0, 'Le montant doit être supérieur à 0.')
+    .refine(v => Number(v.replace(/\s/g, '')) <= MONTANT_MAX, 'Montant démesuré : vérifiez le nombre de zéros.'),
+  date: z.string().min(1, 'Indiquez la date de décaissement.')
+    .refine(v => !Number.isNaN(Date.parse(v)) && new Date(v).getFullYear() >= 2000, 'Date invalide.')
+    .refine(v => new Date(v) <= new Date(Date.now() + 366 * 86_400_000), 'Date trop lointaine : une dépense se saisit au plus un an à l’avance.'),
+});
+type SaisieDepense = z.infer<typeof schemaDepense>;
+const VIDE: SaisieDepense = { label: '', amount: '', date: '' };
+
 export function DepensesTab({ expenses, onAddExpense }: Props) {
-  const [form, setForm] = useState({ label: '', category: 'RH', amount: '', date: '' });
+  const [categorie, setCategorie] = useState('RH');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   // Catégories paramétrables (onglet « Référentiels ») : plus de liste en dur
   const categories = useReferentiel('expense-category');
-  const selectedCategory = categories.find(form.category) ? form.category : categories.values[0]?.code ?? '';
+  const selectedCategory = categories.find(categorie) ? categorie : categories.values[0]?.code ?? '';
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SaisieDepense>({
+    resolver: zodResolver(schemaDepense), defaultValues: VIDE, mode: 'onTouched',
+  });
+  // Verrou immédiat : un double clic n'enregistre la dépense qu'une fois (avant : deux dépenses identiques)
+  const enCours = useRef(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.label || !form.amount || !form.date || !selectedCategory) return;
-    const enregistree = await onAddExpense({
-      label: form.label,
-      category: selectedCategory,
-      amount: Number(form.amount),
-      date: form.date,
-    });
-    // Formulaire vidé seulement si le serveur a enregistré (avant : vidé même en cas d'échec, saisie perdue)
-    if (enregistree !== false) setForm({ label: '', category: 'RH', amount: '', date: '' });
+  const enregistrer = async (v: SaisieDepense) => {
+    if (enCours.current || !selectedCategory) return;
+    enCours.current = true;
+    try {
+      const enregistree = await onAddExpense({
+        label: v.label.trim(),
+        category: selectedCategory,
+        amount: Number(v.amount.replace(/\s/g, '')),
+        date: v.date,
+      });
+      // Formulaire vidé seulement si le serveur a enregistré (avant : vidé même en cas d'échec, saisie perdue)
+      if (enregistree !== false) reset(VIDE);
+    } finally {
+      enCours.current = false;
+    }
   };
+  const aria = (id: keyof SaisieDepense) => errors[id] ? { 'aria-invalid': true as const, 'aria-describedby': `depense-${id}-erreur` } : {};
+  const message = (id: keyof SaisieDepense) => errors[id] && (
+    <p id={`depense-${id}-erreur`} role="alert" className="text-[10px] text-red-600 font-bold">{errors[id]?.message}</p>
+  );
 
   const sortedExpenses = [...expenses].sort((a, b) => {
     if (sortBy === 'amount') return b.amount - a.amount;
@@ -76,27 +107,30 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
           <p className="text-[9px] text-neutral-400 font-semibold">Toutes les sorties de caisse sont enregistrées.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3 text-xs font-bold text-neutral-600">
+        <form id="form-depense" onSubmit={(e) => void handleSubmit(enregistrer)(e)} noValidate data-validation-externe className="space-y-3 text-xs font-bold text-neutral-600">
           <div className="space-y-1">
-            <label className="text-[9px] text-neutral-400 font-black uppercase">Libellé de la Dépense</label>
-            <input type="text" placeholder="Ex: Achat craies..." value={form.label} onChange={e => setForm({...form, label: e.target.value})} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none" required />
+            <label htmlFor="depense-label" className="text-[9px] text-neutral-400 font-black uppercase">Libellé de la Dépense</label>
+            <input id="depense-label" type="text" placeholder="Ex: Achat craies..." className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none aria-[invalid=true]:border-red-400" {...register('label')} {...aria('label')} />
+            {message('label')}
           </div>
           <div className="space-y-1">
             <label className="text-[9px] text-neutral-400 font-black uppercase">Catégorie</label>
-            <select value={selectedCategory} onChange={e => setForm({...form, category: e.target.value})} disabled={categories.loading || !!categories.error} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none">
+            <select value={selectedCategory} onChange={e => setCategorie(e.target.value)} disabled={categories.loading || !!categories.error} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none">
               {categories.values.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
             {categories.error && <p role="alert" className="text-[10px] text-red-600 font-semibold">{categories.error}</p>}
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] text-neutral-400 font-black uppercase">Montant (FCFA)</label>
-            <input type="number" placeholder="FCFA" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none" required />
+            <label htmlFor="depense-amount" className="text-[9px] text-neutral-400 font-black uppercase">Montant (FCFA)</label>
+            <input id="depense-amount" inputMode="numeric" placeholder="FCFA" className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none aria-[invalid=true]:border-red-400" {...register('amount')} {...aria('amount')} />
+            {message('amount')}
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] text-neutral-400 font-black uppercase">Date de Décaissement</label>
-            <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none" required />
+            <label htmlFor="depense-date" className="text-[9px] text-neutral-400 font-black uppercase">Date de Décaissement</label>
+            <input id="depense-date" type="date" className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none aria-[invalid=true]:border-red-400" {...register('date')} {...aria('date')} />
+            {message('date')}
           </div>
-          <button type="submit" className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs">Enregistrer</button>
+          <button type="submit" disabled={isSubmitting || !selectedCategory} className="disabled:opacity-60 w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs">Enregistrer</button>
         </form>
       </div>
     </div>

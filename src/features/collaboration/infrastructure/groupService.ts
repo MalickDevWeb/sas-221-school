@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
-import { Workgroup } from '../domain/CollaborationModels';
+import { CollabMessage, Workgroup } from '../domain/CollaborationModels';
 import { GroupEvaluation } from '../domain/TaskWikiModels';
 
 function normalizeWorkgroup(raw: any, index: number): Workgroup {
@@ -49,4 +49,31 @@ export async function saveEvaluation(evaluation: GroupEvaluation): Promise<void>
 export function subscribeEvaluations(onUpdate: (evals: readonly GroupEvaluation[]) => void) {
   onUpdate([]);
   return () => {};
+}
+
+/** Message du chat d'un groupe de travail, tel que renvoyé par GET /collaboration/workgroups/{id}/messages. */
+interface MessageGroupeServeur { id: string; sender?: string; content?: string; timestamp?: string }
+
+/**
+ * Chat d'un groupe de travail (2026-11-13). Avant : l'écran écrivait dans une autre messagerie (discussions de groupe)
+ * dont l'enregistrement était désactivé → « envoyé », puis le message disparaissait au rafraîchissement suivant.
+ * L'auteur est désormais fixé par le serveur (compte connecté) : il n'est plus envoyé.
+ */
+export async function getMessagesGroupe(groupId: string): Promise<CollabMessage[]> {
+  const res = await apiClient.get<MessageGroupeServeur[]>(`/collaboration/workgroups/${encodeURIComponent(groupId)}/messages`);
+  return (Array.isArray(res.data) ? res.data : [])
+    .map((m) => ({
+      id: m.id,
+      groupId,
+      senderName: m.sender || 'Auteur inconnu',
+      text: m.content ?? '',
+      timestamp: m.timestamp ? new Date(m.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+      _horodatage: m.timestamp ?? '',
+    }))
+    .sort((a, b) => a._horodatage.localeCompare(b._horodatage))
+    .map(({ _horodatage: _ignore, ...m }) => m);
+}
+
+export async function envoyerMessageGroupe(groupId: string, contenu: string): Promise<void> {
+  await apiClient.post(`/collaboration/workgroups/${encodeURIComponent(groupId)}/messages`, { content: contenu });
 }

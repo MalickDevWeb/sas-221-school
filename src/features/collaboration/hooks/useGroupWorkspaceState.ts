@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CollabMessage, RepoDocument, GroupHomework } from '../domain/CollaborationModels';
 import { subscribeDocs, saveDoc, subscribeHomeworks, saveHomework } from '../infrastructure/docService';
-import { sendTextMessage, getGroupMessages } from '../infrastructure/groupChatService';
+import { getMessagesGroupe, envoyerMessageGroupe } from '../infrastructure/groupService';
 import { collabSocket } from '../infrastructure/collabWebSocket';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg: string, isSuccess: boolean) => void) {
   const [messages, setMessages] = useState<readonly CollabMessage[]>([]);
@@ -15,8 +16,7 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
     // Initial fetch of messages
     const fetchMsgs = async () => {
       try {
-        const data = await getGroupMessages(activeGroupId);
-        if (Array.isArray(data)) setMessages(data);
+        setMessages(await getMessagesGroupe(activeGroupId));
       } catch (e) {
         console.error('Failed to fetch group messages', e);
       }
@@ -52,33 +52,19 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
     fileType?: CollabMessage['fileType'],
     fileName?: string
   ) => {
+    // Message enregistré par le serveur, puis liste relue : plus d'affichage provisoire qui disparaissait au
+    // rafraîchissement (avant : la messagerie appelée n'enregistrait rien). L'auteur est le compte connecté.
+    void senderName; void role;
+    const contenu = fileType && fileType !== 'none' ? (text || `[Fichier joint : ${fileName}]`) : text;
+    if (!contenu.trim()) {
+      triggerToast('Le message est vide.', false);
+      return;
+    }
     try {
-      if (fileType === 'none' || !fileType) {
-        // Send pure text
-        await sendTextMessage(groupId, { senderId: senderName, content: text });
-      } else {
-        // Fallback for files right now, normally we'd use sendImageMessage/sendAudioMessage
-        await sendTextMessage(groupId, { senderId: senderName, content: text || `[Fichier joint: ${fileName}]` });
-      }
-      
-      // Optimistic update for UI responsiveness
-      const msg: Partial<CollabMessage> = {
-        id: Date.now().toString(),
-        groupId,
-        senderName,
-        senderRole: role,
-        text,
-        fileType,
-        fileName,
-        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, msg as CollabMessage]);
-      
-      // We can also publish directly to WebSocket for immediate broadcast
-      collabSocket.sendMessage('/app/chat.sendMessage', msg);
+      await envoyerMessageGroupe(groupId, contenu);
+      setMessages(await getMessagesGroupe(groupId));
     } catch (e) {
-      console.error('Failed to send message', e);
-      triggerToast('Échec de l\'envoi du message', false);
+      triggerToast(`Message non envoyé : ${resolveErrorMessage(e)}`, false);
     }
   }, [triggerToast]);
 

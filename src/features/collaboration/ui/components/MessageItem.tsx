@@ -11,7 +11,7 @@ export function MessageItem({ m, isCurrentUser }: Props) {
   return (
     <div className={`flex flex-col max-w-[80%] ${isCurrentUser ? 'ml-auto items-end' : 'mr-auto items-start'}`}>
       <span className="text-[9px] font-bold text-neutral-500 mb-0.5">
-        {m.senderName} ({m.senderRole})
+        {m.senderName}{m.senderRole ? ` (${m.senderRole})` : ''}
       </span>
       <div
         className={`p-3 rounded-2xl text-xs font-semibold leading-relaxed ${

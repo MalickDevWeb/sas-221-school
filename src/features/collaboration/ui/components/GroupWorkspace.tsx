@@ -14,17 +14,15 @@ interface Props {
 
 export function GroupWorkspace({ groupId, groupName, messages, onSendMessage, userName, userRole }: Props) {
   const [text, setText] = useState('');
-  const [fileType, setFileType] = useState<CollabMessage['fileType']>('none');
-  const [fileName, setFileName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Texte seul : l'ancien sélecteur « PDF / ZIP / Message vocal » inventait un nom de fichier
+  // (« Doc_Partage_1234.pdf ») et annonçait une pièce jointe alors qu'aucun fichier n'était choisi ni envoyé.
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim() && fileType === 'none') return;
-    onSendMessage(groupId, userName, text, fileType !== 'none' ? fileType : undefined, fileName || undefined);
+    if (!text.trim()) return;
+    onSendMessage(groupId, userName, text);
     setText('');
-    setFileType('none');
-    setFileName('');
   };
 
   const groupMsgs = messages.filter((m) => {
@@ -71,23 +69,6 @@ export function GroupWorkspace({ groupId, groupName, messages, onSendMessage, us
       </div>
 
       <form onSubmit={handleSend} className="p-3 border-t border-neutral-gray-100 flex gap-2 items-center bg-white rounded-b-2xl">
-        <select
-          value={fileType}
-          onChange={(e) => {
-            const val = e.target.value as CollabMessage['fileType'];
-            setFileType(val);
-            if (val !== 'none') {
-              setFileName(`Doc_Partage_${Date.now().toString().slice(-4)}.${val === 'code' ? 'ts' : val === 'voice' ? 'mp3' : val === 'zip' ? 'zip' : 'pdf'}`);
-            }
-          }}
-          className="text-[10px] font-bold border border-neutral-gray-200 rounded-xl px-2 py-1.5 focus:outline-none bg-white"
-        >
-          <option value="none">Texte seul</option>
-          <option value="pdf">📄 PDF</option>
-          <option value="zip">📦 ZIP</option>
-          <option value="code">💻 Fichier Source</option>
-          <option value="voice">🎙️ Message Vocal</option>
-        </select>
 
         <input
           type="text"

@@ -48,7 +48,8 @@ export interface CollabMessage {
   readonly id: string;
   readonly groupId: string;
   readonly senderName: string;
-  readonly senderRole: 'ETUDIANT' | 'PROFESSEUR' | 'ADMIN';
+  /** Rôle de l'auteur, quand il est connu (jamais supposé). */
+  readonly senderRole?: 'ETUDIANT' | 'PROFESSEUR' | 'ADMIN';
   readonly text: string;
   readonly fileType?: 'image' | 'video' | 'voice' | 'zip' | 'pdf' | 'presentation' | 'code' | 'link' | 'none';
   readonly fileUrl?: string;
