@@ -36,7 +36,8 @@ import {
 export function renderTenantAppRoutes() {
   return (
     <Route path="/t/:tenantSlug" element={<TenantRouteSync />}>
-      <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>
+      <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER,
+        ROLE_UTILISATEUR.DIRECTEUR, ROLE_UTILISATEUR.SECRETAIRE, ROLE_UTILISATEUR.COMPTABLE, ROLE_UTILISATEUR.SURVEILLANT, ROLE_UTILISATEUR.RH]} />}>
         <Route path="admin" element={<AdminPage />} />
         <Route path="admin/dashboard" element={<AdminPage />} />
         <Route path="admin/branding" element={<BrandingSettingsPage />} />

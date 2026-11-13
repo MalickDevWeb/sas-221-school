@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getDynamicBadgeData } from '@/shared/lib/qrSecurity';
+import { QrLocal } from '@/shared/components/QrLocal';
+import { useBadgeNumerique } from '@/features/student/hooks/useBadgeNumerique';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface StudentHeaderBannerProps {
@@ -24,18 +25,9 @@ export function StudentHeaderBanner({
   // Déterminer automatiquement le type de pointage (alternance Arrivée / Départ)
   const nextPointerType = attendancesCount % 2 === 0 ? 'arrivée' : 'départ';
 
-  const [minuteEpoch, setMinuteEpoch] = useState(() => Math.floor(Date.now() / 60000));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMinuteEpoch(Math.floor(Date.now() / 60000));
-    }, 10000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Aucun QR n'est généré sans matricule réel (pas de badge inventé).
+  // Aucun QR sans matricule réel (pas de badge inventé) ; le contenu est signé par le serveur (QR dessiné localement).
   const realMatricule = matricule?.trim() || '';
-  const qrData = realMatricule ? getDynamicBadgeData(realMatricule, studentName?.trim() || '—', minuteEpoch) : null;
+  const { contenu: qrData } = useBadgeNumerique(Boolean(realMatricule));
 
 
   return (
@@ -80,13 +72,9 @@ export function StudentHeaderBanner({
           {/* QR Code Mini-Card - Custom 100px size for pristine scanning */}
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-350 mt-3">
             {qrData ? (
-              <img
-                id="student-qr-code-img"
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=1b1c1e&margin=4`}
-                alt="QR Code d'accès"
-                className="w-[74px] h-[74px] object-contain"
-                referrerPolicy="no-referrer"
-              />
+              <span id="student-qr-code-img" className="block">
+                <QrLocal valeur={qrData} titre="QR Code d'accès" className="w-[74px] h-[74px]" />
+              </span>
             ) : (
               <div id="student-qr-code-unavailable" className="w-[74px] h-[74px] flex items-center justify-center text-center text-[9px] font-semibold text-neutral-500 leading-tight">
                 Matricule non renseigné

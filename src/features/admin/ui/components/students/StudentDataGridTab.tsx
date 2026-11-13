@@ -4,6 +4,7 @@ import { Student } from '../../../domain/StudentModels';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileStudentCards } from '@/features/screenguard/ui/components/MobileStudentCards';
 import { EnrollTransferStudentModal } from "./EnrollTransferStudentModal";
+import { useAuthStore } from '@/core/store/authStore';
 
 interface Props {
   students: Student[];
@@ -17,6 +18,9 @@ interface Props {
 
 export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleFinancialStatus, onToggleQrStatus, onRefresh }: Props) {
   const { isMobile } = useDeviceStore();
+  const role = useAuthStore((st) => st.utilisateur?.role) as string | undefined;
+  const originalSuperAdminRole = useAuthStore((st) => st.originalSuperAdminRole);
+  const estPlateforme = role === 'SUPER_ADMIN' || role === 'PLATFORM_OWNER' || role === 'PLATFORM_ADMIN' || Boolean(originalSuperAdminRole);
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('ALL');
   const [filterFin, setFilterFin] = useState('ALL');
@@ -54,10 +58,16 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
           <h3 className="font-extrabold text-[#1E293B] text-sm">Annuaire & DataGrid Enterprise</h3>
           <p className="text-[10px] text-neutral-400 font-bold">Suivi d'accès QR, états de paiement et scolarité.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-[#1E293B] hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-colors">
-          <span translate="no" className="material-symbols-outlined text-sm">person_add</span>
-          Inscrire / Transférer
-        </button>
+        {/* Route de la plateforme (super-administrateur) ; les écoles passent par l'onglet « Transferts d'élèves »,
+            où l'école d'accueil accepte ou refuse (2026-11-13). */}
+        {estPlateforme ? (
+          <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-[#1E293B] hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-colors">
+            <span translate="no" className="material-symbols-outlined text-sm">person_add</span>
+            Inscrire / Transférer
+          </button>
+        ) : (
+          <span className="text-[10px] text-neutral-500 font-bold max-w-xs">Transfert vers une autre école : menu « Transferts d'élèves ».</span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">

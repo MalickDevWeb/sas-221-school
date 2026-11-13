@@ -16,12 +16,8 @@ interface CoursesSynthesesProps {
 }
 
 export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSynthesesProps) {
-  // Use real courses or dynamic fallback list if loading/empty
-  const displayCourses = courses.length > 0 ? courses : [
-    { id: 'c1', titre: 'Programmation Mobile S1', coefficient: 4, progress: 85 },
-    { id: 'c2', titre: 'Machine Learning Foundations', coefficient: 5, progress: 65 },
-    { id: 'c3', titre: 'Développement Web Fullstack', coefficient: 5, progress: 70 },
-  ];
+  // Seulement les cours réels de l'élève (2026-11-13) : avant, trois cours inventés s'affichaient quand la liste était vide.
+  const displayCourses = courses;
 
   return (
     <div className="flex-grow overflow-y-auto p-3.5 space-y-3 no-scrollbar" id="courses-syntheses-list">
@@ -35,6 +31,11 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
       </div>
 
       <div className="space-y-3">
+        {displayCourses.length === 0 && (
+          <p className="text-[10px] text-secondary font-bold leading-relaxed">
+            Aucun cours n'est encore enregistré pour votre classe.
+          </p>
+        )}
         {displayCourses.map((course) => (
           <div 
             key={course.id}
@@ -43,25 +44,29 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
             <div className="flex justify-between items-start">
               <div>
                 <span className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block mb-0.5">
-                  Coef: {course.coefficient || 4} • Progrès: {course.progress || 0}%
+                  {course.coefficient > 0 ? `Coef: ${course.coefficient} • ` : ''}Progrès: {course.progress || 0}%
                 </span>
                 <h3 className="font-extrabold text-xs text-[#291715] group-hover:text-[#3f1e1e] transition-colors">
                   {course.titre}
                 </h3>
               </div>
-              <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-lg border bg-primary/10 text-primary border-primary/20">
-                {(course.coefficient || 4) >= 5 ? 'Élevée' : 'Moyenne'}
-              </span>
+              {course.coefficient > 0 && (
+                <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-lg border bg-primary/10 text-primary border-primary/20">
+                  {course.coefficient >= 5 ? 'Élevée' : 'Moyenne'}
+                </span>
+              )}
             </div>
 
-            <div className="bg-white rounded-lg p-2 border border-neutral-gray-200/55">
-              <div className="flex items-start gap-1">
-                <Zap className="h-3.5 w-3.5 text-[#E3A857] shrink-0 mt-0.5" />
-                <p className="text-[10px] font-semibold text-neutral-600 leading-relaxed italic">
-                  "Sujets clés: {course.unites?.join(', ') || 'Concepts avancés et travaux pratiques de validation'}"
-                </p>
+            {course.unites && course.unites.length > 0 && (
+              <div className="bg-white rounded-lg p-2 border border-neutral-gray-200/55">
+                <div className="flex items-start gap-1">
+                  <Zap className="h-3.5 w-3.5 text-[#E3A857] shrink-0 mt-0.5" />
+                  <p className="text-[10px] font-semibold text-neutral-600 leading-relaxed italic">
+                    Sujets clés : {course.unites.join(', ')}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Actions row */}
             <div className="grid grid-cols-3 gap-1 pt-0.5">

@@ -1,7 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { ROLE_UTILISATEUR } from '@/shared/constants';
+import { ROLE_UTILISATEUR, ROUTES } from '@/shared/constants';
+import { ROLES_PERSONNEL } from '@/shared/constants/user.enums';
 
 const getActiveTenantSlug = () => {
   const storedSlug = localStorage.getItem('tenant_slug');
@@ -23,7 +24,9 @@ export const DashboardRedirect = () => {
   }
   if (
     utilisateur?.role === ROLE_UTILISATEUR.ADMIN ||
-    utilisateur?.role === ROLE_UTILISATEUR.ADMINISTRATOR
+    utilisateur?.role === ROLE_UTILISATEUR.ADMINISTRATOR ||
+    // personnel : espace administration, menus selon les droits accordés par l'école (2026-11-13)
+    ROLES_PERSONNEL.includes(String(utilisateur?.role ?? ''))
   ) {
     return <Navigate to={`/t/${slug}/admin/dashboard`} replace />;
   }
@@ -39,7 +42,11 @@ export const DashboardRedirect = () => {
   if (utilisateur?.role === ROLE_UTILISATEUR.PARENT) {
     return <Navigate to={`/t/${slug}/parent`} replace />;
   }
-  return <Navigate to={`/t/${slug}/etudiant`} replace />;
+  if (utilisateur?.role === ROLE_UTILISATEUR.ETUDIANT || utilisateur?.role === ROLE_UTILISATEUR.STUDENT) {
+    return <Navigate to={`/t/${slug}/etudiant`} replace />;
+  }
+  // Rôle sans espace (secrétaire, comptable…) ou session absente : plus d'envoi par défaut vers l'espace élève.
+  return <Navigate to={utilisateur ? '/espace-indisponible' : ROUTES.login} replace />;
 };
 
 export const TenantRedirect = ({ defaultTo }: { defaultTo?: string }) => {

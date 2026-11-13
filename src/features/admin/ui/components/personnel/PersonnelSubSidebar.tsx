@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRbacStore } from '@/core/store/rbacStore';
 
 interface Props {
   activeTab: string;
@@ -8,9 +9,11 @@ interface Props {
 }
 
 export function PersonnelSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
+  // La matrice des droits n'est gérée que par l'administration (le serveur refuse les autres rôles)
+  const administration = useRbacStore((s) => s.mesDroits?.administration ?? false);
   const menuItems = [
     { id: 'accounts', label: 'Création de Comptes', icon: 'person_add' },
-    { id: 'rbac', label: 'Droits d\'Accès (RBAC)', icon: 'key' },
+    ...(administration ? [{ id: 'rbac', label: 'Droits d\'Accès (RBAC)', icon: 'key' }] : []),
     { id: 'attendance', label: 'Présences & Émarge', icon: 'assignment_turned_in' },
   ];
 

@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Coffee } from 'lucide-react';
 import type { ProfessorSchedule } from '../../domain/ProfessorModels';
-import { HOURS, DAYS, DAY_LABELS, DAY_DATES, SHORT_TO_FULL } from './ProfessorGridViewConstants';
+import { HOURS, DAYS, DAY_LABELS, SHORT_TO_FULL, datesSemaineCourante } from './ProfessorGridViewConstants';
 import { ProfessorGridCell } from './ProfessorGridCell';
+import { decouperHoraire } from '../../utils/scheduleFormatter';
 
 interface Props {
   readonly schedule: readonly ProfessorSchedule[];
@@ -13,6 +14,7 @@ interface Props {
 
 export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, liveSessions = [] }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const DAY_DATES = datesSemaineCourante();
   const scroll = (dir: 'L' | 'R') => ref.current?.scrollBy({ left: dir === 'L' ? -280 : 280, behavior: 'smooth' });
 
   return (
@@ -60,21 +62,21 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
                 <tr key={time} className="hover:bg-neutral-50/50">
                   <td className="h-28 text-center text-xs font-bold text-neutral-500 border-r border-neutral-150 align-top pt-3.5">{time}</td>
                   {DAYS.map((day) => {
-                    const matched = schedule.find((s) => s.day === SHORT_TO_FULL[day] && s.time.startsWith(time));
+                    const currentH = parseInt(time.split(':')[0]);
+                    const matched = schedule.find((s) => s.day === SHORT_TO_FULL[day] && decouperHoraire(s.time)?.heureDebut === currentH);
                     const isPriorOccupied = schedule.some((s) => {
                       if (s.day !== SHORT_TO_FULL[day]) return false;
-                      const [start, end] = s.time.split(' - ').map(t => parseInt(t.split(':')[0]));
-                      const currentH = parseInt(time.split(':')[0]);
-                      return currentH > start && currentH < end;
+                      const h = decouperHoraire(s.time);
+                      return !!h && currentH > h.heureDebut && currentH < h.heureFin;
                     });
 
                     if (isPriorOccupied) return null;
 
                     let rowSpan = 1;
-                    if (matched) {
-                      const [startH, endH] = matched.time.split(' - ').map(t => parseInt(t.split(':')[0]));
-                      rowSpan = Math.max(1, endH - startH);
-                      if (startH < 12 && endH > 12) rowSpan -= 1;
+                    const h = matched ? decouperHoraire(matched.time) : null;
+                    if (h) {
+                      rowSpan = Math.max(1, h.heureFin - h.heureDebut);
+                      if (h.heureDebut < 12 && h.heureFin > 12) rowSpan = Math.max(1, rowSpan - 1);
                     }
 
                     const match = matched ? fitsFilters(matched) : false;

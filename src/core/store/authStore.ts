@@ -70,7 +70,23 @@ export const useAuthStore = create<AuthState>()(
       },
 
       deconnexion: () => {
-        localStorage.removeItem('access_token');
+        // Déconnexion réelle (2026-11-13) : avant, aucun bouton n'appelait le serveur et le jeton restait dans le
+        // navigateur (auth_token) comme dans le cookie HttpOnly → la session restait ouverte pour la personne suivante
+        // sur un poste partagé. Le serveur révoque le jeton et efface le cookie ; le navigateur oublie le jeton.
+        let jeton: string | null = null;
+        try { jeton = localStorage.getItem('auth_token') || localStorage.getItem('access_token'); } catch { /* stockage indisponible */ }
+        try {
+          void fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            keepalive: true,
+            headers: jeton ? { Authorization: `Bearer ${jeton}` } : {},
+          }).catch(() => { /* hors ligne : le jeton expirera de lui-même */ });
+        } catch { /* fetch indisponible */ }
+        try {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('auth_token');
+        } catch { /* stockage indisponible */ }
         set({
           utilisateur: null,
           token: null,

@@ -1,5 +1,6 @@
 import type { ProfessorSchedule } from '../domain/ProfessorModels';
 import type { CourseSession } from '@/features/schedule/domain/Schedule';
+import { decouperHoraire } from './scheduleFormatter';
 
 const DAY_MAP: Record<string, 'LUN' | 'MAR' | 'MER' | 'JEU' | 'VEN'> = {
   'Lundi': 'LUN',
@@ -10,7 +11,10 @@ const DAY_MAP: Record<string, 'LUN' | 'MAR' | 'MER' | 'JEU' | 'VEN'> = {
 };
 
 export function mapProfessorScheduleToCourseSession(s: ProfessorSchedule): CourseSession {
-  const [start = '08:00', end = '10:00'] = s.time.split(' - ');
+  // Horaire réel de la séance ; plus d'horaire inventé (08:00-10:00) quand le format n'était pas reconnu.
+  const h = decouperHoraire(s.time);
+  const start = h?.debut ?? '';
+  const end = h?.fin ?? '';
   const mappedDay = DAY_MAP[s.day] || 'LUN';
   return {
     id: s.id,

@@ -15,6 +15,7 @@ import { CollaborationPage } from '@/features/collaboration/ui/pages/Collaborati
 import { AdminReferentielsManager } from '@/features/referentiels';
 import { AdminJustificatifsAbsence } from './justificatifs/AdminJustificatifsAbsence';
 import { BoiteMessagesParents } from '@/features/messagerie-parents/BoiteMessagesParents';
+import { TransfertsTab } from './transferts/TransfertsTab';
 
 interface AdminTabViewsProps {
   activeTab: string;
@@ -29,6 +30,7 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     schedule: <AdminGlobalScheduler />,
     personnel: <AdminPersonnelRH />,
     students: <AdminStudentManager />,
+    transferts: <TransfertsTab />,
     justificatifs: <AdminJustificatifsAbsence />,
     messages_parents: (
       <BoiteMessagesParents boite="/admin/messages-parents" titre="Messages des parents"

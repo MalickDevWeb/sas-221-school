@@ -1,8 +1,9 @@
 import { InMemoryScheduleRepository } from '../local/InMemoryScheduleRepository';
 import { ApiScheduleRepository } from '../api/ApiScheduleRepository';
 import { createGetWeeklyScheduleUseCase } from '../../usecases/GetWeeklyScheduleUseCase';
+import { MODE_SIMULE } from '@/shared/config/modeSimule';
 
-const isMock = import.meta.env.VITE_USE_MOCK === 'true';
+const isMock = MODE_SIMULE; // simulé : développement seulement (shared/config/modeSimule)
 
 export const scheduleRepository = isMock 
   ? new InMemoryScheduleRepository() 

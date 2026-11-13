@@ -1,3 +1,4 @@
+import { QrLocal } from '@/shared/components/QrLocal';
 import React from 'react';
 
 interface Props {
@@ -45,12 +46,7 @@ export function ProfessorHeaderBanner({ profName, coursesCount, vigilCheckInsCou
           </div>
 
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300 mt-2">
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=221-PROF-${profName.replace(/\s+/g, '-')}&color=1b1c1e&margin=4`}
-              alt="QR Code Enseignant"
-              className="w-[68px] h-[68px] object-contain"
-              referrerPolicy="no-referrer"
-            />
+            <QrLocal valeur={`221-PROF-${profName.replace(/\s+/g, '-')}`} titre="QR Code Enseignant" className="w-[68px] h-[68px]" />
             <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>
         </div>

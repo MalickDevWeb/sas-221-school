@@ -1,3 +1,4 @@
+import { QrLocal } from '@/shared/components/QrLocal';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import type { Campaign } from './admissionsTypes';
@@ -85,11 +86,7 @@ export function CampaignShareModal({ campaign, onClose }: Props) {
 
         {/* QR Code and Direct Link */}
         <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200/80 flex items-center gap-3">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(shareUrl)}`}
-            alt="QR Code Inscription"
-            className="w-18 h-18 rounded-xl border border-neutral-200 bg-white p-1 shrink-0"
-          />
+          <QrLocal valeur={shareUrl} titre="QR Code Inscription" className="w-18 h-18 rounded-xl border border-neutral-200 bg-white p-1 shrink-0" />
           <div className="flex-1 space-y-1.5 min-w-0">
             <span className="text-[10px] font-black uppercase text-neutral-500 block">Flash QR Code & Lien Unique</span>
             <div className="flex gap-1.5">

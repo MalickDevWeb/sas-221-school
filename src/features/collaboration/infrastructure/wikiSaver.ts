@@ -1,6 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
 import { WikiPage, CollabNote, AuditLog } from '../domain/TaskWikiModels';
-import { collabSocket } from './collabWebSocket';
 import {
   KEYS,
   getLocalItems,
@@ -12,8 +11,8 @@ export async function saveWiki(w: WikiPage): Promise<void> {
   const next = current.filter(x => x.id !== w.id).concat(w);
   saveLocalItems(KEYS.WIKIS, next);
   try {
+    // Enregistrement par l'API seule : l'envoi WebSocket vers /app/wiki.update n'avait aucun destinataire côté serveur.
     await apiClient.post(`/wiki/pages`, w);
-    collabSocket.sendMessage('/app/wiki.update', w);
   } catch (err) {
     console.error('Failed to save wiki to backend:', err);
   }
@@ -25,7 +24,6 @@ export async function saveNote(n: CollabNote): Promise<void> {
   saveLocalItems(KEYS.NOTES, next);
   try {
     await apiClient.post(`/wiki/notes`, n);
-    collabSocket.sendMessage('/app/wiki.note.update', n);
   } catch (err) {
     console.error('Failed to save note to backend:', err);
   }

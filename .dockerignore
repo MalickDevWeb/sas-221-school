@@ -1,2 +1,10 @@
 node_modules
 dist
+# Secrets et configurations locales : jamais copiés dans l'image (carte APP-SEC-07P, 2026-11-13)
+.env
+.env.*
+!.env.example
+# Inutile au build, et peut contenir des informations sensibles
+.git
+coverage
+*.log

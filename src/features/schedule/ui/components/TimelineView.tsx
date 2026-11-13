@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, User, MapPin, ArrowRight } from 'lucide-react';
 import { CourseSession, CourseDay } from '@/features/schedule/domain/Schedule';
+import { datesSemaineCourante } from '@/shared/lib/semaine';
 
 export function TimelineView({ state }: { state: any }) {
   const { schedule, selectedDayMobile, setSelectedDayMobile, triggerToast, fitsFilters, resetAllFilters, setActivePlanCourse, liveSessions, handleJoinLive, enCoursId, prochainId } = state;
@@ -12,7 +13,7 @@ export function TimelineView({ state }: { state: any }) {
         <div className="flex lg:flex-col gap-2.5 overflow-x-auto pb-3 lg:pb-0 select-none no-scrollbar snap-x scroll-smooth">
           {(['LUN', 'MAR', 'MER', 'JEU', 'VEN'] as const).map((day) => {
             const dayLabel = { LUN: 'Lundi', MAR: 'Mardi', MER: 'Mercredi', JEU: 'Jeudi', VEN: 'Vendredi' }[day];
-            const dayDate = { LUN: '23 Oct', MAR: '24 Oct', MER: '25 Oct', JEU: '26 Oct', VEN: '27 Oct' }[day];
+            const dayDate = (datesSemaineCourante() as Record<string, string>)[day]; // dates réelles (avant : en dur)
             const resultsCount = schedule.filter((c: CourseSession) => c.jour === day).filter(fitsFilters).length;
             const isSelected = selectedDayMobile === day;
 

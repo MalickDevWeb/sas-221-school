@@ -1,6 +1,7 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
+import { EspaceIndisponiblePage } from './EspaceIndisponiblePage';
 import {
   LandingPage,
   TenantFinderPage,
@@ -30,6 +31,7 @@ export function renderPublicRoutes() {
       <Route path="/t/:tenantSlug/candidature" element={<CandidaturePage />} />
       <Route path="/super-admin" element={<SuperAdminLoginPage />} />
       <Route path="/admin" element={<AdminPortalLoginPage />} />
+      <Route path="/espace-indisponible" element={<EspaceIndisponiblePage />} />
       <Route
         path="/unauthorized"
         element={

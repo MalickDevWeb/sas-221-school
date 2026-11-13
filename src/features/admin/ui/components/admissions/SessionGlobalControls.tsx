@@ -77,7 +77,7 @@ export function SessionGlobalControls({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[8px] text-neutral-400 font-black uppercase">Date Limite</label>
-            <input type="date" value={generalDeadline} onChange={e => setGeneralDeadline(e.target.value)} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
+            <input type="date" value={generalDeadline ?? ''} onChange={e => setGeneralDeadline(e.target.value)} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
           </div>
           <div>
             <label className="text-[8px] text-neutral-400 font-black uppercase">Frais (FCFA)</label>

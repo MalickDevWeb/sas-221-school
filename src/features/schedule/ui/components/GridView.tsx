@@ -2,13 +2,14 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, Coffee, MapPin } from 'lucide-react';
 import { CourseSession } from '@/features/schedule/domain/Schedule';
 import { LiveIndicator } from '@/shared/components';
+import { datesSemaineCourante } from '@/shared/lib/semaine';
 
 export function GridView({ state }: { state: any }) {
   const { schedule, gridContainerRef, scrollGrid, fitsFilters, setActivePlanCourse, liveSessions, handleJoinLive, enCoursId, prochainId } = state;
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   const days = ['LUN', 'MAR', 'MER', 'JEU', 'VEN'] as const;
   const dayLabels = { LUN: 'LUNDI', MAR: 'MARDI', MER: 'MERCREDI', JEU: 'JEUDI', VEN: 'VENDREDI' };
-  const dayDates = { LUN: '23 Oct', MAR: '24 Oct', MER: '25 Oct', JEU: '26 Oct', VEN: '27 Oct' };
+  const dayDates: Record<string, string> = datesSemaineCourante(); // dates réelles (avant : « 23 Oct »… en dur)
 
   return (
     <div className="space-y-4">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, AlertCircle, CheckCircle, GraduationCap } from 'lucide-react';
+import { moyenneModule } from '../../../hooks/useTutor';
 
 interface Grade {
   id: string;
@@ -21,7 +22,8 @@ interface AcademicDiagnosticProps {
 }
 
 export function AcademicDiagnostic({ grades, homeworks }: AcademicDiagnosticProps) {
-  const getAvg = (g: Grade) => Number(((g.cc + g.examen) / 2).toFixed(2));
+  // Même calcul que le relevé officiel (40 % CC, 60 % examen).
+  const getAvg = (g: Grade) => moyenneModule(g);
 
   // Compute stats
   const overallAvg = grades.length > 0
@@ -44,7 +46,7 @@ export function AcademicDiagnostic({ grades, homeworks }: AcademicDiagnosticProp
           Diagnostic Académique
         </h3>
         <span className="text-[9px] font-black uppercase bg-[#3f1e1e]/10 text-[#3f1e1e] px-2 py-0.5 rounded-full">
-          Moyenne: {overallAvg}/20
+          {grades.length > 0 ? `Moyenne: ${overallAvg}/20` : 'Aucune note'}
         </span>
       </div>
 

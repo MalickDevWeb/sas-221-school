@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { CollabMessage, RepoDocument, GroupHomework } from '../domain/CollaborationModels';
 import { subscribeDocs, saveDoc, subscribeHomeworks, saveHomework } from '../infrastructure/docService';
 import { getMessagesGroupe, envoyerMessageGroupe } from '../infrastructure/groupService';
-import { collabSocket } from '../infrastructure/collabWebSocket';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg: string, isSuccess: boolean) => void) {
@@ -23,14 +22,9 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
     };
     fetchMsgs();
 
-    // Setup STOMP WebSocket for real-time
-    collabSocket.connect((payload) => {
-      if (payload && payload.groupId === activeGroupId) {
-        setMessages((prev) => [...prev, payload]);
-      }
-    });
-
-    // Fallback polling for robust UI update in case WebSocket fails
+    // Messages relus toutes les 4 s. Révision du 2026-11-13 : la connexion WebSocket ouverte ici écoutait
+    // /topic/collaboration, canal sur lequel le serveur ne publie rien (et non cloisonné par école) ; elle ne
+    // servait à rien et se reconnectait en boucle (erreurs de console relevées par le balayage des écrans).
     const timer = setInterval(fetchMsgs, 4000);
 
     const unsubDocs = subscribeDocs(activeGroupId, setDocs);
@@ -40,7 +34,6 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
       clearInterval(timer);
       unsubDocs();
       unsubHws();
-      collabSocket.disconnect(); // Optional, if we want to clean up.
     };
   }, [activeGroupId]);
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
-import { getDynamicBadgeData } from '@/shared/lib/qrSecurity';
+import { QrLocal } from '@/shared/components/QrLocal';
+import { useBadgeNumerique } from '@/features/student/hooks/useBadgeNumerique';
 
 interface Props {
   readonly studentName?: string;
@@ -13,19 +14,9 @@ export function StudentQRZoomOverlay({ studentName, matricule, onClose }: Props)
   const name = studentName?.trim() || '';
   const mat = matricule?.trim() || '';
 
-  const [minuteEpoch, setMinuteEpoch] = useState(() => Math.floor(Date.now() / 60000));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMinuteEpoch(Math.floor(Date.now() / 60000));
-    }, 10000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Pas de QR sans matricule réel : un badge inventé serait trompeur.
-  const qrUrl = mat
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(getDynamicBadgeData(mat, name || '—', minuteEpoch))}&color=1b1c1e&margin=4`
-    : null;
+  // Pas de QR sans matricule réel ; contenu signé par le serveur, renouvelé chaque minute, dessiné localement.
+  void name;
+  const { contenu: qrUrl } = useBadgeNumerique(Boolean(mat));
 
 
   useEffect(() => {
@@ -61,12 +52,7 @@ export function StudentQRZoomOverlay({ studentName, matricule, onClose }: Props)
         <div className="relative w-full h-full bg-white rounded-2xl flex items-center justify-center overflow-hidden">
           {qrUrl ? (
             <>
-              <img 
-                src={qrUrl} 
-                alt="QR Code Étudiant" 
-                className="w-full h-full object-contain p-2" 
-                referrerPolicy="no-referrer" 
-              />
+              <QrLocal valeur={qrUrl} titre="QR Code Étudiant" className="w-full h-full p-2" />
               {/* Subtle scanning light animation bar */}
               <div className="absolute left-0 right-0 h-[1.5px] bg-brand-red-deep opacity-80 shadow-[0_0_8px_#B3181C] top-1/2 -translate-y-1/2" />
               <div className="absolute inset-x-0 h-0.5 bg-brand-red-deep/20 top-1 animate-[bounce_3s_infinite]" />
