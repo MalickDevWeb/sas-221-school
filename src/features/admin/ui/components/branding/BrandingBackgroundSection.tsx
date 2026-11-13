@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { Sparkles, Check, RefreshCw, Link as LinkIcon } from 'lucide-react';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { BrandingBackgroundUploader } from './BrandingBackgroundUploader';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { enregistrerIdentite, envoyerImage } from '@/shared/lib/identiteVisuelle';
 
 const PRESET_BACKGROUNDS = [
   { name: 'Campus Moderne & Soleil', url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&auto=format&fit=crop&q=80' },
@@ -17,15 +19,27 @@ export const BrandingBackgroundSection: React.FC = () => {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (urlToSave: string) => {
+  /** Enregistré côté serveur d'abord (avant : gardé dans ce seul navigateur, « mise à jour » annoncée quand même). */
+  const handleSave = async (urlToSave: string) => {
     setIsSaving(true);
     try {
-      setBgUrl(urlToSave);
-      updateBranding({ backgroundUrl: urlToSave });
-      toast.success(urlToSave ? 'Photo d\'arrière-plan mise à jour pour l\'écran de connexion !' : 'Fond par défaut restauré.');
-    } catch {
-      toast.error('Erreur lors de la mise à jour du fond');
+      const enregistre = await enregistrerIdentite({ backgroundUrl: urlToSave });
+      setBgUrl(enregistre.backgroundUrl ?? '');
+      updateBranding({ backgroundUrl: enregistre.backgroundUrl ?? undefined });
+      toast.success(urlToSave ? 'Photo d\'arrière-plan enregistrée pour l\'écran de connexion.' : 'Fond par défaut restauré.');
+    } catch (err) {
+      toast.error(`Fond non enregistré : ${resolveErrorMessage(err)}`);
     } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFichier = async (fichier: File) => {
+    setIsSaving(true);
+    try {
+      await handleSave(await envoyerImage(fichier));
+    } catch (err) {
+      toast.error(`Image non envoyée : ${resolveErrorMessage(err)}`);
       setIsSaving(false);
     }
   };
@@ -43,7 +57,7 @@ export const BrandingBackgroundSection: React.FC = () => {
         </div>
 
         {/* Upload direct depuis l'ordinateur */}
-        <BrandingBackgroundUploader currentUrl={bgUrl} onUpload={handleSave} onClear={() => handleSave('')} isSaving={isSaving} />
+        <BrandingBackgroundUploader currentUrl={bgUrl} onUpload={(f) => void handleFichier(f)} onClear={() => void handleSave('')} isSaving={isSaving} />
 
         {/* Option URL manuelle */}
         <div className="pt-2">

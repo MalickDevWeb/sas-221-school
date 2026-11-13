@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { toast } from 'sonner';
 import { useTheme } from '@/design-system/useTheme';
 import { ThemePreview } from './ThemePreview';
@@ -44,9 +45,9 @@ export function ThemeEditor() {
     setIsSaving(true);
     try {
       await saveTheme(selectedHex);
-      toast.success('Palette de marque mise à jour pour l\'établissement !');
-    } catch {
-      toast.error('Erreur lors de l\'enregistrement de la palette');
+      toast.success('Couleur de l\'école enregistrée.');
+    } catch (err) {
+      toast.error(`Couleur non enregistrée : ${resolveErrorMessage(err)}`);
     } finally {
       setIsSaving(false);
     }

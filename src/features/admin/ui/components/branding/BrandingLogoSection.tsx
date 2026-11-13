@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Image, Check, Link as LinkIcon } from 'lucide-react';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { superAdminService } from '@/services/superAdminService';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { enregistrerIdentite, envoyerImage } from '@/shared/lib/identiteVisuelle';
 import { BrandingLogoUploader } from './BrandingLogoUploader';
 
 const PRESET_LOGOS = [
@@ -18,18 +19,27 @@ export const BrandingLogoSection: React.FC = () => {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  /** Enregistré côté serveur d'abord ; l'affichage ne change qu'après sa confirmation. */
   const handleSave = async (urlToSave: string) => {
     setIsSaving(true);
     try {
-      setLogoUrl(urlToSave);
-      updateBranding({ logoUrl: urlToSave });
-      if (currentTenant?.id && !currentTenant.id.startsWith('mock-') && !currentTenant.id.startsWith('default-')) {
-        await superAdminService.updateTenant(currentTenant.id, { logo: urlToSave });
-      }
-      toast.success(urlToSave ? 'Logo officiel mis à jour avec succès !' : 'Logo supprimé.');
-    } catch {
-      toast.error('Erreur lors de la sauvegarde du logo');
+      const enregistre = await enregistrerIdentite({ logoUrl: urlToSave });
+      setLogoUrl(enregistre.logoUrl ?? '');
+      updateBranding({ logoUrl: enregistre.logoUrl ?? undefined });
+      toast.success(urlToSave ? 'Logo enregistré.' : 'Logo supprimé.');
+    } catch (err) {
+      toast.error(`Logo non enregistré : ${resolveErrorMessage(err)}`);
     } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFichier = async (fichier: File) => {
+    setIsSaving(true);
+    try {
+      await handleSave(await envoyerImage(fichier));
+    } catch (err) {
+      toast.error(`Image non envoyée : ${resolveErrorMessage(err)}`);
       setIsSaving(false);
     }
   };
@@ -47,7 +57,7 @@ export const BrandingLogoSection: React.FC = () => {
         </div>
 
         {/* Upload direct de fichier */}
-        <BrandingLogoUploader currentUrl={logoUrl} onUpload={handleSave} onClear={() => handleSave('')} />
+        <BrandingLogoUploader currentUrl={logoUrl} onUpload={(f) => void handleFichier(f)} onClear={() => void handleSave('')} />
 
         {/* Option URL manuelle */}
         <div className="pt-2">

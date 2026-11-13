@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { enregistrerIdentite } from '@/shared/lib/identiteVisuelle';
 import { ThemeContext, type ThemeContextValue } from './ThemeContext';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { generatePaletteFromHex } from '@/shared/utils/colorExtractor';
@@ -64,7 +65,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setPreviewHex(null);
   };
 
+  /**
+   * Couleur enregistrée côté serveur AVANT d'être appliquée (avant : appliquée dans ce seul navigateur, puis
+   * « palette mise à jour pour l'établissement » annoncée). Lève l'erreur du serveur en cas de refus.
+   */
   const saveTheme = async (primaryHex: string) => {
+    await enregistrerIdentite({ primaryColor: primaryHex });
     const palette = generatePaletteFromHex(primaryHex);
     applyTheme({
       primaryColor: primaryHex,

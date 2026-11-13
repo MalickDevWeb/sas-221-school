@@ -4,7 +4,8 @@ import { toast } from 'sonner';
 
 interface Props {
   currentUrl: string;
-  onUpload: (dataUrl: string) => void;
+  /** Fichier choisi : envoyé réellement par la section (plus de data URL dans du JSON). */
+  onUpload: (fichier: File) => void;
   onClear: () => void;
   isSaving: boolean;
 }
@@ -24,12 +25,7 @@ export const BrandingBackgroundUploader: React.FC<Props> = ({ currentUrl, onUplo
       return;
     }
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (result) onUpload(result);
-    };
-    reader.readAsDataURL(file);
+    onUpload(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
