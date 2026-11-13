@@ -6,12 +6,12 @@ import { ModuleDetailModal } from './ModuleDetailModal';
 interface Props {
   readonly modules: readonly CourseModule[];
   readonly students: readonly StudentEnrolled[];
-  readonly onSelectModule?: (module: any) => void;
+  readonly onSelectModule?: (module: CourseModule) => void;
 }
 
 export function ProfessorModuleList({ modules, students, onSelectModule }: Props) {
-  const [localModules, setLocalModules] = useState<any[]>([]);
-  const [selectedModule, setSelectedModule] = useState<any | null>(null);
+  const [localModules, setLocalModules] = useState<CourseModule[]>([]);
+  const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
 
   // modules RÉELS du serveur (avant : une ancienne copie du navigateur « p_modules » les remplaçait)
   const syncModules = React.useCallback(() => {
@@ -26,7 +26,7 @@ export function ProfessorModuleList({ modules, students, onSelectModule }: Props
     syncModules();
   };
 
-  const handleSelectModule = (module: any) => {
+  const handleSelectModule = (module: CourseModule) => {
     if (onSelectModule) {
       onSelectModule(module);
     } else {

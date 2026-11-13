@@ -59,7 +59,7 @@ export function PlanningGrid({ slots, viewMode, selectedId, onDropItem, onClearC
                         <div
                           onClick={() => onSelectSlot?.(cellSlot)}
                           className={`h-full w-full border rounded-xl p-2 flex flex-col justify-between relative select-none cursor-pointer transition-all ${
-                            cellSlot.status === 'annule' || cellSlot.isAbsent || (cellSlot as any).isCancelled
+                            cellSlot.status === 'annule' || cellSlot.isAbsent
                               ? 'bg-red-50/65 hover:bg-red-100/60 border-red-200/80 shadow-3xs'
                               : 'bg-neutral-50 hover:bg-neutral-100/70 border-neutral-200/80 hover:border-neutral-300'
                           }`}
@@ -67,19 +67,19 @@ export function PlanningGrid({ slots, viewMode, selectedId, onDropItem, onClearC
                           <div>
                             <div className="flex justify-between items-start gap-1">
                               <div className={`text-[10px] font-black truncate leading-tight flex-1 ${
-                                cellSlot.status === 'annule' || cellSlot.isAbsent || (cellSlot as any).isCancelled
+                                cellSlot.status === 'annule' || cellSlot.isAbsent
                                   ? 'text-red-950 line-through opacity-80'
                                   : 'text-[#1E293B]'
                               }`}>
                                 {viewMode === 'class' ? (cellSlot.subject || 'Cours') : cellSlot.classeId}
                               </div>
-                              {(cellSlot.status === 'annule' || cellSlot.isAbsent || (cellSlot as any).isCancelled) && (
+                              {(cellSlot.status === 'annule' || cellSlot.isAbsent) && (
                                 <span className="text-[7px] font-black bg-red-100/80 text-red-700 px-1 py-0.5 rounded shrink-0 uppercase tracking-wide">Absent</span>
                               )}
                             </div>
                             <div className="text-[9px] text-neutral-500 font-bold truncate mt-0.5">👨‍🏫 {cellSlot.prof || 'Non assigné'}</div>
                             {viewMode === 'class' && <div className="text-[9px] text-primary font-extrabold truncate">📍 {cellSlot.roomName || 'Sans salle'}</div>}
-                            {(cellSlot.status === 'annule' || cellSlot.isAbsent || (cellSlot as any).isCancelled) && cellSlot.cancellationReason && (
+                            {(cellSlot.status === 'annule' || cellSlot.isAbsent) && cellSlot.cancellationReason && (
                               <div className="text-[8px] text-red-600 font-bold italic truncate mt-0.5">📝 {cellSlot.cancellationReason}</div>
                             )}
                           </div>

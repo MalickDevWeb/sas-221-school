@@ -35,8 +35,10 @@ export const useAuthStore = create<AuthState>()(
 
       connexionReussie: (payload) => {
         const user = { ...payload.utilisateur };
-        if (user && user.role && typeof user.role === 'object' && (user.role as any).value) {
-          user.role = (user.role as any).value;
+        // rôle parfois reçu sous la forme { value: 'ADMIN' } (énumération sérialisée)
+        const role: unknown = user.role;
+        if (role && typeof role === 'object' && 'value' in role && typeof role.value === 'string') {
+          user.role = role.value as RoleUtilisateur;
         }
         set({
           utilisateur: user,

@@ -3,7 +3,8 @@ import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { useAuthStore } from '@/core/store/authStore';
-import { messageErreur, ERREUR_AFFICHEE } from '@/shared/errors/errorDictionary';
+import { messageErreur, marquerErreurAffichee, erreurDejaAffichee } from '@/shared/errors/errorDictionary';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 let lastNetworkToastTime = 0;
 const TOAST_THROTTLE_MS = 10_000;
@@ -106,7 +107,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   // on affiche l'écran de changement au lieu d'un « Erreur 403 » par requête refusée.
   if (status === 403 && (error.response?.data as { code?: string } | undefined)?.code === 'MOT_DE_PASSE_PROVISOIRE') {
     useAuthStore.getState().marquerMotDePasseProvisoire(true);
-    (error as any)[ERREUR_AFFICHEE] = true;
+    marquerErreurAffichee(error);
     return Promise.reject(error);
   }
   const isPublicOrLoginPage = currentPath === ROUTES.login ||
@@ -145,11 +146,11 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   if (status === 500 && (responseData.includes('proxy') || responseData.includes('econnrefused'))) {
     if (!isBackgroundUrl(url)) showThrottledNetworkError();
   } else if (status !== 404 && !isBackgroundUrl(url)) {
-    const serverMsg = (error.response?.data as any)?.message;
+    const serverMsg = texteOuNull(objetBrut(error.response?.data).message);
     // Différé : si l'écran affiche lui-même le message (resolveErrorMessage dans son catch, exécuté avant
     // ce délai), le message global n'est pas répété — avant, deux messages pour une même erreur 400/409.
     setTimeout(() => {
-      if ((error as any)[ERREUR_AFFICHEE]) return;
+      if (erreurDejaAffichee(error)) return;
       toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
     }, 0);
   }

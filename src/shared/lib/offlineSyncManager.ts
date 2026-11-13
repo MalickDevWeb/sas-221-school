@@ -9,7 +9,7 @@ export interface QueuedMutation {
   headers: Record<string, string>;
 }
 
-export function saveToCache(url: string, data: any): void {
+export function saveToCache(url: string, data: unknown): void {
   try {
     localStorage.setItem(`${OFFLINE_PREFIX}${url}`, JSON.stringify(data));
   } catch (err) {
@@ -17,7 +17,7 @@ export function saveToCache(url: string, data: any): void {
   }
 }
 
-export function getFromCache(url: string): any | null {
+export function getFromCache(url: string): unknown {
   try {
     const val = localStorage.getItem(`${OFFLINE_PREFIX}${url}`);
     return val ? JSON.parse(val) : null;
@@ -26,7 +26,7 @@ export function getFromCache(url: string): any | null {
   }
 }
 
-export function queueMutation(url: string, method: string, body: any, headers?: any): void {
+export function queueMutation(url: string, method: string, body: unknown, headers?: Record<string, string>): void {
   try {
     const queue: QueuedMutation[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
     queue.push({

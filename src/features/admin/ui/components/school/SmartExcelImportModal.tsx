@@ -6,6 +6,7 @@ import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 interface Props {
   classeName: string;
@@ -76,7 +77,7 @@ export function SmartExcelImportModal({
 }: Props) {
   const [step, setStep] = useState<'upload' | 'mapping' | 'preview'>('upload');
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
-  const [rawRows, setRawRows] = useState<any[]>([]);
+  const [rawRows, setRawRows] = useState<unknown[][]>([]);
   const [mappings, setMappings] = useState<Record<string, string>>({});
   const [previewStudents, setPreviewStudents] = useState<EditableStudentRow[]>([]);
   const [filterMode, setFilterMode] = useState<'ALL' | 'ANOMALIES' | 'VALID'>('ALL');
@@ -93,7 +94,7 @@ export function SmartExcelImportModal({
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const json: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const json: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (json.length < 2) {
           toast.error("Le fichier ne contient pas assez de données (au moins 1 entête et 1 ligne requises).");
@@ -101,7 +102,7 @@ export function SmartExcelImportModal({
         }
 
         const headers = json[0].map(h => String(h || '').trim()).filter(Boolean);
-        const rows = json.slice(1).filter(r => r.some((c: any) => c !== undefined && c !== null && String(c).trim() !== ''));
+        const rows = json.slice(1).filter(r => r.some((c) => c !== undefined && c !== null && String(c).trim() !== ''));
 
         setRawHeaders(headers);
         setRawRows(rows);
@@ -213,10 +214,11 @@ export function SmartExcelImportModal({
         if (st.matricule.trim()) body.matricule = st.matricule.trim();
         if (st.telephone.trim()) body.telephone = st.telephone.trim();
         try {
-          const { data } = await apiClient.post<any>('/admin/students', body);
+          const { data } = await apiClient.post<unknown>('/admin/students', body);
           let eleve = mapStudentFromApi(data);
-          if (data?.motDePasseProvisoire) {
-            res.motsDePasse.push({ name: eleve.name, email: eleve.email, matricule: eleve.matricule, motDePasse: data.motDePasseProvisoire });
+          const motDePasse = texteOuNull(objetBrut(data).motDePasseProvisoire);
+          if (motDePasse) {
+            res.motsDePasse.push({ name: eleve.name, email: eleve.email, matricule: eleve.matricule, motDePasse });
           }
           if (st.statutFrais) {
             try {

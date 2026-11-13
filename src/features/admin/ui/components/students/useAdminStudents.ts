@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
+import { estObjet, listeBrute, objetBrut } from '@/shared/lib/lectureServeur';
 
 export function useAdminStudents() {
   const [students, setStudents] = useState<Student[]>([]);   // données réelles uniquement (plus d'élèves fictifs au départ ni en repli)
@@ -11,15 +12,9 @@ export function useAdminStudents() {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await apiClient.get<any>('/admin/users');
-      const studentList = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.students)
-        ? data.students
-        : Array.isArray(data?.content)
-        ? data.content
-        : [];
-      setStudents(studentList.map((s: any, idx: number) => mapStudentFromApi(s, idx)));
+      const { data } = await apiClient.get<unknown>('/admin/users');
+      const studentList = listeBrute(estObjet(data) && Array.isArray(data.students) ? data.students : data);
+      setStudents(studentList.map((s, idx) => mapStudentFromApi(s, idx)));
     } catch (err) {
       // erreur : liste inchangée (vide au départ), jamais d'élèves fictifs
       toast.error(resolveErrorMessage(err));
@@ -30,8 +25,9 @@ export function useAdminStudents() {
 
   const updateFinancialStatus = useCallback(async (studentId: string, status: 'En Règle' | 'En Retard') => {
     try {
-      const { data } = await apiClient.patch<any>(`/admin/students/${studentId}/status`, { statutFrais: status });
-      const confirme = data?.status === 'En Retard' || data?.status === 'En Règle' ? data.status : status;
+      const { data } = await apiClient.patch<unknown>(`/admin/students/${studentId}/status`, { statutFrais: status });
+      const r = objetBrut(data);
+      const confirme: Student['financialStatus'] = r.status === 'En Retard' || r.status === 'En Règle' ? r.status : status;
       setStudents(prev => prev.map(s => s.id === studentId ? { ...s, financialStatus: confirme } : s));
       return true;
     } catch (err) {
@@ -43,9 +39,10 @@ export function useAdminStudents() {
   /** Suspension / réactivation réelle de l'élève (badge et connexion) : l'état affiché vient de la réponse serveur. */
   const toggleQrStatus = useCallback(async (studentId: string) => {
     try {
-      const { data } = await apiClient.patch<any>(`/admin/students/${studentId}/toggle-status`);
-      const qrStatus: Student['qrStatus'] = data?.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
-      const status: Student['status'] = data?.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      const { data } = await apiClient.patch<unknown>(`/admin/students/${studentId}/toggle-status`);
+      const r = objetBrut(data);
+      const qrStatus: Student['qrStatus'] = r.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
+      const status: Student['status'] = r.status === 'Suspendu' ? 'Suspendu' : 'Actif';
       setStudents(prev => prev.map(s => s.id === studentId ? { ...s, qrStatus, status } : s));
       toast.success(qrStatus === 'SUSPENDU' ? 'Élève suspendu : accès refusé.' : 'Élève réactivé : accès autorisé.');
       return true;

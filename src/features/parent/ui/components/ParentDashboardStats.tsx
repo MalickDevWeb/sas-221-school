@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import type { ChildDashboardStats } from '../../types';
 
 function StatCard({ icon, label, value, sub, color, pulse, onClick }: {
   icon: string; label: string; value: string | number; sub?: string; color: string; pulse?: boolean; onClick?: () => void;
@@ -27,7 +28,7 @@ function StatCard({ icon, label, value, sub, color, pulse, onClick }: {
   );
 }
 
-export function ParentDashboardStats({ stats }: { stats: any }) {
+export function ParentDashboardStats({ stats }: { stats: ChildDashboardStats }) {
   // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
   const [maintenant] = useState(() => Date.now());
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export function ParentDashboardStats({ stats }: { stats: any }) {
             {stats.coursAujourdhui.length === 0 && (
               <p className="text-xs text-neutral-400 font-semibold text-center py-4">Pas de cours aujourd'hui</p>
             )}
-            {stats.coursAujourdhui.map((cours: any) => (
+            {stats.coursAujourdhui.map((cours) => (
               <div key={cours.id} className={`flex items-center gap-3 p-3.5 rounded-2xl border border-solid transition-all ${cours.enCours ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-neutral-50 border-neutral-100'}`}>
                 <div className={`w-2 h-10 rounded-full shrink-0 ${cours.type === 'CM' ? 'bg-blue-500' : cours.type === 'TD' ? 'bg-violet-500' : 'bg-amber-500'}`} />
                 <div className="flex-1 min-w-0">
@@ -84,7 +85,7 @@ export function ParentDashboardStats({ stats }: { stats: any }) {
             <p className="text-xs text-neutral-400 font-semibold text-center py-4">Aucun examen prévu</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {stats.prochainsExamens.map((exam: any, i: number) => (
+              {stats.prochainsExamens.map((exam, i) => (
                 <div key={i} className="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100 border-solid">
                   <div className="w-10 h-10 rounded-xl bg-red-100 flex flex-col items-center justify-center shrink-0">
                     <p className="text-[8px] font-black text-red-500 uppercase">{new Date(exam.date).toLocaleDateString('fr-FR', { month: 'short' })}</p>

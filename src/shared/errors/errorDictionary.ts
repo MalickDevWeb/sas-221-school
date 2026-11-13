@@ -1,4 +1,5 @@
 import { ERROR_CODES, ErrorCodeType } from './errorCodes';
+import { estObjet, objetBrut } from '@/shared/lib/lectureServeur';
 
 /**
  * Dictionnaire centralisé des messages utilisateur en français.
@@ -55,39 +56,51 @@ export const ERREUR_AFFICHEE = '__erreurAffichee';
  * Appeler cette fonction signale que l'écran gère l'affichage : le message global « Erreur 4xx »
  * n'est alors pas affiché en double (voir apiErrorHandler).
  */
-export function resolveErrorMessage(error: any): string {
-  if (error && typeof error === 'object') {
-    try { error[ERREUR_AFFICHEE] = true; } catch { /* objet gelé */ }
-  }
+export function resolveErrorMessage(error: unknown): string {
+  marquerErreurAffichee(error);
   return messageErreur(error);
 }
 
+/** Pose la marque « déjà affichée » sur une erreur (sans effet sur une valeur qui n'est pas un objet). */
+export function marquerErreurAffichee(error: unknown): void {
+  if (error && typeof error === 'object') {
+    try { Reflect.set(error, ERREUR_AFFICHEE, true); } catch { /* objet gelé */ }
+  }
+}
+
+export const erreurDejaAffichee = (error: unknown): boolean =>
+  !!error && typeof error === 'object' && Reflect.get(error, ERREUR_AFFICHEE) === true;
+
 /** Même calcul, sans marquer l'erreur comme affichée (usage interne du gestionnaire global). */
-export function messageErreur(error: any): string {
-  if (!error) return "Une erreur inattendue est survenue.";
+export function messageErreur(erreur: unknown): string {
+  if (!erreur) return "Une erreur inattendue est survenue.";
+  const error = objetBrut(erreur);
+  const reponse = estObjet(error.response) ? error.response : null;
 
   // 1. Détection via ErrorCode applicatif retourné par le backend.
   // Codes GÉNÉRIQUES : le message précis du serveur passe en priorité (avant : « Veuillez vérifier les
   // informations… » à la place de « Cette adresse e-mail est déjà utilisée. » — test navigateur 2026-11-09).
-  const data = error.response?.data;
-  const precis = typeof data?.message === 'string' && data.message.trim().length > 0 ? data.message.trim() : null;
-  if (data?.code && CODES_GENERIQUES.has(data.code) && precis) {
+  const data = reponse?.data;
+  const corps = objetBrut(data);
+  const precis = typeof corps.message === 'string' && corps.message.trim().length > 0 ? corps.message.trim() : null;
+  const code = typeof corps.code === 'string' ? corps.code : null;
+  if (code && CODES_GENERIQUES.has(code) && precis) {
     return precis;
   }
-  if (data?.code && ERROR_MESSAGES[data.code]) {
-    return ERROR_MESSAGES[data.code];
+  if (code && ERROR_MESSAGES[code]) {
+    return ERROR_MESSAGES[code];
   }
 
   // 2. Détection via message explicite renvoyé par le backend
-  if (data?.message && typeof data.message === 'string' && data.message.trim().length > 0) {
-    return data.message;
+  if (precis) {
+    return precis;
   }
-  if (data?.error && typeof data.error === 'string' && data.error.trim().length > 0) {
-    return data.error;
+  if (typeof corps.error === 'string' && corps.error.trim().length > 0) {
+    return corps.error;
   }
 
   // 3. Détection via code d'état HTTP
-  const status = error.response?.status;
+  const status = typeof reponse?.status === 'number' ? reponse.status : undefined;
   if (status === 409) return "Cette information (email, téléphone ou identifiant) est déjà enregistrée.";
   if (status === 404) return "La ressource demandée n'a pas été trouvée.";
   // Refus CORS (réponse texte « Invalid CORS request ») : l'adresse du site n'est pas autorisée par le serveur
@@ -99,8 +112,15 @@ export function messageErreur(error: any): string {
   if (status === 401) return "Veuillez vous connecter pour continuer.";
   if (status === 500) return "Le serveur a rencontré une difficulté momentanée. Veuillez réessayer.";
 
-  // 4. Détection réseau / offline
-  if (error.code === 'ERR_NETWORK' || !error.response) {
+  // 4. Erreur levée par l'écran lui-même (classe vide, trop de groupes…) : son propre message.
+  // Avant (2026-11-13) : toute erreur sans réponse HTTP devenait « hors ligne ».
+  const message = typeof error.message === 'string' ? error.message : '';
+  if (!reponse && error.isAxiosError !== true && erreur instanceof Error && message.trim()) {
+    return message;
+  }
+
+  // 5. Détection réseau / offline
+  if (error.code === 'ERR_NETWORK' || !reponse) {
     return ERROR_MESSAGES[ERROR_CODES.NETWORK_OFFLINE];
   }
 
@@ -109,7 +129,7 @@ export function messageErreur(error: any): string {
   if (status === 429) return "Trop de demandes : réessayez dans quelques instants.";
   if (status === 503) return "Service momentanément indisponible. Réessayez plus tard.";
   if (status) return `Le serveur a refusé la demande (code ${status}).`;
-  if (error.message && !/^Request failed with status code/i.test(error.message)) return error.message;
+  if (message && !/^Request failed with status code/i.test(message)) return message;
   return "Une erreur inattendue est survenue.";
 }
 

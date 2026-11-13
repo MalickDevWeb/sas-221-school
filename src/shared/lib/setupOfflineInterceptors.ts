@@ -32,7 +32,7 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
   try {
     const originalFetch = window.fetch;
     const customFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      const urlStr = typeof input === 'string' ? input : (input as any).url || String(input);
+      const urlStr = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
       const method = init?.method || 'GET';
       const isGet = method.toUpperCase() === 'GET';
 
@@ -80,7 +80,7 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
     };
 
     try {
-      (window as any).fetch = customFetch;
+      window.fetch = customFetch;
     } catch {
       Object.defineProperty(window, 'fetch', {
         value: customFetch,

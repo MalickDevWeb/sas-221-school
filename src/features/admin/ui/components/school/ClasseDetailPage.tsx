@@ -10,6 +10,7 @@ import { apiClient } from '@/shared/lib/apiClient';
 import { demanderConfirmation } from '@/shared/lib/confirmation';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { afficherErreur } from '@/shared/lib/validationPersonnalisee';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const fcfa = (n: number | null | undefined) => (n == null ? '—' : `${n.toLocaleString('fr-FR')} FCFA`);
@@ -115,14 +116,15 @@ export function ClasseDetailPage({
 
     setEnrolling(true);
     try {
-      const { data } = await apiClient.post<any>('/admin/students', body);
+      const { data } = await apiClient.post<unknown>('/admin/students', body);
       const cree = mapStudentFromApi(data);
+      const motDePasseProvisoire = texteOuNull(objetBrut(data).motDePasseProvisoire);
       const updated = [cree, ...classStudents];
       setClassStudents(updated);
       if (onUpdateStudents) onUpdateStudents(updated);
       toast.success(`Compte élève créé pour ${cree.name}.`);
-      if (data?.motDePasseProvisoire) {
-        setMotDePasseInfo({ nom: cree.name, email: cree.email, motDePasse: data.motDePasseProvisoire });
+      if (motDePasseProvisoire) {
+        setMotDePasseInfo({ nom: cree.name, email: cree.email, motDePasse: motDePasseProvisoire });
       }
       setNewStudentName('');
       setNewStudentEmail('');
@@ -147,8 +149,9 @@ export function ClasseDetailPage({
     if (!st) return;
     const next: 'En Règle' | 'En Retard' = st.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
     try {
-      const { data } = await apiClient.patch<any>(`/admin/students/${id}/status`, { statutFrais: next });
-      const confirme: Student['financialStatus'] = data?.status === 'En Retard' || data?.status === 'En Règle' ? data.status : next;
+      const { data } = await apiClient.patch<unknown>(`/admin/students/${id}/status`, { statutFrais: next });
+      const r = objetBrut(data);
+      const confirme: Student['financialStatus'] = r.status === 'En Retard' || r.status === 'En Règle' ? r.status : next;
       setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, financialStatus: confirme } : s)));
       toast.success(`${st.name} : statut de frais « ${confirme} » enregistré.`);
     } catch (err) {
@@ -160,9 +163,10 @@ export function ClasseDetailPage({
     const st = classStudents.find(s => s.id === id);
     if (!st) return;
     try {
-      const { data } = await apiClient.patch<any>(`/admin/students/${id}/toggle-status`);
-      const qrStatus: Student['qrStatus'] = data?.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
-      const status: Student['status'] = data?.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      const { data } = await apiClient.patch<unknown>(`/admin/students/${id}/toggle-status`);
+      const r = objetBrut(data);
+      const qrStatus: Student['qrStatus'] = r.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
+      const status: Student['status'] = r.status === 'Suspendu' ? 'Suspendu' : 'Actif';
       setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, qrStatus, status } : s)));
       toast.success(qrStatus === 'SUSPENDU' ? `${st.name} est suspendu : accès refusé.` : `${st.name} est réactivé : accès autorisé.`);
     } catch (err) {
