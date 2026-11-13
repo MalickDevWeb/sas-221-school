@@ -11,6 +11,7 @@ import { MeetSessionTracker } from '../components/MeetSessionTracker';
 import { ActiveClassesList } from '../components/ActiveClassesList';
 import { WorkgroupsList } from '../components/WorkgroupsList';
 import { WorkspacePanels } from '../components/WorkspacePanels';
+import { GroupMembersPanel } from '../components/GroupMembersPanel';
 import { CheckCircle } from 'lucide-react';
 
 export function CollaborationPage() {
@@ -37,7 +38,7 @@ export function CollaborationPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 md:px-8 py-6">
       {state.toast && (
-        <div className="fixed top-4 right-4 z-[220] p-4 rounded-xl shadow-xl flex items-center gap-3 text-white text-xs font-bold bg-emerald-600 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div role="status" className={`fixed top-4 right-4 z-[220] p-4 rounded-xl shadow-xl flex items-center gap-3 text-white text-xs font-bold ${state.toast.success ? 'bg-emerald-600' : 'bg-rose-600'} animate-in fade-in slide-in-from-top-4 duration-300`}>
           <CheckCircle className="w-5 h-5" />
           <span>{state.toast.message}</span>
         </div>
@@ -46,9 +47,13 @@ export function CollaborationPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-4 space-y-6">
           <ActiveClassesList meets={state.meets} activeMeetId={activeMeetId} onSelectMeet={setActiveMeetId} onJoinMeet={handleJoinMeetSimulate} />
-          <WorkgroupsList workgroups={state.workgroups} activeGroupId={activeGroupId} onSelectGroup={setActiveGroupId} />
+          <WorkgroupsList workgroups={state.workgroups} activeGroupId={activeGroup?.id ?? ''} onSelectGroup={setActiveGroupId} />
+          {activeGroup && (
+            <GroupMembersPanel group={activeGroup} onChangeLeader={state.changeGroupLeader}
+                               peutChangerChef={isTeacher || isAdmin || (!!utilisateur?.id && activeGroup.leaderId === utilisateur.id)} />
+          )}
           {(isTeacher || isAdmin) && <MeetScheduler onSchedule={state.createVirtualClass} teacherName={utilisateur?.nom || 'Enseignant'} />}
-          {isTeacher && (
+          {(isTeacher || isAdmin) && (
             <GroupCreator
               onAutoGenerate={state.generateAutoGroups}
               onCreateManual={state.createManualGroup}

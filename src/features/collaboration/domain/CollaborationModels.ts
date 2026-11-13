@@ -23,12 +23,13 @@ export interface AdminMeeting {
   readonly time: string;
 }
 
+/** Élève (membre ou candidat d'un groupe), tel que renvoyé par le serveur. */
 export interface GroupMember {
   readonly id: string;
   readonly name: string;
-  readonly email: string;
-  readonly gpa: number;
-  readonly gender: 'M' | 'F';
+  readonly email: string | null;
+  /** Chef du groupe (liste des membres d'un groupe uniquement). */
+  readonly leader?: boolean;
 }
 
 export interface Workgroup {

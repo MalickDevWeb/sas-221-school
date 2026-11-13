@@ -23,6 +23,7 @@ export function WorkgroupsList({ workgroups = [], activeGroupId, onSelectGroup }
         {workgroups.map((g) => (
           <div
             key={g.id}
+            data-groupe={g.name}
             onClick={() => onSelectGroup(g.id)}
             className={`p-3 rounded-xl border cursor-pointer transition-all ${
               activeGroupId === g.id
@@ -32,7 +33,7 @@ export function WorkgroupsList({ workgroups = [], activeGroupId, onSelectGroup }
           >
             <span className="font-bold text-xs text-gray-800 block">{g.name}</span>
             <span className="text-[9px] text-neutral-500 font-bold block mt-0.5">
-              Chef : {g.leaderName} • {g.members?.length ?? 0} membres
+              {g.leaderName ? `Chef : ${g.leaderName}` : 'Aucun chef désigné'} • {g.members.length} membre{g.members.length > 1 ? 's' : ''}
             </span>
           </div>
         ))}
