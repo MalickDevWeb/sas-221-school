@@ -24,18 +24,31 @@ const versDepense = (item: Brut, index: number): Expense => ({
   date: item.date ? String(item.date).substring(0, 10) : '—',
 });
 
-const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En Retard', 'En Avance'];
+const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En Avance', 'Non soldé', 'En Retard'];
 const statutConnu = (s: string): StudentFinance['status'] =>
   STATUTS.includes(s as StudentFinance['status']) ? (s as StudentFinance['status']) : 'Non renseigné';
 
-const versEleve = (item: Brut, index: number): StudentFinance => ({
-  id: item.id != null ? String(item.id) : `etudiant-${index}`,
-  name: texte(item.name) || `${texte(item.prenom)} ${texte(item.nom)}`.trim() || 'Étudiant',
-  classe: texte(item.classe || item.filiere),
-  status: Number(item.debt) > 0 ? 'En Retard' : statutConnu(texte(item.status)),   // jamais supposé en règle
-  debt: Number(item.debt) || 0,
-  paid: Number(item.paid) || 0,
-});
+// 2026-11-14 : nom lu dans « studentName » (avant : « name », absent → tous les élèves affichés « Étudiant ») ;
+// identifiant de l'élève et montant dû conservés ; « Non soldé » si reste dû sans statut adapté (jamais « en règle »).
+const versEleve = (item: Brut, index: number): StudentFinance => {
+  const reste = Number(item.debt) || 0;
+  const statut = statutConnu(texte(item.status));
+  return {
+    id: item.id != null ? String(item.id) : `dossier-${index}`,
+    studentId: texte(item.studentId),
+    name: texte(item.studentName || item.name) || `${texte(item.prenom)} ${texte(item.nom)}`.trim() || 'Élève sans nom',
+    classe: texte(item.classe || item.filiere),
+    status: reste > 0 && (statut === 'Non renseigné' || statut === 'En Règle' || statut === 'En Avance') ? 'Non soldé' : statut,
+    totalRequired: Number(item.totalRequired) || 0,
+    debt: reste,
+    paid: Number(item.paid) || 0,
+  };
+};
+
+/** Ouverture du dossier financier d'un élève (POST /finance/ecolages/dossiers). */
+export interface NouveauDossier { eleveId: string; montantDu: number; classe?: string }
+/** Versement encaissé (POST /finance/ecolages/versements). */
+export interface NouveauVersement { eleveId: string; montant: number; moyen: string; reference?: string; date?: string }
 
 /**
  * Finances de l'école (React Query, APP-FE-02). Avant : chargement manuel dont les erreurs étaient avalées — un
@@ -81,6 +94,16 @@ export function useAdminFinances() {
     onSuccess: (creee) => client.setQueryData<Expense[]>(CLES_FINANCES.depenses, (avant = []) => [creee, ...avant]),
   });
 
+  // Écolages (2026-11-14) : la liste n'est relue qu'après la réponse du serveur ; l'erreur remonte au formulaire.
+  const ouvrir = useMutation({
+    mutationFn: async (d: NouveauDossier) => (await apiClient.post('/finance/ecolages/dossiers', d)).data,
+    onSuccess: () => client.invalidateQueries({ queryKey: CLES_FINANCES.eleves }),
+  });
+  const encaissement = useMutation({
+    mutationFn: async (v: NouveauVersement) => (await apiClient.post('/finance/ecolages/versements', v)).data,
+    onSuccess: () => client.invalidateQueries({ queryKey: CLES_FINANCES.eleves }),
+  });
+
   const erreur = depenses.error ?? eleves.error;
   return {
     students: eleves.data ?? [],
@@ -88,6 +111,8 @@ export function useAdminFinances() {
     loading: depenses.isLoading || eleves.isLoading,
     error: erreur ? resolveErrorMessage(erreur) : null,
     addExpense: ajout.mutateAsync,
+    ouvrirDossier: ouvrir.mutateAsync,
+    encaisser: encaissement.mutateAsync,
     refetch: () => Promise.all([depenses.refetch(), eleves.refetch()]),
   };
 }

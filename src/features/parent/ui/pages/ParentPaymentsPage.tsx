@@ -4,14 +4,16 @@ import { apiClient } from '../../../../shared/lib/apiClient';
 
 /**
  * Réponse de GET /parent/paiements (PaymentDto côté backend, APP-BE-18).
- * Le backend ne renvoie jamais de transaction fictive : si aucune source réelle
- * n'existe, il répond { totalAnnuel: 0, echeances: [], statut: 'non_disponible' }.
+ * 2026-11-14 : situation RÉELLE des enfants, saisie par la comptabilité de l'école (versements = PAYE, reste dû =
+ * EN_COURS ou RETARD, sans date d'échéance inventée). Sans dossier financier : { statut: 'non_disponible' }.
+ * Aucun paiement en ligne n'est branché : « Comment payer » l'explique au lieu d'afficher de faux moyens de paiement.
  */
 interface EcheancePaiement {
   id: string;
   label: string;
   montant: number;
-  echeance: string;
+  /** Date d'échéance ; null si l'établissement n'en a pas fixé (jamais inventée). */
+  echeance: string | null;
   /** Valeurs connues côté backend : PAYE, EN_COURS, RETARD (d'autres restent tolérées). */
   statut: string;
   datePaiement: string | null;
@@ -52,7 +54,7 @@ function formatDate(value: string, options?: Intl.DateTimeFormatOptions): string
 
 function isRetard(e: EcheancePaiement): boolean {
   if (e.statut === 'RETARD' || e.statut === 'EN_RETARD') return true;
-  if (e.statut !== 'EN_COURS') return false;
+  if (e.statut !== 'EN_COURS' || !e.echeance) return false;
   const d = new Date(e.echeance);
   return !Number.isNaN(d.getTime()) && d < new Date();
 }
@@ -148,7 +150,7 @@ export function ParentPaymentsPage() {
             <span translate="no" className="material-symbols-outlined text-blue-600 text-[28px]">info</span>
           </div>
           <p className="font-black text-neutral-800 text-sm">
-            Le suivi des paiements n'est pas encore disponible pour votre établissement.
+            Aucun frais de scolarité n'est encore enregistré pour vos enfants par l'établissement.
           </p>
           <p className="text-xs text-neutral-500 font-semibold max-w-md">
             Pour toute question sur la scolarité, rapprochez-vous de l'administration de l'établissement.
@@ -175,8 +177,8 @@ export function ParentPaymentsPage() {
                 <span translate="no" className="material-symbols-outlined text-blue-600 text-[24px]">payment</span>
               </div>
               <div>
-                <p className="font-black text-neutral-900">Procéder au paiement</p>
-                <p className="text-[10px] text-neutral-400 font-semibold">Sécurisé · École 221</p>
+                <p className="font-black text-neutral-900">Comment payer</p>
+                <p className="text-[10px] text-neutral-400 font-semibold">Règlement auprès de l'établissement</p>
               </div>
               <button onClick={() => setShowModal(false)} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center">
                 <span translate="no" className="material-symbols-outlined text-[16px] text-neutral-500">close</span>
@@ -188,23 +190,15 @@ export function ParentPaymentsPage() {
                 {fmt(echeances.find((e) => e.id === selectedEch)?.montant ?? 0)}
               </p>
             </div>
-            <div className="flex flex-col gap-3">
-              {[
-                { icon: 'account_balance', label: 'Virement bancaire', sub: 'Coordonnées auprès de l\'établissement' },
-                { icon: 'phone_android',   label: 'Wave / Orange Money', sub: 'Paiement mobile' },
-                { icon: 'credit_card',     label: 'Carte bancaire', sub: 'Visa · Mastercard' },
-              ].map(({ icon, label, sub }) => (
-                <button key={label} onClick={() => setShowModal(false)}
-                  className="flex items-center gap-3 p-4 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:bg-blue-50/30 transition-all text-left">
-                  <span translate="no" className="material-symbols-outlined text-blue-600 text-[22px]">{icon}</span>
-                  <div>
-                    <p className="font-black text-sm text-neutral-800">{label}</p>
-                    <p className="text-[10px] text-neutral-400 font-semibold">{sub}</p>
-                  </div>
-                  <span translate="no" className="material-symbols-outlined text-neutral-300 text-[18px] ml-auto">chevron_right</span>
-                </button>
-              ))}
+            <div id="paiement-explication" className="flex flex-col gap-2 text-xs text-neutral-700 font-semibold">
+              <p>Le paiement en ligne n'est pas encore proposé par la plateforme.</p>
+              <p>Réglez ce montant auprès de la comptabilité de l'établissement, selon les moyens qu'elle accepte.
+                Le versement apparaîtra ici dès qu'elle l'aura enregistré.</p>
             </div>
+            <button onClick={() => setShowModal(false)}
+              className="mt-5 w-full py-2.5 rounded-xl bg-primary text-white text-xs font-black hover:bg-[#0D47A1] transition-all">
+              J'ai compris
+            </button>
           </div>
         </div>
       )}
@@ -239,7 +233,7 @@ export function ParentPaymentsPage() {
       {/* Échéancier */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-neutral-100">
-          <h3 className="font-black text-neutral-800 text-sm">Échéancier de paiement</h3>
+          <h3 className="font-black text-neutral-800 text-sm">Versements et reste à payer</h3>
         </div>
         <div className="divide-y divide-neutral-50">
           {echeances.map((e) => {
@@ -252,9 +246,11 @@ export function ParentPaymentsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-sm text-neutral-800">{e.label}</p>
-                  <p className="text-[10px] text-neutral-400 font-semibold">
-                    Échéance : {formatDate(e.echeance, { day: '2-digit', month: 'long', year: 'numeric' })}
-                  </p>
+                  {e.statut !== 'PAYE' && (
+                    <p className="text-[10px] text-neutral-400 font-semibold">
+                      Échéance : {e.echeance ? formatDate(e.echeance, { day: '2-digit', month: 'long', year: 'numeric' }) : 'à convenir avec l\'établissement'}
+                    </p>
+                  )}
                   {e.datePaiement && (
                     <p className="text-[9px] text-emerald-600 font-bold">Payé le {formatDate(e.datePaiement)}</p>
                   )}
@@ -265,7 +261,7 @@ export function ParentPaymentsPage() {
                   {(e.statut === 'EN_COURS' || overdue) && (
                     <button onClick={() => { setSelectedEch(e.id); setShowModal(true); }}
                       className="flex items-center gap-1 text-[9px] font-black text-white bg-primary px-2.5 py-1 rounded-lg hover:bg-[#0D47A1] transition-all">
-                      <span translate="no" className="material-symbols-outlined text-[11px]">payment</span>Payer
+                      <span translate="no" className="material-symbols-outlined text-[11px]">info</span>Comment payer
                     </button>
                   )}
                 </div>

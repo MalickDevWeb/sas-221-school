@@ -11,8 +11,12 @@ interface Props {
 
 export function TabFinances({ selectedStudent, erpData }: Props) {
   // APP-FE-04 : uniquement les données réelles du backend — plus de reçus fictifs (StudentMockData).
+  // 2026-11-14 : versements et dossier financier réels (module Finances) ; « non_disponible » sans dossier.
   const payments = erpData?.payments ?? [];
-  const paiementsDisponibles = payments.length > 0 && erpData?.paymentsStatus !== 'non_disponible';
+  const situation = erpData?.situationFinanciere ?? null;
+  const dossierFinancier = erpData?.paymentsStatus === 'disponible';
+  const paiementsDisponibles = dossierFinancier && payments.length > 0;
+  const fcfa = (n: number | null | undefined) => (n == null ? '—' : `${n.toLocaleString('fr-FR')} FCFA`);
   const bourses: string = erpData?.extra?.bourses || 'Non renseigné';
   const [financeTab, setFinanceTab] = useState<'fees' | 'vault'>('fees');
 
@@ -45,7 +49,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
               {/* APP-FE-04 : aucun statut « en règle » affiché sans donnée de paiement réelle */}
               <span className="text-neutral-500 font-black text-xs uppercase flex items-center gap-1 mt-1">
                 <span className="w-2 h-2 rounded-full bg-neutral-300 inline-block" />
-                {paiementsDisponibles ? 'Voir l\'historique ci-dessous' : 'Non disponible'}
+                {situation ? (situation.statut || 'Statut non renseigné') : 'Non disponible'}
               </span>
             </div>
             <div className="border border-neutral-200/60 p-3 bg-neutral-50/50 rounded-2xl">
@@ -53,6 +57,13 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
               <span className="text-[#1E293B] font-black text-xs mt-1 block">{bourses}</span>
             </div>
           </div>
+          {situation && (
+            <div id="situation-financiere" className="grid grid-cols-3 gap-3">
+              <div className="border border-neutral-200/60 p-3 rounded-2xl"><span className="text-[9px] text-neutral-400 font-bold block uppercase">Total dû{situation.classe ? ` (${situation.classe})` : ''}</span><span className="text-[#1E293B] font-black text-xs mt-1 block">{fcfa(situation.totalDu)}</span></div>
+              <div className="border border-neutral-200/60 p-3 rounded-2xl"><span className="text-[9px] text-neutral-400 font-bold block uppercase">Payé</span><span className="text-emerald-700 font-black text-xs mt-1 block">{fcfa(situation.paye)}</span></div>
+              <div className="border border-neutral-200/60 p-3 rounded-2xl"><span className="text-[9px] text-neutral-400 font-bold block uppercase">Reste dû</span><span className={`font-black text-xs mt-1 block ${(situation.resteDu ?? 0) > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{fcfa(situation.resteDu)}</span></div>
+            </div>
+          )}
  
           <div className="border border-neutral-100 rounded-2xl overflow-hidden bg-white">
             <div className="bg-neutral-50 border-b border-neutral-100 px-3 py-2.5 flex items-center justify-between">
@@ -79,7 +90,9 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
                 {!paiementsDisponibles && (
                   <tr>
                     <td colSpan={4} className="p-4 text-center text-[11px] text-neutral-500 font-bold">
-                      Paiements non disponibles : le suivi des paiements n'est pas encore relié à ce profil.
+                      {dossierFinancier
+                        ? 'Aucun versement enregistré pour l\'instant.'
+                        : 'Aucun dossier financier pour cet élève : la comptabilité ne l\'a pas encore créé (module Finances).'}
                     </td>
                   </tr>
                 )}
@@ -89,7 +102,7 @@ export function TabFinances({ selectedStudent, erpData }: Props) {
                       <p className="font-extrabold text-[#1E293B]">{p.label}</p>
                       <p className="text-[9px] text-emerald-800 font-black uppercase mt-0.5">{p.status}</p>
                     </td>
-                    <td className="p-2.5 text-right font-black text-neutral-800">{p.amount}</td>
+                    <td className="p-2.5 text-right font-black text-neutral-800">{fcfa(p.amount)}</td>
                     <td className="p-2.5 font-bold">
                       <p className="text-neutral-700">{p.date}</p>
                       <p className="text-[9px] text-neutral-400">{p.method}</p>

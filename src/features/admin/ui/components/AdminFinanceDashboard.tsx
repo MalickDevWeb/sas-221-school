@@ -12,7 +12,7 @@ import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/Tablet
 export function AdminFinanceDashboard() {
   const [activeTab, setActiveTab] = useState('ecolages');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { students, expenses, addExpense, error } = useAdminFinances();
+  const { students, expenses, addExpense, ouvrirDossier, encaisser, error } = useAdminFinances();
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -29,10 +29,6 @@ export function AdminFinanceDashboard() {
       showToast(err instanceof Error && !(err as { isAxiosError?: boolean }).isAxiosError ? err.message : resolveErrorMessage(err), false);
       return false;
     }
-  };
-
-  const handleToggleStudentStatus = (id: string) => {
-    // Optional toggler
   };
 
   return (
@@ -69,7 +65,7 @@ export function AdminFinanceDashboard() {
         )}
 
         {activeTab === 'ecolages' && (
-          <EcolagesTab students={students} onToggleStatus={handleToggleStudentStatus} />
+          <EcolagesTab students={students} onOuvrir={ouvrirDossier} onEncaisser={encaisser} />
         )}
 
         {activeTab === 'expenses' && (

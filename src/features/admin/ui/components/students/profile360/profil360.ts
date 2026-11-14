@@ -14,6 +14,8 @@ export interface ConnexionProfil { timestamp: string; ip: string; device: string
 export interface ActiviteProfil { timestamp: string; module: string; action: string; result: string }
 export interface EvenementProfil { year: string; title: string; desc: string; status: string }
 export interface PaiementProfil { date: string; label: string; amount: number | null; method: string; status: string; receiptNumber: string }
+/** Dossier financier saisi par la comptabilité (2026-11-14) ; null sans dossier. */
+export interface SituationFinanciereProfil { classe: string; totalDu: number | null; paye: number | null; resteDu: number | null; statut: string }
 export interface MessageProfil { sender: string; text: string; date: string }
 export interface PresenceProfil { date: string; time: string; course: string; status: string; comment: string; info: string }
 export interface AnalyseProfil { score: number | null; probabiliteReussite: number | null; risque: number | null; alertes: string[] }
@@ -28,6 +30,7 @@ export interface Profil360 {
   timeline: EvenementProfil[];
   payments: PaiementProfil[];
   paymentsStatus: string;
+  situationFinanciere: SituationFinanciereProfil | null;
   attendance: PresenceProfil[];
   analyse: AnalyseProfil | null;
   extra: {
@@ -64,6 +67,10 @@ export function versProfil360(raw: unknown): Profil360 {
       receiptNumber: texte(p.receiptNumber),
     })),
     paymentsStatus: texte(d.paymentsStatus) || 'non_disponible',
+    situationFinanciere: estObjet(d.situationFinanciere) ? (() => {
+      const f = objetBrut(d.situationFinanciere);
+      return { classe: texte(f.classe), totalDu: nombreOuNull(f.totalDu), paye: nombreOuNull(f.paye), resteDu: nombreOuNull(f.resteDu), statut: texte(f.statut) };
+    })() : null,
     attendance: listeBrute(d.attendance).map((h) => ({
       date: texte(h.date), time: texte(h.time), course: texte(h.course), status: texte(h.status), comment: texte(h.comment), info: texte(h.info),
     })),
