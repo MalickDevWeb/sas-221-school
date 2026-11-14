@@ -28,7 +28,7 @@ export function ProfessorSyncModal({
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   if (!isOpen) return null;
-  const mapped = schedule.map(mapProfessorScheduleToCourseSession);
+  const mapped = schedule.map(mapProfessorScheduleToCourseSession).filter((c): c is NonNullable<typeof c> => c !== null);
 
   const handleFullSync = async () => {
     if (!googleAccessToken) return;

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, CalendarPlus, Download, Info, Loader2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { exportToICS } from '@/features/schedule/utils/icalExport';
+import { classesDe } from '@/features/schedule/domain/Schedule';
 import { initiateGoogleOAuth } from '@/features/schedule/utils/googleCalendarSync';
 
 export function SyncModal({ state }: { state: any }) {
@@ -37,7 +38,7 @@ export function SyncModal({ state }: { state: any }) {
               </div>
             </div>
             <div className="pt-3 border-t border-neutral-100 flex justify-end">
-              <button onClick={() => { exportToICS(schedule, 'L3-GL'); triggerToast("Fichier .ics téléchargé avec succès ! Importez-le dans votre calendrier préféré."); setIsSyncModalOpen(false); }} className="w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-primary/10">
+              <button onClick={() => { exportToICS(schedule, classesDe(schedule)[0] || 'emploi-du-temps'); triggerToast("Fichier .ics téléchargé avec succès ! Importez-le dans votre calendrier préféré."); setIsSyncModalOpen(false); }} className="w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-primary/10">
                 <Download className="h-4 w-4" /> Télécharger le calendrier (.ics)
               </button>
             </div>

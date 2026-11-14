@@ -18,8 +18,8 @@ export function CalendarWidget({ variant = 'default' }: { variant?: 'default' | 
     const dayName = daysNameMap[dayOfWeekIndex];
     let classItem, hasClass = false, mainColor = '';
 
-    if (dayOfWeekIndex < 5) {
-      const dayKeys: ('LUN'|'MAR'|'MER'|'JEU'|'VEN')[] = ['LUN', 'MAR', 'MER', 'JEU', 'VEN'];
+    if (dayOfWeekIndex < 6) {   // samedi compris (2026-11-14)
+      const dayKeys: ('LUN'|'MAR'|'MER'|'JEU'|'VEN'|'SAM')[] = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
       classItem = state.rawSessions.find(s => s.jour === dayKeys[dayOfWeekIndex]);
       if (classItem) {
         hasClass = true;

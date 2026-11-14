@@ -4,6 +4,7 @@ import { definirSallesReelles, checkSchedulingConflicts, autoSuggestSubject } fr
 import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { BilanEmploiDuTemps, lireBilan } from '../domain/bilanEmploiDuTemps';
 
 export function useAdminSchedulerState() {
   const [slots, setSlotsBrut] = useState<CalendarSlot[]>([]);
@@ -57,22 +58,23 @@ export function useAdminSchedulerState() {
   /**
    * Enregistre le planning sur le serveur (PUT /admin/planning/slots, qui refuse les doubles réservations).
    * Avant : aucune modification du planificateur n'était enregistrée, et « Publier » annonçait l'envoi de SMS.
-   * Renvoie null si enregistré, sinon le message à afficher.
+   * Renvoie le bilan du serveur si enregistré (séances transmises, créneaux sans matière ou sans professeur),
+   * sinon le message d'erreur à afficher.
    */
-  const enregistrer = useCallback(async (): Promise<string | null> => {
+  const enregistrer = useCallback(async (): Promise<{ erreur: string } | { bilan: BilanEmploiDuTemps }> => {
     const sansClasse = slots.filter(s => !s.classeId);
     if (sansClasse.length > 0) {
-      return `${sansClasse.length} créneau(x) sans classe rattachée (${sansClasse.map(s => s.subject || s.id).slice(0, 3).join(', ')}) : impossible de les enregistrer.`;
+      return { erreur: `${sansClasse.length} créneau(x) sans classe rattachée (${sansClasse.map(s => s.subject || s.id).slice(0, 3).join(', ')}) : impossible de les enregistrer.` };
     }
     try {
-      await apiClient.put('/admin/planning/slots', slots.map(s => ({
+      const { data } = await apiClient.put('/admin/planning/slots', slots.map(s => ({
         id: s.id, day: s.day, slot: s.slot, classeId: s.classeId, subject: s.subject,
         prof: s.prof, roomName: s.room, type: s.type,
       })));
       setModifie(false);
-      return null;
+      return { bilan: lireBilan(data) };
     } catch (err) {
-      return resolveErrorMessage(err);
+      return { erreur: resolveErrorMessage(err) };
     }
   }, [slots]);
 

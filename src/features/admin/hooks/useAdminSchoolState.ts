@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Room, Filiere, Classe, PlanningSlot } from '../domain/SchoolModels';
 import { apiClient } from '@/shared/lib/apiClient';
+import { avertissementBilan, lireBilan } from '../domain/bilanEmploiDuTemps';
 import { listeBrute, objetBrut, texte, texteOuNull, nombreOuNull, textes, vrai } from '@/shared/lib/lectureServeur';
 
 /*
@@ -107,8 +108,13 @@ export function useAdminSchoolState() {
   /** Renvoie null si le serveur a enregistré, sinon le message d'erreur (la liste est alors rechargée). */
   const enregistrer = async (chemin: string, liste: unknown[], quoi: string): Promise<string | null> => {
     try {
-      await apiClient.put(`/admin/planning/${chemin}`, liste);
+      const { data } = await apiClient.put(`/admin/planning/${chemin}`, liste);
       setError(null);
+      if (chemin === 'slots') {
+        // 2026-11-14 : créneau sans matière de ce nom dans la classe → pas de feuille d'appel ; signalé tout de suite
+        const avertissement = avertissementBilan(lireBilan(data));
+        if (avertissement) toast.warning(avertissement);
+      }
       return null;
     } catch (err) {
       const msg = messageErreur(err, quoi);

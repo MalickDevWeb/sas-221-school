@@ -1,4 +1,5 @@
 import { CourseSession } from '../domain/Schedule';
+import { dateCompacteDuJour } from '@/shared/lib/semaine';
 
 // Identifiant client OAuth Google public de test / ou configurable.
 // Les utilisateurs d'AI Studio peuvent l'utiliser car il accepte les requêtes de localhost/Cloud Run
@@ -11,12 +12,8 @@ const GOOGLE_CLIENT_ID = '868846175150-1r8orom4a1o68nnt0b51070e176k0v6t.apps.goo
 export function getGoogleCalendarTemplateUrl(s: CourseSession): string {
   const base = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
   
-  // La semaine de référence dans le mock est du 23 au 27 Octobre 2023
-  let datePrefix = '20231023'; // Lundi 23 Octobre
-  if (s.jour === 'MAR') datePrefix = '20231024';
-  if (s.jour === 'MER') datePrefix = '20231025';
-  if (s.jour === 'JEU') datePrefix = '20231026';
-  if (s.jour === 'VEN') datePrefix = '20231027';
+  // Semaine EN COURS (2026-11-14 : avant, semaine du 23 octobre 2023 écrite en dur)
+  const datePrefix = dateCompacteDuJour(s.jour);
 
   const startStr = `${datePrefix}T${s.heureDebut.replace(':', '')}00`;
   const endStr = `${datePrefix}T${s.heureFin.replace(':', '')}00`;

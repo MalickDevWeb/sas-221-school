@@ -2,10 +2,14 @@ import React from 'react';
 import { Download, CalendarPlus, Sparkles } from 'lucide-react';
 import { exportToPDF } from '@/features/schedule/utils/pdfExport';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { classesDe, libelleSemaine } from '@/features/schedule/domain/Schedule';
 
 export function ScheduleHeader({ state }: { state: any }) {
   const { currentTenant } = useTenantStore();
   const schoolName = currentTenant?.name || 'Université École 221';
+  // 2026-11-14 : semaine et classe réelles (avant : « Semaine du 23 au 27 Octobre 2023 • Semestre 1 • Classe L3-GL »)
+  const classes = classesDe(state.schedule ?? []);
+  const nomFichier = classes[0] || 'emploi-du-temps';
 
   return (
     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-5">
@@ -21,7 +25,7 @@ export function ScheduleHeader({ state }: { state: any }) {
           Emploi du Temps
         </h1>
         <p className="text-neutral-gray-500 font-bold text-xs md:text-sm">
-          Semaine du 23 au 27 Octobre 2023 • Semestre 1 • Classe L3-GL
+          {libelleSemaine(state.schedule ?? [])}{classes.length > 0 ? ` • Classe ${classes.join(', ')}` : ' • Aucune classe affectée'}
         </p>
       </div>
       
@@ -29,7 +33,7 @@ export function ScheduleHeader({ state }: { state: any }) {
         <button 
           onClick={async () => {
             state.triggerToast("Génération de votre PDF personnalisé avec logo...");
-            await exportToPDF(state.schedule, 'L3-GL');
+            await exportToPDF(state.schedule, nomFichier);
           }}
           className="flex-1 sm:flex-none flex items-center justify-center gap-2 border border-neutral-200 bg-white px-4 h-11 rounded-2xl hover:bg-neutral-50 transition-all font-black text-xs text-neutral-700 cursor-pointer shadow-3xs whitespace-nowrap"
         >

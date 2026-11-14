@@ -1,14 +1,14 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Coffee, MapPin } from 'lucide-react';
-import { CourseSession } from '@/features/schedule/domain/Schedule';
+import { CourseSession, joursAffiches, LIBELLES_JOURS } from '@/features/schedule/domain/Schedule';
 import { LiveIndicator } from '@/shared/components';
 import { datesSemaineCourante } from '@/shared/lib/semaine';
 
 export function GridView({ state }: { state: any }) {
   const { schedule, gridContainerRef, scrollGrid, fitsFilters, setActivePlanCourse, liveSessions, handleJoinLive, enCoursId, prochainId } = state;
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
-  const days = ['LUN', 'MAR', 'MER', 'JEU', 'VEN'] as const;
-  const dayLabels = { LUN: 'LUNDI', MAR: 'MARDI', MER: 'MERCREDI', JEU: 'JEUDI', VEN: 'VENDREDI' };
+  const days = joursAffiches(schedule as CourseSession[]);   // samedi affiché s'il porte une séance
+  const dayLabels = Object.fromEntries(days.map((d) => [d, LIBELLES_JOURS[d].toUpperCase()])) as Record<string, string>;
   const dayDates: Record<string, string> = datesSemaineCourante(); // dates réelles (avant : « 23 Oct »… en dur)
 
   return (
@@ -37,7 +37,7 @@ export function GridView({ state }: { state: any }) {
                 return (
                   <tr key={time} className="bg-surface-page border-y border-neutral-200">
                     <td className="h-12 text-center font-black text-[10.5px] text-neutral-500 border-r border-neutral-150 flex items-center justify-center gap-1.5 bg-primary/5"><Coffee className="h-3.5 w-3.5 text-primary" /><span>12:00</span></td>
-                    <td colSpan={5} className="h-12 text-center"><div className="flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-primary uppercase"><Coffee className="h-4 w-4 animate-bounce" /><span>Pause Déjeuner · Repos académique</span></div></td>
+                    <td colSpan={days.length} className="h-12 text-center"><div className="flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-primary uppercase"><Coffee className="h-4 w-4 animate-bounce" /><span>Pause Déjeuner · Repos académique</span></div></td>
                   </tr>
                 );
               }

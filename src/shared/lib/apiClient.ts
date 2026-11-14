@@ -1,6 +1,7 @@
 import axios, { InternalAxiosRequestConfig } from 'axios';
 import { setupOfflineInterceptors } from './setupOfflineInterceptors';
 import { handleApiResponseError } from './apiErrorHandler';
+import { installerRelanceReseau } from './relanceReseau';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -54,5 +55,8 @@ apiClient.interceptors.request.use((config) => {
 
 publicApiClient.interceptors.request.use(injectTenantHeaders);
 
+// relance d'abord les lectures coupées par le réseau, puis seulement affiche l'erreur (2026-11-14)
+installerRelanceReseau(apiClient);
+installerRelanceReseau(publicApiClient);
 apiClient.interceptors.response.use((r) => r, handleApiResponseError);
 setupOfflineInterceptors(apiClient);

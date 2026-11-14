@@ -56,7 +56,8 @@ export async function exportToPDF(sessions: CourseSession[], className: string =
     { code: 'MAR', label: 'MARDI' },
     { code: 'MER', label: 'MERCREDI' },
     { code: 'JEU', label: 'JEUDI' },
-    { code: 'VEN', label: 'VENDREDI' }
+    { code: 'VEN', label: 'VENDREDI' },
+    { code: 'SAM', label: 'SAMEDI' }   // 2026-11-14 : les cours du samedi manquaient au PDF
   ];
 
   joursOrdre.forEach((jour) => {

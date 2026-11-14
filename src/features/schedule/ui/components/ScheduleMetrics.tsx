@@ -1,35 +1,38 @@
 import React from 'react';
-import { Clock, ShieldCheck, FileSpreadsheet, TrendingUp } from 'lucide-react';
+import { Clock, Ban, BookOpen } from 'lucide-react';
+import { CourseSession, dureeHeures } from '@/features/schedule/domain/Schedule';
 
-export function ScheduleMetrics() {
+/**
+ * Chiffres de la semaine, calculés sur l'emploi du temps réel (2026-11-14). Avant : « 24 Heures — Conforme syllabus
+ * académique », « 100% Recommandé » et « Mode Hybride », écrits en dur quel que soit l'emploi du temps.
+ */
+export function ScheduleMetrics({ schedule }: { schedule: readonly CourseSession[] }) {
+  const actives = schedule.filter((s) => s.status !== 'annule');
+  const heures = actives.reduce((t, s) => t + dureeHeures(s), 0);
+  const annulees = schedule.length - actives.length;
+  const matieres = new Set(actives.map((s) => s.nom)).size;
+  const enseignants = new Set(actives.map((s) => s.professeur).filter(Boolean)).size;
+  const fmt = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(1).replace('.', ','));
+  const cartes = [
+    { icone: <Clock className="h-6 w-6" />, titre: 'Volume de la semaine', valeur: `${fmt(heures)} h`,
+      detail: `${actives.length} séance${actives.length > 1 ? 's' : ''} prévue${actives.length > 1 ? 's' : ''}` },
+    { icone: <BookOpen className="h-6 w-6" />, titre: 'Matières', valeur: `${matieres}`,
+      detail: `${enseignants} enseignant${enseignants > 1 ? 's' : ''}` },
+    { icone: <Ban className="h-6 w-6" />, titre: 'Séances annulées', valeur: `${annulees}`,
+      detail: annulees > 0 ? 'motif indiqué sur la séance' : 'aucune cette semaine' },
+  ];
   return (
-    <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div style={{ height: '94.095px', paddingLeft: '25px', marginLeft: '-3px', marginTop: '89px' }} className="bg-white border border-neutral-gray-200/90 rounded-3xl shadow-3xs flex items-center gap-5 hover:border-neutral-300 transition-all select-none">
-        <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center text-primary shrink-0"><Clock className="h-6 w-6" /></div>
-        <div>
-          <h3 style={{ fontSize: '8px' }} className="font-black text-neutral-400 uppercase tracking-wider mb-0.5">Volume hebdomadaire</h3>
-          <p style={{ height: '43.0035px', width: '122.684px', fontSize: '17px' }} className="font-black text-[#291715] leading-none flex items-center">24 Heures</p>
-          <p style={{ fontSize: '10px', marginTop: '-17px' }} className="text-primary font-extrabold flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Conforme syllabus académique</p>
+    <div id="emploi-du-temps-chiffres" className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {cartes.map((c) => (
+        <div key={c.titre} className="bg-white border border-neutral-gray-200/90 rounded-3xl shadow-3xs flex items-center gap-5 p-5 select-none">
+          <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center text-primary shrink-0">{c.icone}</div>
+          <div className="min-w-0">
+            <h3 className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">{c.titre}</h3>
+            <p className="text-[17px] font-black text-[#291715] leading-tight">{c.valeur}</p>
+            <p className="text-[10px] text-neutral-500 font-bold">{c.detail}</p>
+          </div>
         </div>
-      </div>
-
-      <div style={{ height: '94.095px', paddingLeft: '25px', marginLeft: '-3px', marginTop: '89px' }} className="bg-white border border-neutral-gray-200/90 rounded-3xl shadow-3xs flex items-center gap-5 hover:border-neutral-300 transition-all select-none">
-        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0"><ShieldCheck className="h-6 w-6" /></div>
-        <div>
-          <h3 style={{ fontSize: '8px' }} className="font-black text-neutral-400 uppercase tracking-wider mb-0.5">Assiduité requise</h3>
-          <p style={{ height: '43.0035px', width: '122.684px', fontSize: '17px' }} className="font-black text-on-surface leading-none flex items-center">100% Recommandé</p>
-          <p style={{ fontSize: '10px', marginTop: '-17px' }} className="text-neutral-400 font-bold">Rapport d'absence sous 48h</p>
-        </div>
-      </div>
-
-      <div style={{ height: '94.095px', paddingLeft: '25px', marginLeft: '-3px', marginTop: '89px' }} className="bg-white border border-neutral-gray-200/90 rounded-3xl shadow-3xs flex items-center gap-5 hover:border-neutral-300 transition-all select-none">
-        <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-[#10B981] shrink-0"><FileSpreadsheet className="h-6 w-6" /></div>
-        <div>
-          <h3 style={{ fontSize: '8px' }} className="font-black text-neutral-400 uppercase tracking-wider mb-0.5">Méthode pédagogique</h3>
-          <p style={{ height: '43.0035px', width: '122.684px', fontSize: '17px' }} className="font-black text-on-surface leading-none flex items-center">Mode Hybride</p>
-          <p style={{ fontSize: '10px', marginTop: '-17px' }} className="text-neutral-450 text-neutral-500 font-bold">Documents & Devoirs synchronisés</p>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

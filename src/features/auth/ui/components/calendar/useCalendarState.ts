@@ -11,8 +11,9 @@ const DAY_KEYS: Record<string, CourseSession['jour']> = {
   MER: 'MER', MERCREDI: 'MER', WEDNESDAY: 'MER',
   JEU: 'JEU', JEUDI: 'JEU', THURSDAY: 'JEU',
   VEN: 'VEN', VENDREDI: 'VEN', FRIDAY: 'VEN',
+  SAM: 'SAM', SAMEDI: 'SAM', SATURDAY: 'SAM',
 };
-const DAY_NAMES: Record<CourseSession['jour'], string> = { LUN: 'Lundi', MAR: 'Mardi', MER: 'Mercredi', JEU: 'Jeudi', VEN: 'Vendredi' };
+const DAY_NAMES: Record<CourseSession['jour'], string> = { LUN: 'Lundi', MAR: 'Mardi', MER: 'Mercredi', JEU: 'Jeudi', VEN: 'Vendredi', SAM: 'Samedi' };
 
 const pick = (...values: unknown[]): string => {
   for (const v of values) if (typeof v === 'string' && v.trim()) return v;
@@ -39,12 +40,16 @@ function toCalendarSession(raw: any): CourseSession | null {
     type,
     enCours: raw.status === 'actuel',
     syllabus: pick(raw.description, raw.syllabus) || 'Non renseigné',
+    classe: pick(raw.classe),
   };
 }
 
 export function useCalendarState() {
   const { utilisateur } = useAuthStore();
-  const [level, setLevel] = useState<'L3GL' | 'L2SR' | 'M1IA'>('L3GL');
+  // 2026-11-14 : plus de choix entre trois classes inventées (L3GL, L2SR, M1IA) qui ne filtraient rien ; la classe
+  // affichée est celle des séances réelles. « level » ne sert plus qu'à ranger les notes personnelles.
+  const level = 'perso';
+  const setLevel = (_v: string) => undefined;
   const [weekType, setWeekType] = useState<'currentWeek' | 'nextWeek'>('currentWeek');
   const [viewType, setViewType] = useState<'weekly' | 'monthly'>('weekly');
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,8 +126,8 @@ export function useCalendarState() {
     }
   };
 
-  // Le backend ne fournit que la semaine en cours : la semaine suivante reste vide.
-  const rawSessions = weekType === 'currentWeek' ? realSessions : [];
+  // L'emploi du temps est hebdomadaire : la semaine prochaine reprend les mêmes séances (2026-11-14 : avant, vide).
+  const rawSessions = realSessions;
 
   const displayedSessions = rawSessions.filter(c => {
     const q = (searchQuery || "").toLowerCase();

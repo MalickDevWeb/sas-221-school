@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
 import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
-const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-const TODAY = JOURS[new Date().getDay() - 1] ?? 'Lundi';
+// 2026-11-14 : samedi ajouté (l'école planifie du lundi au samedi) ; le dimanche ouvre sur le lundi.
+const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const TODAY = JOURS_SEMAINE[new Date().getDay() - 1] ?? 'Lundi';
 
 const TYPE_COLORS: Record<string, string> = {
   CM: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -26,6 +27,8 @@ export function ParentSchedulePage() {
 
   const scheduleError = errors?.schedule ?? null;
   const filtered = schedule.filter((s) => s.jour === selectedDay);
+  // samedi affiché seulement s'il porte un cours (ou si c'est aujourd'hui)
+  const JOURS = schedule.some((s) => s.jour === 'Samedi') || TODAY === 'Samedi' ? JOURS_SEMAINE : JOURS_SEMAINE.slice(0, 5);
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">

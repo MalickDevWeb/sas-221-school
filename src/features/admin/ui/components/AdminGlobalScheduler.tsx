@@ -7,6 +7,7 @@ import { HistoryTab } from './planning/HistoryTab';
 import { StatsTab } from './planning/StatsTab';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminSchedulerState } from '../../hooks/useAdminSchedulerState';
+import { avertissementBilan, messageBilan } from '../../domain/bilanEmploiDuTemps';
 import { generateOptimizedSchedule } from '../../domain/PlanningGenerator';
 
 export function AdminGlobalScheduler() {
@@ -34,14 +35,17 @@ export function AdminGlobalScheduler() {
 
   /** Enregistre réellement le planning (avant : rien n'était enregistré et des SMS étaient annoncés). */
   const handlePublish = async () => {
-    const erreur = await enregistrer();
-    if (erreur) {
-      showToast(`Planning non enregistré : ${erreur}`, false);
+    const res = await enregistrer();
+    if ('erreur' in res) {
+      showToast(`Planning non enregistré : ${res.erreur}`, false);
       return;
     }
     setIsPublished(true);
     addLog('Modification', 'Tous les cours', 'Brouillon', 'Enregistré', 'Enregistrement du planning');
-    showToast('Planning enregistré sur le serveur.', true);
+    // 2026-11-14 : le serveur transmet les séances aux professeurs, élèves et parents ; il signale les créneaux
+    // sans matière (pas de feuille d'appel) ou sans professeur reconnu.
+    const avertissement = avertissementBilan(res.bilan);
+    showToast(avertissement ? `${messageBilan(res.bilan)} ${avertissement}` : messageBilan(res.bilan), !avertissement);
   };
 
   return (
