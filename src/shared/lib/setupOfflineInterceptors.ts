@@ -19,7 +19,9 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
           if (cached) {
             return { ...error, data: cached, status: 200, statusText: 'OK', headers: {}, config };
           }
-        } else if (config && config.method && config.method !== 'get' && config.method !== 'GET') {
+        } else if (config && config.method && config.method !== 'get' && config.method !== 'GET'
+          // requête dont l'appelant gère lui-même l'absence de réseau (scan du vigile : décision hors ligne, EF-10)
+          && !(config as { sansFileHorsLigne?: boolean }).sansFileHorsLigne) {
           queueMutation(config.url || '', config.method, config.data, config.headers);
           return Promise.reject(new Error("Vous êtes hors-ligne. Votre action a été mise en attente."));
         }

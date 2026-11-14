@@ -3,6 +3,15 @@ import { audioService } from '../infrastructure/config/dependencies';
 import { securityService } from '@/shared/lib/apiService';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { applyVigilFilters, DateFilter } from './useVigilFilters';
+import { chargerListeAcces, deciderHorsLigne, listeAcces, mettreEnAttente, nombreEnAttente, transmettreScansEnAttente } from '../infrastructure/local/accesHorsLigne';
+
+/** Réseau ou serveur injoignable (et non refus du serveur) : le terminal décide hors ligne (EF-10). */
+function estHorsLigne(err: unknown): boolean {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
+  const e = err as { response?: { status?: number }; code?: string; message?: string };
+  if (!e?.response) return e?.code === 'ERR_NETWORK' || e?.code === 'ECONNABORTED' || e?.message === 'Network Error';
+  return [502, 503, 504].includes(Number(e.response.status));
+}
 
 export interface ScanLogItem {
   id: string;
@@ -60,6 +69,30 @@ export function useVigilLocalState() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeCheckpoint, setActiveCheckpoint] = useState<ActiveCheckpoint | null>(null);
   const itemsPerPage = 3;
+  // Décision hors ligne (EF-10) : liste d'accès à jour, scans en attente d'envoi
+  const [etatHorsLigne, setEtatHorsLigne] = useState<string>('');
+
+  const decrireEtat = useCallback(() => {
+    const l = listeAcces();
+    const attente = nombreEnAttente();
+    setEtatHorsLigne((l ? `Liste d'accès hors ligne à jour (${new Date(l.genereLe).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}, ${l.eleves.length} élèves).`
+      : "Aucune liste d'accès hors ligne : sans réseau, aucun badge ne pourra être contrôlé.")
+      + (attente ? ` ${attente} scan(s) hors ligne en attente d'envoi.` : ''));
+  }, []);
+
+  useEffect(() => {
+    const synchroniser = async () => {
+      try { await chargerListeAcces(); } catch { /* hors ligne : on garde la liste existante */ }
+      try {
+        const { envoyes, contestes } = await transmettreScansEnAttente();
+        if (envoyes && contestes) setFeedback({ success: false, message: `${envoyes} scan(s) hors ligne transmis ; ${contestes} décision(s) contestée(s) par le serveur.` });
+      } catch { /* toujours hors ligne : nouvel essai au retour du réseau */ }
+      decrireEtat();
+    };
+    void synchroniser();
+    window.addEventListener('online', synchroniser);
+    return () => window.removeEventListener('online', synchroniser);
+  }, [decrireEtat]);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,7 +121,9 @@ export function useVigilLocalState() {
   }, [scanLogs, checkpoints]);
 
   const handleScanSuccess = useCallback(async (badgeId: string, isManual = false) => {
-    const resolvedId = badgeId.trim().toUpperCase();
+    // Contenu signé (STU_SECURE:…) gardé tel quel : la signature est sensible à la casse (avant : tout passait en majuscules)
+    const brut = badgeId.trim();
+    const resolvedId = brut.startsWith('STU_SECURE:') ? brut : brut.toUpperCase();
     try {
       const apiResult = await securityService.submitScanLog(resolvedId);
       const isAuth = apiResult.statut === 'Autorisé';
@@ -113,13 +148,31 @@ export function useVigilLocalState() {
       };
       setScanLogs((prev) => [newLog, ...prev]);
     } catch (err) {
-      audioService.playFailureBeep();
-      // Raison donnée par le serveur (ex. « Terminal … désactivé par l'administration : scan refusé. »)
-      setFeedback({ success: false, message: resolveErrorMessage(err) });
+      if (estHorsLigne(err)) {
+        const d = await deciderHorsLigne(resolvedId);
+        if (d) {
+          mettreEnAttente(resolvedId, d.statut);
+          if (d.statut === 'Autorisé') audioService.playSuccessBeep(); else audioService.playFailureBeep();
+          setFeedback({ success: d.statut === 'Autorisé', message: d.message });
+          setScanLogs((prev) => [{
+            id: `hl-${Date.now()}`, name: d.badgeOwner, studentId: resolvedId.split(':')[1] ?? resolvedId, status: d.statut,
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), type: isManual ? 'Manuel (hors ligne)' : 'Scanner (hors ligne)',
+            date: "Aujourd'hui", avatar: null,
+          }, ...prev]);
+        } else {
+          audioService.playFailureBeep();
+          setFeedback({ success: false, message: "Hors ligne et aucune liste d'accès à jour : contrôle impossible. Prévenez l'administration." });
+        }
+        decrireEtat();
+      } else {
+        audioService.playFailureBeep();
+        // Raison donnée par le serveur (ex. « Terminal … désactivé par l'administration : scan refusé. »)
+        setFeedback({ success: false, message: resolveErrorMessage(err) });
+      }
     }
     setTimeout(() => setFeedback(null), 4000);
     setResetKey(k => k + 1);
-  }, []);
+  }, [decrireEtat]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +200,7 @@ export function useVigilLocalState() {
   return {
     manualId, setManualId, resetKey, feedback, scanLogs, checkpoints, searchQuery, setSearchQuery, showBadge, setShowBadge,
     scanMode, setScanMode, dateFilter, setDateFilter, showDateDropdown, setShowDateDropdown, currentPage, setCurrentPage,
+    etatHorsLigne,
     progressPercent, completedCheckpoints, paginatedLogs, totalPages, handleScanSuccess, handleManualSubmit,
     checkCheckpoint, resetCheckpoints, clearScanLogs, activeCheckpoint
   };

@@ -17,7 +17,7 @@ export function VigilPatrolPage() {
     manualId, setManualId, resetKey, feedback, scanLogs, checkpoints, searchQuery, setSearchQuery, showBadge, setShowBadge,
     scanMode, setScanMode, dateFilter, setDateFilter, showDateDropdown, setShowDateDropdown, currentPage, setCurrentPage,
     progressPercent, completedCheckpoints, paginatedLogs, totalPages, handleScanSuccess, handleManualSubmit,
-    checkCheckpoint, resetCheckpoints, clearScanLogs, activeCheckpoint
+    checkCheckpoint, resetCheckpoints, clearScanLogs, activeCheckpoint, etatHorsLigne
   } = useVigilLocalState();
 
   const isRondes = currentPath.endsWith('/rondes');
@@ -39,6 +39,9 @@ export function VigilPatrolPage() {
           onScanComplete={(decodedText) => void handleScanSuccess(decodedText, false)}
           resetKey={resetKey}
         />
+      )}
+      {isDashboard && etatHorsLigne && (
+        <p id="vigil-etat-hors-ligne" className="text-[10px] font-semibold text-neutral-500 px-2 mt-1">{etatHorsLigne}</p>
       )}
 
       {isRondes && (
