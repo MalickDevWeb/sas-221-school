@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
-import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
+import { ParentErrorState } from '../components/ParentStatusBlocks';
+import { BulletinEvaluations } from '@/features/grades/bulletin/BulletinEvaluations';
 
 const MENTION_CONFIG: Record<string, { color: string; bg: string }> = {
   'Excellent':     { color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
@@ -54,8 +55,13 @@ export function ParentGradesPage() {
         </button>
       </div>
 
-      {/* Résumé */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      {selectedChild?.id && <BulletinEvaluations key={selectedChild.id} enfantId={selectedChild.id} titre={`Bulletin de ${selectedChild.prenom ?? 'l\'élève'}`} />}
+
+      {/* Ancien relevé CC / Examen : affiché seulement s'il contient des notes (sinon il contredisait le bulletin) */}
+      {grades.length > 0 && (
+        <h3 className="text-base font-black text-neutral-900 mb-3">Relevé contrôle continu / examen</h3>
+      )}
+      {grades.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 text-white col-span-1 md:col-span-1 shadow-lg shadow-blue-200">
           <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-1">Moyenne générale</p>
           <p className="text-4xl font-black leading-none">
@@ -86,7 +92,7 @@ export function ParentGradesPage() {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Table des notes */}
       {loading ? (
@@ -96,7 +102,7 @@ export function ParentGradesPage() {
       ) : gradesError ? (
         <ParentErrorState message={gradesError} onRetry={retry} />
       ) : grades.length === 0 ? (
-        <ParentEmptyState icon="grade" title="Aucune note pour le moment" />
+        null
       ) : (
         <div className="bg-white rounded-3xl border border-neutral-100 border-solid shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-neutral-100 border-solid">
