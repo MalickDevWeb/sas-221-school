@@ -30,9 +30,10 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
 
   const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const stored = localStorage.getItem('school_delete_security_code');
+    // 2026-11-14 : simple garde-fou contre l'erreur de clic (avant : « code d'établissement » gardé dans le navigateur)
     const upper = code.trim().toUpperCase();
-    if (upper === 'ANNULER' || upper === 'CONFIRMER' || (stored && code.trim() === stored)) {
+    if (!reason.trim()) { setError(true); return; }
+    if (upper === 'ANNULER' || upper === 'CONFIRMER') {
       await onCancel(session.id, reason);
       onClose();
     } else {
@@ -74,24 +75,23 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
             )}
 
             {action === 'cancel' && (
-              <form onSubmit={handleCancelSubmit} className="space-y-3 animate-fade-in text-left">
+              <form onSubmit={handleCancelSubmit} noValidate className="space-y-3 animate-fade-in text-left">
                 <div>
                   <label className="block text-xs font-black text-neutral-600 mb-1">Motif de l'annulation :</label>
-                  <input type="text" value={reason} onChange={e => setReason(e.target.value)} required className="w-full p-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-brand-red-deep" />
+                  <input type="text" value={reason} onChange={e => setReason(e.target.value)} className="w-full p-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-brand-red-deep" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-neutral-600 mb-1">Code d'établissement (Validation Sécurité) :</label>
+                  <label className="block text-xs font-black text-neutral-600 mb-1">Tapez CONFIRMER pour annuler la séance :</label>
                   <input
-                    type="password"
+                    type="text"
                     value={code}
                     onChange={e => setCode(e.target.value)}
-                    required
-                    placeholder="Saisissez le code de sécurité"
+                    placeholder="CONFIRMER"
                     className={`w-full p-2.5 bg-neutral-50 border rounded-xl text-xs font-bold focus:outline-none focus:border-brand-red-deep ${
                       error ? 'border-red-500 text-red-600' : 'border-neutral-200'
                     }`}
                   />
-                  {error && <p className="text-[9.5px] text-red-600 font-black mt-1">Code incorrect. Annulation refusée.</p>}
+                  {error && <p className="text-[9.5px] text-red-600 font-black mt-1">{reason.trim() ? 'Tapez exactement CONFIRMER : la séance n\'a pas été annulée.' : 'Indiquez le motif de l\'annulation : vos élèves le verront.'}</p>}
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button type="button" onClick={() => setAction('none')} className="flex-1 py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-black border-0 cursor-pointer">Retour</button>

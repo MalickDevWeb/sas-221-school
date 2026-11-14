@@ -18,7 +18,7 @@ export function useProfessorDashboardPage() {
   const fetchLiveSessions = useCallback(async () => {
     try {
       const res = await apiClient.get('/student/live-sessions');
-      setLiveSessions(Array.isArray(res.data) ? res.data : []);
+      setLiveSessions(Array.isArray(res.data) ? res.data : (res.data?.content ?? []));   // réponse paginée {content}
     } catch (err) {
       console.error(err);
     }

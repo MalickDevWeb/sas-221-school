@@ -1,18 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useSchedule } from '@/features/schedule/hooks/useSchedule';
 import { CourseSession, CourseDay } from '@/features/schedule/domain/Schedule';
-import { syncAllCoursesToGoogleCalendar } from '@/features/schedule/utils/googleCalendarSync';
 import { apiClient } from '@/shared/lib/apiClient';
 import { getHighlightState } from '@/shared/utils/calendarHighlight';
 
 export function useSchedulePageState() {
   const { schedule } = useSchedule();
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(() => 
-    typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('google_access_token') : null
-  );
-  const [isSyncingWithGoogle, setIsSyncingWithGoogle] = useState(false);
-  const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   
   const { enCoursId, prochainId, initialDay } = useMemo(() => {
     const mapped = schedule.map(c => ({ id: c.id, day: c.jour, startTime: c.heureDebut, endTime: c.heureFin }));
@@ -51,21 +45,6 @@ export function useSchedulePageState() {
     else if (s.hlsUrl) { window.open(s.hlsUrl, '_blank', 'noopener,noreferrer'); triggerToast("Ouverture de Google Meet..."); }
   };
 
-  const handleFullSync = async () => {
-    if (!googleAccessToken) return;
-    setIsSyncingWithGoogle(true);
-    setSyncProgress({ current: 0, total: schedule.length });
-    try {
-      const res = await syncAllCoursesToGoogleCalendar(googleAccessToken, schedule, (c, t) => setSyncProgress({ current: c, total: t }));
-      triggerToast(`${res.successCount} cours synchronisés sur Google Calendar !`);
-      setIsSyncModalOpen(false);
-    } catch (e) { console.error(e); triggerToast("Erreur lors de la synchronisation."); }
-    finally { setIsSyncingWithGoogle(false); }
-  };
-
-  const handleGoogleDisconnect = () => {
-    sessionStorage.removeItem('google_access_token'); setGoogleAccessToken(null); triggerToast("Déconnecté de Google.");
-  };
 
   const scrollGrid = (dir: 'left' | 'right') => {
     if (gridContainerRef.current) gridContainerRef.current.scrollBy({ left: dir === 'left' ? -280 : 280, behavior: 'smooth' });
@@ -85,26 +64,14 @@ export function useSchedulePageState() {
     return () => { document.body.style.overflow = ''; };
   }, [activePlanCourse]);
 
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      const params = new URLSearchParams(hash.substring(1));
-      const token = params.get('access_token');
-      if (token) {
-        sessionStorage.setItem('google_access_token', token);
-        setTimeout(() => { setGoogleAccessToken(token); setIsSyncModalOpen(true); triggerToast('Connexion Google Calendar réussie !'); }, 0);
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
-  }, []);
+  // 2026-11-14 : retrait de la lecture d'un « #access_token » dans l'adresse (n'importe quel jeton était rangé dans le
+  // navigateur, avec « Connexion Google Calendar réussie ! ») ; l'agenda s'exporte en .ics, sans compte Google.
 
   return {
-    schedule, isSyncModalOpen, setIsSyncModalOpen, googleAccessToken, setGoogleAccessToken,
-    isSyncingWithGoogle, setIsSyncingWithGoogle, syncProgress, setSyncProgress,
-    selectedDayMobile, setSelectedDayMobile, activePlanCourse, setActivePlanCourse,
+    schedule, isSyncModalOpen, setIsSyncModalOpen, selectedDayMobile, setSelectedDayMobile, activePlanCourse, setActivePlanCourse,
     showToast, setShowToast, viewMode, setViewMode, filterType, setFilterType,
     filterStatus, setFilterStatus, searchQuery, setSearchQuery, gridContainerRef,
-    triggerToast, handleFullSync, handleGoogleDisconnect, scrollGrid, fitsFilters, resetAllFilters,
+    triggerToast, scrollGrid, fitsFilters, resetAllFilters,
     liveSessions, handleJoinLive, enCoursId, prochainId
   };
 }

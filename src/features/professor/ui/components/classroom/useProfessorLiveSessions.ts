@@ -1,6 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
-import { createGoogleMeetSpace } from '@/shared/lib/googleMeet';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+
+/** Lien d'une réunion Google Meet : https://meet.google.com/abc-defg-hij (même règle que le serveur). */
+export function erreurLienMeet(brut: string): string | null {
+  const t = brut.trim();
+  if (!t) return 'Collez le lien de la réunion : créez-la sur meet.google.com (« Nouvelle réunion »), puis copiez son lien ici.';
+  const lien = /^https?:\/\//i.test(t) ? t : 'https://' + t;
+  if (!/^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}(\?\S*)?$/i.test(lien)) {
+    return `« ${t} » n'est pas un lien Google Meet (forme attendue : https://meet.google.com/abc-defg-hij).`;
+  }
+  return null;
+}
 
 export interface LiveSession {
   id: string;
@@ -30,26 +41,19 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
     return () => clearInterval(interval);
   }, [fetchSessions]);
 
-  const active = sessions.find((s) => s.courseName === courseName && s.status === 'active');
+  // 2026-11-14 : statut renvoyé « ACTIVE » (avant : comparé à « active » → le cours en direct n'était jamais reconnu)
+  const active = sessions.find((s) => s.courseName === courseName && String(s.status).toLowerCase() === 'active');
 
-  const startMeet = async (title: string, rawUrl: string, profName: string) => {
+  /**
+   * Diffuse le cours aux élèves. 2026-11-14 : le lien Google Meet est collé par le professeur (avant : il fallait
+   * d'abord se connecter à Google par Firebase, configuré avec des valeurs factices → cours impossible à lancer).
+   * Renvoie null si le cours est diffusé, sinon le message à afficher sous le champ.
+   */
+  const startMeet = async (title: string, rawUrl: string, profName: string): Promise<string | null> => {
+    const erreur = erreurLienMeet(rawUrl);
+    if (erreur) return erreur;
     let finalUrl = rawUrl.trim();
-    if (!finalUrl) {
-      try {
-        finalUrl = await createGoogleMeetSpace();
-      } catch (err: any) {
-        triggerToast(err.message || 'Erreur lors du lancement du salon Google Meet.');
-        return false;
-      }
-    } else {
-      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-        finalUrl = 'https://' + finalUrl;
-      }
-      if (!finalUrl.includes('meet.google.com')) {
-        triggerToast("Seuls les liens Google Meet sont autorisés !");
-        return false;
-      }
-    }
+    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
 
     try {
       const finalTitle = title.trim() || `Cours de ${courseName}`;
@@ -57,12 +61,11 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
         courseName, teacherName: profName, title: finalTitle, meetUrl: finalUrl
       });
       window.open(finalUrl, '_blank', 'noopener,noreferrer');
-      triggerToast('Cours Google Meet diffusé avec succès !');
+      triggerToast('Cours diffusé : vos élèves voient le lien de la réunion.');
       fetchSessions();
-      return true;
-    } catch {
-      triggerToast('Erreur lors du lancement de la visioconférence.');
-      return false;
+      return null;
+    } catch (err) {
+      return resolveErrorMessage(err);   // rien n'a été diffusé
     }
   };
 

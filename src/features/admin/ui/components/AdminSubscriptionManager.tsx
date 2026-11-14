@@ -7,7 +7,7 @@ import { SubscriptionQuotaSection } from './subscription/SubscriptionQuotaSectio
 import { SubscriptionInvoicesTable } from './subscription/SubscriptionInvoicesTable';
 import { SubscriptionPaymentModal } from './subscription/SubscriptionPaymentModal';
 import { SubscriptionUpgradeModal } from './subscription/SubscriptionUpgradeModal';
-import { SubscriptionPlan, PaymentMethodInfo, InvoiceItem } from './subscription/subscriptionModels';
+import { SubscriptionPlan, InvoiceItem } from './subscription/subscriptionModels';
 
 export const AdminSubscriptionManager: React.FC = () => {
   // Offre RÉELLE de l'école (GET /admin/abonnement) — avant : offre « Avancé » inventée
@@ -30,7 +30,6 @@ export const AdminSubscriptionManager: React.FC = () => {
   };
   useEffect(charger, []);
   const [invoices] = useState<InvoiceItem[]>([]);   // aucune facture inventée
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>([]);   // aucun moyen de paiement inventé
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
@@ -39,10 +38,6 @@ export const AdminSubscriptionManager: React.FC = () => {
     // l'offre affichée est relue depuis le serveur.
     void newPlanName; void newPrice;
     charger();
-  };
-
-  const handleSelectDefaultMethod = (type: string) => {
-    setPaymentMethods((prev) => prev.map(m => ({ ...m, isDefault: m.type === type })));
   };
 
   return (
@@ -109,8 +104,6 @@ export const AdminSubscriptionManager: React.FC = () => {
       <SubscriptionPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        methods={paymentMethods}
-        onSelectDefault={handleSelectDefaultMethod}
       />
 
       <SubscriptionUpgradeModal

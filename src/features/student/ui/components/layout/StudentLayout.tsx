@@ -67,6 +67,7 @@ export function StudentLayout() {
           onNotifClick={state.handleNotifClick}
           onOpenSettings={() => state.setShowSettings(true)}
           onOpenSupport={() => state.setShowSupportModal(true)}
+          onOpenSearch={() => state.setShowSearch(true)}
           triggerToast={state.triggerLayoutToast}
           onMoodSave={() => { state.setStudentMood(state.tempMood); state.setIsEditingMood(false); state.triggerLayoutToast("Statut mis à jour !"); }}
         />

@@ -151,7 +151,7 @@ export const AdminPortalLoginPage: React.FC = () => {
             </h1>
 
             <p className="text-sm text-slate-300 mb-8 max-w-md leading-relaxed font-normal">
-              Centralisez les scolarités, suivez les présences en temps réel et pilotez vos flux financiers Wave & Orange Money sur un dashboard unique.
+              Centralisez les scolarités, suivez les présences en temps réel et suivez les versements enregistrés par votre comptabilité (espèces, Wave, Orange Money) sur un tableau de bord unique.
             </p>
           </motion.div>
 

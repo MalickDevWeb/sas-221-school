@@ -220,6 +220,7 @@ export function ParentMessagesPage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [rdvMotif, setRdvMotif] = useState('');
   const [submittingRdv, setSubmittingRdv] = useState(false);
+  const [rdvErreurs, setRdvErreurs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     apiClient.get<ParentAppointment[]>('/parent/rdv')
@@ -231,7 +232,7 @@ export function ParentMessagesPage() {
         const list = Array.isArray(res.data) ? res.data : [];
         setProfesseurs(list);
         if (list.length > 0) {
-          setSelectedProf(list[0].displayName || list[0].nom || '');
+          setSelectedProf(list[0].id);   // 2026-11-14 : l'identifiant (avant : le nom → « Professeur introuvable »)
         }
       })
       .catch(err => console.error('Erreur chargement profs:', err));
@@ -239,21 +240,32 @@ export function ParentMessagesPage() {
 
   const handleSendRdv = async () => {
     // APP-FE-07 : plus de professeur de repli inventé ; un professeur réel doit être choisi.
-    if (!selectedProf || !selectedDate || !rdvMotif.trim()) return;
+    // 2026-11-14 : avant, un champ manquant ne faisait rien (bouton grisé sans explication) et une erreur du serveur
+    // n'était écrite que dans la console ; la demande n'arrivait d'ailleurs chez personne.
+    const err: Record<string, string> = {};
+    if (!selectedProf) err.prof = 'Choisissez le professeur à rencontrer.';
+    if (!selectedDate) err.date = 'Indiquez la date souhaitée.';
+    else if (selectedDate < new Date().toISOString().slice(0, 10)) err.date = 'Cette date est déjà passée.';
+    if (!rdvMotif.trim()) err.motif = 'Précisez le motif : le professeur saura de quoi vous voulez parler.';
+    setRdvErreurs(err);
+    if (Object.keys(err).length) return;
     setSubmittingRdv(true);
     try {
       await apiClient.post('/parent/rdv', {
         professeurId: selectedProf,
         dateSouhaitee: selectedDate,
-        motif: rdvMotif
+        motif: rdvMotif.trim()
       });
       const res = await apiClient.get<ParentAppointment[]>('/parent/rdv');
       setAppointments(Array.isArray(res.data) ? res.data : []);
+      const prof = professeurs.find(p => p.id === selectedProf);
       setShowRdv(false);
       setRdvMotif('');
       setSelectedDate('');
-    } catch (err) {
-      console.error('Erreur envoi RDV:', err);
+      setConfirmation(`Demande de rendez-vous envoyée à ${prof?.displayName || prof?.nom || 'ce professeur'} : sa réponse arrivera dans vos messages.`);
+      refreshMessages?.();
+    } catch (e) {
+      setRdvErreurs({ serveur: resolveErrorMessage(e) });   // rien n'a été envoyé
     } finally {
       setSubmittingRdv(false);
     }
@@ -324,7 +336,7 @@ export function ParentMessagesPage() {
                 >
                   {professeurs.length > 0 ? (
                     professeurs.map(p => (
-                      <option key={p.id} value={p.displayName || p.nom}>
+                      <option key={p.id} value={p.id}>
                         {p.displayName || p.nom}
                       </option>
                     ))
@@ -339,8 +351,10 @@ export function ParentMessagesPage() {
                   type="date" 
                   value={selectedDate} 
                   onChange={e => setSelectedDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
                   className="w-full h-11 px-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-semibold focus:border-primary outline-none" 
                 />
+                {rdvErreurs.date && <p className="text-[10px] font-bold text-red-600 mt-1">{rdvErreurs.date}</p>}
               </div>
               <div>
                 <label className="text-[11px] font-black text-neutral-600 uppercase tracking-wider mb-1 block">Motif du rendez-vous</label>
@@ -350,13 +364,17 @@ export function ParentMessagesPage() {
                   className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 focus:border-primary outline-none resize-none h-20"
                   placeholder="Ex: Suivi des résultats, orientation..."
                 />
+                {rdvErreurs.motif && <p className="text-[10px] font-bold text-red-600 mt-1">{rdvErreurs.motif}</p>}
               </div>
+              {rdvErreurs.prof && <p className="text-[10px] font-bold text-red-600">{rdvErreurs.prof}</p>}
+              {rdvErreurs.serveur && <p role="alert" className="text-[11px] font-bold text-red-600">{rdvErreurs.serveur}</p>}
+              <p className="text-[10px] font-semibold text-neutral-400">La demande est envoyée au professeur dans votre messagerie ; il vous répondra pour fixer le rendez-vous.</p>
             </div>
             
             <div className="mt-6">
               <button 
                 onClick={handleSendRdv} 
-                disabled={submittingRdv || !selectedProf || !selectedDate || !rdvMotif.trim()}
+                disabled={submittingRdv}
                 className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <span translate="no" className="material-symbols-outlined text-[16px]">send</span>
@@ -388,7 +406,8 @@ export function ParentMessagesPage() {
             Écrire
           </button>
           <button
-            onClick={() => setShowRdv(true)}
+            id="parent-demander-rdv"
+            onClick={() => { setRdvErreurs({}); setShowRdv(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black transition-colors"
           >
             <span translate="no" className="material-symbols-outlined text-[16px]">groups</span>
@@ -404,7 +423,7 @@ export function ParentMessagesPage() {
             <div className="flex items-center gap-2">
               <span translate="no" className="material-symbols-outlined text-emerald-600 text-[22px]">videocam</span>
               <p className="text-[12px] font-black uppercase tracking-wider text-neutral-800">
-                Mes Rendez-vous & Visioconférences ({appointments.length})
+                Mes demandes de rendez-vous ({appointments.length})
               </p>
             </div>
             <button
@@ -412,7 +431,7 @@ export function ParentMessagesPage() {
               className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
             >
               <span translate="no" className="material-symbols-outlined text-[16px]">add_circle</span>
-              Planifier un autre
+              Demander un autre rendez-vous
             </button>
           </div>
 
@@ -426,7 +445,7 @@ export function ParentMessagesPage() {
                   <div className="flex items-center justify-between mb-3">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {apt.status === 'CONFIRMED' ? 'Confirmé' : 'En attente'}
+                      {apt.status === 'CONFIRMED' || apt.status === 'CONFIRME' ? 'Confirmé' : 'Demande envoyée'}
                     </span>
                     <span className="text-[11px] font-bold text-neutral-500 flex items-center gap-1">
                       <span translate="no" className="material-symbols-outlined text-[14px]">calendar_today</span>
@@ -443,7 +462,7 @@ export function ParentMessagesPage() {
                   </p>
                 </div>
 
-                {apt.meetUrl ? (
+                {apt.meetUrl && /^https:\/\/meet\.google\.com\//i.test(apt.meetUrl) ? (
                   <a
                     href={apt.meetUrl}
                     target="_blank"
@@ -454,8 +473,8 @@ export function ParentMessagesPage() {
                     Rejoindre la visio Google Meet
                   </a>
                 ) : (
-                  <div className="text-center py-2 text-xs font-semibold text-neutral-400">
-                    Lien visio en attente de génération
+                  <div className="text-center py-2 text-xs font-semibold text-neutral-500">
+                    Le professeur vous répondra dans vos messages pour fixer le rendez-vous.
                   </div>
                 )}
               </div>

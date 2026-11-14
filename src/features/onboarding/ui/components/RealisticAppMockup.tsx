@@ -261,8 +261,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
           <Icon icon="solar:wallet-bold-duotone" className="text-base" />
         </div>
         <div className="text-left">
-          <p className="text-[10px] font-black text-white leading-tight">Paiements Wave & OM</p>
-          <p className="text-[8px] text-slate-400 font-semibold">Zéro Déplacement</p>
+          <p className="text-[10px] font-black text-white leading-tight">Scolarités suivies</p>
+          <p className="text-[8px] text-slate-400 font-semibold">Versements et reste à payer</p>
         </div>
       </motion.div>
     </div>

@@ -22,6 +22,8 @@ interface Props {
   onNotifClick: (id: string) => void;
   onOpenSettings: () => void;
   onOpenSupport: () => void;
+  /** 2026-11-14 : ouvre la recherche (avant : bouton « Rechercher… ⌘K » sans aucune action). */
+  onOpenSearch: () => void;
   triggerToast: (msg: string) => void;
   onMoodSave: () => void;
 }
@@ -31,7 +33,7 @@ export function StudentHeader({
   showNotifications, setShowNotifications, showCalendar, setShowCalendar,
   showProfile, setShowProfile, notifRef, calendarPopRef, profileRef,
   studentMood, tempMood, setTempMood, isEditingMood, setIsEditingMood,
-  onMarkAllRead, onNotifClick, onOpenSettings, onOpenSupport,
+  onMarkAllRead, onNotifClick, onOpenSettings, onOpenSupport, onOpenSearch,
   triggerToast, onMoodSave,
 }: Props) {
   const currentTenant = useTenantStore((s) => s.currentTenant);
@@ -57,7 +59,9 @@ export function StudentHeader({
         </div>
 
         {/* Search trigger */}
-        <div className="relative hidden sm:block cursor-pointer group flex-grow max-w-3xl">
+        <div id="recherche-eleve" role="button" tabIndex={0} aria-label="Rechercher"
+          onClick={onOpenSearch} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenSearch(); } }}
+          className="relative hidden sm:block cursor-pointer group flex-grow max-w-3xl">
           <div className="relative pl-10 pr-12 py-2.5 bg-neutral-gray-50/95 border border-neutral-gray-200/80 rounded-2xl text-xs font-semibold overflow-hidden transition-all duration-300 w-full flex items-center justify-between shadow-3xs group-hover:border-primary/45 group-hover:bg-white group-hover:shadow-sm">
             <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-gray-400 group-hover:text-primary transition-colors text-[18px]">search</span>
             <span className="text-neutral-500 font-bold select-none truncate">Rechercher...</span>

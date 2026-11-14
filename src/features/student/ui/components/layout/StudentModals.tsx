@@ -30,14 +30,7 @@ export function StudentModals({ state }: StudentModalsProps) {
         settingsPrefs={state.settingsPrefs} setSettingsPrefs={state.setSettingsPrefs}
         triggerToast={state.triggerLayoutToast}
       />
-      <SupportModal
-        showSupportModal={state.showSupportModal} setShowSupportModal={state.setShowSupportModal}
-        ticketCategory={state.ticketCategory} setTicketCategory={state.setTicketCategory}
-        ticketSubject={state.ticketSubject} setTicketSubject={state.setTicketSubject}
-        ticketDescription={state.ticketDescription} setTicketDescription={state.setTicketDescription}
-        isSendingTicket={state.isSendingTicket}
-        onSendTicket={state.handleSendTicket}
-      />
+      <SupportModal showSupportModal={state.showSupportModal} setShowSupportModal={state.setShowSupportModal} />
       <DocModal
         showDocModal={state.showDocModal} setShowDocModal={state.setShowDocModal}
         openDocSection={state.openDocSection} setOpenDocSection={state.setOpenDocSection}

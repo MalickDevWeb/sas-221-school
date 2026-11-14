@@ -49,7 +49,7 @@ export function useStudentLayoutState() {
 
   // Sub-hooks
   const search = useStudentSearch();
-  const ticket = useStudentTicket(triggerLayoutToast);
+  const ticket = useStudentTicket();
   const notifs = useStudentNotifications();
   const notifActions = useStudentNotifActions(notifs.notifications, notifs.setNotifications, triggerLayoutToast, setShowNotifications, setShowProfile);
 

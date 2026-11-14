@@ -17,7 +17,7 @@ export function StepPayment({ payment, declarePayment, onNext, onPrev }: Props) 
 
   const methods = [
     { id: 'ORANGE_MONEY' as const, name: 'Orange Money', desc: 'Code #144# ou App Maxit', badge: 'bg-[#FF6600] text-white' },
-    { id: 'WAVE' as const, name: 'Wave Sénégal', desc: 'Paiement direct Wave QR', badge: 'bg-[#1BA0E2] text-white' },
+    { id: 'WAVE' as const, name: 'Wave Sénégal', desc: 'Payez avec l\'application Wave, puis saisissez la référence', badge: 'bg-[#1BA0E2] text-white' },
     { id: 'CASH' as const, name: 'Caisse & Agence', desc: 'Paiement au guichet campus', badge: 'bg-emerald-700 text-white' }
   ];
 

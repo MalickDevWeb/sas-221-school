@@ -70,7 +70,7 @@ export const LandingHero: React.FC = () => {
               transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="text-base sm:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed font-normal"
             >
-              Une solution tout-en-un pour la direction, les enseignants, les élèves et les familles. Centralisez notes, présences, scolarités Wave/OM et contrôle d'accès sur une interface unique.
+              Une solution tout-en-un pour la direction, les enseignants, les élèves et les familles. Centralisez notes, présences, suivi des scolarités et contrôle d'accès sur une interface unique.
             </motion.p>
 
             {/* Boutons d'action principaux avec micro-interactions */}

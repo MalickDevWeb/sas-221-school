@@ -77,7 +77,7 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
           onClick={onOpenPaymentModal}
           className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50/70 text-indigo-700 text-sm font-bold shadow-xs hover:border-indigo-300 transition-all hover:scale-[1.01] active:scale-[0.99]"
         >
-          <CreditCard size={16} /> Gérer le moyen de paiement
+          <CreditCard size={16} /> Comment régler l'abonnement
         </button>
         <button
           onClick={onOpenUpgradeModal}
