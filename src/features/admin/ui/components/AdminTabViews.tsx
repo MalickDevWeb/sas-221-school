@@ -16,6 +16,7 @@ import { AdminReferentielsManager } from '@/features/referentiels';
 import { AdminJustificatifsAbsence } from './justificatifs/AdminJustificatifsAbsence';
 import { BoiteMessagesParents } from '@/features/messagerie-parents/BoiteMessagesParents';
 import { TransfertsTab } from './transferts/TransfertsTab';
+import { PeriodesTab } from './periodes/PeriodesTab';
 
 interface AdminTabViewsProps {
   activeTab: string;
@@ -31,6 +32,7 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     personnel: <AdminPersonnelRH />,
     students: <AdminStudentManager />,
     transferts: <TransfertsTab />,
+    periodes: <PeriodesTab />,
     justificatifs: <AdminJustificatifsAbsence />,
     messages_parents: (
       <BoiteMessagesParents boite="/admin/messages-parents" titre="Messages des parents"

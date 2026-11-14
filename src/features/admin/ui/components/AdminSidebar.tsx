@@ -19,6 +19,7 @@ const MENU_ITEMS = [
   { id: 'promotions', label: 'Promotions & Classes', icon: 'account_tree', requiredPerm: 'planning.lire' },
   { id: 'school', label: 'Gestion École', icon: 'school', requiredPerm: 'planning.lire' },
   { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today', requiredPerm: 'planning.lire' },
+  { id: 'periodes', label: 'Trimestres & clôture', icon: 'event_available', requiredPerm: 'ecole.lire' },
   { id: 'personnel', label: 'Gestion Personnel', icon: 'badge', requiredPerm: 'personnel.lire' },
   { id: 'students', label: 'Gestion Élèves', icon: 'group', requiredPerm: 'eleves.lire' },
   { id: 'transferts', label: 'Transferts d\'élèves', icon: 'swap_horiz', requiredPerm: 'transferts.lire' },
