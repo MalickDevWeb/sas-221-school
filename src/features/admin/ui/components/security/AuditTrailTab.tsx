@@ -9,8 +9,12 @@ export function AuditTrailTab({ logs }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('ALL');
 
+  // rôles réellement présents dans le journal (avant : liste figée qui ne correspondait à aucune entrée)
+  const roles = Array.from(new Set(logs.map(l => l.role).filter(Boolean))).sort();
+  const terme = searchTerm.toLowerCase();
+
   const filteredLogs = logs.filter(log => {
-    const sMatch = log.user.toLowerCase().includes(searchTerm.toLowerCase()) || log.action.toLowerCase().includes(searchTerm.toLowerCase());
+    const sMatch = [log.user, log.action, log.details].some(t => t.toLowerCase().includes(terme));
     const rMatch = filterRole === 'ALL' || log.role === filterRole;
     return sMatch && rMatch;
   });
@@ -20,7 +24,7 @@ export function AuditTrailTab({ logs }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-100">
         <div>
           <h3 className="font-extrabold text-sm text-[#1E293B]">Piste d'Audit Interne (Logs Immutables)</h3>
-          <p className="text-[10px] text-neutral-400 font-semibold">Toutes les actions sensibles des administrateurs et enseignants sont journalisées.</p>
+          <p className="text-[10px] text-neutral-400 font-semibold">Chaque modification enregistrée par un compte connecté est journalisée par le serveur ; le journal ne peut être ni modifié ni effacé.</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -36,9 +40,7 @@ export function AuditTrailTab({ logs }: Props) {
             className="px-2.5 py-1.5 border border-neutral-200 rounded-xl bg-white focus:outline-none"
           >
             <option value="ALL">Tous les Rôles</option>
-            <option value="Secrétaire">Secrétaire</option>
-            <option value="Enseignant">Enseignant</option>
-            <option value="Comptable">Comptable</option>
+            {roles.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
       </div>

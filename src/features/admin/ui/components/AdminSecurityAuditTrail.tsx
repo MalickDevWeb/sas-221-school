@@ -10,6 +10,21 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { terminauxApi } from './security/terminauxApi';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 
+const LIBELLES_ACTIONS: Record<string, string> = { CREATE: 'Création', UPDATE: 'Modification', DELETE: 'Suppression' };
+/** « 2026-11-14T10:52:04.808104 » → « 14/11/2026 10:52:04 » (texte brut conservé s'il n'est pas une date). */
+const dateLisible = (t?: string) => {
+  if (!t) return '';
+  const d = new Date(t);
+  return Number.isNaN(d.getTime()) ? t : d.toLocaleString('fr-FR');
+};
+const LIBELLES_ROLES: Record<string, string> = {
+  SUPER_ADMIN: 'Super-administrateur', ADMIN: 'Administration', ADMINISTRATOR: 'Administration', DIRECTEUR: 'Directeur',
+  SECRETAIRE: 'Secrétaire', COMPTABLE: 'Comptable', SURVEILLANT: 'Surveillant', RH: 'Ressources humaines',
+  PROFESSEUR: 'Enseignant', TEACHER: 'Enseignant', PROFESSOR: 'Enseignant', VIGIL: 'Vigile', VIGILE: 'Vigile',
+  STUDENT: 'Élève', ELEVE: 'Élève', PARENT: 'Parent',
+};
+const libelleRole = (r?: string) => (r ? LIBELLES_ROLES[r.toUpperCase()] || r : '');
+
 export function AdminSecurityAuditTrail() {
   const [activeTab, setActiveTab] = useState('audit');
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -31,12 +46,13 @@ export function AdminSecurityAuditTrail() {
   useEffect(() => {
     apiClient.get<any[]>('/audit/logs/recent', { params: { limit: 100 } })
       .then((res) => {
+        // 2026-11-14 (ENF-07) : chaque écriture est journalisée par le serveur ; auteur affiché par son nom et son rôle
         setLogs((Array.isArray(res.data) ? res.data : []).map((l: any) => ({
           id: l.id,
-          time: l.timestamp || '',
-          user: l.userId || '',
-          role: '',
-          action: l.action || '',
+          time: dateLisible(l.timestamp),
+          user: l.actorName || l.userId || '',
+          role: libelleRole(l.actorRole),
+          action: LIBELLES_ACTIONS[l.action] || l.action || '',
           details: l.description || '',
           ip: l.ipAddress || '',
           agent: l.userAgent || '',
