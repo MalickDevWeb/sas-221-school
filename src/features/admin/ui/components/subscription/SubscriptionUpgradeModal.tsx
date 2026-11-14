@@ -31,7 +31,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
   const PLANS = [
     { name: 'Standard', price: 25000, current: false, desc: 'Jusqu’à 200 élèves, 20 profs', icon: Shield },
     { name: 'Avancé', price: 50000, current: true, desc: 'Jusqu’à 500 élèves, 50 profs', icon: Zap },
-    { name: 'Excellence Premium', price: 95000, current: false, popular: true, desc: 'Élèves illimités, IA prédictive & SMS', icon: Crown },
+    { name: 'Excellence Premium', price: 95000, current: false, popular: true, desc: 'Élèves illimités & SMS', icon: Crown },
   ];
 
   return (

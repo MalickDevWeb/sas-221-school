@@ -110,10 +110,6 @@ export const submitHomework = async (courseId: string, homeworkId: string, file:
   return data;
 };
 
-export const chatWithTutor = async (message: string) => {
-  const { data } = await apiClient.post('/student/tutor/chat', { message });
-  return data;
-};
 
 
 // --- Hooks React Query ---

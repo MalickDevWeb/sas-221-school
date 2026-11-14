@@ -71,13 +71,14 @@ export function CourseDetailModal({ state }: { state: any }) {
           <button onClick={() => setActivePlanCourse(null)} className="flex-1 py-2 text-center border border-neutral-200 text-neutral-600 hover:text-[#291715] hover:bg-neutral-50 rounded-xl font-bold text-xs transition-all cursor-pointer">Fermer</button>
           <button 
             onClick={() => {
-              window.open(getGoogleCalendarTemplateUrl(course), '_blank');
-              triggerToast(`Séance de ${course.nom} ouverte dans Google Calendar !`);
+              window.open(getGoogleCalendarTemplateUrl(course), '_blank', 'noopener,noreferrer');
+              // APP-TL-26 : rien n'est enregistré par l'application ; la personne valide l'événement dans Google Agenda
+              triggerToast(`Google Agenda est ouvert : vérifiez puis enregistrez la séance de ${course.nom}.`);
               setActivePlanCourse(null);
             }}
             className="flex-1 py-2 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-[10px] uppercase tracking-wider transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <CalendarPlus className="h-3 w-3" /> Synchroniser
+            <CalendarPlus className="h-3 w-3" /> Ajouter à Google Agenda
           </button>
         </div>
       </div>

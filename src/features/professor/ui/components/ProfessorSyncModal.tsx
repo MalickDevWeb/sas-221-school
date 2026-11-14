@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { X, CalendarPlus, Download } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { exportToICS } from '@/features/schedule/utils/icalExport';
-import { initiateGoogleOAuth, syncAllCoursesToGoogleCalendar } from '@/features/schedule/utils/googleCalendarSync';
 import { mapProfessorScheduleToCourseSession } from '../../utils/professorScheduleMapper';
 import type { ProfessorSchedule } from '../../domain/ProfessorModels';
 
@@ -11,39 +10,22 @@ interface Props {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly schedule: readonly ProfessorSchedule[];
-  readonly googleAccessToken: string | null;
-  readonly setGoogleAccessToken: (token: string | null) => void;
   readonly triggerToast: (msg: string) => void;
 }
+
+/**
+ * Export de l'agenda du professeur. APP-TL-26 (2026-11-14) : seul l'export .ics existe (aucune connexion à un
+ * compte Google) ; la synchronisation par l'API Google Agenda, jamais proposée à l'écran, est retirée.
+ */
 
 export function ProfessorSyncModal({
   isOpen,
   onClose,
   schedule,
-  googleAccessToken,
-  setGoogleAccessToken,
   triggerToast,
 }: Props) {
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
-
   if (!isOpen) return null;
   const mapped = schedule.map(mapProfessorScheduleToCourseSession).filter((c): c is NonNullable<typeof c> => c !== null);
-
-  const handleFullSync = async () => {
-    if (!googleAccessToken) return;
-    setIsSyncing(true);
-    setProgress({ current: 0, total: mapped.length });
-    try {
-      const result = await syncAllCoursesToGoogleCalendar(googleAccessToken, mapped, (c, t) => setProgress({ current: c, total: t }));
-      triggerToast(`${result.successCount} cours synchronisés sur Google Calendar !`);
-      onClose();
-    } catch {
-      triggerToast("Erreur lors de la synchronisation.");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   return createPortal(
     <div 
@@ -56,8 +38,8 @@ export function ProfessorSyncModal({
       >
         <div className="px-6 py-5 bg-primary text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white p-1.5 rounded-full border-0 bg-transparent cursor-pointer"><X className="h-5 w-5" /></button>
-          <div className="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1">Intégration Google & iCal</div>
-          <h4 className="text-xl font-black tracking-tight">Synchronisation de mon agenda</h4>
+          <div className="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1">Export iCal (.ics)</div>
+          <h4 className="text-xl font-black tracking-tight">Exporter mon agenda</h4>
         </div>
         <div className="p-6 space-y-6 bg-[#FAF8F6] overflow-y-auto">
           <div className="bg-white p-5 rounded-2xl border border-neutral-100 shadow-3xs space-y-4">

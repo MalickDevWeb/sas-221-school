@@ -33,7 +33,6 @@ export function SettingsModal({ showSettings, setShowSettings, settingsPrefs, se
           {[
             { key: 'emailNotifs' as const, label: 'Rapports de Performance Hebdos', desc: "Bulletin d'analyse par e-mail", toastOn: 'Notifications e-mail activées', toastOff: 'Notifications e-mail désactivées', toastIcon: 'mail' },
             { key: 'paymentNotifs' as const, label: 'Notifications de Scolarité / Reçus', desc: 'Alertes par e-mail de validation de paiement', toastOn: 'Alerte paiement e-mail activée !', toastOff: 'Alerte paiement e-mail désactivée', toastIcon: 'payments' },
-            { key: 'proactiveAiTutor' as const, label: 'Tuteur Proactif École 221', desc: 'Suggestions IA de révisions', toastOn: 'Analyse IA proactive enclenchée !', toastOff: 'Analyse IA proactive désactivée', toastIcon: 'bolt' },
             { key: 'experimentalDark' as const, label: 'Interface Contrastée Accentée', desc: 'Hautes couleurs (antifatigue oculaire)', toastOn: 'Hautes couleurs activées', toastOff: 'Mode classique rétabli', toastIcon: 'check_circle' },
           ].map(({ key, label, desc, toastOn, toastOff, toastIcon }) => (
             <div key={key} className="flex items-center justify-between gap-4">

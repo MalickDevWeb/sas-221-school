@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { VirtualClass, AdminMeeting, MeetAttendance } from '../domain/CollaborationModels';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { erreurLienMeet, normaliserLienMeet } from '@/shared/lib/lienMeet';
 import { subscribeMeets, saveMeet, subscribeAdminMeets, saveAdminMeet, subscribeAttendances, saveAttendance } from '../infrastructure/msgService';
 
 export function useVirtualClassState(triggerToast: (msg: string, isSuccess: boolean) => void) {
@@ -24,24 +25,20 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
     classNames: readonly string[],
     subjectName: string,
     teacherName: string,
-    rawLink: string,
-    autoGen: boolean,
-    restrict: boolean
+    rawLink: string
   ) => {
     if (classIds.length === 0) {
       triggerToast('Erreur : vous devez affecter le cours à au moins une classe !', false);
       return;
     }
-    // Aucun lien n'est généré côté client (avant : lien Meet aléatoire inexistant) : le lien réel est obligatoire.
-    if (autoGen) {
-      triggerToast('Génération automatique indisponible (aucune intégration Google Workspace) : collez le lien réel de la réunion.', false);
+    // Aucun lien n'est généré côté client (avant : lien Meet aléatoire inexistant) : le lien réel est collé.
+    // APP-TL-26 : même règle que le serveur (avant : tout texte contenant « meet.google.com/ » passait).
+    const erreurLien = erreurLienMeet(rawLink);
+    if (erreurLien) {
+      triggerToast(erreurLien, false);
       return;
     }
-    const meetLink = rawLink.trim();
-    if (!meetLink.includes('meet.google.com/')) {
-      triggerToast('Erreur : lien Google Meet invalide ! Ex: https://meet.google.com/xxx-yyyy-zzz', false);
-      return;
-    }
+    const meetLink = normaliserLienMeet(rawLink);
 
     const newMeet: VirtualClass = {
       id: `meet-${Date.now()}`,
@@ -54,7 +51,6 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       // Date / horaire non saisis dans le formulaire : jamais inventés
       date: '—',
       time: '—',
-      restrictToGoogleAccount: restrict,
     };
 
     try {
@@ -77,6 +73,12 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       triggerToast('Veuillez remplir tous les champs obligatoires.', false);
       return;
     }
+    // APP-TL-26 : seul un lien Google Meet est accepté par le serveur (POST /collaboration/meets)
+    const erreurLien = erreurLienMeet(meetLink);
+    if (erreurLien) {
+      triggerToast(erreurLien, false);
+      return;
+    }
     const newMeet: AdminMeeting = {
       id: `admin-meet-${Date.now()}`,
       title,
@@ -84,7 +86,7 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       targetScope: scope,
       targetDetails: details,
       type,
-      meetLink,
+      meetLink: normaliserLienMeet(meetLink),
       date: '',
       time: '',
     };
@@ -96,7 +98,9 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
     }
   }, [triggerToast]);
 
-  const recordAttendance = useCallback(async (meetId: string, studentName: string, emailUsed: string, isAuthorized: boolean) => {
+  // APP-TL-26 : plus de « compte autorisé » déduit de l'adresse e-mail (@ecole221.sn) : l'application ne sait pas
+  // qui entre réellement dans la réunion Google Meet ; elle note seulement qui a ouvert le lien depuis École 221.
+  const recordAttendance = useCallback(async (meetId: string, studentName: string, emailUsed: string) => {
     const newAttendance: MeetAttendance = {
       id: `att-${Date.now()}`,
       meetId,
@@ -104,7 +108,6 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       emailUsed,
       entryTime: new Date().toLocaleTimeString('fr-FR'),
       // Durée et score de participation non mesurés : omis (jamais tirés au hasard)
-      isAuthorizedAccount: isAuthorized,
     };
     try {
       await saveAttendance(newAttendance);

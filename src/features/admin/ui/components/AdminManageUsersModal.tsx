@@ -64,7 +64,7 @@ export function AdminManageUsersModal({
                     <div>
                       <p className="text-xs font-bold text-[#291715]">{s.name}</p>
                       <p className="text-[9px] text-[#8E7977] font-bold">Matricule : {s.matricule || '—'}{s.email ? ` • ${s.email}` : ''}</p>
-                      <p className="text-[9px] font-semibold text-primary">Frais : {s.statutFrais ?? 'Non renseigné'}{s.status ? ` • ${s.status}` : ''}</p>
+                      {s.status && <p className="text-[9px] font-semibold text-primary">{s.status}</p>}
                     </div>
                     <button onClick={async () => { if (await demanderConfirmation(`Supprimer définitivement ${s.name} ?`, { titre: 'Supprimer un élève', confirmer: 'Supprimer' })) { if (await onDeleteStudent(s.id)) { toast.success(`${s.name} a été retiré de l'école.`); onRefreshData(); } else { toast.error(`Le retrait de ${s.name} a échoué : le serveur a refusé l'opération.`); } } }} className="text-[9px] text-red-600 font-extrabold hover:underline uppercase bg-primary-light px-2 py-1 rounded-md border border-[#FFD1D1]">Retirer</button>
                   </div>

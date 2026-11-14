@@ -71,17 +71,6 @@ export function useAdmin() {
     }
   };
 
-  const modifierPaiement = async (id: string, status: string) => {
-    try {
-      await manageAdminUseCase.setStudentPaymentStatus(id, status);
-      await chargerDonnees();
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-  };
-
   useEffect(() => {
     chargerDonnees();
   }, [chargerDonnees]);
@@ -96,7 +85,6 @@ export function useAdmin() {
     supprimerEtudiant,
     ajouterProfesseur,
     supprimerProfesseur,
-    modifierPaiement,
     chargerDonnees
   };
 }

@@ -14,7 +14,6 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
       { featureCode: 'MAX_STUDENTS', maxLimit: 100, isEnabled: true },
       { featureCode: 'MAX_TEACHERS', maxLimit: 20, isEnabled: true },
       { featureCode: 'MAX_CLASSES', maxLimit: 10, isEnabled: true },
-      { featureCode: 'AI_TUTOR', maxLimit: 0, isEnabled: false },
       { featureCode: 'LIVE_MEET', maxLimit: 0, isEnabled: false },
       { featureCode: 'ADVANCED_REPORTS', maxLimit: 0, isEnabled: false },
       { featureCode: 'MULTI_CAMPUS', maxLimit: 0, isEnabled: false },

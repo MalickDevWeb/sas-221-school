@@ -11,7 +11,7 @@ import { TabFinances } from './TabFinances';
 import { TabActivities } from './TabActivities';
 import { TabSecurity } from './TabSecurity';
 import { TabCommunication } from './TabCommunication';
-import { TabAI } from './TabAI';
+import { TabSynthese } from './TabSynthese';
 
 interface TabContentProps {
   activeSection: ProfileTabSection;
@@ -52,8 +52,8 @@ export function ProfileTabContent({
       return <TabSecurity selectedStudent={selectedStudent} erpData={erpData} />;
     case 'communication':
       return <TabCommunication selectedStudent={selectedStudent} erpData={erpData} />;
-    case 'ai':
-      return <TabAI selectedStudent={selectedStudent} erpData={erpData} />;
+    case 'synthese':
+      return <TabSynthese selectedStudent={selectedStudent} />;
     default:
       return null;
   }

@@ -18,7 +18,7 @@ export function ProfessorActiveMeetView({ active, stopMeet }: ProfessorActiveMee
     <div className="space-y-4 w-full">
       <div className="bg-emerald-50/40 border border-emerald-100/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
         <div>
-          <span className="text-[8.5px] font-black uppercase text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md inline-block mb-1">Google Meet Actif</span>
+          <span className="text-[8.5px] font-black uppercase text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md inline-block mb-1">Lien diffusé aux élèves</span>
           <h5 className="font-bold text-xs text-neutral-800 leading-tight">{active.title}</h5>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">

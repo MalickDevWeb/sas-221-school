@@ -23,19 +23,17 @@ export interface EditableStudentRow {
   matricule: string;   // vide = généré par le serveur
   email: string;       // obligatoire (identifiant de connexion)
   telephone: string;
-  statutFrais: 'En Règle' | 'En Retard' | null;   // null = non renseigné
   warnings: string[];  // erreurs bloquantes (ligne non importable tant qu'elles existent)
   selected: boolean;
 }
 
-type ImportField = 'name' | 'matricule' | 'email' | 'telephone' | 'statutFrais';
+type ImportField = 'name' | 'matricule' | 'email' | 'telephone';
 
 const SYSTEM_FIELDS: { field: ImportField; label: string; keywords: string[]; required: boolean }[] = [
   { field: 'name', label: 'Nom & Prénom', keywords: ['nom', 'name', 'prenom', 'prénom', 'full', 'etudiant', 'élève', 'eleve'], required: true },
   { field: 'email', label: 'Email Étudiant (identifiant de connexion)', keywords: ['email', 'e-mail', 'mail', 'courriel'], required: true },
   { field: 'matricule', label: 'Matricule / Identifiant', keywords: ['matr', 'numero', 'identifiant', 'carte', 'badge'], required: false },
   { field: 'telephone', label: 'Téléphone', keywords: ['tel', 'telephone', 'téléphone', 'portable', 'whatsapp', 'phone', 'contact'], required: false },
-  { field: 'statutFrais', label: 'Statut Paiement / Frais', keywords: ['statut', 'frais', 'paiement', 'finance', 'regle', 'solde', 'retard', 'ecolage'], required: false },
 ];
 
 const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,14 +45,6 @@ function verifierLigne(r: Pick<EditableStudentRow, 'name' | 'email'>): string[] 
   if (!r.email.trim()) erreurs.push('Email manquant');
   else if (!EMAIL_VALIDE.test(r.email.trim())) erreurs.push('Email invalide');
   return erreurs;
-}
-
-function lireStatutFrais(brut: string): 'En Règle' | 'En Retard' | null {
-  const v = brut.trim().toLowerCase();
-  if (!v) return null;
-  if (v.includes('retard') || v.includes('impay')) return 'En Retard';
-  if (v.includes('règle') || v.includes('regle') || v.includes('payé') || v.includes('paye') || v.includes('a jour') || v.includes('à jour')) return 'En Règle';
-  return null;   // valeur non reconnue : non renseigné (jamais supposé)
 }
 
 interface ResultatImport {
@@ -160,7 +150,6 @@ export function SmartExcelImportModal({
         matricule: getVal('matricule'),
         email,
         telephone: getVal('telephone'),
-        statutFrais: lireStatutFrais(getVal('statutFrais')),
         warnings: erreurs,
         selected: erreurs.length === 0,   // une ligne invalide n'est pas importée
       };
@@ -215,18 +204,10 @@ export function SmartExcelImportModal({
         if (st.telephone.trim()) body.telephone = st.telephone.trim();
         try {
           const { data } = await apiClient.post<unknown>('/admin/students', body);
-          let eleve = mapStudentFromApi(data);
+          const eleve = mapStudentFromApi(data);
           const motDePasse = texteOuNull(objetBrut(data).motDePasseProvisoire);
           if (motDePasse) {
             res.motsDePasse.push({ name: eleve.name, email: eleve.email, matricule: eleve.matricule, motDePasse });
-          }
-          if (st.statutFrais) {
-            try {
-              await apiClient.patch(`/admin/students/${eleve.id}/status`, { statutFrais: st.statutFrais });
-              eleve = { ...eleve, financialStatus: st.statutFrais };
-            } catch (err) {
-              res.avertissements.push(`${eleve.name} : compte créé, statut de frais non enregistré (${resolveErrorMessage(err)})`);
-            }
           }
           res.inscrits.push(eleve);
         } catch (err) {
@@ -286,7 +267,7 @@ export function SmartExcelImportModal({
   const downloadCleanTemplate = () => {
     // Modèle vierge : uniquement l'entête attendue (aucune personne fictive)
     const ws = XLSX.utils.aoa_to_sheet([
-      ['Nom & Prénom', 'Email', 'Matricule', 'Téléphone', 'Statut Frais'],
+      ['Nom & Prénom', 'Email', 'Matricule', 'Téléphone'],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Etudiants');
@@ -412,7 +393,7 @@ export function SmartExcelImportModal({
                     </span>
                     <h5 className="text-xs font-black text-[#1E293B] mt-1">Feuille Standard</h5>
                     <p className="text-[10px] text-neutral-500 font-semibold mt-0.5">
-                      Entête attendue : Nom & Prénom, Email, Matricule (généré si vide), Téléphone, Statut Frais.
+                      Entête attendue : Nom & Prénom, Email, Matricule (généré si vide), Téléphone.
                     </p>
                   </div>
                   <button
@@ -449,7 +430,7 @@ export function SmartExcelImportModal({
                   <thead>
                     <tr className="bg-[#FAF8F6] text-[10px] font-black text-neutral-400 uppercase tracking-wider border-b border-neutral-200">
                       <th className="px-5 py-3">Champ Système École 221</th>
-                      <th className="px-5 py-3">Reconnaissance IA</th>
+                      <th className="px-5 py-3">Correspondance détectée</th>
                       <th className="px-5 py-3">Colonne Associée</th>
                     </tr>
                   </thead>
@@ -581,7 +562,6 @@ export function SmartExcelImportModal({
                       <th className="px-3 py-3">Matricule</th>
                       <th className="px-3 py-3">Email *</th>
                       <th className="px-3 py-3">Téléphone</th>
-                      <th className="px-3 py-3">Statut Frais</th>
                       <th className="px-3 py-3">Vérification</th>
                     </tr>
                   </thead>
@@ -631,11 +611,6 @@ export function SmartExcelImportModal({
                               onChange={e => handleUpdateStudentField(origIndex, 'telephone', e.target.value)}
                               className="w-32 px-2 py-1 bg-white border border-neutral-200 rounded-lg text-xs text-neutral-600 focus:border-primary focus:outline-none"
                             />
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <span className="px-2 py-0.5 bg-amber-50 text-amber-800 rounded font-black text-[11px]">
-                              {st.statutFrais ?? 'Non renseigné'}
-                            </span>
                           </td>
                           <td className="px-3 py-2.5">
                             {st.warnings.length === 0 ? (

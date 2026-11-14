@@ -7,7 +7,6 @@ interface Student {
   name: string;
   email: string;
   classe: string;
-  financialStatus: string;
   qrStatus: string;
 }
 
@@ -47,7 +46,6 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
         {filtered.length > 0 ? (
           filtered.map((student) => {
             const isAuthorized = student.qrStatus === 'AUTORISÉ';
-            const isInRule = student.financialStatus === 'En Règle';
 
             return (
               <div
@@ -72,11 +70,6 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
                 <div className="flex items-center justify-between text-[10px] font-extrabold pt-2 border-t border-slate-50">
                   <span className="text-slate-500">{student.classe}</span>
                   <div className="flex gap-2">
-                    <span className={`px-2 py-0.5 rounded-md text-[8px] uppercase ${
-                      isInRule ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
-                    }`}>
-                      {student.financialStatus}
-                    </span>
                     <button
                       onClick={() => onToggleQr(student.id)}
                       className={`px-2 py-0.5 rounded-md text-[8px] uppercase cursor-pointer flex items-center gap-0.5 font-black ${

@@ -75,7 +75,7 @@ export function CourseResourcesTab({ course, details, triggerToast }: CourseReso
       <div className="p-4 bg-amber-50/50 border border-amber-200/50 rounded-2xl flex items-start gap-2.5">
         <span translate="no" className="material-symbols-outlined text-amber-500 text-[18px] shrink-0 mt-0.5">lightbulb</span>
         <p className="text-[10px] text-amber-800 font-bold leading-relaxed font-sans">
-          <strong>Tuteur IA Intégré :</strong> Ces ressources sont également lues par votre Tuteur IA. Vous pouvez lui poser des questions ou générer des quiz supplémentaires sur n'importe quel document via le menu latéral principal de l'application !
+          <strong>Ressources du cours :</strong> téléchargez-les une fois en Wi-Fi pour les relire ensuite sans consommer vos données mobiles.
         </p>
       </div>
     </div>

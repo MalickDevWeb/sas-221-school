@@ -3,15 +3,15 @@ import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 /**
- * Recouvrement : relances et blocage des débiteurs.
- * Avant : barre de progression simulée puis « 42 SMS/WhatsApp envoyés » et « élèves débiteurs bloqués aux
- * portiques », alors qu'aucun appel au serveur n'était fait (et 5 000 FCFA de dette étaient ajoutés à l'écran).
- * Maintenant : la vraie route est appelée et sa réponse est affichée telle quelle (aujourd'hui : non disponible,
- * faute d'échéancier et de solde par élève enregistrés).
+ * Recouvrement : relances aux familles.
+ * Avant : barre de progression simulée puis « 42 SMS/WhatsApp envoyés », alors qu'aucun appel au serveur n'était fait.
+ * Maintenant : la vraie route est appelée et sa réponse est affichée telle quelle (aujourd'hui : non disponible, faute
+ * d'échéancier enregistré). APP-TL-22 (2026-11-14) : la suspension de l'accès des élèves pour impayé est retirée ;
+ * aucun élève n'est privé de campus, d'application ni de bulletin à cause des frais.
  */
 export function AutomationTab() {
   const action = useMutation({
-    mutationFn: async (route: '/finance/payment-reminders' | '/finance/block-debtors') => {
+    mutationFn: async (route: '/finance/payment-reminders') => {
       const { data } = await apiClient.post(route);
       return typeof data?.message === 'string' ? data.message : 'Action effectuée par le serveur.';
     },
@@ -23,18 +23,18 @@ export function AutomationTab() {
       <div className="pb-2 border-b border-neutral-100">
         <h3 className="font-extrabold text-sm text-[#1E293B]">Recouvrement</h3>
         <p className="text-[10px] text-neutral-400 font-semibold">
-          Relances des familles en retard de paiement et suspension de l'accès des débiteurs.
+          Relances des familles. L'accès d'un élève au campus et à l'application ne dépend jamais des frais.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <span translate="no" className="material-symbols-outlined text-xl">sms</span>
             <span className="text-[10px] font-black uppercase tracking-wider">Relances de paiement</span>
           </div>
           <p className="text-[10px] text-neutral-400 font-semibold leading-normal">
-            Envoie un rappel aux familles des élèves en retard de paiement.
+            Envoie un rappel aux familles dont le dossier n'est pas soldé.
           </p>
           <button
             type="button"
@@ -43,24 +43,6 @@ export function AutomationTab() {
             className="w-full py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
           >
             Envoyer les relances
-          </button>
-        </div>
-
-        <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-5 space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <span translate="no" className="material-symbols-outlined text-xl">no_accounts</span>
-            <span className="text-[10px] font-black uppercase tracking-wider">Suspension de l'accès</span>
-          </div>
-          <p className="text-[10px] text-neutral-400 font-semibold leading-normal">
-            Suspend le QR code d'accès des élèves restés en situation d'impayé.
-          </p>
-          <button
-            type="button"
-            onClick={() => action.mutate('/finance/block-debtors')}
-            disabled={action.isPending}
-            className="w-full py-2.5 bg-primary hover:bg-[#921316] disabled:opacity-50 text-white rounded-xl uppercase tracking-wider text-[9px] font-black transition-all cursor-pointer"
-          >
-            Suspendre les débiteurs
           </button>
         </div>
       </div>

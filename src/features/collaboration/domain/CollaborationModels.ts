@@ -8,7 +8,6 @@ export interface VirtualClass {
   readonly isPublished: boolean;
   readonly date: string;
   readonly time: string;
-  readonly restrictToGoogleAccount: boolean;
 }
 
 export interface AdminMeeting {
@@ -131,5 +130,4 @@ export interface MeetAttendance {
   readonly exitTime?: string;
   readonly durationMinutes?: number;
   readonly participationScore?: number;
-  readonly isAuthorizedAccount: boolean;
 }

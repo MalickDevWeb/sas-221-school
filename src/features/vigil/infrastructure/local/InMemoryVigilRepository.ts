@@ -20,7 +20,6 @@ const DEV_SCAN = {
   studentId: 'DEV-BADGE',
   message: 'Scan simulé (mode développement)',
   assiduite: '—',
-  statutFrais: '—',
   zone: '—',
   time: '—',
 };

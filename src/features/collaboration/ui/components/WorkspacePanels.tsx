@@ -18,7 +18,7 @@ export function WorkspacePanels({ activeGroup, state, isTeacher, userName }: Pro
   const [activeTab, setActiveTab] = useState<'dashboard' | 'kanban' | 'wiki' | 'evaluation' | 'audit'>('dashboard');
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Tableau de bord & IA' },
+    { id: 'dashboard', label: '📊 Tableau de bord' },
     { id: 'kanban', label: '📋 Kanban & Tâches' },
     { id: 'wiki', label: '📝 Wiki & Notes' },
     { id: 'evaluation', label: '🎓 Évaluation & Suivi' },

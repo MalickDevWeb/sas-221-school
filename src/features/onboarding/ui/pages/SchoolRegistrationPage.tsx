@@ -174,7 +174,7 @@ export const SchoolRegistrationPage: React.FC = () => {
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mb-6">
             {step === 1 && 'Donnez un nom et une adresse web personnalisée à votre établissement.'}
-            {step === 2 && "Choisissez votre palette de couleurs ou laissez l'IA analyser votre logo."}
+            {step === 2 && "Choisissez votre palette de couleurs ou laissez l'application extraire celles de votre logo."}
             {step === 3 && 'Configurez les accès du directeur ou responsable principal.'}
           </p>
 

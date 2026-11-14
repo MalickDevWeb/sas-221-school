@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { AdminManageUsersModal } from './AdminManageUsersModal';
 import { AdminEditPlanningModal } from './AdminEditPlanningModal';
 import { AdminAlertsModal } from './AdminAlertsModal';
-import { AdminPaymentsModal } from './AdminPaymentsModal';
 import { AdminCandidaturesModal } from './AdminCandidaturesModal';
 import type { AdminStudent, AdminProfessor, AdminPromotion } from '../../domain/AdminModels';
 
@@ -14,15 +13,14 @@ interface AdminQuickActionsProps {
   onDeleteStudent: (id: string) => Promise<boolean>;
   onAddProf: (prof: { name: string; email: string }) => Promise<boolean>;
   onDeleteProf: (id: string) => Promise<boolean>;
-  onUpdatePayment: (id: string, status: string) => Promise<boolean>;
   onRefreshData: () => Promise<void>;
 }
 
 export function AdminQuickActions({
   students, professors, promotions,
-  onAddStudent, onDeleteStudent, onAddProf, onDeleteProf, onUpdatePayment, onRefreshData
+  onAddStudent, onDeleteStudent, onAddProf, onDeleteProf, onRefreshData
 }: AdminQuickActionsProps) {
-  const [modal, setModal] = useState<'users' | 'planning' | 'alerts' | 'payments' | 'candidatures' | null>(null);
+  const [modal, setModal] = useState<'users' | 'planning' | 'alerts' | 'candidatures' | null>(null);
 
   return (
     <section className="mb-8">
@@ -40,13 +38,6 @@ export function AdminQuickActions({
             <span translate="no" className="material-symbols-outlined text-primary font-bold">calendar_month</span>
           </div>
           <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Planning</span>
-        </button>
-
-        <button onClick={() => setModal('payments')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
-          <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
-            <span translate="no" className="material-symbols-outlined text-primary font-bold">credit_card</span>
-          </div>
-          <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Paiements</span>
         </button>
 
         <button onClick={() => setModal('candidatures')} className="flex flex-col items-center justify-center p-4 bg-white border border-[#E2DCDA] rounded-xl hover:bg-primary-light transition-colors active:scale-95 cursor-pointer">
@@ -69,9 +60,6 @@ export function AdminQuickActions({
       )}
       {modal === 'planning' && <AdminEditPlanningModal onClose={() => setModal(null)} />}
       {modal === 'alerts' && <AdminAlertsModal onClose={() => setModal(null)} />}
-      {modal === 'payments' && (
-        <AdminPaymentsModal onClose={() => setModal(null)} students={students} promotions={promotions} onUpdatePayment={onUpdatePayment} />
-      )}
       {modal === 'candidatures' && (
         <AdminCandidaturesModal onClose={() => setModal(null)} onRefreshData={onRefreshData} />
       )}

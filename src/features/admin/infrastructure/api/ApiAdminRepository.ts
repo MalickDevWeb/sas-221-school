@@ -33,11 +33,6 @@ export class ApiAdminRepository implements AdminRepository {
     return true;
   }
 
-  async updateStudentPayment(id: string, status: string): Promise<AdminStudent> {
-    const { data } = await apiClient.patch<AdminStudent>(`/admin/students/${id}/status`, { statutFrais: status });
-    return data;
-  }
-
   async getSchedule(): Promise<AdminSession[]> {
     const { data } = await apiClient.get<AdminSession[]>('/admin/schedule');
     return data;

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { PlanningSubSidebar } from './planning/PlanningSubSidebar';
 import { CalendarTab } from './planning/CalendarTab';
 import { ConflictsTab } from './planning/ConflictsTab';
-import { AssistantIaTab } from './planning/AssistantIaTab';
 import { HistoryTab } from './planning/HistoryTab';
 import { StatsTab } from './planning/StatsTab';
 import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
@@ -29,7 +28,7 @@ export function AdminGlobalScheduler() {
     }
     setSlots(prev => [...prev, ...assigned]);
     setUnassigned(remaining);
-    addLog('IA', 'Moteur Auto', `${unassigned.length} en attente`, `${assigned.length} planifiés automatiquement`, 'Génération heuristique par IA');
+    addLog('Placement automatique', 'Moteur Auto', `${unassigned.length} en attente`, `${assigned.length} planifiés automatiquement`, 'Placement automatique sans conflit (premier créneau libre)');
     showToast(`${assigned.length} cours planifiés sans aucun conflit ! ✨`, true);
   };
 
@@ -106,7 +105,6 @@ export function AdminGlobalScheduler() {
 
         {activeTab === 'calendar' && <CalendarTab slots={slots} unassigned={unassigned} onSchedule={scheduleCourse} onMoveCourse={moveCourse} onDuplicateCourse={duplicateCourse} onRemoveSlot={removeSlot} />}
         {activeTab === 'conflicts' && <ConflictsTab conflicts={conflicts} onClearConflict={(id) => setConflicts(conflicts.filter(c => c.id !== id))} onClearAll={() => setConflicts([])} />}
-        {activeTab === 'ai_opt' && <AssistantIaTab onApplyIaSchedule={(newSlots, info) => { setSlots([...slots, ...newSlots]); showToast(info, true); }} />}
         {activeTab === 'history' && <HistoryTab logs={logs} slots={slots} unassigned={unassigned} onRestore={() => { recharger(); setUnassigned([]); setConflicts([]); showToast("Grille rechargée depuis le planning enregistré.", true); }} />}
         {activeTab === 'stats' && <StatsTab associations={associations} slots={slots} onRemoveAssociation={(id) => setAssociations(associations.filter(a => a.id !== id))} />}
       </div>

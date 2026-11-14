@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Sparkles, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Users, TrendingUp } from 'lucide-react';
 import { Workgroup } from '../../domain/CollaborationModels';
 
 interface Props {
@@ -46,26 +46,6 @@ export function WorkspaceDashboard({ group, tasksCount, completedTasksCount, onA
         </div>
       </div>
 
-      <div className="border-t border-neutral-100 pt-4 space-y-3">
-        <span className="text-[10px] font-bold text-neutral-600 block uppercase tracking-wider">🤖 Assistant IA Académique</span>
-        <div className="flex flex-wrap gap-1.5">
-          {['Résumer le Chat', 'Générer CR Réunion', 'Détecter Inactifs', 'Suggérer Planning'].map((label) => (
-            <button
-              key={label}
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Fonctionnalité non disponible : aucune source de données"
-              className="px-2.5 py-1.5 bg-neutral-300 text-white font-bold text-[9px] rounded-lg cursor-not-allowed flex items-center gap-1"
-            >
-              <Sparkles className="w-3 h-3" /> {label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[10px] text-neutral-500 font-semibold">
-          Fonctionnalité non disponible : aucune source de données. Aucun service d'IA n'est relié au serveur ; aucune analyse n'est affichée.
-        </p>
-      </div>
     </div>
   );
 }

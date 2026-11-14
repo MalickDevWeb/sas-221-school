@@ -4,7 +4,6 @@ export interface VigilScanResult {
   statut: 'Autorisé' | 'Refusé';
   message: string;
   assiduite: string;
-  statutFrais: string;
   zone: string;
   time: string;
 }

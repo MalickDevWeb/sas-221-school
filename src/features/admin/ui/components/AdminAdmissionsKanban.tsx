@@ -61,12 +61,10 @@ export function AdminAdmissionsKanban() {
     }
   };
 
-  /** Appelé uniquement avec un matricule renvoyé par le serveur. */
-  const handleEnroll = (c: ExtendedCandidate, matricule: string) => {
-    showToast(`${c.name} est matriculé(e). Matricule : ${matricule}.`, true);
-    const nextList = candidates.filter((item) => item.id !== c.id);
-    setCandidates(nextList);
-    localStorage.setItem('e221_candidates', JSON.stringify(nextList));
+  /** Appelé uniquement avec l'élève et le matricule renvoyés par le serveur (APP-TL-23) : le dossier reste, marqué inscrit. */
+  const handleEnroll = (c: ExtendedCandidate, eleveId: string, matricule: string) => {
+    showToast(`${c.name} est inscrit(e). Matricule : ${matricule}.`, true);
+    setCandidates((liste) => liste.map((item) => (item.id === c.id ? { ...item, inscrit: true, eleveId } : item)));
   };
 
   const handleEnrollError = (message: string) => showToast(message, false);

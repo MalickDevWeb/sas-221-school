@@ -113,6 +113,11 @@ export interface ExtendedCandidate {
   step: 'new' | 'docs' | 'admitted' | 'rejected';
   docs: CandidateDocs;
   registrationFeePaid: boolean;
+  /** Dossier inscrit : élève créé (APP-TL-23), renvoyé par GET /admissions/db. */
+  inscrit?: boolean;
+  eleveId?: string | null;
+  /** Dossier déposé par un parent connecté (son compte sera lié à l'élève). */
+  parentDeposant?: boolean;
   details?: CandidateDetails;
   equivalence?: EquivalenceDetails;
   notifications: AdmissionNotification[];

@@ -23,19 +23,6 @@ export function useAdminStudents() {
     }
   }, []);
 
-  const updateFinancialStatus = useCallback(async (studentId: string, status: 'En Règle' | 'En Retard') => {
-    try {
-      const { data } = await apiClient.patch<unknown>(`/admin/students/${studentId}/status`, { statutFrais: status });
-      const r = objetBrut(data);
-      const confirme: Student['financialStatus'] = r.status === 'En Retard' || r.status === 'En Règle' ? r.status : status;
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, financialStatus: confirme } : s));
-      return true;
-    } catch (err) {
-      toast.error(resolveErrorMessage(err));
-      return false;
-    }
-  }, []);
-
   /** Suspension / réactivation réelle de l'élève (badge et connexion) : l'état affiché vient de la réponse serveur. */
   const toggleQrStatus = useCallback(async (studentId: string) => {
     try {
@@ -61,7 +48,6 @@ export function useAdminStudents() {
     setStudents,
     loading,
     refetch: fetchStudents,
-    updateFinancialStatus,
     toggleQrStatus
   };
 }

@@ -14,7 +14,7 @@ export const ROUTES = {
     notes:     '/etudiant/notes',
     absences:  '/etudiant/absences',
     profil:    '/etudiant/profil',
-    tuteur:    '/etudiant/tuteur',
+    bilan:     '/etudiant/bilan',
     collaboration: '/etudiant/collaboration',
   },
   vigil: {

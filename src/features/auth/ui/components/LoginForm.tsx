@@ -12,11 +12,25 @@ import { useTenantStore } from '@/core/store/tenantStore';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { ROUTES } from '@/shared/constants';
 
-/** Règles de saisie de la connexion (APP-FE-14 : react-hook-form + zod, décision APP-TL-08). */
+/**
+ * Règles de saisie de la connexion (APP-FE-14 : react-hook-form + zod, décision APP-TL-08).
+ * APP-TL-23 (2026-11-14) : un élève inscrit sans e-mail se connecte avec son MATRICULE. Un identifiant avec « @ » doit
+ * être une adresse valide ; sans « @ », c'est un matricule (lettres, chiffres et tirets). Le serveur n'accepte le
+ * matricule que pour un compte élève.
+ */
+const FORMAT_MATRICULE = /^[A-Za-z0-9][A-Za-z0-9-]{2,39}$/;
 const schemaConnexion = z.object({
   email: z.string().trim()
-    .min(1, 'Saisissez votre adresse e-mail.')
-    .email('Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@ecole.sn).'),
+    .min(1, 'Saisissez votre adresse e-mail ou votre matricule.')
+    .superRefine((v, ctx) => {
+      if (v.includes('@')) {
+        if (!z.string().email().safeParse(v).success) {
+          ctx.addIssue({ code: 'custom', message: 'Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@ecole.sn).' });
+        }
+      } else if (!FORMAT_MATRICULE.test(v)) {
+        ctx.addIssue({ code: 'custom', message: 'Saisissez une adresse e-mail (ex. prenom.nom@ecole.sn) ou un matricule (ex. ETU-2026-…).' });
+      }
+    }),
   password: z.string().min(1, 'Saisissez votre mot de passe.'),
 });
 type Connexion = z.infer<typeof schemaConnexion>;
@@ -146,15 +160,18 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
 
       <div className="space-y-1">
         <label className={`text-[12px] font-bold block ${isMobile ? 'text-[#3E2927] mb-[2px]' : 'text-[#3E2927]'}`} htmlFor="email">
-          Adresse e-mail <span className="text-[#DE4E3F] font-bold">*</span>
+          Adresse e-mail ou matricule <span className="text-[#DE4E3F] font-bold">*</span>
         </label>
         <div className="relative group">
           <Icon icon="solar:letter-bold-duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-primary transition-colors" />
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-4 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="email"
-            type="email"
-            autoComplete="email"
+            type="text"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            autoComplete="username"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-erreur' : undefined}
             disabled={loading || success}

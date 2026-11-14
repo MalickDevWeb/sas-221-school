@@ -9,10 +9,6 @@ export const adminService = {
     const { data } = await apiClient.post('/admin/gates/assign', { gate, guard });
     return data;
   },
-  updateStudentStatus: async (id: string, statutFrais: string) => {
-    const { data } = await apiClient.patch(`/admin/students/${id}/status`, { statutFrais });
-    return data;
-  },
   assignSchedule: async (courseId: string, day: string, time: string, room: string, professorId?: string) => {
     const { data } = await apiClient.post('/admin/schedule/assign', { courseId, day, time, room, professorId });
     return data;

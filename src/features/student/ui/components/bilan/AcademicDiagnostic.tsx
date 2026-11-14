@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, AlertCircle, CheckCircle, GraduationCap } from 'lucide-react';
-import { moyenneModule } from '../../../hooks/useTutor';
+import { moyenneModule } from '../../../hooks/useBilanEleve';
 
 interface Grade {
   id: string;

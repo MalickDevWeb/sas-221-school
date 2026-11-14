@@ -28,7 +28,7 @@ export function useStudentSearch() {
     { name: "Planning & Emploi du Temps", type: "Page", path: ecole + ROUTES.student.planning, icon: "calendar_today", keywords: "emploi temps horaire" },
     { name: "Gestion des Travaux & Devoirs", type: "Page", path: ecole + ROUTES.student.devoirs, icon: "assignment", keywords: "devoirs soumission travaux" },
     { name: "Notes & Résultats Académiques", type: "Page", path: ecole + ROUTES.student.notes, icon: "grade", keywords: "notes resultats bulletins" },
-    { name: "Démarrer le Tuteur IA Interactif", type: "Raccourci", action: "ai_tutor", icon: "smart_toy", keywords: "ia ai tutor chat" },
+    { name: "Mon bilan (moyenne, devoirs)", type: "Page", path: ecole + ROUTES.student.bilan, icon: "insights", keywords: "bilan moyenne absences devoirs" },
     { name: "Contacter la scolarité", type: "Action", action: "support", icon: "support_agent", keywords: "support aide scolarité contact ticket aide" },
     { name: "Documentation École 221", type: "Action", action: "docs", icon: "menu_book", keywords: "documentation reglement" },
   ];
@@ -38,10 +38,5 @@ export function useStudentSearch() {
     return i.name.toLowerCase().includes(q) || i.keywords.includes(q);
   });
 
-  const handleAiTutor = (triggerToast: (msg: string) => void) => {
-    navigate(ROUTES.student.tuteur);
-    triggerToast('Ouverture du Tuteur IA');
-  };
-
-  return { showSearch, setShowSearch, searchQuery, setSearchQuery, filteredSearchItems, handleAiTutor, navigate };
+  return { showSearch, setShowSearch, searchQuery, setSearchQuery, filteredSearchItems, navigate };
 }

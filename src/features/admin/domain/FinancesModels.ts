@@ -10,7 +10,7 @@ export interface StudentFinance {
   studentId: string;
   name: string;
   classe: string;
-  status: 'En Règle' | 'En Avance' | 'Non soldé' | 'En Retard' | 'Non renseigné';
+  status: 'En Règle' | 'En Avance' | 'Non soldé' | 'Non renseigné';   // calculé par le serveur ; plus de « En Retard » (APP-TL-22)
   totalRequired: number; // en FCFA
   debt: number; // en FCFA
   paid: number;  // en FCFA

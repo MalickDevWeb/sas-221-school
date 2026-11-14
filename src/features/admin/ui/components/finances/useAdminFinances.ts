@@ -24,7 +24,7 @@ const versDepense = (item: Brut, index: number): Expense => ({
   date: item.date ? String(item.date).substring(0, 10) : '—',
 });
 
-const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En Avance', 'Non soldé', 'En Retard'];
+const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En Avance', 'Non soldé'];
 const statutConnu = (s: string): StudentFinance['status'] =>
   STATUTS.includes(s as StudentFinance['status']) ? (s as StudentFinance['status']) : 'Non renseigné';
 

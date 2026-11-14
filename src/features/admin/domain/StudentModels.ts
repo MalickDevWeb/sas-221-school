@@ -8,7 +8,6 @@ export interface Student {
   classe: string;
   /** Identifiant de la classe (sert au filtrage par classe) ; '' si non affecté. */
   classeId?: string;
-  financialStatus: 'En Règle' | 'En Retard' | 'Non renseigné';   // « Non renseigné » : aucune donnée (jamais supposé en règle)
   qrStatus: 'AUTORISÉ' | 'SUSPENDU';
   /** Statut d'appartenance à l'école renvoyé par le serveur. */
   status?: 'Actif' | 'Suspendu';
@@ -24,10 +23,10 @@ export interface StudentDoc {
   size: string;
 }
 
-/** Fiche élève renvoyée par GET/POST /admin/students : uniquement des champs réels. */
+/** Fiche élève renvoyée par GET/POST /admin/students : uniquement des champs réels. APP-TL-22 (2026-11-14) : aucune
+ *  donnée financière (l'état financier reste dans Finances › Écolages, sous la permission finances.lire). */
 export function mapStudentFromApi(raw: unknown, idx = 0): Student {
   const s = objetBrut(raw);
-  const frais = s.statutFrais ?? s.financialStatus ?? null;
   return {
     id: texte(s.id) || `s-${idx + 1}`,
     matricule: texte(s.matricule),
@@ -35,7 +34,6 @@ export function mapStudentFromApi(raw: unknown, idx = 0): Student {
     email: texte(s.email),
     classe: texte(s.classe),
     classeId: texte(s.classeId),
-    financialStatus: frais === 'En Retard' ? 'En Retard' : frais === 'En Règle' ? 'En Règle' : 'Non renseigné',
     qrStatus: s.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ',
     status: s.status === 'Suspendu' ? 'Suspendu' : s.status === 'Actif' ? 'Actif' : undefined,
     avatar: texteOuNull(s.avatar ?? s.photoUrl) ?? undefined,

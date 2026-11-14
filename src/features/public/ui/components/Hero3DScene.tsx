@@ -137,14 +137,14 @@ export const Hero3DScene: React.FC = () => {
 
         {/* --- Ligne Inférieure : Activité temps réel Wave / Portique --- */}
         <div className="flex flex-col sm:flex-row gap-2.5">
-          {/* Notification Wave & OM */}
+          {/* Versement saisi par la comptabilité (APP-TL-26 : aucun paiement en ligne intégré) */}
           <div className="flex-1 bg-cyan-950/20 border border-cyan-500/20 rounded-xl px-3 py-2 flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
               <Icon icon="solar:wallet-money-bold-duotone" className="text-sm" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold text-cyan-200 truncate">Scolarité encaissée</p>
-              <p className="text-[9px] text-slate-400 font-mono">Wave • +45,000 FCFA</p>
+              <p className="text-[10px] font-bold text-cyan-200 truncate">Versement enregistré</p>
+              <p className="text-[9px] text-slate-400 font-mono">Saisi par la comptabilité</p>
             </div>
           </div>
 

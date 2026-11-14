@@ -7,7 +7,6 @@ import { AdminStudentManager } from './AdminStudentManager';
 import { AdminAdmissionsKanban } from './AdminAdmissionsKanban';
 import { AdminFinanceDashboard } from './AdminFinanceDashboard';
 import { AdminNotificationsHub } from './AdminNotificationsHub';
-import { AdminPredictiveAIEngine } from './AdminPredictiveAIEngine';
 import { AdminSecurityAuditTrail } from './AdminSecurityAuditTrail';
 import { AdminSubscriptionManager } from './AdminSubscriptionManager';
 import { AdminBrandingManager } from './branding/AdminBrandingManager';
@@ -45,7 +44,6 @@ export const AdminTabViews: React.FC<AdminTabViewsProps> = ({ activeTab, currenc
     notifications: <AdminNotificationsHub />,
     branding: <AdminBrandingManager />,
     referentiels: <AdminReferentielsManager />,
-    ai: <AdminPredictiveAIEngine />,
     security: <AdminSecurityAuditTrail />,
   };
 

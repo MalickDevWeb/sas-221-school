@@ -18,8 +18,6 @@ export interface AdminStudent {
   nom?: string | null;
   email?: string | null;
   telephone?: string | null;
-  /** null = non renseigné */
-  statutFrais?: string | null;
   status?: 'Actif' | 'Suspendu';
   qrStatus?: 'AUTORISÉ' | 'SUSPENDU';
   /** Affectation à une classe : non stockée par le serveur (absente). */

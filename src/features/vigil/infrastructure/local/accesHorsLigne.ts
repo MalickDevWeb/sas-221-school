@@ -4,18 +4,20 @@ import { apiClient } from '@/shared/lib/apiClient';
  * Décision d'accès HORS LIGNE du terminal du vigile (EF-10, 2026-11-14).
  *
  * Tant que le réseau est là, le terminal télécharge la liste d'accès de l'école (GET /vigil/acces-hors-ligne) : clé
- * PUBLIQUE des badges, élèves actifs avec le statut de leurs frais, personnel. Sans réseau, il décide seul :
+ * PUBLIQUE des badges, élèves actifs (matricule et nom seulement), personnel. Sans réseau, il décide seul :
  *   - badge élève : signature Ed25519 vérifiée avec la clé publique (impossible d'en fabriquer un), QR de moins de
- *     2 minutes, élève de la liste autorisé (frais en règle ou non renseignés) ;
+ *     2 minutes, élève présent dans la liste de l'établissement ;
  *   - badge du personnel : identifiant ou matricule présent dans la liste ;
  *   - tout le reste : refusé.
  * Chaque scan est gardé puis transmis au serveur au retour du réseau (POST /vigil/scans-hors-ligne), qui refait le
  * contrôle et signale les décisions contestées. La liste est effacée à la déconnexion (préfixe off_cache_).
+ * APP-TL-22 (2026-11-14) : l'accès ne dépend jamais des frais de scolarité ; un champ financier éventuellement présent
+ * dans une ancienne liste en cache est ignoré.
  */
 const CLE_LISTE = 'off_cache_vigil_acces_hors_ligne';
 const CLE_FILE = 'vigil_scans_hors_ligne';
 
-interface EleveAcces { matricule: string; nom: string; statutFrais: string; autorise: boolean }
+interface EleveAcces { matricule: string; nom: string }
 interface PersonnelAcces { id: string; matricule?: string | null; nom: string }
 export interface ListeAcces {
   clePublique: string;
@@ -24,7 +26,7 @@ export interface ListeAcces {
   eleves: EleveAcces[];
   personnel: PersonnelAcces[];
 }
-export interface DecisionHorsLigne { statut: 'Autorisé' | 'Refusé'; message: string; badgeOwner: string; statutFrais?: string }
+export interface DecisionHorsLigne { statut: 'Autorisé' | 'Refusé'; message: string; badgeOwner: string }
 interface ScanEnAttente { badgeId: string; scanneLe: string; decision: 'Autorisé' | 'Refusé' }
 
 function lireJson<T>(cle: string, defaut: T): T {
@@ -86,9 +88,7 @@ export async function deciderHorsLigne(contenu: string): Promise<DecisionHorsLig
     }
     const eleve = liste.eleves.find((e) => e.matricule === matricule);
     if (!eleve) return refus("Accès refusé (hors ligne) : élève absent de la liste de l'établissement.");
-    return eleve.autorise
-      ? { statut: 'Autorisé', message: `Accès autorisé (hors ligne). Frais : ${eleve.statutFrais}.`, badgeOwner: eleve.nom, statutFrais: eleve.statutFrais }
-      : { statut: 'Refusé', message: 'Accès refusé (hors ligne). Veuillez régulariser votre situation financière auprès de la comptabilité.', badgeOwner: eleve.nom, statutFrais: eleve.statutFrais };
+    return { statut: 'Autorisé', message: 'Accès autorisé (hors ligne).', badgeOwner: eleve.nom };
   }
   const id = contenu.trim();
   const membre = liste.personnel.find((m) => m.id === id || (m.matricule && m.matricule.toUpperCase() === id.toUpperCase()));

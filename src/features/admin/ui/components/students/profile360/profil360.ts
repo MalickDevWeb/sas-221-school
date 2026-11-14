@@ -18,7 +18,6 @@ export interface PaiementProfil { date: string; label: string; amount: number | 
 export interface SituationFinanciereProfil { classe: string; totalDu: number | null; paye: number | null; resteDu: number | null; statut: string }
 export interface MessageProfil { sender: string; text: string; date: string }
 export interface PresenceProfil { date: string; time: string; course: string; status: string; comment: string; info: string }
-export interface AnalyseProfil { score: number | null; probabiliteReussite: number | null; risque: number | null; alertes: string[] }
 
 export interface Profil360 {
   donneesStatus: string;
@@ -32,7 +31,6 @@ export interface Profil360 {
   paymentsStatus: string;
   situationFinanciere: SituationFinanciereProfil | null;
   attendance: PresenceProfil[];
-  analyse: AnalyseProfil | null;
   extra: {
     messages: MessageProfil[];
     sante: string; allergies: string; bourses: string;
@@ -45,7 +43,6 @@ export function versProfil360(raw: unknown): Profil360 {
   const adm = objetBrut(d.admissionDetails);
   const aca = objetBrut(d.academic);
   const extra = objetBrut(d.extra);
-  const ia = d.aiAnalysis ?? d.analyse;
   return {
     donneesStatus: texte(d.donneesStatus) || 'non_disponible',
     admissionDetails: { lycee: texte(adm.lycee), bacSerie: texte(adm.bacSerie), bacGrade: texte(adm.bacGrade), bacMention: texte(adm.bacMention) },
@@ -74,10 +71,6 @@ export function versProfil360(raw: unknown): Profil360 {
     attendance: listeBrute(d.attendance).map((h) => ({
       date: texte(h.date), time: texte(h.time), course: texte(h.course), status: texte(h.status), comment: texte(h.comment), info: texte(h.info),
     })),
-    analyse: estObjet(ia) ? {
-      score: nombreOuNull(ia.score), probabiliteReussite: nombreOuNull(ia.probabiliteReussite), risque: nombreOuNull(ia.risque),
-      alertes: Array.isArray(ia.alertes) ? ia.alertes.map(texte).filter(Boolean) : [],
-    } : null,
     extra: {
       messages: listeBrute(extra.messages).map((m) => ({ sender: texte(m.sender), text: texte(m.text), date: texte(m.date) })),
       sante: texte(extra.sante), allergies: texte(extra.allergies), bourses: texte(extra.bourses),

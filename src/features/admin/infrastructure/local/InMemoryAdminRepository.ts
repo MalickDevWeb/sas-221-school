@@ -3,9 +3,9 @@ import { AdminStats, AdminStudent, AdminProfessor, AdminPromotion, AdminSession 
 
 export class InMemoryAdminRepository implements AdminRepository {
   private students: AdminStudent[] = [
-    { id: 's-1', name: 'Assane Diop', matricule: '2026-GC-001', promotion_id: 'pr-1', average: 16.5, gpa: 3.8, mood: 'normal', statutFrais: 'En Règle' },
-    { id: 's-2', name: 'Fatou Sow', matricule: '2026-CM-042', promotion_id: 'pr-2', average: 17.8, gpa: 4.0, mood: 'happy', statutFrais: 'En Règle' },
-    { id: 's-3', name: 'Amadou Diallo', matricule: '2026-IA-109', promotion_id: 'pr-1', average: 14.2, gpa: 3.2, mood: 'sad', statutFrais: 'En Retard' }
+    { id: 's-1', name: 'Assane Diop', matricule: '2026-GC-001', promotion_id: 'pr-1', average: 16.5, gpa: 3.8, mood: 'normal' },
+    { id: 's-2', name: 'Fatou Sow', matricule: '2026-CM-042', promotion_id: 'pr-2', average: 17.8, gpa: 4.0, mood: 'happy' },
+    { id: 's-3', name: 'Amadou Diallo', matricule: '2026-IA-109', promotion_id: 'pr-1', average: 14.2, gpa: 3.2, mood: 'sad' }
   ];
 
   private professors: AdminProfessor[] = [
@@ -50,8 +50,7 @@ export class InMemoryAdminRepository implements AdminRepository {
       promotion_id: student.promotion_id,
       average: 15.0,
       gpa: 3.5,
-      mood: 'normal',
-      statutFrais: 'En Règle'
+      mood: 'normal'
     };
     this.students.push(newStudent);
     return newStudent;
@@ -77,13 +76,6 @@ export class InMemoryAdminRepository implements AdminRepository {
     const initialLength = this.professors.length;
     this.professors = this.professors.filter(p => p.id !== id);
     return this.professors.length < initialLength;
-  }
-
-  async updateStudentPayment(id: string, status: string): Promise<AdminStudent> {
-    const student = this.students.find(s => s.id === id);
-    if (!student) throw new Error('Étudiant introuvable');
-    student.statutFrais = status;
-    return { ...student };
   }
 
   async getSchedule(): Promise<AdminSession[]> {

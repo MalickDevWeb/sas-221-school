@@ -10,20 +10,18 @@ interface Props {
   students: Student[];
   onUpdateStudents: (list: Student[]) => void;
   onViewProfile: (student: Student) => void;
-  onToggleFinancialStatus?: (id: string, newStatus: 'En Règle' | 'En Retard') => void;
   /** Suspension / réactivation réelle (PATCH /admin/students/{id}/toggle-status). */
   onToggleQrStatus?: (id: string) => void;
   onRefresh?: () => void;
 }
 
-export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleFinancialStatus, onToggleQrStatus, onRefresh }: Props) {
+export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, onToggleQrStatus, onRefresh }: Props) {
   const { isMobile } = useDeviceStore();
   const role = useAuthStore((st) => st.utilisateur?.role) as string | undefined;
   const originalSuperAdminRole = useAuthStore((st) => st.originalSuperAdminRole);
   const estPlateforme = role === 'SUPER_ADMIN' || role === 'PLATFORM_OWNER' || role === 'PLATFORM_ADMIN' || Boolean(originalSuperAdminRole);
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('ALL');
-  const [filterFin, setFilterFin] = useState('ALL');
   const [filterQr, setFilterQr] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -46,9 +44,8 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
   const filtered = students.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.matricule.toLowerCase().includes(search.toLowerCase());
     const matchesClass = filterClass === 'ALL' || s.classe === filterClass;
-    const matchesFin = filterFin === 'ALL' || s.financialStatus === filterFin;
     const matchesQr = filterQr === 'ALL' || s.qrStatus === filterQr;
-    return matchesSearch && matchesClass && matchesFin && matchesQr;
+    return matchesSearch && matchesClass && matchesQr;
   });
 
   return (
@@ -56,7 +53,7 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h3 className="font-extrabold text-[#1E293B] text-sm">Annuaire & DataGrid Enterprise</h3>
-          <p className="text-[10px] text-neutral-400 font-bold">Suivi d'accès QR, états de paiement et scolarité.</p>
+          <p className="text-[10px] text-neutral-400 font-bold">Suivi d'accès QR et scolarité (l'état financier est dans Finances › Écolages).</p>
         </div>
         {/* Route de la plateforme (super-administrateur) ; les écoles passent par l'onglet « Transferts d'élèves »,
             où l'école d'accueil accepte ou refuse (2026-11-13). */}
@@ -70,16 +67,11 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
         <input type="text" placeholder="Rechercher par Nom, Matricule..." value={search} onChange={e => setSearch(e.target.value)} className="px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold bg-white outline-none" />
         <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-semibold outline-none">
           <option value="ALL">Toutes les classes</option>
           {Array.from(new Set(students.map(s => s.classe))).map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={filterFin} onChange={e => setFilterFin(e.target.value)} className="px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs font-semibold outline-none">
-          <option value="ALL">Tous les paiements</option>
-          <option value="En Règle">En Règle</option>
-          <option value="En Retard">En Retard</option>
         </select>
         <select value={filterQr} onChange={e => setFilterQr(e.target.value)} className="px-3 py-2 border border-[#E2DCDA] rounded-xl bg-white text-xs font-semibold outline-none">
           <option value="ALL">Tous les statuts QR</option>
@@ -96,7 +88,6 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
                 <th className="px-4 py-3">Matricule</th>
                 <th className="px-4 py-3">Étudiant</th>
                 <th className="px-4 py-3">Classe</th>
-                <th className="px-4 py-3">Paiement</th>
                 <th className="px-4 py-3">Accès QR</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -112,26 +103,6 @@ export function StudentDataGridTab({ students, onUpdateStudents, onViewProfile, 
                     </div>
                   </td>
                   <td className="px-4 py-3 text-neutral-500 font-semibold">{s.classe}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => {
-                        const nextStatus = s.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
-                        if (onToggleFinancialStatus) {
-                          onToggleFinancialStatus(s.id, nextStatus);
-                        } else {
-                          toast.error("Action indisponible : le statut de frais n'est pas relié au serveur ici.");
-                        }
-                      }}
-                      className={`px-2 py-0.5 rounded-full text-[8.5px] border font-black uppercase cursor-pointer hover:opacity-80 transition-opacity ${
-                        s.financialStatus === 'En Règle'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
-                      }`}
-                      title="Cliquer pour modifier le statut financier"
-                    >
-                      {s.financialStatus}
-                    </button>
-                  </td>
                   <td className="px-4 py-3">
                     <button onClick={() => toggleQrStatus(s.id)} className={`px-2.5 py-1 text-[8.5px] font-black uppercase rounded-lg border cursor-pointer ${s.qrStatus === 'AUTORISÉ' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                       {s.qrStatus}

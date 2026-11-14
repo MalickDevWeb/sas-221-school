@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Zap, GraduationCap, HelpCircle, Lightbulb } from 'lucide-react';
+import { BookOpen, Zap } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -12,10 +12,9 @@ interface Course {
 
 interface CoursesSynthesesProps {
   courses: Course[];
-  onAskAboutCourse: (courseName: string, type: 'apprendre' | 'comprendre' | 'astuces') => void;
 }
 
-export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSynthesesProps) {
+export function CoursesSyntheses({ courses }: CoursesSynthesesProps) {
   // Seulement les cours réels de l'élève (2026-11-13) : avant, trois cours inventés s'affichaient quand la liste était vide.
   const displayCourses = courses;
 
@@ -26,7 +25,7 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
           <BookOpen className="h-4.5 w-4.5 text-[#3f1e1e]" /> Fiches de synthèse des cours
         </h3>
         <p className="text-[10px] text-secondary font-bold leading-relaxed mt-0.5">
-          Ordonnez instantanément au tuteur d'analyser vos priorités de révision ou d'en apprendre plus sur chaque matière.
+          Les cours de votre classe et leurs sujets clés, tels qu'enregistrés par vos professeurs.
         </p>
       </div>
 
@@ -68,30 +67,6 @@ export function CoursesSyntheses({ courses, onAskAboutCourse }: CoursesSyntheses
               </div>
             )}
 
-            {/* Actions row */}
-            <div className="grid grid-cols-3 gap-1 pt-0.5">
-              <button
-                onClick={() => onAskAboutCourse(course.titre, 'apprendre')}
-                className="py-1.5 px-0.5 text-center text-[8px] font-black uppercase tracking-wider bg-white border border-neutral-gray-200 text-neutral-500 rounded-lg hover:text-[#3f1e1e] hover:border-[#3f1e1e]/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
-              >
-                <GraduationCap className="h-3 w-3 text-[#3f1e1e]" />
-                Priorités
-              </button>
-              <button
-                onClick={() => onAskAboutCourse(course.titre, 'comprendre')}
-                className="py-1.5 px-0.5 text-center text-[8px] font-black uppercase tracking-wider bg-white border border-neutral-gray-200 text-neutral-500 rounded-lg hover:text-[#3f1e1e] hover:border-[#3f1e1e]/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
-              >
-                <HelpCircle className="h-3 w-3 text-primary/80" />
-                S'exercer
-              </button>
-              <button
-                onClick={() => onAskAboutCourse(course.titre, 'astuces')}
-                className="py-1.5 px-0.5 text-center text-[8px] font-black uppercase tracking-wider bg-white border border-neutral-gray-200 text-neutral-500 rounded-lg hover:text-[#3f1e1e] hover:border-[#3f1e1e]/50 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
-              >
-                <Lightbulb className="h-3 w-3 text-amber-500" />
-                Astuces
-              </button>
-            </div>
           </div>
         ))}
       </div>

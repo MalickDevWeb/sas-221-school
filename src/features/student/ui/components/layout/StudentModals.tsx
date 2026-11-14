@@ -20,7 +20,6 @@ export function StudentModals({ state }: StudentModalsProps) {
         onSearchAction={(item) => {
           state.setShowSearch(false); state.setSearchQuery('');
           if (item.path) { state.navigate(item.path); state.triggerLayoutToast(`Navigation vers : ${item.name}`); }
-          else if (item.action === 'ai_tutor') state.handleAiTutor();
           else if (item.action === 'support') state.setShowSupportModal(true);
           else if (item.action === 'docs') state.setShowDocModal(true);
         }}

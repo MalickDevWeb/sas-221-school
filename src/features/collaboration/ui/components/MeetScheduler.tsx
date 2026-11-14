@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
-import { Video, Sparkles, AlertCircle } from 'lucide-react';
+import { Video, Info } from 'lucide-react';
 
 interface CourseItem {
   classeId?: string;
@@ -19,9 +19,7 @@ interface Props {
     classNames: readonly string[],
     subject: string,
     teacher: string,
-    link: string,
-    autoGen: boolean,
-    restrict: boolean
+    link: string
   ) => void;
   readonly teacherName: string;
 }
@@ -55,14 +53,14 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
   }, [classes, selectedClass]);
   const [subject, setSubject] = useState('');
   const [meetLink, setMeetLink] = useState('');
-  const [autoGen, setAutoGen] = useState(false);
-  const [restrict, setRestrict] = useState(true);
+  // APP-TL-26 (2026-11-14) : plus de case « Générer via Google Workspace API » (aucune intégration) ni de
+  // « compte Google obligatoire » (l'application ne peut pas l'imposer) : le lien Meet est collé.
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClass || !subject.trim()) return;   // champs « required » : messages personnalisés affichés
     const className = classes.find(c => c.id === selectedClass)?.nom || selectedClass;
-    onSchedule([selectedClass], [className], subject.trim(), teacherName, meetLink, autoGen, restrict);
+    onSchedule([selectedClass], [className], subject.trim(), teacherName, meetLink);
     setSubject('');
     setMeetLink('');
   };
@@ -75,7 +73,7 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
         </div>
         <div>
           <h3 className="font-bold text-base text-gray-900">Planifier une Classe Virtuelle</h3>
-          <p className="text-xs text-neutral-500">Créez et publiez un cours en ligne Google Meet</p>
+          <p className="text-xs text-neutral-500">Publiez pour une classe le lien d'une réunion Google Meet</p>
         </div>
       </div>
 
@@ -108,39 +106,23 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
           />
         </div>
 
-        <div className="flex items-center justify-between bg-neutral-gray-50 p-3 rounded-xl">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand-red-deep" />
-            <span className="text-xs font-bold text-gray-800">Générer via Google Workspace API <span className="font-semibold text-neutral-400">(non disponible)</span></span>
-          </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-700 mb-1">Lien Google Meet</label>
           <input
-            type="checkbox"
-            checked={false}
-            disabled
-            aria-disabled="true"
-            title="Fonctionnalité non disponible : aucune intégration Google Workspace"
-            onChange={(e) => setAutoGen(e.target.checked)}
-            className="cursor-not-allowed opacity-50 h-4 w-4 text-brand-red-deep border-gray-300 rounded focus:ring-brand-red-deep"
+            type="text"
+            placeholder="https://meet.google.com/abc-defg-hij"
+            value={meetLink}
+            onChange={(e) => setMeetLink(e.target.value)}
+            className="w-full text-xs px-3 py-2 border border-neutral-gray-200 rounded-xl focus:outline-none"
+            required
+            data-msg-requis="Collez le lien de la réunion Google Meet."
           />
         </div>
 
-        {!autoGen && (
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Lien Google Meet</label>
-            <input
-              type="text"
-              placeholder="https://meet.google.com/abc-defg-hij"
-              value={meetLink}
-              onChange={(e) => setMeetLink(e.target.value)}
-              className="w-full text-xs px-3 py-2 border border-neutral-gray-200 rounded-xl focus:outline-none"
-              required={!autoGen}
-            />
-          </div>
-        )}
-
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 p-2.5 rounded-xl text-amber-800 text-[10px] font-semibold">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span><span className="font-bold">Sécurité Google :</span> Accès restreint aux comptes universitaires (@ecole221.sn).</span>
+        <div className="flex items-start gap-2 bg-neutral-gray-50 border border-neutral-gray-200 p-2.5 rounded-xl text-neutral-600 text-[10px] font-semibold">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>Créez la réunion sur meet.google.com (« Nouvelle réunion »), puis collez son lien ici.
+            Qui peut entrer dans la réunion se règle dans Google Meet, par son organisateur.</span>
         </div>
 
         <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { TenantRouteSync } from './TenantRouteSync';
 import { DashboardRedirect } from './RouteRedirects';
@@ -29,7 +29,7 @@ import {
   StudentGradesPage,
   StudentAbsencesPage,
   StudentProfilePage,
-  StudentTutorPage,
+  StudentBilanPage,
   CollaborationPage,
 } from './TenantAppPages';
 
@@ -80,7 +80,9 @@ export function renderTenantAppRoutes() {
           <Route path="etudiant/notes" element={<StudentGradesPage />} />
           <Route path="etudiant/absences" element={<StudentAbsencesPage />} />
           <Route path="etudiant/profil" element={<StudentProfilePage />} />
-          <Route path="etudiant/tuteur" element={<StudentTutorPage />} />
+          <Route path="etudiant/bilan" element={<StudentBilanPage />} />
+          {/* APP-TL-24 : ancienne adresse du « Tuteur IA », retiré ; les favoris mènent au bilan */}
+          <Route path="etudiant/tuteur" element={<Navigate to="../bilan" relative="path" replace />} />
           <Route path="etudiant/collaboration" element={<CollaborationPage />} />
         </Route>
       </Route>

@@ -36,7 +36,6 @@ export function ClasseDetailPage({
 }: Props) {
   const [activeTab, setActiveTab] = useState<'students' | 'schedule' | 'subjects' | 'finances'>('students');
   const [studentSearch, setStudentSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'REGLE' | 'RETARD'>('ALL');
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
 
@@ -72,25 +71,17 @@ export function ClasseDetailPage({
   const price = classe.price ?? null;
   const capacity = classe.capacityMax ?? null;
   const totalStudents = classStudents.length;
-  const paidCount = classStudents.filter(s => s.financialStatus === 'En Règle').length;
-  const lateCount = classStudents.filter(s => s.financialStatus === 'En Retard').length;
-  const unknownCount = totalStudents - paidCount - lateCount;
+  // APP-TL-22 (2026-11-14) : plus de statut de frais « En Règle / En Retard » saisi à la main ni de liste de
+  // « débiteurs » : seul le montant attendu (tarif × effectif) est calculé ici ; les versements réels de chaque élève
+  // sont suivis dans Finances › Écolages.
   const expectedRevenue = price != null ? totalStudents * price : null;
-  const collectedRevenue = price != null ? paidCount * price : null;
-  const remainingRevenue = price != null ? lateCount * price : null;
-  const knownCount = paidCount + lateCount;
-  const collectionRate = knownCount > 0 ? Math.round((paidCount / knownCount) * 100) : null;
   const occupancyRate = capacity ? Math.min(100, Math.round((totalStudents / capacity) * 100)) : null;
 
   const filteredStudents = classStudents.filter(s => {
     const matchesSearch =
       s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
       s.matricule.toLowerCase().includes(studentSearch.toLowerCase());
-    if (!matchesSearch) return false;
-
-    if (statusFilter === 'REGLE') return s.financialStatus === 'En Règle';
-    if (statusFilter === 'RETARD') return s.financialStatus === 'En Retard';
-    return true;
+    return matchesSearch;
   });
 
   const handleManualEnroll = async (e: React.FormEvent) => {
@@ -144,21 +135,6 @@ export function ClasseDetailPage({
     if (onUpdateStudents) onUpdateStudents(updated);
   };
 
-  const toggleStudentFinancialStatus = async (id: string) => {
-    const st = classStudents.find(s => s.id === id);
-    if (!st) return;
-    const next: 'En Règle' | 'En Retard' = st.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
-    try {
-      const { data } = await apiClient.patch<unknown>(`/admin/students/${id}/status`, { statutFrais: next });
-      const r = objetBrut(data);
-      const confirme: Student['financialStatus'] = r.status === 'En Retard' || r.status === 'En Règle' ? r.status : next;
-      setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, financialStatus: confirme } : s)));
-      toast.success(`${st.name} : statut de frais « ${confirme} » enregistré.`);
-    } catch (err) {
-      toast.error(resolveErrorMessage(err));
-    }
-  };
-
   const toggleStudentQrStatus = async (id: string) => {
     const st = classStudents.find(s => s.id === id);
     if (!st) return;
@@ -199,7 +175,6 @@ export function ClasseDetailPage({
       'Matricule': s.matricule,
       'Email': s.email,
       'Promotion': classe.name,
-      'Statut Frais': s.financialStatus,
       'Badge Accès': s.qrStatus,
       'Téléphone': s.phoneParent || '—',
     }));
@@ -220,7 +195,6 @@ export function ClasseDetailPage({
     doc.text(`Classe : ${classe.name} (${classe.level})`, 14, 30);
     doc.text(`Filière : ${filiereName}`, 14, 38);
     doc.text(`Effectif : ${totalStudents} élèves • Frais annuels : ${fcfa(price)}`, 14, 46);
-    doc.text(`Taux de Recouvrement : ${collectionRate == null ? '—' : `${collectionRate}%`} (${paidCount} à jour / ${lateCount} en retard / ${unknownCount} non renseigné)`, 14, 54);
 
     doc.setLineWidth(0.5);
     doc.line(14, 58, 196, 58);
@@ -232,7 +206,6 @@ export function ClasseDetailPage({
     doc.text('Nom & Prénom', 26, y);
     doc.text('Matricule', 85, y);
     doc.text('Téléphone', 125, y);
-    doc.text('Statut Frais', 160, y);
 
     doc.setFont('helvetica', 'normal');
     classStudents.forEach((s, idx) => {
@@ -245,7 +218,6 @@ export function ClasseDetailPage({
       doc.text(s.name.substring(0, 28), 26, y);
       doc.text(s.matricule, 85, y);
       doc.text(s.phoneParent || '—', 125, y);
-      doc.text(s.financialStatus, 160, y);
     });
 
     doc.save(`Fiche_Officielle_${classe.name.replace(/\s+/g, '_')}.pdf`);
@@ -359,9 +331,9 @@ export function ClasseDetailPage({
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
-              <span className="text-[10px] text-neutral-300 uppercase font-black block">Taux Recouvrement</span>
-              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{collectionRate == null ? '—' : `${collectionRate}%`}</span>
-              <span className="text-[10px] text-neutral-400 block mt-2">{paidCount} à jour • {lateCount} en retard • {unknownCount} non renseigné</span>
+              <span className="text-[10px] text-neutral-300 uppercase font-black block">Frais Annuels</span>
+              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{fcfa(price)}</span>
+              <span className="text-[10px] text-neutral-400 block mt-2">par élève</span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
@@ -369,7 +341,7 @@ export function ClasseDetailPage({
               <span className="text-xl font-black text-white mt-0.5 block truncate">
                 {expectedRevenue == null ? '—' : `${(expectedRevenue / 1000000).toFixed(1)}M FCFA`}
               </span>
-              <span className="text-[10px] text-emerald-300 block mt-2">{collectedRevenue == null ? 'Tarif non renseigné' : `${(collectedRevenue / 1000000).toFixed(1)}M estimé à jour`}</span>
+              <span className="text-[10px] text-emerald-300 block mt-2">{expectedRevenue == null ? 'Tarif non renseigné' : 'Montant attendu (tarif × effectif)'}</span>
             </div>
           </div>
         </div>
@@ -444,27 +416,6 @@ export function ClasseDetailPage({
                     onChange={e => setStudentSearch(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-[#FAF8F6] border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                   />
-                </div>
-
-                <div className="flex bg-neutral-100 p-1 rounded-xl text-[10px] font-black shrink-0">
-                  <button
-                    onClick={() => setStatusFilter('ALL')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'ALL' ? 'bg-white text-primary shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    Tous
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('REGLE')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'REGLE' ? 'bg-white text-emerald-700 shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    En Règle ({paidCount})
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('RETARD')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'RETARD' ? 'bg-white text-red-700 shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    En Retard ({lateCount})
-                  </button>
                 </div>
               </div>
 
@@ -571,7 +522,6 @@ export function ClasseDetailPage({
                   <tr className="bg-[#FAF8F6] text-[10px] font-black text-neutral-400 uppercase tracking-wider border-b border-neutral-200">
                     <th className="px-5 py-3.5">Élève</th>
                     <th className="px-5 py-3.5">Matricule</th>
-                    <th className="px-5 py-3.5">Statut Paiement</th>
                     <th className="px-5 py-3.5">Badge & Accès</th>
                     <th className="px-5 py-3.5">Téléphone</th>
                     <th className="px-5 py-3.5 text-center">Actions</th>
@@ -580,7 +530,7 @@ export function ClasseDetailPage({
                 <tbody className="divide-y divide-neutral-100">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-10 text-center text-neutral-400 font-bold">
+                      <td colSpan={5} className="px-5 py-10 text-center text-neutral-400 font-bold">
                         Aucun élève affecté à cette classe pour le moment.
                       </td>
                     </tr>
@@ -599,21 +549,6 @@ export function ClasseDetailPage({
                           </div>
                         </td>
                         <td className="px-5 py-3.5 font-mono text-[11px] text-neutral-700">{st.matricule}</td>
-                        <td className="px-5 py-3.5">
-                          <button
-                            onClick={() => toggleStudentFinancialStatus(st.id)}
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase cursor-pointer border-0 transition-all ${
-                              st.financialStatus === 'En Règle'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : st.financialStatus === 'En Retard'
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                            }`}
-                            title="Cliquer pour basculer le statut financier"
-                          >
-                            {st.financialStatus}
-                          </button>
-                        </td>
                         <td className="px-5 py-3.5">
                           <button
                             onClick={() => toggleStudentQrStatus(st.id)}
@@ -750,7 +685,7 @@ export function ClasseDetailPage({
               <div>
                 <h4 className="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
                   <span translate="no" className="material-symbols-outlined text-emerald-600">account_balance_wallet</span>
-                  Plan Financier & Recouvrement — {classe.name}
+                  Plan Financier — {classe.name}
                 </h4>
                 <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
                   {price == null
@@ -758,75 +693,21 @@ export function ClasseDetailPage({
                     : `Frais de scolarité annuels fixés à ${fcfa(price)} par élève.`}
                 </p>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-black text-emerald-900 block">Taux de Recouvrement</span>
-                <span className="text-2xl font-black text-emerald-600">{collectionRate == null ? '—' : `${collectionRate}%`}</span>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs">
                 <span className="text-[10px] uppercase font-bold text-neutral-400 block">Total Attendu</span>
                 <span className="text-xl font-black text-[#1E293B] block mt-1">{fcfa(expectedRevenue)}</span>
-                <span className="text-[10px] text-neutral-500 font-semibold">{totalStudents} étudiants inscrits</span>
+                <span className="text-[10px] text-neutral-500 font-semibold">{totalStudents} élèves inscrits × tarif annuel</span>
               </div>
-              <div className="p-5 bg-white border border-emerald-200 rounded-2xl shadow-xs">
-                <span className="text-[10px] uppercase font-bold text-emerald-600 block">Total Déjà Encaissé</span>
-                <span className="text-xl font-black text-emerald-600 block mt-1">{fcfa(collectedRevenue)}</span>
-                <span className="text-[10px] text-emerald-700 font-semibold">{paidCount} étudiants à jour</span>
+              <div className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs">
+                <span className="text-[10px] uppercase font-bold text-neutral-400 block">Versements des élèves</span>
+                <p className="text-[11px] text-neutral-600 font-semibold mt-1 m-0">
+                  Les versements réels et le reste dû de chaque élève sont suivis dans Finances › Écolages. L'accès d'un
+                  élève au campus, à l'application et au bulletin ne dépend jamais des frais de scolarité.
+                </p>
               </div>
-              <div className="p-5 bg-white border border-rose-200 rounded-2xl shadow-xs">
-                <span className="text-[10px] uppercase font-bold text-rose-600 block">Reste à Recouvrer</span>
-                <span className="text-xl font-black text-rose-600 block mt-1">{fcfa(remainingRevenue)}</span>
-                <span className="text-[10px] text-rose-700 font-semibold">{lateCount} étudiants débiteurs</span>
-              </div>
-            </div>
-
-            <div className="border border-neutral-200 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <h5 className="text-xs font-black text-[#1E293B] uppercase tracking-wider">
-                  Élèves avec Retard de Paiement ({lateCount})
-                </h5>
-                {lateCount > 0 && (
-                  <button
-                    onClick={() => toast.info("Relances SMS / WhatsApp indisponibles : aucun service d'envoi n'est relié au serveur.")}
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase cursor-pointer border-0 flex items-center gap-1.5 transition-all shadow-sm"
-                  >
-                    <span translate="no" className="material-symbols-outlined text-sm">send</span>
-                    <span>Envoyer Relance SMS / WhatsApp</span>
-                  </button>
-                )}
-              </div>
-
-              {lateCount === 0 ? (
-                <div className="py-4 text-emerald-600 text-xs font-bold flex items-center gap-2">
-                  <span translate="no" className="material-symbols-outlined text-lg">check_circle</span>
-                  <span>Aucun élève de cette classe n'est enregistré en retard de paiement.</span>
-                </div>
-              ) : (
-                <div className="divide-y divide-neutral-100">
-                  {classStudents.filter(s => s.financialStatus === 'En Retard').map(s => (
-                    <div key={s.id} className="py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xs font-black text-[#1E293B]">{s.name}</span>
-                        <span className="text-[10px] text-neutral-400 font-mono ml-2">({s.matricule})</span>
-                        <p className="text-[10px] text-neutral-500 m-0">Téléphone : {s.phoneParent || '—'}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleStudentFinancialStatus(s.id)}
-                          className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-bold cursor-pointer border border-emerald-200"
-                        >
-                          Marquer en règle
-                        </button>
-                        <span className="px-3 py-1 bg-rose-100 text-rose-700 font-black text-[10px] rounded-full uppercase">
-                          Solde en attente
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}

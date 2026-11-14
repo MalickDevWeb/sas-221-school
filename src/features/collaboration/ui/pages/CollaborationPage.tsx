@@ -24,10 +24,10 @@ export function CollaborationPage() {
   const activeMeet = state.meets.find((m) => m.id === activeMeetId) || state.meets[0];   // APP-BE-14 : pas de classe virtuelle inventée
 
   const handleJoinMeetSimulate = (meetId: string, meetLink: string) => {
-    const name = utilisateur?.nom || 'Invité';
-    const email = utilisateur?.email || 'invite@ecole221.sn';
-    state.recordAttendance(meetId, name, email, email.endsWith('@ecole221.sn'));
-    window.open(meetLink, '_blank');
+    // APP-TL-26 : ouverture du lien notée au nom du compte connecté (avant : adresse « invite@ecole221.sn »
+    // inventée et « compte autorisé » déduit du domaine de l'e-mail)
+    if (utilisateur?.nom) state.recordAttendance(meetId, utilisateur.nom, utilisateur.email || '');
+    window.open(meetLink, '_blank', 'noopener,noreferrer');
   };
 
   const actualRole = utilisateur?.role || 'PROFESSEUR'; // Default to PROFESSEUR for preview if not signed in, giving immediate visibility

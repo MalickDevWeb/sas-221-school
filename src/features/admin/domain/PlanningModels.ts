@@ -60,7 +60,7 @@ export interface AuditLog {
   readonly author: string;
   readonly date: string;
   readonly time: string;
-  readonly action: string; // 'Ajout', 'Modification', 'Suppression', 'Déplacement', 'IA'
+  readonly action: string; // 'Ajout', 'Modification', 'Suppression', 'Déplacement', 'Placement automatique'
   readonly target: string;
   readonly oldValue: string;
   readonly newValue: string;

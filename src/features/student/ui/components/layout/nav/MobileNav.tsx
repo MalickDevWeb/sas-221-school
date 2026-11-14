@@ -15,7 +15,7 @@ export function MobileNav() {
     { to: `${base}/notes`,         icon: 'grade',          label: 'Notes' },
     { to: `${base}/absences`,      icon: 'event_busy',     label: 'Absences' },
     { to: `${base}/collaboration`, icon: 'groups',         label: 'Collab' },
-    { to: `${base}/tuteur`,        icon: 'smart_toy',      label: 'Tuteur IA' },
+    { to: `${base}/bilan`,         icon: 'insights',       label: 'Bilan' },
   ];
 
   return (

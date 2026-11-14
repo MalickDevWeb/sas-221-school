@@ -69,15 +69,15 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
 
       <div className="mt-auto space-y-2 shrink-0">
         <NavLink
-          to={`${base}/tuteur`}
+          to={`${base}/bilan`}
           className={({ isActive }) =>
             `w-full flex flex-row items-center justify-start gap-3 px-3 py-3 text-white rounded-lg font-label-md text-label-md active:opacity-80 transition-all cursor-pointer ${
               isActive ? 'bg-primary ring-2 ring-white/20' : 'bg-primary-dark/85 hover:bg-primary-dark'
             }`
           }
         >
-          <span translate="no" className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-          <span className="leading-none">Tuteur IA</span>
+          <span translate="no" className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
+          <span className="leading-none">Mon bilan</span>
         </NavLink>
 
         <div className="pt-4 border-t border-neutral-gray-200">

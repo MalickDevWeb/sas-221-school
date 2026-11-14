@@ -25,5 +25,5 @@ export const StudentSchedulePage = lazyAvecRelance(() => import('@/features/stud
 export const StudentGradesPage = lazyAvecRelance(() => import('@/features/student').then(m => ({ default: m.StudentGradesPage })));
 export const StudentAbsencesPage = lazyAvecRelance(() => import('@/features/student').then(m => ({ default: m.StudentAbsencesPage })));
 export const StudentProfilePage = lazyAvecRelance(() => import('@/features/student').then(m => ({ default: m.StudentProfilePage })));
-export const StudentTutorPage = lazyAvecRelance(() => import('@/features/student').then(m => ({ default: m.StudentTutorPage })));
+export const StudentBilanPage = lazyAvecRelance(() => import('@/features/student').then(m => ({ default: m.StudentBilanPage })));
 export const CollaborationPage = lazyAvecRelance(() => import('@/features/collaboration/ui/pages/CollaborationPage').then(m => ({ default: m.CollaborationPage })));

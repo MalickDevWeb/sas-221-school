@@ -5,7 +5,6 @@ import { useRealTimeMeet } from '@/features/dashboard/hooks/useRealTimeMeet';
 import { PresenceModal } from '../components/PresenceModal';
 import { ActiveLiveStream } from '../components/ActiveLiveStream';
 import { WeeklySchedule } from '../components/WeeklySchedule';
-import { AITutorPanel } from '../components/AITutorPanel';
 import { PerformanceChart } from '../components/PerformanceChart';
 import { StudentNotificationToast } from '../components/StudentNotificationToast';
 import { StudentHeaderBanner } from '../components/StudentHeaderBanner';
@@ -86,7 +85,6 @@ export function StudentDashboardPage() {
           prochainId={prochainId}
         />
         <PerformanceChart />
-        <AITutorPanel />
       </div>
     </div>
   );

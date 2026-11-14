@@ -32,7 +32,6 @@ const MENU_ITEMS = [
   { id: 'notifications', label: 'Notifications Hub', icon: 'mail', requiredPerm: 'communication.lire' },
   { id: 'branding', label: 'Personnalisation', icon: 'palette', requiredPerm: 'ecole.lire' },
   { id: 'referentiels', label: 'Référentiels', icon: 'tune', requiredPerm: 'ecole.lire' },
-  { id: 'ai', label: 'Assistant IA', icon: 'smart_toy', requiredPerm: 'eleves.lire' },
   { id: 'security', label: 'Sécurité & Audit', icon: 'security', requiredPerm: 'securite.lire' },
 ];
 

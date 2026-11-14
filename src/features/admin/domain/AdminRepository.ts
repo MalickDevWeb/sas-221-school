@@ -7,7 +7,6 @@ export interface AdminRepository {
   deleteStudent(id: string): Promise<boolean>;
   addProfessor(professor: { name: string; email: string }): Promise<AdminProfessor>;
   deleteProfessor(id: string): Promise<boolean>;
-  updateStudentPayment(id: string, status: string): Promise<AdminStudent>;
   getSchedule(): Promise<AdminSession[]>;
   rescheduleSession(id: string, update: { jourComplet: string; heureStr: string; salle: string }): Promise<AdminSession>;
 }

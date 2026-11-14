@@ -82,7 +82,6 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
             <option value="Non soldé">Non soldé</option>
             <option value="En Règle">En Règle</option>
             <option value="En Avance">En Avance</option>
-            <option value="En Retard">En Retard</option>
           </select>
         </div>
 

@@ -17,7 +17,6 @@ export function isBackgroundUrl(url?: string): boolean {
     url.includes('/collaboration/') ||
     url.includes('/notifications/') ||
     url.includes('/checkpoint-status') ||
-    url.includes('/student/tutor/') ||
     url.includes('/attendances') ||
     url.includes('/audits') ||
     url.includes('/notes') ||

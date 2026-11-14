@@ -1,17 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
-
-/** Lien d'une réunion Google Meet : https://meet.google.com/abc-defg-hij (même règle que le serveur). */
-export function erreurLienMeet(brut: string): string | null {
-  const t = brut.trim();
-  if (!t) return 'Collez le lien de la réunion : créez-la sur meet.google.com (« Nouvelle réunion »), puis copiez son lien ici.';
-  const lien = /^https?:\/\//i.test(t) ? t : 'https://' + t;
-  if (!/^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}(\?\S*)?$/i.test(lien)) {
-    return `« ${t} » n'est pas un lien Google Meet (forme attendue : https://meet.google.com/abc-defg-hij).`;
-  }
-  return null;
-}
+// Règle du lien Google Meet partagée avec la classe virtuelle de l'espace collaboratif (APP-TL-26)
+import { erreurLienMeet, normaliserLienMeet } from '@/shared/lib/lienMeet';
 
 export interface LiveSession {
   id: string;
@@ -52,8 +43,7 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
   const startMeet = async (title: string, rawUrl: string, profName: string): Promise<string | null> => {
     const erreur = erreurLienMeet(rawUrl);
     if (erreur) return erreur;
-    let finalUrl = rawUrl.trim();
-    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
+    const finalUrl = normaliserLienMeet(rawUrl);
 
     try {
       const finalTitle = title.trim() || `Cours de ${courseName}`;

@@ -44,7 +44,6 @@ export class ApiVigilRepository implements VigilRepository {
       statut: (data.statut as VigilScanResult['statut']) ?? 'Refusé',
       message: String(data.message ?? ''),
       assiduite: String(data.assiduite ?? data.attendance ?? ''),
-      statutFrais: String(data.statutFrais ?? data.feesStatus ?? ''),
       zone: String(data.zone ?? ''),
       time: String(data.time ?? ''),
     };
