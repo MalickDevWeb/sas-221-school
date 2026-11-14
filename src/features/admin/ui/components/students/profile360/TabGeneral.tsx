@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { PROFIL_VIDE } from './utils/profilVide';
 import { AdmissionCard, MedicalCard } from './GeneralCards';
+import { ParentsEleve } from './ParentsEleve';
 
 interface Props {
   selectedStudent: Student;
@@ -89,6 +90,9 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
           <span>{isSaved ? 'Enregistré avec succès !' : echec ? 'Non enregistré — réessayer' : 'Enregistrer les modifications'}</span>
         </button>
       </div>
+
+      {/* APP-BE-27 (2026-11-14) : comptes parents liés à l'élève */}
+      <ParentsEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
     </div>
   );
 }
