@@ -86,6 +86,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           localStorage.removeItem('access_token');
           localStorage.removeItem('auth_token');
+          // Cache hors ligne des réponses (notes, profil, badge…) : commun à tous les comptes de ce navigateur, il
+          // est vidé pour que la personne suivante sur un poste partagé ne lise pas les données de la précédente.
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith('off_cache_') || k === 'student_notifications')
+            .forEach((k) => localStorage.removeItem(k));
         } catch { /* stockage indisponible */ }
         set({
           utilisateur: null,
