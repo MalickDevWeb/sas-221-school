@@ -24,7 +24,7 @@ export function AuditTrailTab({ logs }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-100">
         <div>
           <h3 className="font-extrabold text-sm text-[#1E293B]">Piste d'Audit Interne (Logs Immutables)</h3>
-          <p className="text-[10px] text-neutral-400 font-semibold">Chaque modification enregistrée par un compte connecté est journalisée par le serveur ; le journal ne peut être ni modifié ni effacé.</p>
+          <p className="text-[10px] text-neutral-400 font-semibold">Chaque modification enregistrée par un compte connecté est journalisée par le serveur ; une entrée ne peut pas être modifiée, et n'est effacée qu'après la durée de conservation fixée par la plateforme.</p>
         </div>
         <div className="flex gap-2">
           <input

@@ -3,6 +3,7 @@ import { Globe, Shield, Server, Save, Sparkles } from 'lucide-react';
 import { SettingsGeneralTab } from '../components/settings/SettingsGeneralTab';
 import { SettingsSecurityTab } from '../components/settings/SettingsSecurityTab';
 import { SettingsSystemTab } from '../components/settings/SettingsSystemTab';
+import { ConservationJournalAudit } from '../components/settings/ConservationJournalAudit';
 
 export const SuperAdminSettingsPage = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -40,7 +41,7 @@ export const SuperAdminSettingsPage = () => {
       </div>
 
       <div className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-semibold">
-        Fonctionnalité non disponible : aucune source de données. Les paramètres globaux de la plateforme ne sont pas encore stockés côté serveur ; rien n'est affiché ni enregistré.
+        Seule la conservation du journal d'audit (onglet Sécurité) est enregistrée sur le serveur. Les autres paramètres globaux ne sont pas encore stockés : ils restent désactivés, rien n'est affiché ni enregistré.
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
@@ -58,7 +59,13 @@ export const SuperAdminSettingsPage = () => {
           ))}
         </div>
 
-        {/* Content Box */}
+        {/* Content Box : la conservation du journal d'audit fonctionne (2026-11-14) ; le reste reste désactivé */}
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
+        {activeTab === 'security' && (
+          <div className="bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl">
+            <ConservationJournalAudit />
+          </div>
+        )}
         <fieldset disabled className="flex-1 min-w-0 opacity-60 bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-xl">
           {activeTab === 'general' && (
             <SettingsGeneralTab platformName={platformName} setPlatformName={setPlatformName} supportEmail={supportEmail} setSupportEmail={setSupportEmail} />
@@ -70,6 +77,7 @@ export const SuperAdminSettingsPage = () => {
             <SettingsSystemTab maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />
           )}
         </fieldset>
+        </div>
       </div>
     </div>
   );

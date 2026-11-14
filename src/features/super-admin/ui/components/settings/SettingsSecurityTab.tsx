@@ -29,7 +29,7 @@ export const SettingsSecurityTab: React.FC<SettingsSecurityTabProps> = ({ requir
         <div>
           <label className="block font-semibold text-slate-300 mb-1.5">Expiration de Session Globale (en minutes)</label>
           <input
-            type="number" defaultValue={120}
+            type="number" placeholder="Non disponible" aria-label="Expiration de session globale : non disponible"
             className="w-full sm:w-48 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500"
           />
           <p className="text-[11px] text-slate-500 mt-1">Déconnexion automatique en cas d'inactivité prolongée.</p>
