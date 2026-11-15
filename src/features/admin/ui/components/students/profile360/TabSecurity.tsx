@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { PROFIL_VIDE } from './utils/profilVide';
 import { ConnectionsTable, AuditTrailTable } from './SecurityTables';
+import { MotDePasseEleve } from './MotDePasseEleve';
 
 interface Props {
   selectedStudent: Student;
@@ -15,6 +16,7 @@ export function TabSecurity({ selectedStudent, erpData }: Props) {
 
   return (
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-security">
+      <MotDePasseEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
       <div className="flex border-b border-neutral-100 gap-2 pb-2">
         <button
           onClick={() => setSecTab('connections')}

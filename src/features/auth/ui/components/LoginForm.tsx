@@ -167,8 +167,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-4 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="email"
-            type="text"
-            inputMode="email"
+            type="email"
             autoCapitalize="none"
             spellCheck={false}
             autoComplete="username"
