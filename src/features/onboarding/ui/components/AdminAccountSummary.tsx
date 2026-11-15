@@ -67,7 +67,7 @@ export const AdminAccountSummary: React.FC<AdminAccountSummaryProps> = ({
           whileTap={{ scale: 0.99 }}
           type="submit"
           disabled={isLoading}
-          style={{ backgroundColor: palette.primary }}
+          style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
           className="flex-[2] py-4 rounded-xl text-sm font-black uppercase tracking-wider text-white hover:brightness-110 shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
         >
           {isLoading ? (

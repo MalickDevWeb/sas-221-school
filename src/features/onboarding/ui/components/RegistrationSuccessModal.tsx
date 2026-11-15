@@ -46,7 +46,7 @@ export const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> =
         <div className="flex items-center gap-3.5 mb-6">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0"
-            style={{ backgroundColor: palette.primary }}
+            style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
           >
             <Icon icon="solar:square-academic-cap-bold-duotone" className="text-2xl" />
           </div>
@@ -111,7 +111,7 @@ export const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> =
           <button
             type="button"
             onClick={handleAccessPortal}
-            style={{ backgroundColor: palette.primary }}
+            style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
             className="flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white hover:brightness-110 shadow-xl transition-all cursor-pointer"
           >
             Accéder au portail de mon école →

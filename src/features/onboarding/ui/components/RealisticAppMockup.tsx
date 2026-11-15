@@ -123,7 +123,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
               {/* Logo / Monogramme avec la couleur choisie */}
               <div
                 className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center text-white text-xs font-black shadow-md border border-white/20 transition-all duration-300"
-                style={{ backgroundColor: palette.primary }}
+                style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
               >
                 {logo ? (
                   <img src={logo} className="w-full h-full object-contain p-0.5" alt="Logo" />
@@ -165,7 +165,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
               <div className="flex items-center gap-1.5">
                 <div
                   className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-xs"
-                  style={{ backgroundColor: palette.primary }}
+                  style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
                 >
                   Admin
                 </div>
@@ -223,7 +223,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
             {/* Bouton d'action Rapide aux couleurs de l'école */}
             <div
               className="py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider text-center text-white shadow-md flex items-center justify-center gap-1.5 transition-colors duration-300"
-              style={{ backgroundColor: palette.primary }}
+              style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
             >
               <span>Accéder à l'espace scolarité</span>
               <Icon icon="solar:arrow-right-line-duotone" className="text-xs" />
@@ -241,7 +241,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
       >
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm"
-          style={{ backgroundColor: palette.primary }}
+          style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
         >
           <Icon icon="solar:qr-code-bold-duotone" className="text-base" />
         </div>

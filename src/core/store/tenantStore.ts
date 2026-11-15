@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { publicApiClient } from '@/shared/lib/apiClient';
 import type { TenantPalette } from '@/shared/utils/colorExtractor';
-import { ECOLE_221_PALETTE, generatePaletteFromHex } from '@/shared/utils/colorExtractor';
+import { ECOLE_221_PALETTE, generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
 
 interface TenantBranding {
   primaryColor: string;
@@ -214,7 +214,12 @@ export const useTenantStore = create<TenantState>()(
         };
 
         // ── Couleur principale ──────────────────────────────────────────
-        inject('--color-primary', palette.primary);
+        // 2026-11-15 : l'application pose du texte blanc sur la couleur principale (« bg-primary text-white », près de
+        // 300 fois). Une couleur d'école très claire (ex. #eef1e7) rendait boutons et menus illisibles (blanc sur
+        // blanc). Sous le seuil WCAG de 3:1 avec le blanc, on garde la teinte de l'école dans sa variante foncée,
+        // garantie lisible (primaryDark ≥ 4,5:1) ; la couleur d'origine reste visible en fond clair (primaryLight).
+        const primaireLisible = getContrastRatio(palette.primary, '#FFFFFF') >= 3 ? palette.primary : palette.primaryDark;
+        inject('--color-primary', primaireLisible);
         inject('--color-primary-light', palette.primaryLight);
         inject('--color-primary-dark', palette.primaryDark);
 
@@ -229,10 +234,10 @@ export const useTenantStore = create<TenantState>()(
         root.style.setProperty('--surface-page', palette.surfaceWarm);
 
         // ── Texte sur fond primaire ───────────────────────────────────────
-        root.style.setProperty('--color-text-on-primary', palette.textOnPrimary);
+        root.style.setProperty('--color-text-on-primary', primaireLisible === palette.primary ? palette.textOnPrimary : '#FFFFFF');
 
         // ── Compatibilité brand-red ──────────────────────────────────────
-        root.style.setProperty('--color-brand-red-deep', palette.primary);
+        root.style.setProperty('--color-brand-red-deep', primaireLisible);
         root.style.setProperty('--color-brand-red-light', palette.primaryLight);
       },
 

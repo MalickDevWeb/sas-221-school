@@ -51,7 +51,7 @@ export function TenantFinderPage() {
                   type="text"
                   required
                   autoFocus
-                  placeholder="ex: ecole-221"
+                  placeholder="ex: lycee-thies"
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setError(''); }}
                   className="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-2xl text-xs font-bold text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
@@ -66,24 +66,8 @@ export function TenantFinderPage() {
             </button>
           </form>
 
-          <div className="pt-2 border-t border-slate-800/80 space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block text-center">Établissement disponible :</span>
-            <button
-              type="button"
-              onClick={() => navigate('/t/ecole-221/login')}
-              className="w-full p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-left transition-all flex items-center justify-between cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-lg bg-red-600/20 text-red-400 flex items-center justify-center font-black text-xs border border-red-500/20">221</span>
-                <div>
-                  <div className="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors">École 221</div>
-                  <div className="text-[10px] text-slate-500 font-mono">/t/ecole-221/login</div>
-                </div>
-              </div>
-              <Icon icon="solar:alt-arrow-right-line-duotone" className="text-slate-500 group-hover:text-white transition-colors" />
-            </button>
-          </div>
-
+          {/* 2026-11-15 : raccourci vers l'école de démonstration « École 221 » retiré (écrit en dur, affiché même
+              quand cette école n'existe pas) : chaque école se rejoint par son identifiant. */}
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 pt-2">
             <Link to="/register-school" className="hover:text-indigo-300 transition-colors">+ Inscrire mon école</Link>
             <Link to="/super-admin" className="hover:text-purple-300 transition-colors flex items-center gap-1">
