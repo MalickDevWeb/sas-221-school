@@ -1,4 +1,5 @@
 import { QrLocal } from '@/shared/components/QrLocal';
+import { useBadgePersonnel } from '@/shared/hooks/useBadgePersonnel';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
@@ -8,8 +9,8 @@ interface Props {
   readonly onClose: () => void;
 }
 
-export function ProfessorQRZoomOverlay({ profName, onClose }: Props) {
-  const qrUrl = `221-PROF-${profName.replace(/\s+/g, '-')}`; // contenu du QR, dessiné localement
+export function ProfessorQRZoomOverlay({ onClose }: Props) {
+  const qrUrl = useBadgePersonnel();
 
   return createPortal(
     <div 

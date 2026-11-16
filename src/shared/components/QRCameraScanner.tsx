@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Icon } from '@iconify/react';
 import { motion } from 'motion/react';
 import { useQRCameraScanner } from './useQRCameraScanner';
@@ -6,45 +6,26 @@ import { useQRCameraScanner } from './useQRCameraScanner';
 interface Props { readonly onScanComplete: (decodedText: string) => void; }
 
 export function QRCameraScanner({ onScanComplete }: Props) {
-  const elementId = "shared-qr-camera-element";
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [, setDims] = useState({ w: 0, h: 0 });
-
   const {
+    videoRef,
     error,
     isScanning,
-    facingMode,
     setFacingMode,
     zoomSupported,
     currentZoom,
     zoomCaps,
     applyZoom,
-  } = useQRCameraScanner(elementId, onScanComplete);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
-      }
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
+  } = useQRCameraScanner(onScanComplete);
 
   const zoomOptions = [1.0, 1.2, 1.4, 1.6, 2.0].filter(
     (v) => !zoomCaps || (v >= zoomCaps.min && v <= zoomCaps.max)
   );
 
   return (
-    <div className="space-y-3 w-full" id="qr-camera-scanner" ref={containerRef}>
-      <style>{`
-        #${elementId} { display: grid !important; place-items: center !important; width: 100% !important; height: 100% !important; overflow: hidden !important; }
-        #${elementId} video { grid-area: 1 / 1 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
-        #${elementId} canvas { grid-area: 1 / 1 !important; z-index: 5 !important; object-fit: contain !important; }
-      `}</style>
+    <div className="space-y-3 w-full" id="qr-camera-scanner">
       <div className="relative aspect-square w-48 mx-auto rounded-2xl bg-neutral-950 border-2 border-primary/40 overflow-hidden flex flex-col items-center justify-center text-white">
-        <div id={elementId} className="absolute inset-0 w-full h-full" />
+        {/* Le cadre montre le carré central de l'image : c'est exactement la zone lue par le décodeur */}
+        <video ref={videoRef} muted playsInline autoPlay className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-primary z-10 pointer-events-none" />
         <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-primary z-10 pointer-events-none" />
         <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-primary z-10 pointer-events-none" />

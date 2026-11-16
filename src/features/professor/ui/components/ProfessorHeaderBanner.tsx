@@ -1,18 +1,20 @@
 import { QrLocal } from '@/shared/components/QrLocal';
+import { useBadgePersonnel } from '@/shared/hooks/useBadgePersonnel';
+import { useMesPointages } from '@/shared/hooks/usePointage';
 import React from 'react';
 
 interface Props {
   readonly profName: string;
   readonly coursesCount: number;
-  readonly vigilCheckInsCount: number;
   readonly onOpenPresence: (tab: 'badge' | 'scanner', type: 'arrivée' | 'départ') => void;
   readonly onZoomQR: () => void;
 }
 
-export function ProfessorHeaderBanner({ profName, coursesCount, vigilCheckInsCount, onOpenPresence, onZoomQR }: Props) {
+export function ProfessorHeaderBanner({ profName, coursesCount, onOpenPresence, onZoomQR }: Props) {
   const currentHour = new Date().getHours();
   const welcomeMessage = currentHour >= 18 ? "Bonsoir, " : currentHour >= 12 ? "Bon après-midi, " : "Bonjour, ";
-  const nextPointerType = vigilCheckInsCount % 2 === 0 ? 'arrivée' : 'départ';
+  const { prochainType: nextPointerType, sensConnu } = useMesPointages();   // 16/11 : donné par le serveur
+  const badge = useBadgePersonnel();
 
   return (
     <div className="-mt-2 mb-6 flex flex-row items-center justify-between gap-4 sm:gap-6 bg-[#f8fafc] p-5 sm:p-6 rounded-3xl border border-neutral-200 shadow-3xs relative overflow-hidden">
@@ -46,7 +48,7 @@ export function ProfessorHeaderBanner({ profName, coursesCount, vigilCheckInsCou
           </div>
 
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300 mt-2">
-            <QrLocal valeur={`221-PROF-${profName.replace(/\s+/g, '-')}`} titre="QR Code Enseignant" className="w-[68px] h-[68px]" />
+            <QrLocal valeur={badge} titre="QR Code Enseignant" className="w-[68px] h-[68px]" />
             <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>
         </div>
@@ -56,7 +58,7 @@ export function ProfessorHeaderBanner({ profName, coursesCount, vigilCheckInsCou
           className="bg-primary text-white rounded-xl font-black uppercase tracking-wider shadow-md hover:bg-[#961215] hover:scale-[1.03] active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 w-[130px] h-[34px] text-[9.5px] border border-brand-red-deep/10 relative z-30"
         >
           <span className="material-symbols-outlined text-[12px] font-black animate-pulse">qr_code_scanner</span>
-          Scanner ({nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})
+          {!sensConnu ? 'Scanner' : `Scanner (${nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})`}
         </button>
       </div>
     </div>

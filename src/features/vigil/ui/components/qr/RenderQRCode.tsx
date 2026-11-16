@@ -1,20 +1,28 @@
 import { QrLocal } from '@/shared/components/QrLocal';
+import { useQrEntree } from '@/shared/hooks/usePointage';
 import React from 'react';
 
 interface Props {
   readonly className?: string;
-  readonly data?: string;
 }
 
-export function RenderQRCode({ className = 'w-44 h-44 select-none', data = '221-VIGILE-PORTAL-MAIN' }: Props) {
+/**
+ * QR d'entrée de l'école affiché par le vigile (16/11) : signé par le serveur, propre à l'école et renouvelé chaque
+ * minute ; l'élève ou le professeur le scanne pour pointer son arrivée ou son départ. Avant : QR fixe
+ * « 221-VIGILE-PORTAL-MAIN », identique pour toutes les écoles. Sans réponse du serveur, aucun QR n'est inventé.
+ */
+export function RenderQRCode({ className = 'w-44 h-44 select-none' }: Props) {
+  const { contenu, chargement, erreur } = useQrEntree();
 
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-white rounded-2xl overflow-hidden p-2">
-      <QrLocal valeur={data} titre="QR Code" className={className} />
-      {/* Laser line overlay animation */}
-      <div className="absolute left-0 right-0 h-[1.5px] bg-primary opacity-80 shadow-[0_0_8px_#ba0013] top-1/2 -translate-y-1/2" />
-      <div className="absolute inset-x-0 h-0.5 bg-primary/20 top-1 animate-[bounce_3s_infinite] pointer-events-none" />
+      {contenu ? (
+        <QrLocal valeur={contenu} titre="QR code d'entrée" className={className} />
+      ) : (
+        <p id="qr-entree-indisponible" className="text-[11px] font-semibold text-neutral-500 text-center px-4">
+          {chargement ? 'Chargement du QR code d’entrée…' : (erreur || 'QR code d’entrée indisponible.')}
+        </p>
+      )}
     </div>
   );
 }
-

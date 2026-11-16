@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { audioService } from '../infrastructure/config/dependencies';
 import { securityService } from '@/shared/lib/apiService';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
@@ -40,9 +40,13 @@ export interface ActiveCheckpoint {
   guard?: string;
 }
 
+const DELAI_RELECTURE_MS = 8000;
+
 export function useVigilLocalState() {
   const [manualId, setManualId] = useState('');
   const [resetKey, setResetKey] = useState(0);
+  // Dernier contenu lu par la caméra : un badge resté devant l'objectif n'est compté qu'une fois
+  const dernierScanRef = useRef<{ texte: string; instant: number } | null>(null);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
   // Passages et points de contrôle RÉELS uniquement (avant : passages d'élèves et points inventés)
   const [scanLogs, setScanLogs] = useState<ScanLogItem[]>(() => {
@@ -121,9 +125,23 @@ export function useVigilLocalState() {
   }, [scanLogs, checkpoints]);
 
   const handleScanSuccess = useCallback(async (badgeId: string, isManual = false) => {
-    // Contenu signé (STU_SECURE:…) gardé tel quel : la signature est sensible à la casse (avant : tout passait en majuscules)
     const brut = badgeId.trim();
-    const resolvedId = brut.startsWith('STU_SECURE:') ? brut : brut.toUpperCase();
+    /*
+     * 16/11 (test caméra de bout en bout) : après chaque lecture, le scanner redémarre aussitôt et relisait le badge
+     * encore présenté : un même passage était enregistré 4 fois en 1,5 s. Même contenu relu par la caméra dans les
+     * 8 secondes : ignoré (pas de bip, pas de journal) ; le scanner reprend après une courte pause.
+     */
+    if (!isManual) {
+      const precedent = dernierScanRef.current;
+      if (precedent && precedent.texte === brut && Date.now() - precedent.instant < DELAI_RELECTURE_MS) {
+        setTimeout(() => setResetKey(k => k + 1), 1500);
+        return;
+      }
+      dernierScanRef.current = { texte: brut, instant: Date.now() };
+    }
+    // Contenu lu par la caméra gardé tel quel : signature du badge élève (STU_SECURE:…) et identifiant de compte du
+    // badge du personnel sont sensibles à la casse. Seule la saisie à la main (matricule) passe en majuscules.
+    const resolvedId = isManual && !brut.startsWith('STU_SECURE:') ? brut.toUpperCase() : brut;
     try {
       const apiResult = await securityService.submitScanLog(resolvedId);
       const isAuth = apiResult.statut === 'Autorisé';

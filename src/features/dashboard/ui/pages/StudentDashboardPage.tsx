@@ -28,7 +28,6 @@ export function StudentDashboardPage() {
       {showToast && <StudentNotificationToast message={showToast} />}
 
       <StudentHeaderBanner 
-        attendancesCount={attendances.length} 
         studentName={dbProfile?.name}
         matricule={dbProfile?.matricule}
         onPointer={(type) => {
@@ -50,7 +49,6 @@ export function StudentDashboardPage() {
         <PresenceModal 
           pointageType={pointageType}
           onClose={() => { stopCamera(); setShowPointage(false); }}
-          onRegisterClockIn={registerClockIn}
         />
       )}
 

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { QrLocal } from '@/shared/components/QrLocal';
 import { useBadgeNumerique } from '@/features/student/hooks/useBadgeNumerique';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { useMesPointages } from '@/shared/hooks/usePointage';
 
 interface StudentHeaderBannerProps {
-  attendancesCount: number;
   onPointer: (type: 'arrivée' | 'départ') => void;
   onShowBadge: (type: 'arrivée' | 'départ') => void;
   studentName?: string;
@@ -12,7 +12,7 @@ interface StudentHeaderBannerProps {
 }
 
 export function StudentHeaderBanner({ 
-  attendancesCount, onPointer, onShowBadge, studentName, matricule 
+  onPointer, onShowBadge, studentName, matricule 
 }: StudentHeaderBannerProps) {
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name ? currentTenant.name : "l'École 221";
@@ -22,8 +22,9 @@ export function StudentHeaderBanner({
   const greeting = currentHour >= 18 ? 'Bonsoir' : currentHour >= 12 ? 'Bon après-midi' : 'Bonjour';
   const welcomeMessage = nameToDisplay ? `${greeting}, ${nameToDisplay} !` : `${greeting} !`;
 
-  // Déterminer automatiquement le type de pointage (alternance Arrivée / Départ)
-  const nextPointerType = attendancesCount % 2 === 0 ? 'arrivée' : 'départ';
+  // 16/11 : sens du prochain pointage et pointages du jour donnés par le serveur (avant : parité du nombre de
+  // présences aux cours, sans rapport avec les pointages)
+  const { prochainType: nextPointerType, aujourdhui, sensConnu } = useMesPointages();
 
   // Aucun QR sans matricule réel (pas de badge inventé) ; le contenu est signé par le serveur (QR dessiné localement).
   const realMatricule = matricule?.trim() || '';
@@ -43,11 +44,11 @@ export function StudentHeaderBanner({
           </p>
         </div>
 
-        {attendancesCount > 0 && (
+        {aujourdhui > 0 && (
           <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-2.5 sm:px-3 py-1 rounded-full">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
             <span className="font-mono text-[8.5px] sm:text-[9.5px] text-primary font-black">
-              {attendancesCount} {attendancesCount === 1 ? 'pointage' : 'pointages'}
+              {aujourdhui} {aujourdhui === 1 ? 'pointage' : 'pointages'} aujourd'hui
             </span>
           </div>
         )}
@@ -92,7 +93,7 @@ export function StudentHeaderBanner({
           className="bg-primary text-white rounded-xl font-black uppercase tracking-wider shadow-md hover:bg-primary-dark transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap border border-primary/10 w-[145px] h-[35px] text-[10px] leading-[12px]"
         >
           <span translate="no" className="material-symbols-outlined text-[11px] font-black animate-pulse">qr_code_scanner</span>
-          Scanner ({nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})
+          {!sensConnu ? 'Scanner' : `Scanner (${nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})`}
         </button>
       </div>
     </div>

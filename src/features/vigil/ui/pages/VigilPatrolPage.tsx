@@ -74,7 +74,7 @@ export function VigilPatrolPage() {
                 <span className="h-2.5 w-2.5 bg-green-500 rounded-full animate-pulse" />
                 {activeCheckpoint?.gate || 'Poste non assigné'} • Vigile : {activeCheckpoint?.guard || '—'}
               </p>
-              <p className="text-[10px] text-neutral-400 mt-1">Scanner ce code pour enregistrer l'entrée</p>
+              <p className="text-[10px] text-neutral-400 mt-1">À scanner pour pointer l'arrivée ou le départ (change chaque minute)</p>
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import type { StudentEnrolled } from '../../domain/ProfessorModels';
 import type { AttendanceStatus } from '../../domain/ProfessorAttendance';
-import { ProfessorScannerTab } from './ProfessorScannerTab';
+import { ScannerPointage } from '@/shared/components/ScannerPointage';
 
 interface Props {
   readonly profName: string;
@@ -12,10 +12,9 @@ interface Props {
   readonly onMarkAttendance: (studentId: string, status: AttendanceStatus) => void;
   readonly initialTab?: 'badge' | 'scanner';
   readonly pointageType?: 'arrivée' | 'départ';
-  readonly onScanComplete?: () => void;
 }
 
-export function ProfessorPresenceModal({ profName, onClose, pointageType = 'arrivée', onScanComplete }: Props) {
+export function ProfessorPresenceModal({ onClose, pointageType = 'arrivée' }: Props) {
   useEffect(() => {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
@@ -47,7 +46,7 @@ export function ProfessorPresenceModal({ profName, onClose, pointageType = 'arri
         </div>
 
         <div className="p-5 text-center space-y-4">
-          <ProfessorScannerTab pointageType={pointageType} onScanComplete={onScanComplete ? () => onScanComplete() : undefined} />
+          <ScannerPointage sens={pointageType} />
 
           <button 
             onClick={onClose}

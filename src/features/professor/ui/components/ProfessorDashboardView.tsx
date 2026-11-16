@@ -33,7 +33,6 @@ export function ProfessorDashboardView({
   const [showPresence, setShowPresence] = useState(false);
   const [presenceTab, setPresenceTab] = useState<'badge' | 'scanner'>('badge');
   const [pointageType, setPointageType] = useState<'arrivée' | 'départ'>('arrivée');
-  const [localVigilCheckInsCount, setLocalVigilCheckInsCount] = useState(0);
   const [showQRZoom, setShowQRZoom] = useState(false);
 
   return (
@@ -41,7 +40,6 @@ export function ProfessorDashboardView({
       <ProfessorHeaderBanner
         profName={profName}
         coursesCount={courses.length}
-        vigilCheckInsCount={localVigilCheckInsCount}
         onOpenPresence={(tab, type) => {
           setPresenceTab(tab);
           setPointageType(type);
@@ -96,7 +94,6 @@ export function ProfessorDashboardView({
           onMarkAttendance={onMarkAttendance}
           initialTab={presenceTab}
           pointageType={pointageType}
-          onScanComplete={() => setLocalVigilCheckInsCount(prev => prev + 1)}
         />
       )}
 
