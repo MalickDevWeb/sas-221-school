@@ -22,7 +22,7 @@ export interface ChildAttendance {
 }
 
 /**
- * Réponse de GET /parent/enfants/{id}/notes (backend 1085787).
+ * Réponse de GET /parent/enfants/{id}/notes (backend 96dea40).
  * cc, examen, moyenne, mention et ects peuvent être null (note non saisie) :
  * l'UI affiche « — » et ne calcule jamais de mention à la place du backend.
  * mention : chaîne libre renvoyée par le backend (valeurs non contractualisées à ce jour).
