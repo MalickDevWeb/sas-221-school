@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
 import { motion } from 'motion/react';
-import { Sparkles, Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePlatformStore } from '@/features/super-admin/store/usePlatformStore';
 import { SuperAdminStatsGrid } from '../components/SuperAdminStatsGrid';
@@ -36,17 +36,6 @@ export const SuperAdminDashboardPage: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-white shadow-lg mb-3"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-black tracking-wide uppercase text-slate-200">
-              Contrôle Global SaaS Multi-Tenant
-            </span>
-            <Sparkles size={11} className="text-amber-300" />
-          </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 10 }}
@@ -54,10 +43,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
             transition={{ delay: 0.05 }}
             className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight"
           >
-            Vue d'ensemble de la Plateforme
+            Vue d'ensemble
           </motion.h1>
           <p className="text-xs text-slate-400 mt-1">
-            Supervision en temps réel des écoles, des abonnements et de l'infrastructure.
+            Écoles, comptes et abonnements de la plateforme.
           </p>
         </div>
 

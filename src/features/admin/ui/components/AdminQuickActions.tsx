@@ -51,7 +51,7 @@ export function AdminQuickActions({
           <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-2">
             <span translate="no" className="material-symbols-outlined text-primary font-bold">campaign</span>
           </div>
-          <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Diffusion</span>
+          <span className="text-[10px] font-bold text-center uppercase text-[#291715]">Annonce</span>
         </button>
       </div>
 

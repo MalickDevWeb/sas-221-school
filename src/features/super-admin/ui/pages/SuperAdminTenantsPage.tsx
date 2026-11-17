@@ -60,8 +60,8 @@ export const SuperAdminTenantsPage = () => {
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col h-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Répertoire des Établissements</h1>
-          <p className="text-xs text-slate-400 mt-1">Gérez l'ensemble des campus clients, personnalisez leurs identités et accédez à leurs portails.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Établissements</h1>
+          <p className="text-xs text-slate-400 mt-1">Toutes les écoles inscrites sur la plateforme : validation, modification, suspension et archivage.</p>
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
@@ -105,8 +105,7 @@ export const SuperAdminTenantsPage = () => {
         {viewMode === 'cards' ? <TenantsCardGrid {...sharedProps} /> : <TenantsTable {...sharedProps} />}
 
         <div className="px-6 py-3 border-t border-white/[0.06] bg-white/[0.01] flex items-center justify-between text-xs text-slate-400">
-          <span>Affichage de <span className="font-bold text-white">{filteredOrgs.length}</span> campus</span>
-          <span className="text-[10px] text-slate-500">PostgreSQL Cloud Multi-Tenant</span>
+          <span>Affichage de <span className="font-bold text-white">{filteredOrgs.length}</span> établissement(s)</span>
         </div>
       </div>
 

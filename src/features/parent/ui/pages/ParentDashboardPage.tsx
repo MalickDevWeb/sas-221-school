@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { useParentContext } from '../components/layout/ParentLayout';
+import { ClassesVirtuellesAccueil } from '@/features/collaboration/ui/components/ClassesVirtuellesAccueil';
+import { GroupesWhatsappRejoindre } from '@/shared/components/GroupesWhatsappRejoindre';
+import { useParentContext } from '../components/layout/ParentContext';
 import { ParentChildBanner } from '../components/ParentChildBanner';
 import { ParentDashboardStats } from '../components/ParentDashboardStats';
 import { AttestationModal } from '../components/AttestationModal';
@@ -63,6 +65,14 @@ export function ParentDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Classes virtuelles de la classe de ses enfants (le parent est informé, l'élève rejoint) */}
+      {/* FEAT-007 : groupes WhatsApp de l'école à rejoindre (ceux de la classe de ses enfants et de toute l'école) */}
+      <GroupesWhatsappRejoindre id="groupes-whatsapp-parent" />
+      {!childrenError && children.length > 0 && (
+        <ClassesVirtuellesAccueil id="classes-virtuelles-parent" titre="Classes virtuelles de votre enfant"
+          description="Cours en visioconférence publiés pour sa classe : votre enfant les rejoint depuis son espace." rejoindre={false} />
+      )}
 
       {childrenError ? (
         <ParentErrorState message={childrenError} onRetry={reloadDashboard} />

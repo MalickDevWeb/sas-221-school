@@ -5,6 +5,7 @@ import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
+import { usePrechargementEspace } from '@/core/router/prechargementEspaces';
 
 export const SuperAdminLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +16,8 @@ export const SuperAdminLoginPage = () => {
   const navigate = useNavigate();
 
   const isSuperAdmin = utilisateur && (utilisateur.role === 'SUPER_ADMIN' || utilisateur.role === 'PLATFORM_OWNER');
+  // Cette page ne mène qu'à l'espace de la plateforme → son code est téléchargé pendant la saisie
+  usePrechargementEspace('plateforme');
 
   useQuery({
     queryKey: ['superadmin', 'me', utilisateur?.email],
@@ -31,6 +34,14 @@ export const SuperAdminLoginPage = () => {
       deconnexion();
     }
   }, [utilisateur, isSuperAdmin, deconnexion]);
+
+  // Développement seulement (npm run dev) : null dans une version construite, le bouton n'existe donc pas en production.
+  const identifiantsDev = import.meta.env.DEV ? __IDENTIFIANTS_DEV__ : null;
+  const preremplir = () => {
+    if (!identifiantsDev) return;
+    setEmail(identifiantsDev.email);
+    setPassword(identifiantsDev.motDePasse);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +62,8 @@ export const SuperAdminLoginPage = () => {
           <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6">
             <ShieldCheck className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Platform Control</h1>
-          <p className="text-slate-400">Restricted access for Super Administrators</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Espace plateforme</h1>
+          <p className="text-slate-400">Accès réservé aux super-administrateurs</p>
         </div>
 
         <div className="bg-[#1E293B]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-8">
@@ -109,6 +120,17 @@ export const SuperAdminLoginPage = () => {
                 </>
               )}
             </button>
+
+            {identifiantsDev && (
+              <button
+                type="button"
+                id="superadmin-preremplir"
+                onClick={preremplir}
+                className="w-full h-10 rounded-xl border border-dashed border-amber-400/60 text-amber-300 hover:bg-amber-400/10 text-sm font-semibold transition-all"
+              >
+                Pré-remplir le super-admin (développement)
+              </button>
+            )}
           </form>
         </div>
         

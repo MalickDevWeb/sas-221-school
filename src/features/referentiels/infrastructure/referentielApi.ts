@@ -32,9 +32,13 @@ export const referentielApi = {
     return data;
   },
 
-  /** Supprime une valeur de l'école, ou annule une surcharge (retour à la valeur plateforme). */
-  async remove(slug: ReferentielSlug, code: string): Promise<void> {
-    await apiClient.delete(`${BASE}/${slug}/${encodeURIComponent(code)}`);
+  /**
+   * Supprime une valeur de l'école, ou annule une surcharge (retour à la valeur plateforme).
+   * Réponse : { corbeille: true, message, … } quand la valeur est placée dans la corbeille ; vide (204) sinon.
+   */
+  async remove(slug: ReferentielSlug, code: string): Promise<unknown> {
+    const { data } = await apiClient.delete(`${BASE}/${slug}/${encodeURIComponent(code)}`);
+    return data;
   },
 };
 

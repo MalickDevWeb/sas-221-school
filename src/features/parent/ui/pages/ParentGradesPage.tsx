@@ -1,7 +1,9 @@
 import React from 'react';
-import { useParentContext } from '../components/layout/ParentLayout';
+import { useParentContext } from '../components/layout/ParentContext';
 import { ParentErrorState } from '../components/ParentStatusBlocks';
 import { BulletinEvaluations } from '@/features/grades/bulletin/BulletinEvaluations';
+import { useBulletin } from '@/features/grades/bulletin/bulletinApi';
+import { ouvrirDocumentImprimable, tableauHtml, tableauCleValeurHtml } from '@/shared/lib/documentImprimable';
 
 const MENTION_CONFIG: Record<string, { color: string; bg: string }> = {
   'Excellent':     { color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
@@ -34,6 +36,33 @@ export function ParentGradesPage() {
   const moyenneGenerale = stats?.moyenneGenerale ?? null;
   const creditValides = stats?.creditValides ?? null;
   const gradesError = errors?.grades ?? null;
+  // Même requête que le bulletin affiché (cache React Query) : le document imprimé contient exactement ces valeurs
+  const bulletin = useBulletin(selectedChild?.id);
+  const note = (v: number | null) => (v == null ? '—' : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }));
+
+  /** Bulletin imprimé sur le modèle commun des documents de l'école. */
+  const imprimerBulletin = () => {
+    const b = bulletin.data;
+    const eleve = `${selectedChild?.prenom ?? ''} ${selectedChild?.nom ?? ''}`.trim() || 'Élève';
+    const corps = !b ? '<p class="note">Bulletin indisponible : aucune donnée reçue du serveur.</p>' : `
+${tableauCleValeurHtml([
+  { cle: 'Moyenne générale', valeur: b.moyenneGenerale == null ? '—' : `${note(b.moyenneGenerale)} / 20` },
+  ...(b.mention ? [{ cle: 'Mention', valeur: b.mention }] : []),
+  { cle: 'Matières notées', valeur: String(b.matieresNotees) },
+])}
+${tableauHtml(['Matière', 'Moyenne / 20', 'Mention', 'Rang', 'Professeur'],
+  b.matieres.map((m) => [m.cours, note(m.moyenne), m.mention ?? '—',
+    m.rang == null ? '—' : `${m.rang}${m.effectifClasse ? ` / ${m.effectifClasse}` : ''}`, m.professeur ?? '—']),
+  'Aucune matière notée pour le moment.', [1])}
+${b.provisoire ? '<p class="note"><strong>Provisoire :</strong> certaines évaluations ne sont pas encore validées par l’administration.</p>' : ''}
+<p class="note">${[b.regleMatiere, b.regleGenerale].filter(Boolean).join(' ')}</p>`;
+    ouvrirDocumentImprimable({
+      titre: 'Bulletin de notes',
+      sousTitre: `${eleve}${selectedChild?.classe ? ` — ${selectedChild.classe}` : ''}`,
+      titreFenetre: `Bulletin de ${eleve}`,
+      corps,
+    });
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">
@@ -44,14 +73,16 @@ export function ParentGradesPage() {
           <h2 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight">
             Notes de {selectedChild?.prenom ?? 'l\'élève'}
           </h2>
-          <p className="text-xs text-neutral-500 font-semibold mt-1">Relevé de notes officiel · Semestre en cours</p>
+          <p className="text-xs text-neutral-500 font-semibold mt-1">Évaluations saisies par les professeurs</p>
         </div>
         <button
-          onClick={() => window.print()}
+          onClick={imprimerBulletin}
+          disabled={bulletin.isLoading}
+          title={bulletin.isLoading ? 'Chargement du bulletin…' : undefined}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-[#0D47A1] text-white rounded-xl text-xs font-black shadow-md shadow-blue-200 transition-all"
         >
           <span translate="no" className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-          Télécharger le bulletin
+          Imprimer le bulletin
         </button>
       </div>
 

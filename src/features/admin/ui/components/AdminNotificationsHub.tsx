@@ -1,43 +1,47 @@
-import React, { useState } from 'react';
-import { NotificationsSubSidebar } from './notifications/NotificationsSubSidebar';
+import { useState } from 'react';
 import { MassSendTab } from './notifications/MassSendTab';
 import { EmergencyTab } from './notifications/EmergencyTab';
 import { HistoryAnalyticsTab } from './notifications/HistoryAnalyticsTab';
-import { useNotificationsHub } from './notifications/useNotificationsHub';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { ModuleAvecSousMenu, SousMenuModule, useRepliSousMenu, type EntreeSousMenu } from '@/shared/components/SousMenuModule';
+import { GroupesWhatsappTab } from './notifications/GroupesWhatsappTab';
 
+type Section = 'mass-send' | 'emergency' | 'history' | 'whatsapp';
+
+const EN_TETES: Record<Section, { titre: string; sousTitre: string }> = {
+  'mass-send': { titre: 'Annonces', sousTitre: 'Écrire à toute l’école ou à un groupe : l’annonce arrive dans la cloche de leur espace.' },
+  emergency: { titre: 'Alertes d’urgence', sousTitre: 'Prévenir immédiatement : l’alerte est mise en évidence dans la cloche des destinataires.' },
+  history: { titre: 'Historique', sousTitre: 'Annonces et alertes envoyées, avec le nombre de personnes qui les ont reçues et lues.' },
+  whatsapp: { titre: 'Groupes WhatsApp', sousTitre: 'Les groupes WhatsApp de l’école, pour y partager les annonces sans frais.' },
+};
+
+const ENTREES: EntreeSousMenu[] = [
+  { id: 'mass-send', libelle: 'Annonces', icone: 'campaign', sousLibelle: 'Écrire une annonce' },
+  { id: 'emergency', libelle: 'Alertes d’urgence', icone: 'emergency_home', sousLibelle: 'Consignes en cas d’urgence' },
+  { id: 'history', libelle: 'Historique', icone: 'history', sousLibelle: 'Reçues et lues' },
+  { id: 'whatsapp', libelle: 'Groupes WhatsApp', icone: 'forum', sousLibelle: 'Liens et partages' },
+];
+
+/** Annonces & alertes de l'école (modèle commun : sous-menu à gauche, un seul titre dans la carte de contenu). */
 export function AdminNotificationsHub() {
-  const [activeTab, setActiveTab] = useState('mass-send');
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const { campaigns, loadError, sendCampaign, triggerEmergency, deleteCampaign } = useNotificationsHub();
+  const [section, setSection] = useState<Section>('mass-send');
+  const [replie, basculerRepli] = useRepliSousMenu('notifications');
+  const choisir = (id: string) => { if (id === 'mass-send' || id === 'emergency' || id === 'history' || id === 'whatsapp') setSection(id); };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-notifications-hub-root">
-      <TabletDrawerWrapper>
-        <NotificationsSubSidebar
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-        />
-      </TabletDrawerWrapper>
-
-      <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-4 sm:p-6 shadow-xs min-h-[550px] relative">
-        {activeTab === 'mass-send' && (
-          <MassSendTab onSendCampaign={sendCampaign} />
-        )}
-
-        {activeTab === 'emergency' && (
-          <EmergencyTab onTriggerEmergency={triggerEmergency} />
-        )}
-
-        {activeTab === 'history' && loadError && (
-          <p className="mb-3 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2.5">Historique indisponible : {loadError}</p>
-        )}
-        {activeTab === 'history' && (
-          <HistoryAnalyticsTab campaigns={campaigns} onDeleteCampaign={deleteCampaign} />
-        )}
-      </div>
-    </div>
+    <ModuleAvecSousMenu
+      id="admin-notifications-hub-root"
+      idContenu="notifications-contenu"
+      titre={EN_TETES[section].titre}
+      sousTitre={EN_TETES[section].sousTitre}
+      sousMenu={(
+        <SousMenuModule id="notifications-subsidebar" titre="Annonces & Alertes" entrees={ENTREES} actif={section}
+          onChoisir={choisir} replie={replie} onBasculerRepli={basculerRepli} />
+      )}
+    >
+      {section === 'mass-send' && <MassSendTab />}
+      {section === 'emergency' && <EmergencyTab />}
+      {section === 'history' && <HistoryAnalyticsTab onNouvelle={() => setSection('mass-send')} />}
+      {section === 'whatsapp' && <GroupesWhatsappTab />}
+    </ModuleAvecSousMenu>
   );
 }

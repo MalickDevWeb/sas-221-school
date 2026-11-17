@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { useAuthStore } from '@/core/store/authStore';
 import { useRbacStore } from '@/core/store/rbacStore';
+import { LogoEcole } from '@/shared/components/LogoEcole';
+import { sectionsVisibles } from './menuAdmin';
 
 interface Props {
   onLogout: () => void;
@@ -13,27 +15,7 @@ interface Props {
   onToggleCollapse: () => void;
 }
 
-// Permission (catalogue du serveur, GET /admin/rbac) exigée par chaque menu — 2026-11-13
-const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Tableau de Bord', icon: 'dashboard', requiredPerm: 'ecole.lire' },
-  { id: 'promotions', label: 'Promotions & Classes', icon: 'account_tree', requiredPerm: 'planning.lire' },
-  { id: 'school', label: 'Gestion École', icon: 'school', requiredPerm: 'planning.lire' },
-  { id: 'schedule', label: 'Emploi du Temps', icon: 'calendar_today', requiredPerm: 'planning.lire' },
-  { id: 'periodes', label: 'Trimestres & clôture', icon: 'event_available', requiredPerm: 'ecole.lire' },
-  { id: 'personnel', label: 'Gestion Personnel', icon: 'badge', requiredPerm: 'personnel.lire' },
-  { id: 'students', label: 'Gestion Élèves', icon: 'group', requiredPerm: 'eleves.lire' },
-  { id: 'transferts', label: 'Transferts d\'élèves', icon: 'swap_horiz', requiredPerm: 'transferts.lire' },
-  { id: 'justificatifs', label: 'Justificatifs d\'absence', icon: 'assignment_turned_in', requiredPerm: 'eleves.lire' },
-  { id: 'messages_parents', label: 'Messages des parents', icon: 'mail', requiredPerm: 'eleves.lire' },
-  { id: 'admissions', label: 'Admissions', icon: 'person_add', requiredPerm: 'admissions.lire' },
-  { id: 'finances', label: 'Finances & Recouvre', icon: 'payments', requiredPerm: 'finances.lire' },
-  { id: 'collaboration', label: 'Collaboration', icon: 'group_work', requiredPerm: 'collaboration.lire' },
-  { id: 'billing', label: 'Mon Abonnement', icon: 'workspace_premium', requiredPerm: 'ecole.lire' },
-  { id: 'notifications', label: 'Notifications Hub', icon: 'mail', requiredPerm: 'communication.lire' },
-  { id: 'branding', label: 'Personnalisation', icon: 'palette', requiredPerm: 'ecole.lire' },
-  { id: 'referentiels', label: 'Référentiels', icon: 'tune', requiredPerm: 'ecole.lire' },
-  { id: 'security', label: 'Sécurité & Audit', icon: 'security', requiredPerm: 'securite.lire' },
-];
+// Menu en sections (menuAdmin.ts) ; permission du catalogue du serveur exigée par chaque entrée
 
 export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
   const navigate = useNavigate();
@@ -41,13 +23,13 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
   const { utilisateur } = useAuthStore();
   const mesDroits = useRbacStore((s) => s.mesDroits);
   const chargerMesDroits = useRbacStore((s) => s.chargerMesDroits);
-  const schoolName = currentTenant?.name || 'École 221';
+  const schoolName = currentTenant?.name || 'Votre établissement';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
 
   // Droits réels du compte, donnés par le serveur
   useEffect(() => { void chargerMesDroits(); }, [chargerMesDroits, utilisateur?.id, currentTenant?.slug]);
-  const visibleMenuItems = MENU_ITEMS.filter(item =>
-    mesDroits !== null && (mesDroits.administration || mesDroits.permissions.includes(item.requiredPerm)));
+  const sections = useMemo(() => sectionsVisibles(mesDroits), [mesDroits]);
+  const visibleMenuItems = useMemo(() => sections.flatMap(sec => sec.entrees), [sections]);
 
   useEffect(() => {
     if (visibleMenuItems.length > 0 && !visibleMenuItems.some(m => m.id === activeTab)) {
@@ -65,9 +47,12 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
     >
       <div className="flex items-center justify-between px-2 mb-4 shrink-0">
         {!isCollapsed && (
-          <div className="flex flex-col">
-            <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
-            <p className="text-[10px] font-black uppercase tracking-widest mt-0.5 text-primary">Admin ERP</p>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <LogoEcole taille={36} />
+            <div className="flex flex-col min-w-0">
+              <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight truncate">{schoolName}</h1>
+              <p className="text-[10px] font-black uppercase tracking-widest mt-0.5 text-primary">Administration</p>
+            </div>
           </div>
         )}
         <button
@@ -81,27 +66,52 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
         </button>
       </div>
 
-      <nav className="flex flex-col gap-1 flex-grow">
-        {visibleMenuItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`flex flex-row items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
-                isActive
-                  ? 'bg-primary text-text-on-primary shadow-md shadow-primary/20'
-                  : 'text-[#4A5568] hover:bg-[#F1EFEF] hover:text-[#1E293B]'
-              }`}
-              title={item.label}
-            >
-              <span translate="no" className="material-symbols-outlined text-center text-[20px]">
-                {item.icon}
-              </span>
-              {!isCollapsed && <span className="leading-none truncate">{item.label}</span>}
-            </button>
-          );
-        })}
+      <nav className="flex flex-col flex-grow" aria-label="Menu de l’administration">
+        {/* Squelette du menu tant que les droits du compte (GET /admin/rbac/moi) ne sont pas arrivés */}
+        {mesDroits === null && (
+          <div className="flex flex-col gap-1.5 px-1" role="status" aria-label="Chargement du menu" data-chargement-menu>
+            {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className={`h-8 rounded-xl bg-neutral-200/70 animate-pulse ${isCollapsed ? 'w-10 mx-auto' : 'w-full'}`} />
+            ))}
+          </div>
+        )}
+        {sections.map((section, i) => (
+          <div key={section.titre ?? 'accueil'} data-section-menu={section.titre ?? 'accueil'}
+            className={i === 0 ? '' : isCollapsed ? 'mt-2 pt-2 border-t border-neutral-200' : 'mt-3'}>
+            {section.titre && !isCollapsed && (
+              <p className="px-3 pb-1 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-400">{section.titre}</p>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {section.entrees.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    data-onglet={item.id}
+                    onClick={() => onSelectTab(item.id)}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={isCollapsed ? item.label : undefined}
+                    // Infobulle seulement menu replié (icônes seules) : déplié, le libellé est déjà visible
+                    title={isCollapsed ? item.label : undefined}
+                    className={`flex flex-row items-center gap-3 px-3 py-2 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
+                      isCollapsed ? 'justify-center' : ''
+                    } ${
+                      isActive
+                        ? 'bg-primary text-text-on-primary shadow-md shadow-primary/20'
+                        : 'text-[#4A5568] hover:bg-[#F1EFEF] hover:text-[#1E293B]'
+                    }`}
+                  >
+                    <span translate="no" aria-hidden="true" className="material-symbols-outlined text-center text-[20px]">
+                      {item.icon}
+                    </span>
+                    {!isCollapsed && <span className="leading-none truncate">{item.label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="mt-auto space-y-2 shrink-0 pt-3 border-t border-neutral-200">

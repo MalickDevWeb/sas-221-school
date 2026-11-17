@@ -29,6 +29,8 @@ const VIDE: SaisieDepense = { label: '', amount: '', date: '' };
 export function DepensesTab({ expenses, onAddExpense }: Props) {
   const [categorie, setCategorie] = useState('RH');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  // Formulaire ouvert par « + Saisir une dépense »
+  const [saisie, setSaisie] = useState(false);
   // Catégories paramétrables (onglet « Référentiels ») : plus de liste en dur
   const categories = useReferentiel('expense-category');
   const selectedCategory = categories.find(categorie) ? categorie : categories.values[0]?.code ?? '';
@@ -48,8 +50,8 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
         amount: Number(v.amount.replace(/\s/g, '')),
         date: v.date,
       });
-      // Formulaire vidé seulement si le serveur a enregistré (avant : vidé même en cas d'échec, saisie perdue)
-      if (enregistree !== false) reset(VIDE);
+      // Formulaire vidé seulement si le serveur a enregistré
+      if (enregistree !== false) { reset(VIDE); setSaisie(false); }
     } finally {
       enCours.current = false;
     }
@@ -65,8 +67,21 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="depenses-tab-root">
-      <div className="lg:col-span-2 space-y-4">
+    <div className="space-y-4" id="depenses-tab-root">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div>
+          <h3 className="font-extrabold text-sm text-[#1E293B]">Dépenses</h3>
+          <p className="text-[11px] text-neutral-500 font-semibold">Toutes les sorties de caisse de l'école.</p>
+        </div>
+        {!saisie && (
+          <button id="depense-saisir" type="button" onClick={() => setSaisie(true)}
+            className="px-4 py-2 bg-primary text-text-on-primary rounded-xl text-xs font-black flex items-center gap-1.5 w-fit cursor-pointer border-0">
+            <span translate="no" className="material-symbols-outlined text-sm">add</span> Saisir une dépense
+          </button>
+        )}
+      </div>
+      <div className={`grid grid-cols-1 gap-6 ${saisie ? 'lg:grid-cols-3' : ''}`}>
+      <div className={`${saisie ? 'lg:col-span-2' : ''} space-y-4`}>
         <div className="flex justify-between items-center bg-[#FAF8F6] p-3 border border-neutral-200 rounded-xl">
           <span className="text-[10px] font-black uppercase text-neutral-400">Trier le Journal</span>
           <div className="flex gap-2 text-xs font-bold">
@@ -86,6 +101,9 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 font-bold text-neutral-600">
+              {sortedExpenses.length === 0 && (
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-neutral-500 font-semibold">Aucune dépense enregistrée.</td></tr>
+              )}
               {sortedExpenses.map(exp => (
                 <tr key={exp.id} className="hover:bg-neutral-50/50">
                   <td className="px-4 py-3 text-[#1E293B] font-extrabold">{exp.label}</td>
@@ -93,7 +111,7 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
                     <span className={`border px-2 py-0.5 rounded text-[9px] uppercase font-black ${toneOf(categories.find(exp.category)?.color).badge}`}>{categories.labelOf(exp.category)}</span>
                   </td>
                   <td className="px-4 py-3 text-neutral-400 font-semibold">{exp.date}</td>
-                  <td className="px-4 py-3 text-right font-mono text-rose-600 font-black">- {exp.amount.toLocaleString()} FCFA</td>
+                  <td className="px-4 py-3 text-right font-mono text-rose-600 font-black">- {exp.amount.toLocaleString('fr-FR')} FCFA</td>
                 </tr>
               ))}
             </tbody>
@@ -101,10 +119,11 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
         </div>
       </div>
 
+      {saisie && (
       <div className="bg-[#FAF8F6] border border-neutral-200 rounded-2xl p-4 shadow-sm h-fit space-y-4">
-        <div>
-          <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">📉 Saisir une Dépense</h4>
-          <p className="text-[9px] text-neutral-400 font-semibold">Toutes les sorties de caisse sont enregistrées.</p>
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Nouvelle dépense</h4>
+          <button type="button" onClick={() => { reset(VIDE); setSaisie(false); }} className="text-[11px] font-bold text-neutral-500 hover:text-neutral-800 cursor-pointer border-0 bg-transparent">Annuler</button>
         </div>
 
         <form id="form-depense" onSubmit={(e) => void handleSubmit(enregistrer)(e)} noValidate data-validation-externe className="space-y-3 text-xs font-bold text-neutral-600">
@@ -130,8 +149,11 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
             <input id="depense-date" type="date" className="w-full px-3 py-2 border border-neutral-200 bg-white rounded-xl focus:outline-none aria-[invalid=true]:border-red-400" {...register('date')} {...aria('date')} />
             {message('date')}
           </div>
-          <button type="submit" disabled={isSubmitting || !selectedCategory} className="disabled:opacity-60 w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs">Enregistrer</button>
+          <button type="submit" disabled={isSubmitting || !selectedCategory} className="disabled:opacity-60 w-full py-2.5 bg-primary text-text-on-primary rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs border-0">Enregistrer</button>
+          {!selectedCategory && !categories.loading && <p className="text-[10px] text-neutral-500">Aucune catégorie de dépense : ajoutez-en dans « Référentiels ».</p>}
         </form>
+      </div>
+      )}
       </div>
     </div>
   );

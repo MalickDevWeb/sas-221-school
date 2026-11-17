@@ -19,10 +19,22 @@ interface EcheancePaiement {
   datePaiement: string | null;
 }
 
+/** Situation de chaque enfant (montants réels de son dossier financier et ses lignes). */
+interface EnfantPaiement {
+  id: string;
+  nom: string | null;
+  matricule: string | null;
+  classe: string | null;
+  totalDu: number;
+  paye: number;
+  resteDu: number;
+  lignes: EcheancePaiement[];
+}
 interface ParentPaiementsResponse {
   totalAnnuel: number;
   echeances: EcheancePaiement[];
   statut?: 'non_disponible' | 'disponible';
+  enfants?: EnfantPaiement[];
 }
 
 interface StatutConfig {
@@ -72,9 +84,43 @@ async function fetchParentPaiements(): Promise<ParentPaiementsResponse> {
   return data;
 }
 
+const initiales = (nom: string | null) =>
+  (nom ?? '').split(/\s+/).filter(Boolean).slice(0, 2).map((m) => m[0]?.toUpperCase()).join('') || 'E';
+
+/** Une ligne : versement payé ou reste à payer (« Comment payer » sur ce qui reste dû). */
+function LignePaiement({ e, onPayer }: { e: EcheancePaiement; onPayer: () => void }) {
+  const overdue = isRetard(e);
+  const cfg = statutConfig(e);
+  return (
+    <div className="flex items-center gap-4 px-4 md:px-5 py-3.5 hover:bg-neutral-50/60 transition-colors">
+      <div className={`w-10 h-10 rounded-[999px] border flex items-center justify-center shrink-0 ${cfg.bg}`}>
+        <span translate="no" className={`material-symbols-outlined text-[18px] ${cfg.color}`}>{cfg.icon}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-sm text-neutral-800">{e.label}</p>
+        {e.statut !== 'PAYE' && (
+          <p className="text-[11px] text-neutral-400 font-semibold">
+            Échéance : {e.echeance ? formatDate(e.echeance, { day: '2-digit', month: 'long', year: 'numeric' }) : 'à convenir avec l\'établissement'}
+          </p>
+        )}
+        {e.datePaiement && <p className="text-[11px] text-emerald-600 font-bold">Payé le {formatDate(e.datePaiement)}</p>}
+      </div>
+      <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
+        <p className="font-black text-sm text-neutral-900">{fmt(e.montant)}</p>
+        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-[999px] border ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
+        {(e.statut === 'EN_COURS' || overdue) && (
+          <button onClick={onPayer}
+            className="flex items-center gap-1 text-[11px] font-black text-text-on-primary bg-primary px-3 py-1 rounded-[999px] hover:bg-primary-dark transition-colors cursor-pointer">
+            <span translate="no" className="material-symbols-outlined text-[13px]">info</span>Comment payer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ParentPaymentsPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedEch, setSelectedEch] = useState<string | null>(null);
+  const [aRegler, setARegler] = useState<{ montant: number; enfant: string | null; reference: string | null } | null>(null);
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: PARENT_PAIEMENTS_QUERY_KEY,
@@ -82,10 +128,16 @@ export function ParentPaymentsPage() {
   });
 
   const header = (
-    <div className="mb-8">
-      <h1 className="text-xl md:text-2xl font-black text-neutral-900">Paiements & Scolarité</h1>
-      <p className="text-xs text-neutral-500 font-semibold mt-1">Suivi des frais de scolarité</p>
-    </div>
+    <header className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-primary-dark text-text-on-primary px-5 md:px-8 py-5 md:py-6 mb-6 flex items-center gap-4 md:gap-5 shadow-md">
+      <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 w-56 h-56 rounded-[999px] bg-white/10" />
+      <span className="w-14 h-14 md:w-16 md:h-16 rounded-[999px] bg-white/20 flex items-center justify-center shrink-0">
+        <span translate="no" className="material-symbols-outlined text-3xl md:text-4xl">account_balance_wallet</span>
+      </span>
+      <div className="min-w-0 relative">
+        <h1 className="text-xl md:text-2xl font-black leading-tight">Paiements & Scolarité</h1>
+        <p className="text-xs md:text-sm font-semibold opacity-90 mt-1">Les frais de chacun de vos enfants, versements et reste à payer.</p>
+      </div>
+    </header>
   );
 
   // ── Chargement : squelette calqué sur la mise en page ──
@@ -164,39 +216,43 @@ export function ParentPaymentsPage() {
   const paye = echeances.filter((e) => e.statut === 'PAYE').reduce((s, e) => s + e.montant, 0);
   const reste = Math.max(totalAnnuel - paye, 0);
   const progress = totalAnnuel > 0 ? Math.min(100, Math.round((paye / totalAnnuel) * 100)) : 0;
+  // Serveur à jour : une carte par enfant ; sinon (ancienne réponse) une seule liste
+  const enfants: EnfantPaiement[] = Array.isArray(data.enfants) && data.enfants.length > 0
+    ? data.enfants
+    : [{ id: 'tous', nom: null, matricule: null, classe: null, totalDu: totalAnnuel, paye, resteDu: reste, lignes: echeances }];
+  const plusieurs = enfants.length > 1;
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-28 md:pb-8">
 
-      {/* Modal paiement */}
-      {showModal && (
+      {/* Comment payer (aucun paiement en ligne branché : on l'explique, rien de simulé) */}
+      {aRegler && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div role="dialog" aria-modal="true" className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-7 animate-fade-in">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                <span translate="no" className="material-symbols-outlined text-blue-600 text-[24px]">payment</span>
+              <div className="w-12 h-12 rounded-[999px] bg-primary-light flex items-center justify-center">
+                <span translate="no" className="material-symbols-outlined text-primary text-[24px]">payments</span>
               </div>
               <div>
-                <p className="font-black text-neutral-900">Comment payer</p>
-                <p className="text-[10px] text-neutral-400 font-semibold">Règlement auprès de l'établissement</p>
+                <p className="font-black text-neutral-900">Comment payer{aRegler.enfant ? ` pour ${aRegler.enfant}` : ''}</p>
+                <p className="text-[11px] text-neutral-400 font-semibold">Règlement auprès de l'établissement</p>
               </div>
-              <button onClick={() => setShowModal(false)} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center">
+              <button onClick={() => setARegler(null)} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-[999px] bg-neutral-100 flex items-center justify-center cursor-pointer">
                 <span translate="no" className="material-symbols-outlined text-[16px] text-neutral-500">close</span>
               </button>
             </div>
-            <div className="bg-blue-50 rounded-2xl p-4 mb-5">
-              <p className="text-xs text-blue-700 font-semibold">Montant à régler</p>
-              <p className="text-2xl font-black text-blue-900 mt-1">
-                {fmt(echeances.find((e) => e.id === selectedEch)?.montant ?? 0)}
-              </p>
+            <div className="bg-primary-light rounded-2xl p-4 mb-5">
+              <p className="text-xs text-primary font-semibold">Montant à régler</p>
+              <p className="text-2xl font-black text-neutral-900 mt-1">{fmt(aRegler.montant)}</p>
+              {aRegler.reference && <p className="text-xs text-neutral-600 font-semibold mt-1">À rappeler au paiement : matricule <strong>{aRegler.reference}</strong></p>}
             </div>
             <div id="paiement-explication" className="flex flex-col gap-2 text-xs text-neutral-700 font-semibold">
               <p>Le paiement en ligne n'est pas encore proposé par la plateforme.</p>
               <p>Réglez ce montant auprès de la comptabilité de l'établissement, selon les moyens qu'elle accepte.
                 Le versement apparaîtra ici dès qu'elle l'aura enregistré.</p>
             </div>
-            <button onClick={() => setShowModal(false)}
-              className="mt-5 w-full py-2.5 rounded-xl bg-primary text-white text-xs font-black hover:bg-[#0D47A1] transition-all">
+            <button onClick={() => setARegler(null)}
+              className="mt-5 w-full py-2.5 rounded-[999px] bg-primary text-text-on-primary text-xs font-black hover:bg-primary-dark transition-colors cursor-pointer">
               J'ai compris
             </button>
           </div>
@@ -205,70 +261,70 @@ export function ParentPaymentsPage() {
 
       {header}
 
-      {/* Carte récap bleue */}
-      <div className="bg-gradient-to-br from-primary to-[#0D47A1] rounded-3xl p-6 mb-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
-        <div className="relative">
-          <div className="flex items-end justify-between gap-4 mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase text-blue-300">Total annuel</p>
-              <p className="text-2xl font-black">{fmt(totalAnnuel)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-black uppercase text-blue-300">Restant</p>
-              <p className="text-2xl font-black text-amber-300">{fmt(reste)}</p>
-            </div>
+      {/* Récapitulatif de la famille */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {[
+          { label: plusieurs ? `Total annuel (${enfants.length} enfants)` : 'Total annuel', valeur: fmt(totalAnnuel), icone: 'receipt_long', couleur: 'bg-primary-light text-primary' },
+          { label: 'Déjà payé', valeur: fmt(paye), icone: 'check_circle', couleur: 'bg-emerald-100 text-emerald-600' },
+          { label: 'Reste à payer', valeur: fmt(reste), icone: 'hourglass_top', couleur: 'bg-amber-100 text-amber-600' },
+        ].map((c) => (
+          <div key={c.label} className="bg-white rounded-3xl border border-neutral-100 shadow-sm p-5 flex items-center gap-4">
+            <span className={`w-12 h-12 rounded-[999px] flex items-center justify-center shrink-0 ${c.couleur}`}>
+              <span translate="no" className="material-symbols-outlined text-2xl">{c.icone}</span>
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs font-bold text-neutral-500">{c.label}</span>
+              <span className="block text-lg md:text-xl font-black text-neutral-900 truncate">{c.valeur}</span>
+            </span>
           </div>
-          <div>
-            <div className="flex justify-between text-[9px] font-black text-blue-200 mb-1">
-              <span>Payé : {fmt(paye)}</span><span>{progress}%</span>
-            </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
+        ))}
+      </section>
+      <div className="mb-6">
+        <div className="flex justify-between text-xs font-bold text-neutral-500 mb-1.5">
+          <span>Payé : {fmt(paye)}</span><span>{progress}%</span>
+        </div>
+        <div className="h-2.5 bg-neutral-100 rounded-[999px] overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+          <div className="h-full bg-emerald-500 rounded-[999px]" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
-      {/* Échéancier */}
-      <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-neutral-100">
-          <h3 className="font-black text-neutral-800 text-sm">Versements et reste à payer</h3>
-        </div>
-        <div className="divide-y divide-neutral-50">
-          {echeances.map((e) => {
-            const overdue = isRetard(e);
-            const cfg = statutConfig(e);
-            return (
-              <div key={e.id} className="flex items-center gap-4 px-6 py-4 hover:bg-neutral-50/50 transition-colors">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
-                  <span translate="no" className={`material-symbols-outlined text-[18px] ${cfg.color}`}>{cfg.icon}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-sm text-neutral-800">{e.label}</p>
-                  {e.statut !== 'PAYE' && (
-                    <p className="text-[10px] text-neutral-400 font-semibold">
-                      Échéance : {e.echeance ? formatDate(e.echeance, { day: '2-digit', month: 'long', year: 'numeric' }) : 'à convenir avec l\'établissement'}
-                    </p>
-                  )}
-                  {e.datePaiement && (
-                    <p className="text-[9px] text-emerald-600 font-bold">Payé le {formatDate(e.datePaiement)}</p>
+      {/* Une carte par enfant */}
+      <div className="space-y-5">
+        {enfants.map((enf) => {
+          const pct = enf.totalDu > 0 ? Math.min(100, Math.round((enf.paye / enf.totalDu) * 100)) : 0;
+          const prenom = enf.nom?.split(/\s+/)[0] ?? null;
+          return (
+            <section key={enf.id} data-enfant-id={enf.id} className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
+              <header className="px-4 md:px-5 py-4 flex flex-wrap items-center gap-4 border-b border-neutral-100">
+                {enf.nom ? (
+                  <span className="w-12 h-12 rounded-[999px] bg-primary text-text-on-primary flex items-center justify-center font-black shrink-0">{initiales(enf.nom)}</span>
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-black text-neutral-900">{enf.nom ?? 'Versements et reste à payer'}</h3>
+                  {(enf.classe || enf.matricule) && (
+                    <p className="text-xs text-neutral-500 font-semibold">{[enf.classe, enf.matricule && `Matricule ${enf.matricule}`].filter(Boolean).join(' · ')}</p>
                   )}
                 </div>
-                <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
-                  <p className="font-black text-sm text-neutral-800">{fmt(e.montant)}</p>
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-solid ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
-                  {(e.statut === 'EN_COURS' || overdue) && (
-                    <button onClick={() => { setSelectedEch(e.id); setShowModal(true); }}
-                      className="flex items-center gap-1 text-[9px] font-black text-white bg-primary px-2.5 py-1 rounded-lg hover:bg-[#0D47A1] transition-all">
-                      <span translate="no" className="material-symbols-outlined text-[11px]">info</span>Comment payer
-                    </button>
+                <div className="text-right">
+                  {enf.resteDu > 0 ? (
+                    <span className="text-xs font-black px-3 py-1 rounded-[999px] bg-amber-50 text-amber-700 border border-amber-200">Reste {fmt(enf.resteDu)}</span>
+                  ) : (
+                    <span className="text-xs font-black px-3 py-1 rounded-[999px] bg-emerald-50 text-emerald-700 border border-emerald-200">À jour</span>
                   )}
+                  <p className="text-[11px] text-neutral-400 font-semibold mt-1">{fmt(enf.paye)} payés sur {fmt(enf.totalDu)}</p>
                 </div>
+                <div className="w-full h-2 bg-neutral-100 rounded-[999px] overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-[999px]" style={{ width: `${pct}%` }} />
+                </div>
+              </header>
+              <div className="divide-y divide-neutral-50">
+                {enf.lignes.map((e) => (
+                  <LignePaiement key={e.id} e={e} onPayer={() => setARegler({ montant: e.montant, enfant: prenom, reference: enf.matricule })} />
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

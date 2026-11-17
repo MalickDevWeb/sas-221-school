@@ -55,7 +55,7 @@ export function CalendarHeader({ state }: { state: any }) {
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
         {/* Classe réelle */}
         <div className="sm:col-span-4 h-10 px-4 flex items-center bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-black text-neutral-700 truncate">
-          {Array.from(new Set((state.rawSessions ?? []).map((x: { classe?: string }) => x.classe).filter(Boolean))).join(', ') || 'Aucune classe affectée'}
+          {Array.from(new Set((state.rawSessions ?? []).map((x: { classe?: string }) => x.classe).filter(Boolean))).join(', ') || (state.consultable ? 'Aucune classe affectée' : 'Classe affichée après connexion')}
         </div>
 
         {/* Search Field */}

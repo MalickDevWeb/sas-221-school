@@ -36,18 +36,18 @@ export function MobileEcolagesCards({ students, onEncaisser }: Props) {
           </div>
           <div className="flex justify-between items-center text-[10px] border-t border-neutral-100 pt-2">
             <div>
-              <span className="text-neutral-400 font-bold uppercase text-[8px] block">Versé / dû</span>
+              <span className="text-neutral-400 font-bold uppercase text-[8px] block">Payé / dû</span>
               <span className="font-mono text-[#1E293B] font-extrabold">{fcfa(s.paid)} / {fcfa(s.totalRequired)}</span>
             </div>
             {s.debt > 0 && (
               <div className="text-right">
-                <span className="text-neutral-400 font-bold uppercase text-[8px] block">Reste dû</span>
+                <span className="text-neutral-400 font-bold uppercase text-[8px] block">Reste à payer</span>
                 <span className="font-mono text-rose-600 font-black">{fcfa(s.debt)}</span>
               </div>
             )}
           </div>
           <button type="button" onClick={() => onEncaisser(s)}
-            className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[11px] font-black">Encaisser un versement</button>
+            className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[11px] font-black">Encaisser un paiement</button>
         </div>
       ))}
     </div>

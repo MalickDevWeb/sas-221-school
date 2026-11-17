@@ -54,7 +54,8 @@ export function StudentProfilePage() {
 
         <section aria-labelledby="titre-mdp" className="bg-white rounded-2xl border border-neutral-gray-200/70 border-solid p-5">
           <h3 id="titre-mdp" className="text-sm font-black text-on-surface">Changer mon mot de passe</h3>
-          <p className="text-[11px] text-neutral-gray-500 font-semibold mt-1 mb-4">Au moins 10 caractères, avec au moins une lettre et un chiffre.</p>
+          {/* Les règles du serveur s'affichent dans le formulaire */}
+          <div className="mb-4" />
           <FormulaireMotDePasse
             key={cleFormulaire}
             libelleAncien="Mot de passe actuel"

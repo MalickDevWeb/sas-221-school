@@ -1,84 +1,81 @@
 import React, { useState } from 'react';
-import { Globe, Shield, Server, Save, Sparkles } from 'lucide-react';
 import { SettingsGeneralTab } from '../components/settings/SettingsGeneralTab';
 import { SettingsSecurityTab } from '../components/settings/SettingsSecurityTab';
 import { SettingsSystemTab } from '../components/settings/SettingsSystemTab';
 import { ConservationJournalAudit } from '../components/settings/ConservationJournalAudit';
+import { ModuleAvecSousMenu, SousMenuModule, useRepliSousMenu, type EntreeSousMenu } from '@/shared/components/SousMenuModule';
+
+type Section = 'general' | 'security' | 'system';
+
+const SECTIONS: Record<Section, { titre: string; sousTitre: string }> = {
+  general: { titre: 'Général', sousTitre: 'Nom de la plateforme, e-mail du support, langue et fuseau horaire.' },
+  security: { titre: 'Sécurité', sousTitre: 'Conservation du journal d’audit et règles de connexion.' },
+  system: { titre: 'Système', sousTitre: 'Mise en maintenance de la plateforme.' },
+};
+
+const ENTREES: EntreeSousMenu[] = [
+  { id: 'general', libelle: 'Général', icone: 'tune' },
+  { id: 'security', libelle: 'Sécurité', icone: 'shield', sousLibelle: 'Journal d’audit' },
+  { id: 'system', libelle: 'Système', icone: 'dns' },
+];
+
+/** Réglages non stockés par le serveur : affichés désactivés, sans valeur, avec la raison. */
+function NonDisponible({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <p className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-[11px] font-semibold">
+        Pas encore disponible : ces réglages ne sont pas enregistrés par le serveur. Ils restent désactivés.
+      </p>
+      <fieldset disabled className="opacity-60 border-0 p-0 m-0 min-w-0">{children}</fieldset>
+    </div>
+  );
+}
 
 export const SuperAdminSettingsPage = () => {
-  const [activeTab, setActiveTab] = useState('general');
-  // Aucun service serveur ne stocke les paramètres de la plateforme : aucune valeur inventée,
-  // champs et sauvegarde désactivés (plus de faux « sauvegardé avec succès »).
+  const [section, setSection] = useState<Section>('general');
+  const [replie, basculer] = useRepliSousMenu('super-admin-parametres');
+  // Aucun service serveur ne stocke ces paramètres : aucune valeur inventée, champs désactivés
+  // (plus de faux « sauvegardé avec succès »). Seule la conservation du journal d'audit est réelle.
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [platformName, setPlatformName] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
   const [require2fa, setRequire2fa] = useState(false);
-
-  const navItems = [
-    { id: 'general', label: 'Général', icon: Globe },
-    { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'system', label: 'Système', icon: Server },
-  ];
+  const choisir = (id: string) => { if (id === 'general' || id === 'security' || id === 'system') setSection(id); };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
-            <Sparkles size={12} className="text-cyan-400" /> Configuration Globale
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Paramètres Plateforme</h1>
-          <p className="text-xs text-slate-400 mt-1">Supervisez les variables environnementales et les seuils de sécurité.</p>
-        </div>
-        <button
-          type="button" disabled aria-disabled="true"
-          title="Fonctionnalité non disponible : aucune source de données"
-          className="flex items-center gap-2 bg-white/10 text-slate-400 px-5 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed w-fit"
-        >
-          <Save size={16} />
-          <span>Sauvegarder</span>
-        </button>
-      </div>
-
-      <div className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-semibold">
-        Seule la conservation du journal d'audit (onglet Sécurité) est enregistrée sur le serveur. Les autres paramètres globaux ne sont pas encore stockés : ils restent désactivés, rien n'est affiché ni enregistré.
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
-        {/* Sidebar Tabs */}
-        <div className="w-full md:w-56 flex md:flex-col gap-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id} onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left ${
-                activeTab === item.id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <item.icon className="w-4 h-4" /> {item.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Content Box : la conservation du journal d'audit fonctionne (2026-11-14) ; le reste reste désactivé */}
-        <div className="flex-1 min-w-0 flex flex-col gap-4">
-        {activeTab === 'security' && (
-          <div className="bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <ModuleAvecSousMenu
+        apparence="sombre"
+        id="super-admin-parametres"
+        idContenu="super-admin-parametres-contenu"
+        titre={SECTIONS[section].titre}
+        sousTitre={SECTIONS[section].sousTitre}
+        sousMenu={(
+          <SousMenuModule apparence="sombre" id="parametres-subsidebar" titre="Paramètres" entrees={ENTREES} actif={section}
+            onChoisir={choisir} replie={replie} onBasculerRepli={basculer} />
+        )}
+      >
+        {section === 'general' && (
+          <NonDisponible>
+            <SettingsGeneralTab platformName={platformName} setPlatformName={setPlatformName} supportEmail={supportEmail} setSupportEmail={setSupportEmail} />
+          </NonDisponible>
+        )}
+        {section === 'security' && (
+          <div className="space-y-8">
             <ConservationJournalAudit />
+            <div className="pt-6 border-t border-white/10">
+              <NonDisponible>
+                <SettingsSecurityTab require2fa={require2fa} setRequire2fa={setRequire2fa} />
+              </NonDisponible>
+            </div>
           </div>
         )}
-        <fieldset disabled className="flex-1 min-w-0 opacity-60 bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-xl">
-          {activeTab === 'general' && (
-            <SettingsGeneralTab platformName={platformName} setPlatformName={setPlatformName} supportEmail={supportEmail} setSupportEmail={setSupportEmail} />
-          )}
-          {activeTab === 'security' && (
-            <SettingsSecurityTab require2fa={require2fa} setRequire2fa={setRequire2fa} />
-          )}
-          {activeTab === 'system' && (
+        {section === 'system' && (
+          <NonDisponible>
             <SettingsSystemTab maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />
-          )}
-        </fieldset>
-        </div>
-      </div>
+          </NonDisponible>
+        )}
+      </ModuleAvecSousMenu>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 /**
- * Année universitaire en cours, calculée à partir de la date du jour (rentrée en septembre).
- * Avant : « 2025-26 » / « 2025-2026 » écrits en dur dans plusieurs écrans.
+ * Année scolaire / universitaire en cours — SOURCE UNIQUE de l'application (écrans et documents officiels).
+ * Convention septembre → août tant que le serveur ne fournit pas l'année de l'école : c'est ici seulement qu'il
+ * faudra la brancher.
  */
 export function anneeAcademique(date: Date = new Date()): string {
   const debut = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;

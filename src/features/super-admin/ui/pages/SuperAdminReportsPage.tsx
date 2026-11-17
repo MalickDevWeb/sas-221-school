@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 /**
  * Rapports & audit de la plateforme.
@@ -8,9 +8,6 @@ import { FileText, Sparkles } from 'lucide-react';
 export const SuperAdminReportsPage = () => (
   <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
     <div>
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
-        <Sparkles size={12} className="text-cyan-400" /> Export & Traces Institutionnelles
-      </div>
       <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Rapports & Audit</h1>
       <p className="text-xs text-slate-400 mt-1">Synthèses d'activité de la plateforme.</p>
     </div>

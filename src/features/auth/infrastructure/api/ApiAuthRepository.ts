@@ -2,7 +2,7 @@ import type { AuthRepository } from '../../domain/port/AuthRepository';
 import type { Utilisateur } from '../../domain/model/Utilisateur';
 import { IdentifiantsInvalidesError } from '../../domain/exception/AuthExceptions';
 import type { AxiosInstance } from 'axios';
-import { memoriserHorsLigne, verifierHorsLigne } from '../local/identifiantsHorsLigne';
+import { lancerMemorisationHorsLigne, verifierHorsLigne } from '../local/identifiantsHorsLigne';
 
 export class ApiAuthRepository implements AuthRepository {
   private readonly http: AxiosInstance;
@@ -37,9 +37,10 @@ export class ApiAuthRepository implements AuthRepository {
         token: data.token,
       };
 
-      // Accès hors-ligne futur : empreinte PBKDF2 seulement. Attendue (quelques centaines de ms) : un
-      // rechargement juste après la connexion (changement du mot de passe provisoire) l'interrompait.
-      await memoriserHorsLigne(email, motDePasse, result.utilisateur, result.token);
+      // Accès hors-ligne futur : empreinte PBKDF2 seulement. Calculée en arrière-plan (100 à 500 ms
+      // selon l'appareil, qui retarderaient l'ouverture de l'espace) ; le changement du mot de passe provisoire, suivi
+      // d'un rechargement de la page, attend memorisationHorsLigneTerminee() avant de recharger.
+      lancerMemorisationHorsLigne(email, motDePasse, result.utilisateur, result.token);
 
       return result;
     } catch (error) {

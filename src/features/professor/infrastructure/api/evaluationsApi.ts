@@ -18,8 +18,9 @@ export const evaluationsApi = {
   async modifier(courseId: string, evaluationId: string, saisie: Partial<EvaluationSaisie>): Promise<Evaluation> {
     return (await apiClient.put(evalUrl(courseId, evaluationId), saisie)).data;
   },
-  async supprimer(courseId: string, evaluationId: string): Promise<void> {
-    await apiClient.delete(evalUrl(courseId, evaluationId));
+  /** Réponse : { corbeille: true, message, … } ; vide (204) sur un serveur pas encore à jour. */
+  async supprimer(courseId: string, evaluationId: string): Promise<unknown> {
+    return (await apiClient.delete(evalUrl(courseId, evaluationId))).data;
   },
   async notes(courseId: string, evaluationId: string): Promise<NotesEvaluation> {
     return (await apiClient.get(`${evalUrl(courseId, evaluationId)}/notes`)).data;

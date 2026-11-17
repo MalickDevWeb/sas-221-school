@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarWidget } from '@/features/auth/ui/components/CalendarWidget';
 import { ProfileDropdown } from '@/shared/components';
+import { ClocheNotifications } from '@/shared/components/ClocheNotifications';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
@@ -49,6 +50,8 @@ export function ProfessorHeader({ title, profName, activeTab, onSelectTab, trigg
             <span className="text-xs font-black text-[#1E293B]">Bienvenue, {profName}</span>
             <span className="text-[10px] text-secondary font-bold">Portail connecté</span>
           </div>
+
+          <ClocheNotifications classeBouton="relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-brand-red-light text-secondary hover:text-brand-red-deep transition-all cursor-pointer" />
 
           <div className="relative" ref={calendarPopRef}>
             <button 

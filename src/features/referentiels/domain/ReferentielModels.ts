@@ -46,12 +46,34 @@ export const REFERENTIEL_TONES: Record<string, { badge: string; dot: string }> =
   indigo: { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
 };
 
+/** Libellés français des teintes (la base garde le nom technique : slate, sky…). */
+export const TONE_LABELS: Record<string, string> = {
+  slate: 'Ardoise',
+  amber: 'Ambre',
+  emerald: 'Émeraude',
+  red: 'Rouge',
+  sky: 'Ciel',
+  violet: 'Violet',
+  indigo: 'Indigo',
+};
+
+export const libelleTeinte = (color: string | null | undefined): string =>
+  TONE_LABELS[color ?? ''] ?? (color ? `Autre (${color})` : TONE_LABELS.slate);
+
 export function toneOf(color: string | null | undefined): { badge: string; dot: string } {
   return REFERENTIEL_TONES[color ?? ''] ?? REFERENTIEL_TONES.slate;
 }
 
+/** Origine d'une valeur, en français simple (badge). */
 export const SCOPE_LABELS: Record<ReferentielScope, string> = {
-  GLOBAL: 'Plateforme',
-  SURCHARGE: 'Plateforme (modifiée)',
-  ECOLE: 'Mon école',
+  GLOBAL: 'Proposée par My School',
+  SURCHARGE: 'Proposée par My School, modifiée',
+  ECOLE: 'Ajoutée par l’école',
 };
+
+/** Explication courte de chaque liste (sous-titre de la page) ; liste inconnue : texte générique. */
+export const DESCRIPTIONS_LISTES: Record<string, string> = {
+  'expense-category': 'Utilisées pour classer les dépenses. Les valeurs proposées par My School peuvent être renommées ou masquées pour votre école.',
+  'candidate-status': 'Utilisés pour suivre les candidatures. Vous pouvez les renommer, changer leur couleur et leur ordre.',
+};
+export const DESCRIPTION_LISTE_DEFAUT = 'Valeurs proposées dans les listes de l’application. Les valeurs proposées par My School peuvent être renommées ou masquées pour votre école.';

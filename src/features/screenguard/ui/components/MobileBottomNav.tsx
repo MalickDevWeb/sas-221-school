@@ -11,10 +11,10 @@ interface Props {
 }
 
 const MAIN_TABS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Accueil', icon: LayoutDashboard },
   { id: 'students', label: 'Élèves', icon: Users },
   { id: 'finances', label: 'Finances', icon: CreditCard },
-  { id: 'notifications', label: 'Notifs', icon: Mail },
+  { id: 'notifications', label: 'Annonces', icon: Mail },
 ];
 
 export function MobileBottomNav({ activeTab, onSelectTab, onLogout }: Props) {

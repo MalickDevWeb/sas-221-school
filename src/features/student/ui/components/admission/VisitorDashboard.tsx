@@ -1,10 +1,12 @@
 import React from 'react';
 import { useAuthStore } from '@/core/store/authStore';
+import { useTenantStore } from '@/core/store/tenantStore';
 import { LogOut } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export function VisitorDashboard() {
   const { utilisateur, deconnexion } = useAuthStore();
+  const nomEcole = useTenantStore((st) => st.currentTenant?.name);
 
   // Compte sans rôle dans cette école (VISITEUR). Le suivi réel d'une candidature se fait sur le portail
   // candidat (email + mot de passe de suivi, APP-BE-12).
@@ -15,7 +17,7 @@ export function VisitorDashboard() {
       <header className="border-b border-white/5 py-4 px-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
-          <h1 className="font-extrabold text-sm tracking-tight uppercase text-white">École 221 Admissions</h1>
+          <h1 className="font-extrabold text-sm tracking-tight uppercase text-white">{nomEcole ? `Admissions de ${nomEcole}` : 'Admissions'}</h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold text-slate-400 font-mono">Cand. {utilisateur?.nom}</span>
@@ -42,7 +44,7 @@ export function VisitorDashboard() {
       </main>
 
       <footer className="py-4 text-center border-t border-white/5 bg-slate-900/30">
-        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">École 221 • Espace Candidat Unifié</p>
+        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Espace candidat</p>
       </footer>
     </div>
   );

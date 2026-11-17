@@ -17,7 +17,7 @@ export function MeetSessionTracker({ attendances, meetId }: Props) {
         <div>
           <h3 className="font-bold text-sm text-gray-900">Ouvertures du lien de la réunion</h3>
           <p className="text-[10px] text-neutral-500 font-semibold">
-            Comptes qui ont ouvert le lien depuis École 221. La présence réelle dans Google Meet n'est pas connue de l'application.
+            Comptes qui ont ouvert le lien depuis l'application. La présence réelle dans Google Meet n'est pas connue de l'application.
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export function MeetSessionTracker({ attendances, meetId }: Props) {
           <tbody className="divide-y divide-neutral-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={3} className="py-6 text-center text-neutral-400 font-semibold">Personne n'a encore ouvert le lien de cette réunion depuis École 221.</td>
+                <td colSpan={3} className="py-6 text-center text-neutral-400 font-semibold">Personne n'a encore ouvert le lien de cette réunion depuis l'application.</td>
               </tr>
             ) : (
               filtered.map((a) => (

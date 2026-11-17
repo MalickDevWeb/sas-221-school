@@ -42,7 +42,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSuc
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Nouvel Administrateur</h2>
-              <p className="text-xs text-slate-400">Accès multi-tenant global</p>
+              <p className="text-xs text-slate-400">Accès à toutes les écoles</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg"><X size={18} /></button>

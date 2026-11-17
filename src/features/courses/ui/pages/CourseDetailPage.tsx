@@ -8,7 +8,6 @@ import { CourseResourcesTab } from '../components/course-details/CourseResources
 import { CourseQuizzesTab } from '../components/course-details/CourseQuizzesTab';
 import { CourseHomeworksTab } from '../components/course-details/CourseHomeworksTab';
 import { CourseRemindersList } from '../components/course-details/CourseRemindersList';
-import { CourseParcoursTab } from '../components/course-details/CourseParcoursTab';
 
 export function CourseDetailPage() {
   const state = useCourseDetailState();
@@ -49,7 +48,6 @@ export function CourseDetailPage() {
                   <span translate="no" className="material-symbols-outlined text-base">info</span> {detailsError}
                 </div>
               )}
-              {activeTab === 'parcours' && <CourseParcoursTab course={course} details={details} />}
               {activeTab === 'chapters' && (
                 <>
                   {courseReminders.length > 0 && <CourseRemindersList reminders={courseReminders} salle={course.salle} />}
@@ -57,16 +55,7 @@ export function CourseDetailPage() {
                 </>
               )}
               {activeTab === 'resources' && <CourseResourcesTab course={course} details={details} triggerToast={triggerToast} />}
-              {activeTab === 'quizzes' && (
-                <CourseQuizzesTab
-                  details={details}
-                  quizValidated={state.quizValidated}
-                  selectedAnswers={state.selectedAnswers}
-                  handleResetQuiz={state.handleResetQuiz}
-                  handleSelectOption={state.handleSelectOption}
-                  handleValidateQuiz={state.handleValidateQuiz}
-                />
-              )}
+              {activeTab === 'quizzes' && <CourseQuizzesTab courseId={course.id} />}
               {activeTab === 'homework' && (
                 <CourseHomeworksTab
                   details={details}

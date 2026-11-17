@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
-import { Building2, Save } from 'lucide-react';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { reporterErreurServeur } from '@/shared/errors/erreursServeurChamps';
+import { formatPhoneInput } from '@/shared/utils/phoneUtils';
+import { EnTeteModule } from '@/shared/components/EnTeteModule';
+import { Button } from '@/design-system/components/Button';
 
 /** Fiche renvoyée par GET/PUT /admin/coordonnees (null = non renseigné). */
 type FicheServeur = { name: string; email: string | null; phone: string | null; address: string | null; city: string | null; website: string | null };
@@ -30,19 +31,27 @@ type Champ = keyof Saisie;
 
 const CHAMPS: readonly Champ[] = ['name', 'email', 'phone', 'address', 'city', 'website'];
 const LIBELLES: Record<Champ, string> = {
-  name: 'nom', email: 'email', phone: 'téléphone', address: 'adresse', city: 'ville', website: 'site web',
+  name: 'nom', email: 'e-mail', phone: 'téléphone', address: 'adresse', city: 'ville', website: 'site web',
 };
 const VIDE: Saisie = { name: '', email: '', phone: '', address: '', city: '', website: '' };
 
+/**
+ * Téléphone affiché groupé (« +221 77 800 80 80 ») : affichage seulement. Un champ non modifié n'est jamais envoyé
+ * (seuls les champs changés partent au serveur) ; un numéro saisi part tel que la personne l'a tapé.
+ */
 const versSaisie = (f: FicheServeur): Saisie => ({
-  name: f.name ?? '', email: f.email ?? '', phone: f.phone ?? '', address: f.address ?? '', city: f.city ?? '', website: f.website ?? '',
+  name: f.name ?? '', email: f.email ?? '', phone: f.phone ? formatPhoneInput(f.phone) : '', address: f.address ?? '', city: f.city ?? '', website: f.website ?? '',
 });
 
+/** « nom », « nom et ville », « téléphone, ville et adresse ». */
+const enumeration = (mots: string[]) => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`);
+
 /**
- * Identité de l'établissement : fiche réelle de l'école courante, lue et enregistrée via /admin/coordonnees.
- * Avant (2026-11-13) : l'écran appelait /v1/super-admin/tenants/{id}, route réservée au super-administrateur :
- * l'administrateur de l'école voyait « Coordonnées indisponibles » et ne pouvait rien modifier.
- * La devise / slogan n'a aucune source et reste désactivée.
+ * Identité de l'école : fiche réelle de l'école courante, lue et enregistrée via /admin/coordonnees.
+ * Lisibilité : champs blancs, valeur en texte foncé, exemples en gris clair (un champ vide ne ressemble plus à
+ * un champ rempli), libellés en style phrase, téléphone groupé, bouton désactivé tant que rien n'a changé, message de
+ * réussite court à côté du bouton. Champ « Devise / slogan » retiré : aucune donnée côté serveur, aucun autre écran ne
+ * s'en sert (règle « aucune fonction fictive »).
  */
 export const BrandingIdentitySection: React.FC = () => {
   const { currentTenant, resolveTenant } = useTenantStore();
@@ -50,8 +59,10 @@ export const BrandingIdentitySection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [erreurGlobale, setErreurGlobale] = useState('');
+  /** Champs du dernier enregistrement, rappelés à côté du bouton tant que la fiche affichée est celle enregistrée. */
+  const [enregistres, setEnregistres] = useState<string[] | null>(null);
   const enCours = useRef(false);   // double clic : un seul envoi
-  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm<Saisie>({
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting, isDirty } } = useForm<Saisie>({
     resolver: zodResolver(schema), defaultValues: VIDE, mode: 'onTouched',
   });
 
@@ -76,7 +87,9 @@ export const BrandingIdentitySection: React.FC = () => {
     if (!initial || enCours.current) return;
     const modifies = CHAMPS.filter(k => v[k] !== initial[k]);
     if (modifies.length === 0) {
-      toast.info('Aucune modification à enregistrer.');
+      // ex. espaces ajoutés autour d'une valeur : rien de réellement changé (« Aucune modification à enregistrer »)
+      reset(initial);
+      setEnregistres(null);
       return;
     }
     enCours.current = true;
@@ -88,8 +101,8 @@ export const BrandingIdentitySection: React.FC = () => {
       const s = versSaisie(data);
       reset(s);
       setInitial(s);
+      setEnregistres(modifies.map(k => LIBELLES[k]));
       if (currentTenant?.slug) void resolveTenant(currentTenant.slug);
-      toast.success(`Enregistré : ${modifies.map(k => LIBELLES[k]).join(', ')}.`);
     } catch (err) {
       setErreurGlobale(reporterErreurServeur(err, setError, {
         champs: CHAMPS,
@@ -100,84 +113,86 @@ export const BrandingIdentitySection: React.FC = () => {
     }
   };
 
-  const champ = 'w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:border-primary outline-none disabled:opacity-60 disabled:cursor-not-allowed aria-[invalid=true]:border-rose-400';
+  // Champ blanc, valeur foncée, exemple en gris clair, anneau de focus net ; 16 px sur téléphone (pas de zoom iOS)
+  const champ = 'w-full h-11 px-3.5 bg-white border border-slate-300 rounded-xl text-base sm:text-sm font-medium text-slate-900 '
+    + 'placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25 '
+    + 'disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed aria-[invalid=true]:border-rose-500 aria-[invalid=true]:ring-rose-200';
+  const libelle = 'block text-xs font-semibold text-slate-700 mb-1.5';
   const aria = (id: Champ) => errors[id] ? { 'aria-invalid': true as const, 'aria-describedby': `coord-${id}-erreur` } : {};
   const message = (id: Champ) => errors[id] && (
-    <p id={`coord-${id}-erreur`} role="alert" className="mt-1 text-[10px] font-bold text-rose-700">{errors[id]?.message}</p>
+    <p id={`coord-${id}-erreur`} role="alert" className="mt-1.5 text-xs font-semibold text-rose-700">{errors[id]?.message}</p>
   );
-  const vide = (texte: string) => (editable ? texte : '—');
+  // Exemple affiché dans un champ vide (charte : « ex. : Lycée de Thiès ») ; rien tant que la fiche n'est pas chargée
+  const exemple = (texte: string) => (editable ? `ex.\u00a0: ${texte}` : '');
 
   return (
-    <form onSubmit={(e) => void handleSubmit(enregistrer)(e)} noValidate data-validation-externe
-          className="p-6 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-4">
-      <div>
-        <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-primary" /> Identité & Coordonnées Officielles
-        </h2>
-        <p className="text-xs text-slate-500 mt-1">
-          Ces coordonnées figurent sur les attestations officielles, les convocations, les emails et le pied de page des portails.
-        </p>
-      </div>
+    <form onSubmit={(e) => void handleSubmit(enregistrer)(e)} noValidate data-validation-externe id="coordonnees-ecole"
+          className="p-4 sm:p-6 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-5">
+      <EnTeteModule
+        icone="apartment"
+        titre="Identité et coordonnées officielles"
+        sousTitre="Affichées sur les attestations, les convocations, les e-mails et le pied de page des portails."
+      />
 
-      {loading && <p className="text-[11px] font-bold text-neutral-400 animate-pulse">Chargement des coordonnées…</p>}
+      {loading && <p className="text-xs font-semibold text-slate-400 animate-pulse">Chargement des coordonnées…</p>}
       {loadError && (
-        <p role="alert" className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2.5">
+        <p role="alert" className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-2.5">
           Coordonnées indisponibles : {loadError}
         </p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        <div>
-          <label htmlFor="coord-name" className="block font-bold text-slate-700 mb-1">Nom de l'établissement *</label>
-          <input id="coord-name" disabled={!editable} type="text" className={`${champ} font-bold`} {...register('name')} {...aria('name')} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+        <div className="sm:col-span-2">
+          <label htmlFor="coord-name" className={libelle}>Nom de l'école <span aria-hidden="true" className="text-rose-600">*</span></label>
+          <input id="coord-name" disabled={!editable} type="text" aria-required="true" placeholder={exemple('Lycée de Thiès')}
+                 className={`${champ} font-semibold`} {...register('name')} {...aria('name')} />
           {message('name')}
         </div>
         <div>
-          <label htmlFor="coord-devise" className="block font-bold text-slate-700 mb-1">Devise / Slogan</label>
-          <input id="coord-devise" type="text" disabled aria-disabled="true" value=""
-                 placeholder="Fonctionnalité non disponible : aucune source de données" className={champ} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        <div>
-          <label htmlFor="coord-email" className="block font-bold text-slate-700 mb-1">Email officiel de contact</label>
-          <input id="coord-email" type="email" disabled={!editable} placeholder={vide('Non renseigné')} className={champ} {...register('email')} {...aria('email')} />
+          <label htmlFor="coord-email" className={libelle}>E-mail de contact</label>
+          <input id="coord-email" type="email" disabled={!editable} placeholder={exemple('contact@monecole.sn')} className={champ} {...register('email')} {...aria('email')} />
           {message('email')}
         </div>
         <div>
-          <label htmlFor="coord-phone" className="block font-bold text-slate-700 mb-1">Téléphone / WhatsApp officiel</label>
-          <input id="coord-phone" type="tel" disabled={!editable} placeholder={vide('Non renseigné')} className={champ} {...register('phone')} {...aria('phone')} />
+          <label htmlFor="coord-phone" className={libelle}>Téléphone (WhatsApp)</label>
+          <input id="coord-phone" type="tel" disabled={!editable} placeholder={exemple('+221 77 123 45 67')} className={champ} {...register('phone')} {...aria('phone')} />
           {message('phone')}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div className="sm:col-span-2">
-          <label htmlFor="coord-address" className="block font-bold text-slate-700 mb-1">Adresse & Siège du Campus</label>
-          <input id="coord-address" type="text" disabled={!editable} placeholder={vide('Non renseignée')} className={champ} {...register('address')} {...aria('address')} />
+        <div>
+          <label htmlFor="coord-address" className={libelle}>Adresse du siège</label>
+          <input id="coord-address" type="text" disabled={!editable} placeholder={exemple('12 avenue Cheikh Anta Diop')} className={champ} {...register('address')} {...aria('address')} />
           {message('address')}
         </div>
         <div>
-          <label htmlFor="coord-city" className="block font-bold text-slate-700 mb-1">Ville</label>
-          <input id="coord-city" type="text" disabled={!editable} placeholder={vide('Non renseignée')} className={champ} {...register('city')} {...aria('city')} />
+          <label htmlFor="coord-city" className={libelle}>Ville</label>
+          <input id="coord-city" type="text" disabled={!editable} placeholder={exemple('Thiès')} className={champ} {...register('city')} {...aria('city')} />
           {message('city')}
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="coord-website" className={libelle}>Site web</label>
+          <input id="coord-website" type="url" disabled={!editable} placeholder={exemple('https://monecole.sn')} className={champ} {...register('website')} {...aria('website')} />
+          {message('website')}
         </div>
       </div>
 
-      <div className="text-xs">
-        <label htmlFor="coord-website" className="block font-bold text-slate-700 mb-1">Site web</label>
-        <input id="coord-website" type="url" disabled={!editable} placeholder={vide('Non renseigné')} className={champ} {...register('website')} {...aria('website')} />
-        {message('website')}
-      </div>
+      {erreurGlobale && <p role="alert" className="text-xs font-semibold text-rose-700 m-0">{erreurGlobale}</p>}
 
-      {erreurGlobale && <p role="alert" className="text-[11px] font-bold text-rose-700 m-0">{erreurGlobale}</p>}
-
-      <div className="pt-2 border-t border-neutral-100 flex justify-end">
-        <button disabled={isSubmitting || !editable} type="submit" className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-          <Save size={14} />
-          <span>{isSubmitting ? 'Enregistrement...' : 'Enregistrer les Modifications'}</span>
-        </button>
+      <div className="pt-4 border-t border-neutral-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+        <p id="coord-etat" role="status" className="text-xs font-medium sm:text-right">
+          {editable && !isDirty && (enregistres ? (
+            <span className="inline-flex items-center gap-1 text-emerald-700">
+              <span translate="no" aria-hidden="true" className="material-symbols-outlined text-[16px]">check_circle</span>
+              {`Enregistré\u00a0: ${enumeration(enregistres)}.`}
+            </span>
+          ) : (
+            <span className="text-slate-400">Aucune modification à enregistrer</span>
+          ))}
+        </p>
+        <Button type="submit" disabled={isSubmitting || !editable || !isDirty}
+          aria-describedby={!isDirty ? 'coord-etat' : undefined} className="w-full sm:w-auto">
+          <span translate="no" aria-hidden="true" className="material-symbols-outlined text-[18px]">save</span>
+          {isSubmitting ? 'Enregistrement…' : 'Enregistrer les modifications'}
+        </Button>
       </div>
     </form>
   );

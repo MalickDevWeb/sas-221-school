@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { messageSuppression, RAPPEL_RESTAURATION } from '@/features/corbeille/navigationCorbeille';
 // Règle du lien Google Meet partagée avec la classe virtuelle de l'espace collaboratif (APP-TL-26)
 import { erreurLienMeet, normaliserLienMeet } from '@/shared/lib/lienMeet';
 
@@ -60,11 +61,13 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
 
   const stopMeet = async (id: string) => {
     try {
-      await apiClient.delete(`/student/live-sessions/${id}`);
-      triggerToast('Le cours en direct est terminé.');
+      // Réponse « corbeille: true » (V21) : la séance disparaît pour les élèves et reste restaurable
+      const { data } = await apiClient.delete(`/student/live-sessions/${id}`);
+      const { message, corbeille } = messageSuppression(data, 'Le cours en direct est terminé.');
+      triggerToast(corbeille ? `Cours en direct terminé. ${message} ${RAPPEL_RESTAURATION}` : message);
       fetchSessions();
-    } catch {
-      triggerToast('Erreur lors de la fermeture.');
+    } catch (err) {
+      triggerToast(`Cours en direct non terminé : ${resolveErrorMessage(err)}`);
     }
   };
 

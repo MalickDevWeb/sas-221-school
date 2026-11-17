@@ -4,7 +4,6 @@ import { CalendarTab } from './planning/CalendarTab';
 import { ConflictsTab } from './planning/ConflictsTab';
 import { HistoryTab } from './planning/HistoryTab';
 import { StatsTab } from './planning/StatsTab';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminSchedulerState } from '../../hooks/useAdminSchedulerState';
 import { avertissementBilan, messageBilan } from '../../domain/bilanEmploiDuTemps';
 import { generateOptimizedSchedule } from '../../domain/PlanningGenerator';
@@ -50,9 +49,9 @@ export function AdminGlobalScheduler() {
   return (
     <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-start w-full" id="global-scheduler-root">
       {!isClosed ? (
-        <TabletDrawerWrapper>
+        <div className="shrink-0 lg:sticky lg:top-4">
           <PlanningSubSidebar activeTab={activeTab} onSelectTab={setActiveTab} isCollapsed={false} onToggleCollapse={() => {}} onClose={() => setIsClosed(true)} />
-        </TabletDrawerWrapper>
+        </div>
       ) : (
         <button onClick={() => setIsClosed(false)} className="bg-white border border-[#E2DCDA] hover:bg-neutral-50 px-3.5 py-4 rounded-2xl shadow-xs cursor-pointer shrink-0 w-16 text-center font-black">
           <span translate="no" className="material-symbols-outlined text-lg text-primary">visibility</span>

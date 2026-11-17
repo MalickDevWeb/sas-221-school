@@ -1,6 +1,7 @@
 import React from 'react';
 import { Video } from 'lucide-react';
 import { VirtualClass } from '../../domain/CollaborationModels';
+import { libelleHoraire, statutSeance, LIBELLE_STATUT } from '../../domain/horaireSeance';
 
 interface Props {
   readonly meets: readonly VirtualClass[];
@@ -28,16 +29,24 @@ export function ActiveClassesList({ meets, activeMeetId, onSelectMeet, onJoinMee
           >
             <span className="font-bold text-xs text-gray-800 block">{m.subjectName}</span>
             <div className="flex justify-between items-center text-[10px] text-neutral-500 font-semibold mt-1">
-              <span>{m.teacherName} • {m.time}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onJoinMeet(m.id, m.meetLink);
-                }}
-                className="px-2 py-1 bg-brand-red-deep text-white font-bold rounded-lg hover:scale-105 transition-all text-[9px]"
-              >
-                Rejoindre
-              </button>
+              <span>
+                {m.teacherName}
+                {m.debut ? ` • ${libelleHoraire(m.debut, m.fin)} · ${LIBELLE_STATUT[statutSeance(m.debut, m.fin)]}` : m.time ? ` • ${m.time}` : ''}
+              </span>
+              {/* Sans lien (séance à venir, vue d'un élève), rien à rejoindre : le lien apparaît à l'heure de début */}
+              {m.meetLink ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onJoinMeet(m.id, m.meetLink);
+                  }}
+                  className="px-2 py-1 bg-brand-red-deep text-white font-bold rounded-lg hover:scale-105 transition-all text-[9px]"
+                >
+                  Rejoindre
+                </button>
+              ) : (
+                <span className="px-2 py-1 bg-neutral-100 text-neutral-600 font-bold rounded-lg text-[9px]">Lien à l'heure de début</span>
+              )}
             </div>
           </div>
         ))}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { SearchModal } from './modals/SearchModal';
-import { SettingsModal } from './modals/SettingsModal';
 import { SupportModal } from './modals/SupportModal';
 import { DocModal } from './modals/DocModal';
 import { LegalModal } from './modals/LegalModal';
@@ -23,11 +22,6 @@ export function StudentModals({ state }: StudentModalsProps) {
           else if (item.action === 'support') state.setShowSupportModal(true);
           else if (item.action === 'docs') state.setShowDocModal(true);
         }}
-      />
-      <SettingsModal
-        showSettings={state.showSettings} setShowSettings={state.setShowSettings}
-        settingsPrefs={state.settingsPrefs} setSettingsPrefs={state.setSettingsPrefs}
-        triggerToast={state.triggerLayoutToast}
       />
       <SupportModal showSupportModal={state.showSupportModal} setShowSupportModal={state.setShowSupportModal} />
       <DocModal

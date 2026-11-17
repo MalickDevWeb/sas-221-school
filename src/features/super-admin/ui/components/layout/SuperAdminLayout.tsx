@@ -27,11 +27,11 @@ export const SuperAdminLayout = () => {
     { icon: <LayoutDashboard size={18} />, label: "Vue d'ensemble", path: '/super-admin/dashboard' },
     { icon: <Globe size={18} />, label: 'Établissements', path: '/super-admin/tenants' },
     { icon: <Users size={18} />, label: 'Utilisateurs', path: '/super-admin/users' },
-    { icon: <CreditCard size={18} />, label: 'Facturation SaaS', path: '/super-admin/billing' },
+    { icon: <CreditCard size={18} />, label: 'Facturation', path: '/super-admin/billing' },
     { icon: <BarChart3 size={18} />, label: 'Rapports & Audit', path: '/super-admin/reports' },
-    { icon: <TrendingUp size={18} />, label: 'Analytiques', path: '/super-admin/analytics' },
+    { icon: <TrendingUp size={18} />, label: 'Statistiques', path: '/super-admin/analytics' },
     { icon: <Settings2 size={18} />, label: 'Système & Santé', path: '/super-admin/system' },
-    { icon: <HelpCircle size={18} />, label: 'Support & Tickets', path: '/super-admin/support' },
+    { icon: <HelpCircle size={18} />, label: 'Support', path: '/super-admin/support' },
     { icon: <Settings size={18} />, label: 'Paramètres', path: '/super-admin/settings' },
   ];
 

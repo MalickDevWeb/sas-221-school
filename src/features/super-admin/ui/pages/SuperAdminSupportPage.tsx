@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Sparkles } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 /**
  * Support & tickets.
@@ -8,11 +8,8 @@ import { MessageSquare, Sparkles } from 'lucide-react';
 export const SuperAdminSupportPage = () => (
   <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
     <div>
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
-        <Sparkles size={12} className="text-cyan-400" /> Assistance & Conciergerie SaaS
-      </div>
       <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Support & Tickets</h1>
-      <p className="text-xs text-slate-400 mt-1">Requêtes des directions d'écoles clientes.</p>
+      <p className="text-xs text-slate-400 mt-1">Demandes d'aide des directions d'école.</p>
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

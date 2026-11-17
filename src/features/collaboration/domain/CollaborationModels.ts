@@ -8,6 +8,11 @@ export interface VirtualClass {
   readonly isPublished: boolean;
   readonly date: string;
   readonly time: string;
+  /** Début (le lien apparaît aux élèves) et fin (la séance disparaît), AAAA-MM-JJTHH:MM */
+  readonly debut?: string | null;
+  readonly fin?: string | null;
+  /** Calculé par le serveur à l'heure de l'école */
+  readonly statut?: 'a_venir' | 'en_cours' | 'terminee' | 'sans_horaire';
 }
 
 export interface AdminMeeting {
@@ -20,6 +25,9 @@ export interface AdminMeeting {
   readonly meetLink: string;
   readonly date: string;
   readonly time: string;
+  readonly debut?: string | null;
+  readonly fin?: string | null;
+  readonly statut?: 'a_venir' | 'en_cours' | 'terminee' | 'sans_horaire';
 }
 
 /** Élève (membre ou candidat d'un groupe), tel que renvoyé par le serveur. */

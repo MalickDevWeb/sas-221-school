@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParentContext } from '../components/layout/ParentLayout';
+import { useParentContext } from '../components/layout/ParentContext';
 import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
 // L'école planifie du lundi au samedi ; le dimanche ouvre sur le lundi.

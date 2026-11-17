@@ -67,13 +67,17 @@ export function useCalendarState() {
   // Emploi du temps réel : GET /professor/schedule (professeur) ou GET /schedule (étudiant).
   // Sans session ou en cas d'erreur : liste vide (état vide honnête), aucune séance inventée.
   const role = utilisateur?.role;
+  const estProfesseur = role === ROLE_UTILISATEUR.PROFESSEUR || role === ROLE_UTILISATEUR.TEACHER;
+  const estEleve = role === ROLE_UTILISATEUR.ETUDIANT || role === ROLE_UTILISATEUR.STUDENT;
+  /** L'emploi du temps est personnel ; sans connexion élève ou professeur, rien à afficher (et on le dit). */
+  const consultable = estProfesseur || estEleve;
   useEffect(() => {
-    if (!role || (role !== ROLE_UTILISATEUR.PROFESSEUR && role !== ROLE_UTILISATEUR.ETUDIANT)) {
+    if (!consultable) {
       setRealSessions([]);
       return;
     }
     let cancelled = false;
-    const url = role === ROLE_UTILISATEUR.PROFESSEUR ? '/professor/schedule' : '/schedule';
+    const url = estProfesseur ? '/professor/schedule' : '/schedule';
     apiClient.get(url)
       .then(({ data }) => {
         if (cancelled) return;
@@ -82,7 +86,7 @@ export function useCalendarState() {
       })
       .catch(() => { if (!cancelled) setRealSessions([]); });
     return () => { cancelled = true; };
-  }, [role]);
+  }, [consultable, estProfesseur]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -136,6 +140,7 @@ export function useCalendarState() {
   });
 
   return {
+    consultable, estConnecte: !!utilisateur,
     level, setLevel, weekType, setWeekType, viewType, setViewType,
     searchQuery, setSearchQuery, selectedCourse, setSelectedCourse,
     sessionNotes, setSessionNotes, isNotesSaved, showQRModal, setShowQRModal,

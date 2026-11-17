@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getDashboardComplete, getActivities } from '../../../dashboard/infrastructure/api/dashboardService';
 import { estObjet, listeBrute, nombreOuNull, ObjetBrut, texte, texteOuNull } from '@/shared/lib/lectureServeur';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/apiClient';
+import { useRbacStore } from '@/core/store/rbacStore';
 
 interface Props { currency: string; }
 
@@ -75,15 +78,23 @@ export function AdminCEODashboard({ currency }: Props) {
     fetchData();
   }, []);
 
-  const recoveryKpi = findKpi(dashboardData, ['recovery_rate']);
+  // « Taux d'encaissement » = encaissé ÷ attendu des dossiers (GET /finance/dashboard : totalPaid, totalRequired).
+  const peutFinances = useRbacStore((st) => st.peut('finances.lire'));
+  const finances = useQuery({
+    queryKey: ['admin', 'finances', 'tableau'],
+    queryFn: async () => (await apiClient.get<Record<string, unknown>>('/finance/dashboard')).data,
+    enabled: peutFinances,
+  });
+  const totalPaye = nombreOuNull(finances.data?.totalPaid);
+  const totalAttendu = nombreOuNull(finances.data?.totalRequired);
   const cashFlowKpi = findKpi(dashboardData, ['cash_flow']);
   const ebitdaKpi = findKpi(dashboardData, ['ebitda']);
   const qrKpi = findKpi(dashboardData, ['qr_suspended']);
   const ticketsKpi = findKpi(dashboardData, ['open_tickets']);
 
-  const recoveryRate = recoveryKpi?.value ?? EMPTY;
-  const recoveryNum = Number(String(recoveryKpi?.value ?? '').replace(',', '.'));
-  const hasRecoveryNum = recoveryKpi != null && Number.isFinite(recoveryNum);
+  const hasRecoveryNum = totalPaye != null && totalAttendu != null && totalAttendu > 0;
+  const recoveryNum = hasRecoveryNum ? (totalPaye * 100) / totalAttendu : 0;
+  const recoveryRate = hasRecoveryNum ? recoveryNum.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) : EMPTY;
   const cashFlow = cashFlowKpi?.value ?? EMPTY;
   const ebitda = ebitdaKpi?.value ?? EMPTY;
   const ebitdaNum = Number(String(ebitdaKpi?.value ?? '').replace(',', '.'));
@@ -100,7 +111,7 @@ export function AdminCEODashboard({ currency }: Props) {
   }));
 
   if (loading) {
-    return <div className="p-8 text-center text-xs font-bold text-neutral-500 animate-pulse tracking-widest uppercase">Synchronisation API...</div>;
+    return <div className="p-8 text-center text-xs font-bold text-neutral-500 animate-pulse tracking-widest uppercase">Chargement du tableau de bord…</div>;
   }
 
   return (
@@ -132,13 +143,11 @@ export function AdminCEODashboard({ currency }: Props) {
         {/* Recovery Rate Circular Progress */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Taux Recouvrement</span>
-            <h3 className="text-lg font-extrabold text-[#1E293B]">{recoveryRate}{recoveryKpi ? '%' : ''}</h3>
-            {recoveryKpi?.trendValue && (
-              <span className={`text-[9px] font-bold ${recoveryKpi.trend === 'down' ? 'text-rose-500' : 'text-emerald-500'}`}>
-                {recoveryKpi.trend === 'down' ? '▼' : recoveryKpi.trend === 'up' ? '▲' : '•'} {recoveryKpi.trendValue}
-              </span>
-            )}
+            <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Taux d'encaissement</span>
+            <h3 className="text-lg font-extrabold text-[#1E293B]">{recoveryRate}{hasRecoveryNum ? ' %' : ''}</h3>
+            <span className="text-[9px] font-bold text-neutral-400">
+              {!peutFinances ? 'réservé à la comptabilité' : hasRecoveryNum ? 'encaissé ÷ attendu des dossiers' : 'aucun dossier financier'}
+            </span>
           </div>
           <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90">
@@ -153,14 +162,14 @@ export function AdminCEODashboard({ currency }: Props) {
 
         {/* Cash Flow */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm space-y-0.5">
-          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Cash Flow</span>
+          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Trésorerie</span>
           <h3 className="text-lg font-extrabold text-[#1E293B]">{cashFlow}{cashFlowKpi ? ` ${cashFlowKpi.currency || currency}` : ''}</h3>
           <p className="text-[9px] text-neutral-400 font-semibold">{cashFlowKpi ? 'Valeur enregistrée côté serveur' : 'Aucune donnée'}</p>
         </div>
 
         {/* EBITDA */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm space-y-0.5">
-          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">EBITDA Opérationnel</span>
+          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Marge d'exploitation</span>
           <h3 className="text-lg font-extrabold text-[#1E293B]">{ebitda}{ebitdaKpi ? '%' : ''}</h3>
           <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
             {hasEbitdaNum && <div className="bg-primary h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, ebitdaNum))}%` }}></div>}
@@ -170,7 +179,7 @@ export function AdminCEODashboard({ currency }: Props) {
         {/* QR Blocked & Support tickets */}
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm flex flex-col justify-center gap-1">
           <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-neutral-500 text-[10px]">QR Suspendus</span>
+            <span className="text-neutral-500 text-[10px]">Badges QR suspendus</span>
             <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-black">{qrBlocked}{qrBlocked !== EMPTY ? ' actifs' : ''}</span>
           </div>
           <div className="flex items-center justify-between text-xs font-bold">

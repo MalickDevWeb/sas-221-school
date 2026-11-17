@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParentContext } from '../components/layout/ParentLayout';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useParentContext } from '../components/layout/ParentContext';
 import type { ParentMessage, ParentAppointment, ParentProfesseur, ParentDestinataire } from '@/features/parent/types';
 import { apiClient } from '@/shared/lib/apiClient';
 import { parentApi } from '@/features/parent/api';
@@ -12,85 +12,77 @@ const MESSAGE_MAX = 5000;
 const initiales = (nom: string | null | undefined) =>
   (nom ?? '').split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '—';
 
-/** Libellé du correspondant : l'école pour un message reçu, le destinataire pour un envoi. */
-const correspondant = (m: ParentMessage) =>
-  m.envoye ? `Vous → ${m.interlocuteur ?? 'destinataire'}` : (m.de ?? m.interlocuteur ?? 'École');
+const quand = (m: ParentMessage) => m.envoyeLe ?? m.date;
+const heure = (iso: string) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+const memeJour = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+const hier = () => { const d = new Date(); d.setDate(d.getDate() - 1); return d; };
 
-const roleAffiche = (m: ParentMessage) =>
-  m.envoye ? 'Message envoyé' : m.role === 'ADMINISTRATION' ? 'Administration' : m.role === 'PROFESSEUR' ? 'Professeur' : m.role;
+function dateListe(iso: string): string {
+  const d = new Date(iso);
+  if (memeJour(d, new Date())) return heure(iso);
+  if (memeJour(d, hier())) return 'Hier';
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+}
 
-function MessageCard({ msg, onOpen }: { msg: ParentMessage; onOpen: (m: ParentMessage) => void }) {
+function jourConversation(iso: string): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (memeJour(d, new Date())) return `Aujourd'hui, ${date}`;
+  if (memeJour(d, hier())) return `Hier, ${date}`;
+  return date;
+}
+
+/** Objet sans « Re : » : un échange = un correspondant + un objet (les réponses gardent l'objet d'origine). */
+const objet = (sujet: string) => sujet.replace(/^(\s*re\s*:\s*)+/i, '').trim().toLowerCase();
+
+/** Correspondant de l'échange : le professeur ou l'administration. */
+const nomCorrespondant = (m: ParentMessage) =>
+  m.envoye ? (m.interlocuteur ?? 'Destinataire') : (m.interlocuteur ?? m.de ?? 'École');
+
+const roleCorrespondant = (m: ParentMessage) =>
+  (m.interlocuteurId === 'ADMINISTRATION' || m.role === 'ADMINISTRATION') ? 'Administration' : 'Professeur';
+
+interface Echange {
+  id: string;
+  messages: ParentMessage[];
+  correspondant: string;
+  correspondantId: string | undefined;
+  role: string;
+  sujet: string;
+}
+
+function regrouper(messages: ParentMessage[]): Echange[] {
+  const groupes = new Map<string, ParentMessage[]>();
+  for (const m of messages) {
+    const cle = `${m.interlocuteurId ?? m.interlocuteur ?? m.de ?? ''}|${objet(m.sujet)}`;
+    groupes.set(cle, [...(groupes.get(cle) ?? []), m]);
+  }
+  return [...groupes.entries()].map(([id, ms]) => {
+    const tries = [...ms].sort((a, b) => quand(a).localeCompare(quand(b)));
+    const premier = tries[0];
+    return {
+      id, messages: tries,
+      correspondant: nomCorrespondant(tries.find((m) => !m.envoye) ?? premier),
+      correspondantId: tries.find((m) => m.interlocuteurId)?.interlocuteurId,
+      role: roleCorrespondant(premier),
+      sujet: premier.sujet.replace(/^(\s*re\s*:\s*)+/i, '').trim() || premier.sujet,
+    };
+  }).sort((a, b) => quand(b.messages[b.messages.length - 1]).localeCompare(quand(a.messages[a.messages.length - 1])));
+}
+
+function Avatar({ nom, ecole = true, taille = 'w-12 h-12 text-sm' }: { nom: string | null | undefined; ecole?: boolean; taille?: string }) {
   return (
-    <button
-      onClick={() => onOpen(msg)}
-      data-message-id={msg.id}
-      className={`w-full text-left bg-white rounded-2xl border border-solid shadow-sm hover:shadow-md transition-all p-5 ${msg.lu ? 'border-neutral-100' : 'border-blue-200 ring-2 ring-blue-50'}`}
-    >
-      <div className="flex items-start gap-4">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${msg.envoye ? 'bg-emerald-50 text-emerald-700' : msg.lu ? 'bg-neutral-100 text-neutral-500' : 'bg-blue-100 text-blue-700'}`}>
-          {msg.envoye
-            ? <span translate="no" className="material-symbols-outlined text-[18px]">send</span>
-            : initiales(msg.de ?? msg.interlocuteur)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            <p className={`text-sm font-black truncate ${msg.lu ? 'text-neutral-700' : 'text-neutral-900'}`}>{correspondant(msg)}</p>
-            {!msg.lu && <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0 animate-pulse" aria-label="non lu" />}
-          </div>
-          <p className="text-[10px] text-neutral-400 font-semibold mb-1">
-            {roleAffiche(msg)}
-            {msg.envoye && (msg.luParDestinataire ? ' · lu par le destinataire' : ' · pas encore lu')}
-          </p>
-          <p className={`text-xs font-black truncate ${msg.lu ? 'text-neutral-500' : 'text-neutral-800'}`}>{msg.sujet}</p>
-          <p className="text-[10px] text-neutral-400 font-semibold mt-0.5 line-clamp-1">{msg.message}</p>
-        </div>
-        <div className="shrink-0 text-right">
-          <p className="text-[9px] text-neutral-400 font-semibold">
-            {new Date(msg.envoyeLe ?? msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
-          </p>
-        </div>
-      </div>
-    </button>
+    <span aria-hidden className={`${taille} rounded-[999px] flex items-center justify-center font-black shrink-0 ring-2 ring-white shadow-sm ${
+      ecole ? 'bg-primary-light text-primary' : 'bg-primary text-text-on-primary'}`}>
+      {initiales(nom)}
+    </span>
   );
 }
 
-function MessageModal({ msg, onClose, onReply }: { msg: ParentMessage; onClose: () => void; onReply: (m: ParentMessage) => void }) {
-  return (
-    <div role="dialog" aria-modal="true" aria-label={msg.sujet} className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 animate-fade-in">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-base font-black shrink-0">
-            {initiales(msg.envoye ? msg.interlocuteur : msg.de)}
-          </div>
-          <div>
-            <p className="font-black text-neutral-900">{correspondant(msg)}</p>
-            <p className="text-[10px] text-neutral-400 font-semibold">{roleAffiche(msg)}</p>
-          </div>
-          <button onClick={onClose} aria-label="Fermer" className="ml-auto w-8 h-8 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center">
-            <span translate="no" className="material-symbols-outlined text-[16px] text-neutral-600">close</span>
-          </button>
-        </div>
-        <div className="bg-blue-50 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-black text-blue-700 mb-1">Objet</p>
-          <p className="text-sm font-bold text-neutral-800">{msg.sujet}</p>
-        </div>
-        <p className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap break-words">{msg.message}</p>
-        <p className="text-[10px] text-neutral-400 font-semibold mt-4">
-          {msg.envoye ? 'Envoyé' : 'Reçu'} le {new Date(msg.envoyeLe ?? msg.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          {msg.envoye && (msg.luParDestinataire ? ' · lu par le destinataire' : ' · pas encore lu par le destinataire')}
-        </p>
-        {!msg.envoye && msg.interlocuteurId && (
-          <div className="flex justify-end mt-5">
-            <button onClick={() => onReply(msg)} className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black flex items-center gap-2">
-              <span translate="no" className="material-symbols-outlined text-[16px]">reply</span>
-              Répondre
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+const FOND_CONVERSATION: React.CSSProperties = {
+  backgroundImage: 'radial-gradient(rgb(var(--color-primary-rgb, 179 24 28) / 0.08) 1.2px, transparent 1.2px)',
+  backgroundSize: '22px 22px',
+};
 
 type Brouillon = { destinataireId: string; sujet: string; message: string };
 type ErreursBrouillon = Partial<Record<keyof Brouillon, string>>;
@@ -212,7 +204,13 @@ export function ParentMessagesPage() {
   const [brouillon, setBrouillon] = useState<Brouillon | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const messagesError = errors?.messages ?? null;
-  const [selected, setSelected] = useState<ParentMessage | null>(null);
+  const [ouvert, setOuvert] = useState<string | null>(null);
+  const [recherche, setRecherche] = useState('');
+  const [reponse, setReponse] = useState('');
+  const [erreurReponse, setErreurReponse] = useState('');
+  const [envoiReponse, setEnvoiReponse] = useState(false);
+  const finConversation = useRef<HTMLDivElement>(null);
+  const formulaire = useRef<HTMLFormElement>(null);
   const [showRdv, setShowRdv] = useState(false);
   const [appointments, setAppointments] = useState<ParentAppointment[]>([]);
   const [professeurs, setProfesseurs] = useState<ParentProfesseur[]>([]);
@@ -269,31 +267,47 @@ export function ParentMessagesPage() {
     }
   };
 
-  const handleOpen = (msg: ParentMessage) => {
-    setSelected(msg);
-    if (!msg.lu) markRead(msg.id);
+  /*
+   * Présentation d'une vraie messagerie, comme côté école. Un échange = un correspondant (professeur ou
+   * administration) + un objet ; la réponse s'écrit en bas.
+   */
+  const echanges = useMemo(() => regrouper(messages), [messages]);
+  const echangesAffiches = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
+    return q ? echanges.filter((e) => [e.correspondant, e.sujet, ...e.messages.map((m) => m.message)].some((t) => t.toLowerCase().includes(q))) : echanges;
+  }, [echanges, recherche]);
+  const echangeOuvert = echanges.find((e) => e.id === ouvert) ?? null;
+  const nbOuverts = echangeOuvert?.messages.length ?? 0;
+  useEffect(() => { finConversation.current?.scrollIntoView({ block: 'end' }); }, [ouvert, nbOuverts]);
+
+  const ouvrir = (e: Echange) => {
+    setOuvert(e.id); setReponse(''); setErreurReponse(''); setConfirmation('');
+    e.messages.filter((m) => !m.lu).forEach((m) => markRead(m.id));
   };
 
-  const nonLus = messages.filter(m => !m.lu);
-  const lus    = messages.filter(m => m.lu);
+  const repondre = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!echangeOuvert) return;
+    const texte = reponse.trim();
+    if (!texte) { setErreurReponse('Le message est vide : écrivez votre réponse.'); return; }
+    if (texte.length > MESSAGE_MAX) { setErreurReponse(`Message trop long : ${texte.length} caractères sur ${MESSAGE_MAX} autorisés.`); return; }
+    if (!echangeOuvert.correspondantId) { setErreurReponse('Destinataire inconnu : utilisez « Écrire ».'); return; }
+    setEnvoiReponse(true);
+    try {
+      const m = await parentApi.sendMessage(echangeOuvert.correspondantId, `Re : ${echangeOuvert.sujet}`.slice(0, SUJET_MAX), texte);
+      setReponse('');
+      setConfirmation(`Message envoyé à ${m.interlocuteur ?? echangeOuvert.correspondant}.`);
+      await refreshMessages();
+    } catch (err) {
+      setErreurReponse(resolveErrorMessage(err));
+    } finally {
+      setEnvoiReponse(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">
 
-      {selected && (
-        <MessageModal
-          msg={selected}
-          onClose={() => setSelected(null)}
-          onReply={(m) => {
-            setSelected(null);
-            setBrouillon({
-              destinataireId: m.interlocuteurId ?? '',
-              sujet: /^re\s*:/i.test(m.sujet) ? m.sujet : `Re : ${m.sujet}`.slice(0, SUJET_MAX),
-              message: '',
-            });
-          }}
-        />
-      )}
       {brouillon && (
         <ComposeModal
           initial={brouillon}
@@ -383,22 +397,26 @@ export function ParentMessagesPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6 pb-4 border-b border-neutral-200 border-solid flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight">Messages</h2>
-          <p className="text-xs text-neutral-500 font-semibold mt-1">Vos échanges avec les professeurs et l'administration</p>
+      {/* Bandeau */}
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-primary-dark text-text-on-primary px-5 md:px-8 py-5 md:py-6 mb-5 flex flex-wrap items-center gap-4 md:gap-5 shadow-md">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 w-56 h-56 rounded-[999px] bg-white/10" />
+        <span className="w-14 h-14 md:w-16 md:h-16 rounded-[999px] bg-white/20 flex items-center justify-center shrink-0">
+          <span translate="no" className="material-symbols-outlined text-3xl md:text-4xl">forum</span>
+        </span>
+        <div className="min-w-0 relative">
+          <h2 className="text-xl md:text-2xl font-black leading-tight">Messages</h2>
+          <p className="text-xs md:text-sm font-semibold opacity-90 mt-1">Vos échanges avec les professeurs et l'administration</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex flex-wrap items-center gap-2 relative">
           {unreadCount > 0 && (
-            <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full">
+            <span className="bg-white/20 text-xs font-black px-3 py-1.5 rounded-[999px]">
               {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
             </span>
           )}
           <button
             id="parent-ecrire"
             onClick={() => { setConfirmation(''); setBrouillon({ destinataireId: '', sujet: '', message: '' }); }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-black transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white text-primary rounded-[999px] text-xs font-black shadow-sm hover:bg-white/90 transition-colors cursor-pointer"
           >
             <span translate="no" className="material-symbols-outlined text-[16px]">edit</span>
             Écrire
@@ -406,13 +424,13 @@ export function ParentMessagesPage() {
           <button
             id="parent-demander-rdv"
             onClick={() => { setRdvErreurs({}); setShowRdv(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 rounded-[999px] text-xs font-black transition-colors cursor-pointer"
           >
-            <span translate="no" className="material-symbols-outlined text-[16px]">groups</span>
+            <span translate="no" className="material-symbols-outlined text-[16px]">event_available</span>
             Demander RDV
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Visioconférences & Rendez-vous planifiés */}
       {appointments.length > 0 && (
@@ -441,8 +459,8 @@ export function ParentMessagesPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[999px] text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-[999px] bg-emerald-500 animate-pulse" />
                       {apt.status === 'CONFIRMED' || apt.status === 'CONFIRME' ? 'Confirmé' : 'Demande envoyée'}
                     </span>
                     <span className="text-[11px] font-bold text-neutral-500 flex items-center gap-1">
@@ -496,24 +514,148 @@ export function ParentMessagesPage() {
           description="Écrivez à un professeur ou à l'administration avec le bouton « Écrire » ; leurs réponses apparaîtront ici."
         />
       ) : (
-        <>
-          {nonLus.length > 0 && (
-            <div className="mb-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-3">Non lus ({nonLus.length})</p>
-              <div className="flex flex-col gap-3">
-                {nonLus.map(m => <MessageCard key={m.id} msg={m} onOpen={handleOpen} />)}
+        <div id="parent-messagerie" className="flex gap-4 h-[calc(100vh-260px)] min-h-[520px]">
+          {/* Conversations */}
+          <aside className={`${echangeOuvert ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] shrink-0 flex-col bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden`}>
+            <div className="px-4 pt-4 pb-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <span translate="no" className="material-symbols-outlined text-primary">groups</span>
+                <h3 className="text-base font-black text-neutral-900">Conversations</h3>
               </div>
+              <label className="flex items-center gap-2 rounded-[999px] border border-neutral-200 px-3 py-2 focus-within:border-primary">
+                <span translate="no" className="material-symbols-outlined text-lg text-neutral-400">search</span>
+                <input value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un professeur ou un message…"
+                  aria-label="Rechercher une conversation"
+                  className="bg-transparent outline-none border-0 shadow-none p-0 focus:ring-0 text-sm w-full placeholder:text-neutral-400" />
+              </label>
             </div>
-          )}
-          {lus.length > 0 && (
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-3">Historique ({lus.length})</p>
-              <div className="flex flex-col gap-3">
-                {lus.map(m => <MessageCard key={m.id} msg={m} onOpen={handleOpen} />)}
+            <ul className="flex-1 overflow-y-auto" aria-label="Vos échanges">
+              {echangesAffiches.length === 0 && <li className="p-6 text-center text-xs text-neutral-500">Aucune conversation ne correspond.</li>}
+              {echangesAffiches.map((e) => {
+                const dernier = e.messages[e.messages.length - 1];
+                const aLire = e.messages.filter((m) => !m.lu).length;
+                const actif = ouvert === e.id;
+                return (
+                  <li key={e.id} className="border-t border-neutral-100 first:border-t-0">
+                    <button onClick={() => ouvrir(e)} data-message-id={dernier.id} data-echange-id={e.id}
+                      className={`w-full text-left px-4 py-3 flex items-center gap-3 border-l-4 transition-colors cursor-pointer ${actif ? 'bg-primary-light border-primary' : 'border-transparent hover:bg-neutral-50'}`}>
+                      <Avatar nom={e.correspondant} />
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-baseline gap-2">
+                          <span className={`text-sm truncate ${aLire ? 'font-black text-neutral-900' : 'font-bold text-neutral-800'}`}>{e.correspondant}</span>
+                          <span className={`ml-auto text-[11px] shrink-0 ${aLire ? 'text-primary font-black' : 'text-neutral-400 font-semibold'}`}>{dateListe(quand(dernier))}</span>
+                        </span>
+                        <span className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-xs truncate ${aLire ? 'text-neutral-800 font-semibold' : 'text-neutral-500'}`}>
+                            {dernier.envoye ? 'Vous : ' : ''}{dernier.message}
+                          </span>
+                          {aLire > 0 ? (
+                            <span aria-label="non lu" className="ml-auto min-w-5 h-5 px-1.5 rounded-[999px] bg-primary text-text-on-primary text-[10px] font-black flex items-center justify-center shrink-0">{aLire}</span>
+                          ) : dernier.envoye ? (
+                            <span translate="no" className={`ml-auto material-symbols-outlined text-[15px] shrink-0 ${dernier.luParDestinataire ? 'text-primary' : 'text-neutral-400'}`}
+                              aria-label={dernier.luParDestinataire ? 'lu par le destinataire' : 'pas encore lu'} title={dernier.luParDestinataire ? 'Lu par le destinataire' : 'Pas encore lu'}>
+                              {dernier.luParDestinataire ? 'done_all' : 'done'}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="block text-[11px] text-neutral-400 truncate mt-0.5">{e.role} · {e.sujet}</span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="p-3">
+              <p className="rounded-2xl bg-primary-light text-primary text-xs font-black py-2.5 flex items-center justify-center gap-2">
+                <span translate="no" className="material-symbols-outlined text-lg">forum</span>
+                {echanges.length} conversation{echanges.length > 1 ? 's' : ''} au total
+              </p>
+            </div>
+          </aside>
+
+          {/* Conversation ouverte */}
+          <div className={`${echangeOuvert ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 flex-col bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden`}>
+            {!echangeOuvert ? (
+              <div className="m-auto text-center px-6">
+                <span className="mx-auto w-16 h-16 rounded-[999px] bg-primary-light text-primary flex items-center justify-center">
+                  <span translate="no" className="material-symbols-outlined text-3xl">chat</span>
+                </span>
+                <p className="text-sm font-bold text-neutral-500 mt-3">Choisissez une conversation pour la lire et répondre.</p>
               </div>
-            </div>
-          )}
-        </>
+            ) : (
+              <>
+                <header className="flex items-center gap-3 px-4 md:px-5 py-3 border-b border-neutral-100">
+                  <button type="button" onClick={() => setOuvert(null)} aria-label="Retour aux conversations"
+                    className="md:hidden w-9 h-9 rounded-[999px] hover:bg-neutral-100 flex items-center justify-center cursor-pointer">
+                    <span translate="no" className="material-symbols-outlined">arrow_back</span>
+                  </button>
+                  <Avatar nom={echangeOuvert.correspondant} taille="w-12 h-12 md:w-14 md:h-14 text-base" />
+                  <div className="min-w-0">
+                    <p className="text-base md:text-lg font-black text-neutral-900 truncate">{echangeOuvert.correspondant}</p>
+                    <p className="text-xs text-neutral-500 font-semibold truncate">{echangeOuvert.role} · {echangeOuvert.sujet}</p>
+                  </div>
+                </header>
+
+                <ol className="flex-1 overflow-y-auto px-3 md:px-6 py-4 flex flex-col gap-2 bg-primary-light/30" style={FOND_CONVERSATION}
+                  aria-label="Messages de la conversation">
+                  {echangeOuvert.messages.map((m, i) => {
+                    const precedent = echangeOuvert.messages[i - 1];
+                    const nouveauJour = !precedent || !memeJour(new Date(quand(precedent)), new Date(quand(m)));
+                    return (
+                      <React.Fragment key={m.id}>
+                        {nouveauJour && (
+                          <li className="self-center my-2 px-4 py-1.5 rounded-[999px] bg-white/90 border border-neutral-100 shadow-sm text-xs font-semibold text-neutral-600">
+                            {jourConversation(quand(m))}
+                          </li>
+                        )}
+                        <li className={`flex items-end gap-2 max-w-[85%] md:max-w-[72%] ${m.envoye ? 'self-end flex-row-reverse' : 'self-start'}`}>
+                          <Avatar nom={m.envoye ? 'Vous' : (m.de ?? echangeOuvert.correspondant)} ecole={!m.envoye} taille="w-9 h-9 text-xs" />
+                          <div className={`px-4 py-2.5 shadow-sm text-sm ${m.envoye
+                            ? 'bg-primary-light text-neutral-900 border border-primary/15 rounded-2xl rounded-br-md'
+                            : 'bg-white text-neutral-900 border border-neutral-100 rounded-2xl rounded-bl-md'}`}>
+                            {!m.envoye && m.de && <p className="text-[11px] font-black text-primary mb-0.5">{m.de}</p>}
+                            <p className="whitespace-pre-wrap break-words leading-relaxed">{m.message}</p>
+                            <p className="flex items-center justify-end gap-1 text-[10px] mt-1 text-neutral-400">
+                              <span>{heure(quand(m))}</span>
+                              {m.envoye && (
+                                <span translate="no" className={`material-symbols-outlined text-[15px] ${m.luParDestinataire ? 'text-primary' : ''}`}
+                                  title={m.luParDestinataire ? 'Lu par le destinataire' : 'Pas encore lu'} aria-label={m.luParDestinataire ? 'lu par le destinataire' : 'pas encore lu'}>
+                                  {m.luParDestinataire ? 'done_all' : 'done'}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </li>
+                      </React.Fragment>
+                    );
+                  })}
+                  <div ref={finConversation} />
+                </ol>
+
+                <form ref={formulaire} id="parent-reponse-form" onSubmit={repondre} noValidate className="px-3 md:px-5 py-3 border-t border-neutral-100">
+                  {erreurReponse && <p role="alert" className="text-[11px] font-semibold text-red-600 mb-1.5 px-2">{erreurReponse}</p>}
+                  <div className="flex items-end gap-2 md:gap-3">
+                    <label htmlFor="parent-reponse" className="sr-only">Votre réponse</label>
+                    <textarea id="parent-reponse" rows={1} value={reponse} placeholder="Écrire un message…"
+                      onChange={(e) => { setReponse(e.target.value); setErreurReponse(''); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); formulaire.current?.requestSubmit(); }
+                      }}
+                      aria-invalid={!!erreurReponse}
+                      className={`flex-1 resize-none max-h-40 min-h-[52px] px-5 py-3.5 rounded-[26px] bg-white text-sm outline-none border focus:border-primary ${erreurReponse ? 'border-red-400' : 'border-neutral-200'}`}
+                      style={{ height: `${Math.min(160, 52 + 20 * Math.max(0, reponse.split('\n').length - 1))}px` }} />
+                    <button type="submit" disabled={envoiReponse} title="Envoyer (Entrée)"
+                      className="h-[52px] px-5 md:px-7 rounded-[999px] bg-primary hover:bg-primary-dark text-text-on-primary text-sm font-black flex items-center gap-2 disabled:opacity-50 cursor-pointer shrink-0 shadow-md transition-colors">
+                      <span translate="no" className="material-symbols-outlined text-xl">send</span>
+                      <span className="hidden sm:inline">{envoiReponse ? 'Envoi…' : 'Répondre'}</span>
+                    </button>
+                  </div>
+                  <p className="hidden md:block text-[10px] text-neutral-400 mt-1.5 px-4">Entrée pour envoyer · Maj + Entrée pour aller à la ligne</p>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

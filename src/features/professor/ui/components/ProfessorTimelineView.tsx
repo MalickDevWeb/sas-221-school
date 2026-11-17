@@ -14,11 +14,11 @@ interface Props {
   readonly liveSessions?: readonly any[];
 }
 
-const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] as const;
-// Dates réelles de la semaine en cours (avant : « 23 Oct »… écrits en dur)
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as const;
+// Dates réelles de la semaine en cours
 const datesDuJour = (): Record<(typeof DAYS)[number], string> => {
   const d = datesSemaineCourante();
-  return { Lundi: d.LUN, Mardi: d.MAR, Mercredi: d.MER, Jeudi: d.JEU, Vendredi: d.VEN };
+  return { Lundi: d.LUN, Mardi: d.MAR, Mercredi: d.MER, Jeudi: d.JEU, Vendredi: d.VEN, Samedi: d.SAM };
 };
 
 export function ProfessorTimelineView({

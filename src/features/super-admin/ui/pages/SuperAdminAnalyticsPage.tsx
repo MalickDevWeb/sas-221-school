@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { usePlatformStore } from '@/features/super-admin/store/usePlatformStore';
 import { motion } from 'motion/react';
-import { Activity, Users, TrendingUp, BookOpen, BarChart3, LineChart, Sparkles } from 'lucide-react';
+import { Activity, Users, TrendingUp, BookOpen, BarChart3, LineChart } from 'lucide-react';
 
 /**
  * Analytiques de la plateforme : comptages réels des établissements ;
@@ -23,11 +23,8 @@ export const SuperAdminAnalyticsPage = () => {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold mb-2">
-          <Sparkles size={12} /> Métriques d'Engagement Plateforme
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Analytiques Globales</h1>
-        <p className="text-xs text-slate-400 mt-1">Supervisez la croissance et l'adoption sur l'ensemble des campus.</p>
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Statistiques</h1>
+        <p className="text-xs text-slate-400 mt-1">Évolution des écoles et des comptes sur la plateforme.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

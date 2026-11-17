@@ -8,12 +8,19 @@ import { ClassSelectRow } from './ClassSelectRow';
 import { TOUTES_CLASSES, classeAffichee } from './ecolagesClasses';
 import { MobileEcolagesCards } from './MobileEcolagesCards';
 import type { NouveauDossier, NouveauVersement } from './useAdminFinances';
+import { useTenantStore } from '@/core/store/tenantStore';
+import { dateFr, type Versement } from './financesDonnees';
+import { imprimerRecu, type DonneesRecu } from './recu';
 
 interface Props {
   students: StudentFinance[];
   onOuvrir: (d: NouveauDossier) => Promise<unknown>;
   onEncaisser: (v: NouveauVersement) => Promise<unknown>;
+  /** Versements de l'école (historique par dossier) ; vide si indisponibles. */
+  versements?: Versement[];
 }
+
+const STATUTS_AFFICHES: Record<string, string> = { 'Non soldé': 'Non soldé', 'En Règle': 'En règle', 'En Avance': 'En avance', 'Non renseigné': 'Non renseigné' };
 
 interface EleveEcole { id: string; nom: string; matricule: string; classe: string }
 
@@ -27,7 +34,11 @@ const erreurChamp = 'text-[10px] text-rose-600 font-bold mt-1';
  * Écolages : dossiers réels, « Ouvrir un dossier » et « Encaisser », validés par le serveur ; la liste n'est mise à
  * jour qu'après sa réponse.
  */
-export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
+export function EcolagesTab({ students, onOuvrir, onEncaisser, versements = [] }: Props) {
+  const { currentTenant } = useTenantStore();
+  const [historique, setHistorique] = useState<string | null>(null);
+  /** Reçu du dernier versement encaissé ici (moyen et référence connus : saisis dans le formulaire). */
+  const [dernierRecu, setDernierRecu] = useState<DonneesRecu | null>(null);
   const [selectedClass, setSelectedClass] = useState(TOUTES_CLASSES);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [ouverture, setOuverture] = useState(false);
@@ -41,19 +52,44 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
     return cMatch && sMatch;
   });
 
-  const ouvrirEncaissement = (s: StudentFinance) => { setOuverture(false); setMessage(''); setAEncaisser(s); };
+  const ouvrirEncaissement = (s: StudentFinance) => { setOuverture(false); setMessage(''); setDernierRecu(null); setAEncaisser(s); };
+
+  /** Après l'encaissement : reçu complet (réponse du serveur : versementId et reste dû recalculé). */
+  const apresEncaissement = (v: NouveauVersement, dossier: StudentFinance, reponse: unknown) => {
+    const r = reponse && typeof reponse === 'object' ? reponse as Record<string, unknown> : {};
+    const numero = r.versementId != null ? String(r.versementId) : null;
+    const reste = typeof r.debt === 'number' ? r.debt : null;
+    setDernierRecu(numero ? {
+      numero, ecole: currentTenant?.name || 'Établissement', logoUrl: currentTenant?.branding?.logoUrl,
+      eleve: dossier.name, classe: classeAffichee(dossier), montant: v.montant, date: v.date || aujourdhui(),
+      moyen: v.moyen, reference: v.reference ?? null, resteApres: reste,
+    } : null);
+  };
 
   return (
     <div className="space-y-4" id="ecolages-tab-root">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p className="text-[11px] text-neutral-500 font-semibold">Dossiers financiers des élèves : montant dû, versements encaissés, reste.</p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div>
+          <h3 className="font-extrabold text-sm text-[#1E293B]">Frais de scolarité</h3>
+          <p className="text-[11px] text-neutral-500 font-semibold">Un dossier par élève : montant dû, paiements reçus et reste à payer.</p>
+        </div>
         <button id="ecolage-ouvrir-bouton" type="button" onClick={() => { setAEncaisser(null); setMessage(''); setOuverture(true); }}
-          className="px-3 py-2 bg-primary text-white rounded-xl text-[11px] font-black flex items-center gap-1.5 w-fit">
-          <span translate="no" className="material-symbols-outlined text-sm">note_add</span> Ouvrir un dossier
+          className="px-3 py-2 bg-primary text-text-on-primary rounded-xl text-[11px] font-black flex items-center gap-1.5 w-fit border-0 cursor-pointer">
+          <span translate="no" className="material-symbols-outlined text-sm">add</span> Ouvrir un dossier
         </button>
       </div>
 
-      {message && <p id="ecolage-message" role="status" className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">{message}</p>}
+      {message && (
+        <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-between gap-2">
+          <p id="ecolage-message" role="status" className="text-emerald-800 text-xs font-bold m-0">{message}</p>
+          {dernierRecu && (
+            <button id="ecolage-imprimer-recu" type="button" onClick={() => { if (!imprimerRecu(dernierRecu)) setMessage(`${message} La fenêtre du reçu a été bloquée par le navigateur.`); }}
+              className="px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-emerald-800 text-[11px] font-black cursor-pointer">
+              Imprimer le reçu
+            </button>
+          )}
+        </div>
+      )}
 
       {ouverture && (
         <FormulaireOuverture
@@ -66,7 +102,7 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
         <FormulaireVersement
           dossier={aEncaisser}
           onAnnuler={() => setAEncaisser(null)}
-          onValider={async (v) => { await onEncaisser(v); setAEncaisser(null); setMessage(`Versement de ${fcfa(v.montant)} encaissé pour ${aEncaisser.name}.`); }}
+          onValider={async (v) => { const rep = await onEncaisser(v); apresEncaissement(v, aEncaisser, rep); setAEncaisser(null); setMessage(`Paiement de ${fcfa(v.montant)} encaissé pour ${aEncaisser.name}.`); }}
         />
       )}
 
@@ -74,13 +110,13 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
 
       <div className="bg-transparent sm:bg-white border-0 sm:border border-neutral-200 rounded-2xl p-0 sm:p-4 sm:shadow-xs space-y-3 w-full mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-100">
-          <span className="text-[11px] font-black uppercase text-[#1E293B] tracking-wider">État financier - {selectedClass}</span>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          <span className="text-[11px] font-black uppercase text-[#1E293B] tracking-wider">Dossiers — {selectedClass}</span>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} aria-label="Statut du dossier"
             className="px-2.5 py-1.5 border border-neutral-200 rounded-xl text-xs font-bold bg-white focus:outline-none w-full sm:w-auto">
-            <option value="ALL">Afficher tout</option>
+            <option value="ALL">Tous les statuts</option>
             <option value="Non soldé">Non soldé</option>
-            <option value="En Règle">En Règle</option>
-            <option value="En Avance">En Avance</option>
+            <option value="En Règle">En règle</option>
+            <option value="En Avance">En avance</option>
           </select>
         </div>
 
@@ -92,9 +128,9 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
               <thead>
                 <tr className="bg-[#FAF8F6] text-[9px] font-black text-neutral-400 uppercase border-b border-neutral-200">
                   <th className="px-4 py-2.5">Élève</th>
-                  <th className="px-4 py-2.5">Total dû</th>
-                  <th className="px-4 py-2.5">Versé</th>
-                  <th className="px-4 py-2.5">Reste dû</th>
+                  <th className="px-4 py-2.5">Montant dû</th>
+                  <th className="px-4 py-2.5">Payé</th>
+                  <th className="px-4 py-2.5">Reste à payer</th>
                   <th className="px-4 py-2.5">Statut</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
@@ -103,7 +139,7 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
                 {filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-neutral-400 font-black text-[10px] uppercase">
-                      {students.length === 0 ? 'Aucun dossier financier : ouvrez celui d\'un élève' : 'Aucun dossier pour ce filtre'}
+                      {students.length === 0 ? 'Aucun dossier pour l\'instant : ouvrez celui d\'un élève' : 'Aucun dossier pour ce filtre'}
                     </td>
                   </tr>
                 ) : (
@@ -123,14 +159,40 @@ export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
                         <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                           s.status === 'En Règle' ? 'bg-emerald-50 text-emerald-700' :
                           s.status === 'En Avance' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
-                        }`}>{s.status}</span>
+                        }`}>{STATUTS_AFFICHES[s.status] ?? s.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <button type="button" onClick={() => setHistorique(historique === s.studentId ? null : s.studentId)}
+                          aria-expanded={historique === s.studentId}
+                          className="px-2.5 py-1 mr-1.5 rounded-lg bg-white border border-neutral-200 text-neutral-600 text-[10px] font-black hover:bg-neutral-50 cursor-pointer">
+                          {historique === s.studentId ? "Masquer l'historique" : "Voir l'historique"}
+                        </button>
                         <button type="button" onClick={() => ouvrirEncaissement(s)}
-                          className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-black hover:bg-primary/20">Encaisser</button>
+                          className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-black hover:bg-primary/20 border-0 cursor-pointer">Encaisser</button>
                       </td>
                     </tr>
-                  ))
+                  )).flatMap((ligne, i) => {
+                    const s = filteredStudents[i];
+                    if (historique !== s.studentId) return [ligne];
+                    const siens = versements.filter((v) => v.studentId === s.studentId);
+                    return [ligne, (
+                      <tr key={`${s.id}-historique`} className="bg-neutral-50/60" data-historique={s.studentId}>
+                        <td colSpan={6} className="px-6 py-3">
+                          {siens.length === 0 ? (
+                            <p className="text-[11px] text-neutral-500 font-semibold m-0">Aucun paiement enregistré pour ce dossier.</p>
+                          ) : (
+                            <ul className="text-[11px] space-y-1 m-0">
+                              {siens.map((v) => (
+                                <li key={v.id} className="flex justify-between max-w-md">
+                                  <span>{dateFr(v.date)}</span><span className="font-mono font-black text-emerald-700">{fcfa(v.montant)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                      </tr>
+                    )];
+                  })
                 )}
               </tbody>
             </table>
@@ -229,9 +291,9 @@ function FormulaireVersement({ dossier, onAnnuler, onValider }: {
   const valider = async (e: React.FormEvent) => {
     e.preventDefault();
     const err: Record<string, string> = {};
-    if (!entierPositif(montant)) err.montant = 'Saisissez le montant versé, en FCFA (nombre entier, au moins 1).';
-    if (!date) err.date = 'Indiquez la date du versement.';
-    else if (date > aujourdhui()) err.date = 'La date du versement ne peut pas être dans le futur.';
+    if (!entierPositif(montant)) err.montant = 'Saisissez le montant payé, en FCFA (nombre entier, au moins 1).';
+    if (!date) err.date = 'Indiquez la date du paiement.';
+    else if (date > aujourdhui()) err.date = 'La date du paiement ne peut pas être dans le futur.';
     if (reference.length > 60) err.reference = 'La référence ne doit pas dépasser 60 caractères.';
     setErreurs(err);
     if (Object.keys(err).length) return;
@@ -247,8 +309,8 @@ function FormulaireVersement({ dossier, onAnnuler, onValider }: {
 
   return (
     <form id="ecolage-encaisser" onSubmit={valider} noValidate className="border border-emerald-300 bg-emerald-50/40 rounded-2xl p-4 space-y-3 text-xs">
-      <p className="font-black text-[#1E293B]">Encaisser un versement — {dossier.name}
-        <span className="text-neutral-500 font-semibold"> (reste dû : {fcfa(dossier.debt)})</span></p>
+      <p className="font-black text-[#1E293B]">Encaisser un paiement — {dossier.name}
+        <span className="text-neutral-500 font-semibold"> (reste à payer : {fcfa(dossier.debt)})</span></p>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div>
           <label htmlFor="versement-montant" className="block text-[10px] font-black uppercase text-neutral-500 mb-1">Montant (FCFA)</label>

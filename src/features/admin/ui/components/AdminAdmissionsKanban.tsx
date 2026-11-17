@@ -7,11 +7,11 @@ import { AdmissionsRulesEngine } from './admissions/AdmissionsRulesEngine';
 import { ExtendedCandidate } from '../../domain/AdmissionsExtendedModels';
 import { getAdmissionsDb, saveAdmissionsDb } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { useRepliSousMenu } from '@/shared/components/SousMenuModule';
 
 export function AdminAdmissionsKanban() {
   const [activeTab, setActiveTab] = useState('config');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, basculerRepli] = useRepliSousMenu('admissions');
   const [candidates, setCandidates] = useState<ExtendedCandidate[]>([]);
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
@@ -71,15 +71,15 @@ export function AdminAdmissionsKanban() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-admissions-root">
-      <TabletDrawerWrapper>
+      <div className="shrink-0 lg:sticky lg:top-4">
         <AdmissionsSubSidebar
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          onToggleCollapse={basculerRepli}
           candidateCount={candidates.length}
         />
-      </TabletDrawerWrapper>
+      </div>
 
       <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden">
         {toast && (

@@ -31,8 +31,9 @@ function showThrottledNetworkError() {
   const now = Date.now();
   if (now - lastNetworkToastTime > TOAST_THROTTLE_MS) {
     lastNetworkToastTime = now;
-    toast.error('Erreur de connexion', {
-      description: 'Veuillez vérifier votre connexion réseau.'
+    toast.error('Connexion impossible', {
+      id: 'erreur-reseau',   // une seule notification, même si plusieurs appels échouent ensemble
+      description: 'Vérifiez votre connexion Internet. L\'application réessaie automatiquement.',
     });
   }
 }
@@ -114,6 +115,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
 
   if (status === 403 && !isPublicOrLoginPage) {
     toast.error('Accès refusé', {
+      id: 'erreur-acces',
       description: 'Vous n\'avez pas les permissions nécessaires.'
     });
     return Promise.reject(error);
@@ -142,13 +144,26 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
 
   if (status === 500 && (responseData.includes('proxy') || responseData.includes('econnrefused'))) {
     if (!isBackgroundUrl(url)) showThrottledNetworkError();
+  } else if ((status ?? 0) >= 500 && !isBackgroundUrl(url)) {
+    // Une panne du serveur donne UNE notification claire.
+    setTimeout(() => {
+      if (erreurDejaAffichee(error)) return;
+      toast.error('Le serveur ne répond pas', {
+        id: 'erreur-serveur',
+        description: 'Certaines informations ne peuvent pas s\'afficher pour le moment. Réessayez dans quelques instants.',
+      });
+    }, 0);
   } else if (status !== 404 && !isBackgroundUrl(url)) {
     const serverMsg = texteOuNull(objetBrut(error.response?.data).message);
     // Différé : si l'écran affiche lui-même le message (resolveErrorMessage dans son catch, exécuté avant
     // ce délai), le message global n'est pas répété.
     setTimeout(() => {
       if (erreurDejaAffichee(error)) return;
-      toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
+      const titre = status === 409 ? 'Action impossible' : status === 429 ? 'Trop de tentatives' : 'Demande refusée';
+      toast.error(titre, {
+        id: `erreur-${status}-${serverMsg ?? ''}`,   // la même erreur n'est affichée qu'une fois
+        description: serverMsg || 'Le serveur a refusé la demande. Vérifiez les informations saisies.',
+      });
     }, 0);
   }
 

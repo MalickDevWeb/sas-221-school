@@ -37,7 +37,7 @@ export const SuperAdminSystemPage = () => {
     { title: 'Serveur API Spring Boot', status: libelleApi, icon: Server, mesure: api.latenceMs != null ? `${api.latenceMs} ms` : '—', libelleMesure: 'Temps de réponse', reel: true },
     { title: 'Base de données PostgreSQL', status: 'Non mesuré', icon: Database, mesure: '—', libelleMesure: 'Charge', reel: false },
     { title: 'Charge CPU Conteneur', status: 'Non mesuré', icon: Cpu, mesure: '—', libelleMesure: 'Charge', reel: false },
-    { title: 'Stockage Multi-Tenant', status: 'Non mesuré', icon: HardDrive, mesure: '—', libelleMesure: 'Occupation', reel: false },
+    { title: 'Stockage des écoles', status: 'Non mesuré', icon: HardDrive, mesure: '—', libelleMesure: 'Occupation', reel: false },
   ];
   const ok = !loading && api.statut === 'UP';
 
@@ -45,11 +45,8 @@ export const SuperAdminSystemPage = () => {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2">
-            Infrastructure & Haute Disponibilité
-          </div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Système & Santé</h1>
-          <p className="text-xs text-slate-400 mt-1">Supervision de l'infrastructure (seules les mesures réellement disponibles sont affichées).</p>
+          <p className="text-xs text-slate-400 mt-1">État des services de la plateforme : seules les mesures réellement disponibles sont affichées.</p>
         </div>
         <button
           type="button"
@@ -95,7 +92,7 @@ export const SuperAdminSystemPage = () => {
 
       <div className="bg-[#0E1326]/70 border border-white/10 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl">
         <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-          <h2 className="font-bold text-white text-sm">Événements & Journaux de Santé Récents</h2>
+          <h2 className="font-bold text-white text-sm">Événements récents</h2>
         </div>
         <div className="px-6 py-6 flex items-center gap-3 text-slate-400">
           <Activity className="w-4 h-4 shrink-0" />

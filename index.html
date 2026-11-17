@@ -29,7 +29,9 @@
     </style>
   </head>
   <body class="font-body-md text-on-surface antialiased">
-    <div id="root"></div>
+    <!-- 16/11 : écran affiché pendant le téléchargement du code de l'application, remplacé par React à son
+         démarrage (avant : page vide jusqu'à l'exécution du script principal) -->
+    <div id="root"><div role="status" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#FAF8F6;color:#64748b;font:900 11px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.1em;text-transform:uppercase">Chargement de l'environnement...</div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

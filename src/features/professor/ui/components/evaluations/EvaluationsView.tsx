@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Lock, Pencil, Plus, Trash2 } from 'lucide-react';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { avecNombre } from '@/shared/lib/pluriel';
+import { messageSuppression, ouvrirCorbeille } from '@/features/corbeille';
 import type { Evaluation, EvaluationSaisie } from '../../../domain/Evaluations';
 import { libelleType } from '../../../domain/Evaluations';
 import { evaluationsApi } from '../../../infrastructure/api/evaluationsApi';
@@ -50,14 +52,24 @@ export function EvaluationsView({ courseId, coursTitre = 'Cours' }: Props) {
   };
 
   const supprimer = async (e: Evaluation) => {
-    const avecNotes = (e.nombreNotes ?? 0) > 0;
+    // Le serveur refuse de supprimer une évaluation notée (409 « Effacez d'abord les notes ») : on le dit sans appel
+    const nbNotes = e.nombreNotes ?? 0;
+    if (nbNotes > 0) {
+      toast.error(`« ${e.titre} » non supprimée : ${avecNombre(nbNotes, 'note')} ${nbNotes > 1 ? 'sont saisies' : 'est saisie'}. Effacez d'abord les notes.`);
+      return;
+    }
     const ok = await demanderConfirmation(
-      avecNotes ? `« ${e.titre} » contient ${e.nombreNotes} note(s) : elles seront supprimées avec l'évaluation.` : `Supprimer « ${e.titre} » ?`,
-      { titre: "Supprimer l'évaluation", confirmer: 'Supprimer', danger: true });
+      `Supprimer « ${e.titre} » ? Elle sera placée dans la corbeille : vous pourrez la restaurer tant que la période n'est pas clôturée.`,
+      { titre: "Supprimer l'évaluation", confirmer: "Supprimer l'évaluation", danger: true });
     if (!ok) return;
     try {
-      await evaluationsApi.supprimer(courseId, e.id);
-      toast.success('Évaluation supprimée', { description: e.titre });
+      // Le serveur place toujours l'évaluation dans la corbeille (EvaluationService.supprimer, V21) : son message
+      // (« corbeille: true ») s'il en donne un, sinon celui de l'écran (réponse 204 sans corps)
+      const reponse = await evaluationsApi.supprimer(courseId, e.id);
+      toast.success(messageSuppression(reponse, 'Évaluation placée dans la corbeille').message, {
+        description: `« ${e.titre} » : vous pouvez la restaurer depuis la corbeille.`,
+        action: { label: 'Ouvrir la corbeille', onClick: ouvrirCorbeille },
+      });
       if (choisie === e.id) setChoisie(null);
       rafraichir();
     } catch (err) {

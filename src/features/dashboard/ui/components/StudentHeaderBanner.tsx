@@ -80,8 +80,6 @@ export function StudentHeaderBanner({
                 Matricule non renseigné
               </div>
             )}
-            {/* Horizontal scan line effect */}
-            <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>
         </div>
 

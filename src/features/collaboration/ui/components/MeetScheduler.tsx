@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import { Video, Info } from 'lucide-react';
+import { ChampsHoraire } from './ChampsHoraire';
+import type { HoraireSeance } from '../../hooks/useVirtualClassState';
 
 interface CourseItem {
   classeId?: string;
@@ -19,7 +21,8 @@ interface Props {
     classNames: readonly string[],
     subject: string,
     teacher: string,
-    link: string
+    link: string,
+    horaire: HoraireSeance
   ) => void;
   readonly teacherName: string;
 }
@@ -53,16 +56,21 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
   }, [classes, selectedClass]);
   const [subject, setSubject] = useState('');
   const [meetLink, setMeetLink] = useState('');
-  // APP-TL-26 (2026-11-14) : plus de case « Générer via Google Workspace API » (aucune intégration) ni de
+  // Le lien n'apparaît aux élèves qu'à l'heure de début et disparaît après l'heure de fin
+  const [debut, setDebut] = useState('');
+  const [fin, setFin] = useState('');
+  // APP-TL-26 : pas de case « Générer via Google Workspace API » (aucune intégration) ni de
   // « compte Google obligatoire » (l'application ne peut pas l'imposer) : le lien Meet est collé.
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClass || !subject.trim()) return;   // champs « required » : messages personnalisés affichés
     const className = classes.find(c => c.id === selectedClass)?.nom || selectedClass;
-    onSchedule([selectedClass], [className], subject.trim(), teacherName, meetLink);
+    onSchedule([selectedClass], [className], subject.trim(), teacherName, meetLink, { debut, fin });
     setSubject('');
     setMeetLink('');
+    setDebut('');
+    setFin('');
   };
 
   return (
@@ -119,10 +127,14 @@ export function MeetScheduler({ onSchedule, teacherName }: Props) {
           />
         </div>
 
+        <ChampsHoraire prefixeId="classe-virtuelle" debut={debut} fin={fin} onDebut={setDebut} onFin={setFin} />
+
         <div className="flex items-start gap-2 bg-neutral-gray-50 border border-neutral-gray-200 p-2.5 rounded-xl text-neutral-600 text-[10px] font-semibold">
           <Info className="w-4 h-4 shrink-0 mt-0.5" />
           <span>Créez la réunion sur meet.google.com (« Nouvelle réunion »), puis collez son lien ici.
-            Qui peut entrer dans la réunion se règle dans Google Meet, par son organisateur.</span>
+            Qui peut entrer dans la réunion se règle dans Google Meet, par son organisateur.
+            Les élèves et leurs parents sont prévenus tout de suite ; le lien n'apparaît qu'à l'heure de début et la
+            classe virtuelle disparaît de leur écran après l'heure de fin.</span>
         </div>
 
         <button

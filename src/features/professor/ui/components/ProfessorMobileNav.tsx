@@ -9,6 +9,7 @@ const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { id: 'classroom', label: 'Classe', icon: 'co_present' },
   { id: 'schedule', label: 'Planning', icon: 'calendar_today' },
+  { id: 'corbeille', label: 'Corbeille', icon: 'delete' },
 ];
 
 export function ProfessorMobileNav({ activeTab, onSelectTab }: Props) {
@@ -18,6 +19,8 @@ export function ProfessorMobileNav({ activeTab, onSelectTab }: Props) {
         {tabs.map(({ id, label, icon }) => (
           <button
             key={id}
+            type="button"
+            data-onglet={id}
             onClick={() => onSelectTab(id)}
             className={`flex flex-col items-center gap-0.5 text-[10px] font-black transition-colors ${
               activeTab === id ? 'text-brand-red-deep' : 'text-neutral-gray-400'

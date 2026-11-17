@@ -1,122 +1,84 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { NotificationCampaign } from '../../../domain/NotificationsModels';
-import { sendPushNotification, vibrateDevice, playPushChime } from '@/shared/lib/pushNotifier';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { AnnonceEnvoyee, AnnonceHistorique, DestinatairesAnnonce, NatureAnnonce } from '../../../domain/NotificationsModels';
 import { apiClient } from '@/shared/lib/apiClient';
-import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
-import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { marquerErreurAffichee } from '@/shared/errors/errorDictionary';
+import { dateServeur } from '@/shared/lib/dateServeur';
 
-/** Notification telle que renvoyée par le serveur (NotificationDto). */
-interface NotificationServeur {
-  id?: string;
-  recipientId?: string;
-  title?: string;
-  content?: string;
-  type?: string;
-  readStatus?: string;
-  createdAt?: string;
+/**
+ * Annonces de l'école (contrat du 15/11/2026, AnnoncesController) :
+ *  - GET  /v1/notifications/annonces/apercu?destinataires=… → {destinataires, nombre} (comptes actifs visés) ;
+ *  - POST /v1/notifications/annonces {titre, message, destinataires, nature} → 201 {id, destinatairesTouches, envoyeeLe}
+ *    (409 « Aucun destinataire actif pour ce choix. ») ;
+ *  - GET  /v1/notifications/annonces → historique avec reçues / lues réelles.
+ * L'annonce arrive dans la cloche de l'espace de chaque destinataire. Aucune autre route n'est appelée.
+ */
+const BASE = '/v1/notifications/annonces';
+const CLE = ['admin', 'annonces'] as const;
+export const TITRE_MAX = 200;
+export const CONTENU_MAX = 5000;
+
+export const DESTINATAIRES: { code: DestinatairesAnnonce; libelle: string; detail: string; icone: string }[] = [
+  { code: 'TOUTE_ECOLE', libelle: 'Toute l’école', detail: 'Élèves, parents, professeurs et personnel', icone: 'groups' },
+  { code: 'ELEVES', libelle: 'Élèves', detail: 'Comptes élèves actifs', icone: 'school' },
+  { code: 'PARENTS', libelle: 'Parents', detail: 'Comptes parents actifs', icone: 'family_restroom' },
+  { code: 'PROFESSEURS', libelle: 'Professeurs', detail: 'Comptes professeurs actifs', icone: 'co_present' },
+  { code: 'PERSONNEL', libelle: 'Personnel', detail: 'Administration, secrétariat, comptabilité…', icone: 'badge' },
+];
+
+export const libelleDestinataires = (code: string) => DESTINATAIRES.find(d => d.code === code)?.libelle ?? code;
+export const personnes = (n: number) => `${n.toLocaleString('fr-FR')} personne${n > 1 ? 's' : ''}`;
+
+/** L'écran affiche lui-même l'erreur : le message global (apiErrorHandler) n'est pas répété. */
+async function appel<T>(f: () => Promise<{ data: unknown }>): Promise<T> {
+  try {
+    return (await f()).data as T;
+  } catch (e) {
+    marquerErreurAffichee(e);
+    throw e;
+  }
 }
 
-const ENDPOINT = '/v1/notifications';
-
-function versCampagne(n: NotificationServeur, extra?: Partial<NotificationCampaign>): NotificationCampaign {
-  const d = n.createdAt ? new Date(n.createdAt) : null;
-  const dateValide = d && !Number.isNaN(d.getTime());
-  return {
-    id: String(n.id),
-    title: n.title || '—',
-    content: n.content,
-    target: '—',
-    channels: [],
-    date: dateValide ? d!.toISOString().split('T')[0] : '—',
-    time: dateValide ? d!.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : undefined,
-    // Aucun suivi de délivrance / d'ouverture côté serveur : jamais de taux inventé.
-    openRate: null,
-    deliveryRate: null,
-    // Le serveur normalise le type (INFO/WARNING/…) : une alerte d'urgence est reconnue à son titre.
-    isEmergency: (n.title || '').startsWith("ALERTE D'URGENCE"),
-    status: 'RECORDED',
-    ...extra,
-  };
+/** Nombre réel de comptes actifs visés par ce choix. */
+export function useApercuDestinataires(destinataires: DestinatairesAnnonce | null) {
+  return useQuery({
+    queryKey: [...CLE, 'apercu', destinataires],
+    queryFn: async () => {
+      const d = await appel<{ nombre?: unknown }>(() => apiClient.get(`${BASE}/apercu`, { params: { destinataires } }));
+      return typeof d?.nombre === 'number' ? d.nombre : 0;
+    },
+    enabled: !!destinataires,
+    staleTime: 30_000,
+  });
 }
 
-export function useNotificationsHub() {
-  const [campaigns, setCampaigns] = useState<NotificationCampaign[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+export function useHistoriqueAnnonces() {
+  return useQuery({
+    queryKey: [...CLE, 'historique'],
+    queryFn: async () => {
+      const d = await appel<unknown>(() => apiClient.get(BASE));
+      return (Array.isArray(d) ? d as Partial<AnnonceHistorique>[] : [])
+        .filter(a => a && a.id)
+        .map((a): AnnonceHistorique => ({
+          id: String(a.id),
+          titre: a.titre || '—',
+          nature: a.nature === 'URGENCE' ? 'URGENCE' : 'ANNONCE',
+          destinataires: a.destinataires ?? '—',
+          destinatairesTouches: typeof a.destinatairesTouches === 'number' ? a.destinatairesTouches : 0,
+          lues: typeof a.lues === 'number' ? a.lues : 0,
+          envoyeeLe: dateServeur(a.envoyeeLe)?.toISOString() ?? null,
+          auteur: a.auteur ?? null,
+        }))
+        .sort((x, y) => (y.envoyeeLe ?? '').localeCompare(x.envoyeeLe ?? ''));
+    },
+  });
+}
 
-  const charger = useCallback(async () => {
-    try {
-      const { data } = await apiClient.get<NotificationServeur[]>(ENDPOINT);
-      const diffusions = (Array.isArray(data) ? data : [])
-        .filter(n => n && n.id && n.recipientId === 'ALL')
-        .map(n => versCampagne(n))
-        .sort((a, b) => (b.date + (b.time ?? '')).localeCompare(a.date + (a.time ?? '')));
-      // Conserve les informations saisies (cible, canaux demandés) des diffusions de cette session.
-      setCampaigns(prev => diffusions.map(c => {
-        const local = prev.find(p => p.id === c.id);
-        return local ? { ...c, target: local.target, channels: local.channels } : c;
-      }));
-      setLoadError(null);
-    } catch (err) {
-      setLoadError(resolveErrorMessage(err));
-    }
-  }, []);
+export interface CorpsAnnonce { titre: string; message: string; destinataires: DestinatairesAnnonce; nature: NatureAnnonce }
 
-  useEffect(() => { void charger(); }, [charger]);
-
-  /** Renvoie true uniquement si le serveur a accepté la diffusion. */
-  const sendCampaign = async (title: string, content: string, target: string, channels: string[]): Promise<boolean> => {
-    try {
-      const { data } = await apiClient.post<NotificationServeur>(ENDPOINT, {
-        recipientId: 'ALL', title, content, type: 'ANNOUNCEMENT',
-      });
-      if (!data?.id) throw new Error('Réponse du serveur incomplète');
-      setCampaigns(prev => [versCampagne(data, { target, channels }), ...prev.filter(c => c.id !== String(data.id))]);
-      if (channels.includes('Push App')) {
-        sendPushNotification(title, content);
-      } else {
-        playPushChime();
-      }
-      toast.success('Diffusion enregistrée par le serveur.', {
-        description: `« ${title} » — canaux demandés : ${channels.join(', ')}.`,
-      });
-      return true;
-    } catch (err) {
-      toast.error("La diffusion n'a pas été enregistrée.", { description: resolveErrorMessage(err) });
-      return false;
-    }
-  };
-
-  const triggerEmergency = async (type: string, instructions: string, target = "Toute l'école"): Promise<boolean> => {
-    const alertTitle = `ALERTE D'URGENCE : ${type.toUpperCase()}`;
-    const alertBody = instructions || `Protocole d'urgence activé. Veuillez suivre les consignes de sécurité immédiates.`;
-    try {
-      const { data } = await apiClient.post<NotificationServeur>(ENDPOINT, {
-        recipientId: 'ALL', title: alertTitle, content: alertBody, type: 'WARNING',
-      });
-      if (!data?.id) throw new Error('Réponse du serveur incomplète');
-      setCampaigns(prev => [versCampagne(data, { target, isEmergency: true, channels: ['SMS Prioritaire', 'Push App', 'WhatsApp Flash'] }), ...prev.filter(c => c.id !== String(data.id))]);
-      vibrateDevice([400, 150, 400, 150, 400]);
-      playPushChime();
-      sendPushNotification(`⚠️ ${alertTitle}`, alertBody, { tag: 'emergency-school-alert' });
-      toast.success("Alerte d'urgence enregistrée par le serveur.");
-      return true;
-    } catch (err) {
-      toast.error("L'alerte d'urgence n'a pas été enregistrée.", { description: resolveErrorMessage(err) });
-      return false;
-    }
-  };
-
-  const deleteCampaign = async (id: string) => {
-    if (!(await demanderConfirmation('Supprimer définitivement cette diffusion du serveur ?', { confirmer: 'Supprimer' }))) return;
-    try {
-      await apiClient.delete(`${ENDPOINT}/${encodeURIComponent(id)}`);
-      setCampaigns(prev => prev.filter(c => c.id !== id));
-      toast.info("Diffusion supprimée de l'historique.");
-    } catch (err) {
-      toast.error('Suppression impossible.', { description: resolveErrorMessage(err) });
-    }
-  };
-
-  return { campaigns, loadError, sendCampaign, triggerEmergency, deleteCampaign, reload: charger };
+export function useEnvoyerAnnonce() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (corps: CorpsAnnonce) => appel<AnnonceEnvoyee>(() => apiClient.post(BASE, corps)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: CLE }),
+  });
 }

@@ -1,26 +1,14 @@
 import React from 'react';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { NotificationDropdown } from './header/NotificationDropdown';
+import { ClocheNotifications } from '@/shared/components/ClocheNotifications';
 import { ProfileDropdown } from '@/shared/components';
-interface NotificationItem {
-  id: string; title: string; desc: string; time: string; read: boolean; icon: string; color: string;
-}
 interface Props {
-  notifications: NotificationItem[];
-  unreadCount: number;
-  notifFilter: 'all' | 'unread';
-  setNotifFilter: (f: 'all' | 'unread') => void;
-  showNotifications: boolean; setShowNotifications: (v: boolean) => void;
   showCalendar: boolean; setShowCalendar: (v: boolean) => void;
   showProfile: boolean; setShowProfile: (v: boolean) => void;
-  notifRef: React.RefObject<HTMLDivElement | null>;
   calendarPopRef: React.RefObject<HTMLDivElement | null>;
   profileRef: React.RefObject<HTMLDivElement | null>;
   studentMood: string; tempMood: string; setTempMood: (v: string) => void;
   isEditingMood: boolean; setIsEditingMood: (v: boolean) => void;
-  onMarkAllRead: () => void;
-  onNotifClick: (id: string) => void;
-  onOpenSettings: () => void;
   onOpenSupport: () => void;
   /** Ouvre la recherche. */
   onOpenSearch: () => void;
@@ -29,11 +17,10 @@ interface Props {
 }
 
 export function StudentHeader({
-  notifications, unreadCount, notifFilter, setNotifFilter,
-  showNotifications, setShowNotifications, showCalendar, setShowCalendar,
-  showProfile, setShowProfile, notifRef, calendarPopRef, profileRef,
+  showCalendar, setShowCalendar,
+  showProfile, setShowProfile, calendarPopRef, profileRef,
   studentMood, tempMood, setTempMood, isEditingMood, setIsEditingMood,
-  onMarkAllRead, onNotifClick, onOpenSettings, onOpenSupport, onOpenSearch,
+  onOpenSupport, onOpenSearch,
   triggerToast, onMoodSave,
 }: Props) {
   const currentTenant = useTenantStore((s) => s.currentTenant);
@@ -41,8 +28,8 @@ export function StudentHeader({
 
   return (
     <header className="w-full top-0 sticky z-[100] bg-white/90 backdrop-blur-md border-b border-neutral-gray-200/80 shadow-sm animate-fade-in">
-      {(showProfile || showNotifications) && (
-        <div onClick={() => { setShowProfile(false); setShowNotifications(false); }} className="fixed inset-0 bg-[#1E293B]/15 backdrop-blur-xs z-[180] cursor-pointer" />
+      {showProfile && (
+        <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-[#1E293B]/15 backdrop-blur-xs z-[180] cursor-pointer" />
       )}
       <div className="flex items-center justify-between px-6 md:px-8 w-full h-16 gap-4 relative z-[190]">
         <div className="flex items-center gap-3 shrink-0">
@@ -70,26 +57,21 @@ export function StudentHeader({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <NotificationDropdown
-            notifications={notifications} unreadCount={unreadCount}
-            notifFilter={notifFilter} setNotifFilter={setNotifFilter}
-            showNotifications={showNotifications} setShowNotifications={setShowNotifications}
-            setShowProfile={setShowProfile} setShowCalendar={setShowCalendar}
-            onMarkAllRead={onMarkAllRead} onNotifClick={onNotifClick} notifRef={notifRef}
-          />
+          {/* Contrat commun (GET /v1/notifications/mes, lecture enregistrée sur le serveur) */}
+          <ClocheNotifications classeBouton="relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-primary-light text-secondary hover:text-primary transition-all cursor-pointer" />
 
           <div className="relative" ref={calendarPopRef}>
-            <button onClick={() => { setShowCalendar(!showCalendar); setShowNotifications(false); setShowProfile(false); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-primary-light text-secondary hover:text-primary transition-all cursor-pointer group ${showCalendar ? 'bg-primary-light text-primary border border-primary/10' : ''}`} title="Calendrier Académique" aria-label="Calendrier">
+            <button onClick={() => { setShowCalendar(!showCalendar); setShowProfile(false); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-gray-50 hover:bg-primary-light text-secondary hover:text-primary transition-all cursor-pointer group ${showCalendar ? 'bg-primary-light text-primary border border-primary/10' : ''}`} title="Calendrier Académique" aria-label="Calendrier">
               <span translate="no" className="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">calendar_month</span>
             </button>
           </div>
 
           <ProfileDropdown
             showProfile={showProfile} setShowProfile={setShowProfile}
-            setShowNotifications={setShowNotifications} setShowCalendar={setShowCalendar}
+            setShowCalendar={setShowCalendar}
             mood={studentMood} tempMood={tempMood} setTempMood={setTempMood}
             isEditingMood={isEditingMood} setIsEditingMood={setIsEditingMood}
-            onOpenSettings={onOpenSettings} onOpenSupport={onOpenSupport} triggerToast={triggerToast}
+            onOpenSupport={onOpenSupport} triggerToast={triggerToast}
             onMoodSave={onMoodSave} profileRef={profileRef}
             profilPath={`/t/${window.location.pathname.match(/\/t\/([^/]+)/)?.[1] ?? 'ecole-221'}/etudiant/profil`}
           />

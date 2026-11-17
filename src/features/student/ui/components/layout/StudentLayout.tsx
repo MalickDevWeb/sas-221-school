@@ -8,7 +8,6 @@ import { StudentSidebar } from './StudentSidebar';
 import { StudentHeader } from './StudentHeader';
 
 import { MobileNav } from './nav/MobileNav';
-import { NotificationAlertToast } from './NotificationAlertToast';
 import { useStudentLayoutState } from './useStudentLayoutState';
 import { StudentModals } from './StudentModals';
 
@@ -24,16 +23,6 @@ export function StudentLayout() {
   return (
     <div className="bg-surface text-on-surface font-body-md min-h-screen flex selection:bg-primary-light selection:text-primary overflow-x-hidden">
 
-      {/* Real-time alert pop-up for schedule updates */}
-      {state.alertNotif && (
-        <NotificationAlertToast
-          title={state.alertNotif.title}
-          desc={state.alertNotif.desc}
-          icon={state.alertNotif.icon}
-          onClose={() => state.setAlertNotif(null)}
-        />
-      )}
-
       {/* Layout Toast */}
       {state.toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100 bg-neutral-gray-900 border border-white/10 text-white rounded-2xl py-3.5 px-6 shadow-2xl flex items-center gap-3 animate-fade-in text-sm font-bold min-w-[320px] max-w-[500px]">
@@ -44,28 +33,19 @@ export function StudentLayout() {
       )}
 
       {/* Sidebar */}
+      {/* Pas d'entrée « Paramètres » : tout est dans « Mon profil » */}
       <StudentSidebar
-        onOpenSettings={() => state.setShowSettings(true)}
         triggerToast={state.triggerLayoutToast}
       />
 
       {/* Main content */}
       <div className="flex-1 md:ml-64 bg-background min-h-screen pb-24 md:pb-0 flex flex-col min-w-0 max-w-full">
         <StudentHeader
-          notifications={state.notifications}
-          unreadCount={state.unreadCount}
-          notifFilter={state.notifFilter}
-          setNotifFilter={state.setNotifFilter}
-
-          showNotifications={state.showNotifications} setShowNotifications={state.setShowNotifications}
           showCalendar={state.showCalendar} setShowCalendar={state.setShowCalendar}
           showProfile={state.showProfile} setShowProfile={state.setShowProfile}
-          notifRef={state.notifRef} calendarPopRef={state.calendarPopRef} profileRef={state.profileRef}
+          calendarPopRef={state.calendarPopRef} profileRef={state.profileRef}
           studentMood={state.studentMood} tempMood={state.tempMood} setTempMood={state.setTempMood}
           isEditingMood={state.isEditingMood} setIsEditingMood={state.setIsEditingMood}
-          onMarkAllRead={state.handleMarkAllRead}
-          onNotifClick={state.handleNotifClick}
-          onOpenSettings={() => state.setShowSettings(true)}
           onOpenSupport={() => state.setShowSupportModal(true)}
           onOpenSearch={() => state.setShowSearch(true)}
           triggerToast={state.triggerLayoutToast}

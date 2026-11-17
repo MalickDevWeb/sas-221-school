@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ChampsHoraire } from './ChampsHoraire';
+import type { HoraireSeance } from '../../hooks/useVirtualClassState';
 import { ShieldAlert, Video } from 'lucide-react';
 import { AdminMeeting } from '../../domain/CollaborationModels';
 
@@ -10,7 +12,8 @@ interface Props {
     scope: AdminMeeting['targetScope'],
     details: string,
     type: AdminMeeting['type'],
-    link: string
+    link: string,
+    horaire: HoraireSeance
   ) => void;
 }
 
@@ -19,12 +22,16 @@ export function AdminGlobalMeetings({ meetings, onCreate }: Props) {
   const [scope, setScope] = useState<AdminMeeting['targetScope']>('ALL');
   const [type, setType] = useState<AdminMeeting['type']>('conférence');
   const [meetLink, setMeetLink] = useState('');
+  const [debut, setDebut] = useState('');
+  const [fin, setFin] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onCreate(title, 'Direction Académique', scope, 'Tous les départements', type, meetLink);
+    onCreate(title, 'Direction Académique', scope, 'Tous les départements', type, meetLink, { debut, fin });
     setTitle('');
     setMeetLink('');
+    setDebut('');
+    setFin('');
   };
 
   return (
@@ -92,6 +99,8 @@ export function AdminGlobalMeetings({ meetings, onCreate }: Props) {
               required
             />
           </div>
+
+          <ChampsHoraire prefixeId="evenement" debut={debut} fin={fin} onDebut={setDebut} onFin={setFin} />
 
           <button
             type="submit"

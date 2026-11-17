@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { syncOfflineMutations } from '../lib/offlineSyncManager';
+import { toast } from 'sonner';
+import { syncOfflineMutations, type BilanSynchronisation } from '../lib/offlineSyncManager';
 import { sendPushNotification } from '../lib/pushNotifier';
 import { publicApiClient } from '../lib/apiClient';
+
+/**
+ * Bilan du rejeu affiché à l'utilisateur (revue DevSecOps) : jamais de refus silencieux, et une session
+ * expirée est signalée au lieu de compter l'action comme envoyée.
+ */
+function annoncerBilan(b: BilanSynchronisation): void {
+  if (b.aReconnecter > 0) {
+    toast.warning(`Reconnectez-vous pour envoyer ${b.aReconnecter} action(s) en attente : elles restent conservées sur cet appareil.`,
+      { duration: Infinity, id: 'hors-ligne-reconnexion' });
+  }
+  if (b.refusees.length > 0) {
+    const details = b.refusees.slice(0, 3).map(r => `${r.methode} ${r.url.replace(/^.*?\/api\//, '/')} : ${r.motif}`).join(' ; ');
+    toast.error(`${b.refusees.length} action(s) faite(s) hors ligne refusée(s) par le serveur et retirée(s) de la file — ${details}${b.refusees.length > 3 ? ' ; …' : ''}. Refaites-les si nécessaire.`,
+      { duration: Infinity, id: 'hors-ligne-refus' });
+  }
+  if (b.enAttente > 0) {
+    toast.info(`${b.enAttente} action(s) toujours en attente : nouvel envoi au prochain retour de la connexion.`, { id: 'hors-ligne-attente' });
+  }
+}
 
 export function OfflineSyncToast() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -20,7 +40,9 @@ export function OfflineSyncToast() {
       sendPushNotification("Connexion rétablie", "Synchronisation des données en cours...");
       
       try {
-        const syncedCount = await syncOfflineMutations();
+        const bilan = await syncOfflineMutations();
+        const syncedCount = bilan.envoyees;
+        annoncerBilan(bilan);
         const { data: info } = await publicApiClient.get('/sync/check');
         const prevVersion = localStorage.getItem('cached_db_version');
           

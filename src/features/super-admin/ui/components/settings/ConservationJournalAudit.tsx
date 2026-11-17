@@ -65,10 +65,10 @@ export const ConservationJournalAudit: React.FC = () => {
 
   return (
     <form id="conservation-audit" onSubmit={enregistrer} noValidate
-      className="p-6 md:p-8 space-y-4 border-b border-white/10 text-xs">
-      <h2 className="text-base font-bold text-white flex items-center gap-2">
-        <History className="w-5 h-5 text-indigo-400" /> Conservation du journal d'audit
-      </h2>
+      className="space-y-4 text-xs">
+      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <History className="w-4 h-4 text-indigo-400" /> Conservation du journal d'audit
+      </h3>
       <p className="text-[11px] text-slate-400 max-w-2xl">
         Toute action enregistrée sur la plateforme est inscrite au journal d'audit, qui ne peut pas être modifié.
         Une entrée n'est effacée qu'une fois cette durée écoulée.

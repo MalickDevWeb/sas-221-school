@@ -12,6 +12,7 @@ export function ProfessorSidebarNav({ activeTab, onSelectTab }: NavProps) {
     { id: 'schedule', label: 'Mon Emploi du Temps', icon: 'calendar_today' },
     { id: 'collaboration', label: 'Espace Collaboration', icon: 'groups' },
     { id: 'messages-parents', label: 'Messages des parents', icon: 'mail' },
+    { id: 'corbeille', label: 'Corbeille', icon: 'delete' },
   ];
 
   return (
@@ -19,6 +20,8 @@ export function ProfessorSidebarNav({ activeTab, onSelectTab }: NavProps) {
       {menuItems.map(({ id, label, icon }) => (
         <button
           key={id}
+          type="button"
+          data-onglet={id}
           onClick={() => onSelectTab(id)}
           className={`w-full flex flex-row items-center gap-3 px-3 py-2 font-label-md text-label-md rounded-lg transition-transform text-left cursor-pointer ${
             activeTab === id 

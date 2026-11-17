@@ -6,11 +6,10 @@ import { anneeAcademiqueCourte } from '@/shared/lib/anneeAcademique';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
-  onOpenSettings: () => void;
   triggerToast: (msg: string) => void;
 }
 
-export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
+export function StudentSidebar({ triggerToast }: Props) {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
   const { currentTenant } = useTenantStore();
@@ -85,10 +84,6 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
             <span translate="no" className="material-symbols-outlined text-[20px]">account_circle</span>
             <span>Mon profil</span>
           </NavLink>
-          <button onClick={onOpenSettings} className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-secondary hover:bg-secondary-container/50 font-label-md text-label-md rounded-lg cursor-pointer">
-            <span translate="no" className="material-symbols-outlined text-[20px]">settings</span>
-            <span>Paramètres</span>
-          </button>
           <button
             onClick={() => {
               deconnexion();

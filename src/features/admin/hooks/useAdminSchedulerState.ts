@@ -5,6 +5,9 @@ import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { BilanEmploiDuTemps, lireBilan } from '../domain/bilanEmploiDuTemps';
+import { listeBrute, texte } from '@/shared/lib/lectureServeur';
+import { avecNombre } from '@/shared/lib/pluriel';
+import { annoncerMisesALaCorbeille } from '@/features/corbeille/annonceCorbeille';
 
 export function useAdminSchedulerState() {
   const [slots, setSlotsBrut] = useState<CalendarSlot[]>([]);
@@ -22,24 +25,24 @@ export function useAdminSchedulerState() {
   const recharger = useCallback(() => {
     // Salles réelles pour le contrôle de capacité du moteur de règles
     apiClient.get('/admin/planning/rooms')
-      .then((res) => definirSallesReelles((Array.isArray(res.data) ? res.data : [])
-        .map((r: any) => ({ name: r.name, capacity: Number(r.capacity) || 0 }))))
+      .then((res) => definirSallesReelles(listeBrute(res.data)
+        .map((r) => ({ name: texte(r.name), capacity: Number(r.capacity) || 0 }))))
       .catch(() => definirSallesReelles([]));
     // Créneaux réels. Le serveur renvoie jour, heureStr, nom, professeur, salle, classeId.
     Promise.all([apiClient.get('/admin/planning/slots'), apiClient.get('/admin/planning/classes').catch(() => ({ data: [] }))])
       .then(([res, cls]) => {
-        const nomsClasses = new Map<string, string>((Array.isArray(cls.data) ? cls.data : [])
-          .map((c: { id?: string; name?: string }) => [String(c.id), c.name ?? ''] as [string, string]));
-        const brut: Array<Record<string, any>> = Array.isArray(res.data) ? res.data : [];
+        const nomsClasses = new Map<string, string>(listeBrute(cls.data)
+          .map((c) => [texte(c.id), texte(c.name)] as [string, string]));
+        const brut = listeBrute(res.data);
         const mappedSlots: CalendarSlot[] = brut.map((item, index) => ({
-          id: item.id ? String(item.id) : `creneau-${index}`,
-          subject: item.nom || item.subject || '',
-          prof: item.professeur || item.prof || '',
-          room: item.salle || item.room || '',
-          classe: nomsClasses.get(item.classeId) || item.classeId || '',
-          classeId: item.classeId || '',
-          day: item.jour || item.day || '',   // pas de jour inventé : un créneau incomplet n'est pas placé
-          slot: item.heureStr || item.slot || '',
+          id: item.id ? texte(item.id) : `creneau-${index}`,
+          subject: texte(item.nom || item.subject),
+          prof: texte(item.professeur || item.prof),
+          room: texte(item.salle || item.room),
+          classe: nomsClasses.get(texte(item.classeId)) || texte(item.classeId),
+          classeId: texte(item.classeId),
+          day: texte(item.jour || item.day),   // pas de jour inventé : un créneau incomplet n'est pas placé
+          slot: texte(item.heureStr || item.slot),
           type: item.type === 'TD' || item.type === 'TP' ? item.type : 'CM',
           faculte: '', departement: '', filiere: '', niveau: '', semestre: '', anneeAcademique: '',
           groupe: 'Aucun', building: '', capacityRequired: 0, isPublished: true, weekNumber: 1,
@@ -62,7 +65,7 @@ export function useAdminSchedulerState() {
   const enregistrer = useCallback(async (): Promise<{ erreur: string } | { bilan: BilanEmploiDuTemps }> => {
     const sansClasse = slots.filter(s => !s.classeId);
     if (sansClasse.length > 0) {
-      return { erreur: `${sansClasse.length} créneau(x) sans classe rattachée (${sansClasse.map(s => s.subject || s.id).slice(0, 3).join(', ')}) : impossible de les enregistrer.` };
+      return { erreur: `${avecNombre(sansClasse.length, 'créneau', 'créneaux')} sans classe rattachée (${sansClasse.map(s => s.subject || s.id).slice(0, 3).join(', ')}) : impossible de les enregistrer.` };
     }
     try {
       const { data } = await apiClient.put('/admin/planning/slots', slots.map(s => ({
@@ -70,6 +73,8 @@ export function useAdminSchedulerState() {
         prof: s.prof, roomName: s.room, type: s.type,
       })));
       setModifie(false);
+      // Créneaux retirés du planning : placés dans la corbeille par le serveur (« misALaCorbeille »)
+      annoncerMisesALaCorbeille(data);
       return { bilan: lireBilan(data) };
     } catch (err) {
       return { erreur: resolveErrorMessage(err) };

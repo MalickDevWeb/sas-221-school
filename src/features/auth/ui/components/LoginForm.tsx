@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from '@iconify/react';
 import confetti from 'canvas-confetti';
 import { useLogin } from '../../hooks/useLogin';
+import { prechargerEspacePresume, usePrechargementEspaceDeLAppareil } from '../../hooks/prechargementConnexion';
 import { useCandidatureSettings } from '../../hooks/useCandidatureSettings';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
@@ -49,6 +50,10 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
   const [currentView, setCurrentView] = useState<'CONNEXION' | 'MOT_DE_PASSE_OUBLIE'>('CONNEXION');
   const { executer, etat, erreur } = useLogin();
   const { settings } = useCandidatureSettings();
+  // Code de l'espace téléchargé pendant la saisie quand il est connu d'avance (appareil déjà utilisé par des
+  // comptes du même espace ; identifiant saisi : matricule ou compte déjà connecté ici) — jamais à l'aveugle
+  usePrechargementEspaceDeLAppareil();
+  const champIdentifiant = register('email');
 
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
   const currentTenant = useTenantStore((s) => s.currentTenant);
@@ -56,48 +61,8 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
   const isDefaultSchool = activeSlug === 'ecole221' || activeSlug === 'ecole-221';
   const schoolDisplayName = isDefaultSchool ? 'École 221' : (currentTenant?.name || activeSlug.toUpperCase());
 
-  const localRegisteredAdmin = typeof window !== 'undefined'
-    ? localStorage.getItem(`tenant_admin_${activeSlug}`)
-    : null;
 
-  // APP-SEC-03 : connexion rapide de démonstration — jamais en production par défaut,
-  // et aucun mot de passe dans le code (il serait public dans le bundle).
-  // Activer pour une démo : VITE_DEMO_LOGIN=true et VITE_DEMO_PASSWORD=… au moment du build.
-  const DEMO_LOGIN = import.meta.env.DEV || import.meta.env.VITE_DEMO_LOGIN === 'true';
-  const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD ?? '';
-
-  const quickCredentials = {
-    admin: {
-      label: 'Admin',
-      email: isDefaultSchool ? 'admin221@gmail.com' : (localRegisteredAdmin || `admin@${activeSlug}.sn`),
-      password: DEMO_PASSWORD,
-      badgeClass: 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200',
-    },
-    etudiant: {
-      label: 'Étudiant',
-      email: isDefaultSchool ? 'etudiant221@gmail.com' : `etudiant@${activeSlug}.sn`,
-      password: DEMO_PASSWORD,
-      badgeClass: 'bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] border-[#1E5E3A]/20',
-    },
-    professeur: {
-      label: 'Prof',
-      email: isDefaultSchool ? 'professeur221@gmail.com' : `prof@${activeSlug}.sn`,
-      password: DEMO_PASSWORD,
-      badgeClass: 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200',
-    },
-    vigile: {
-      label: 'Vigile',
-      email: isDefaultSchool ? 'vigile221@gmail.com' : `vigile@${activeSlug}.sn`,
-      password: DEMO_PASSWORD,
-      badgeClass: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200',
-    },
-    parent: {
-      label: 'Parent',
-      email: isDefaultSchool ? 'parent221@gmail.com' : `parent@${activeSlug}.sn`,
-      password: DEMO_PASSWORD,
-      badgeClass: 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200',
-    },
-  };
+  // Boutons « Identifiants rapides » retirés (adresses inventées, même en mode développement).
 
   const loading = etat === 'CHARGEMENT';
   const success = etat === 'SUCCES';
@@ -174,7 +139,8 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-erreur' : undefined}
             disabled={loading || success}
-            {...register('email')}
+            {...champIdentifiant}
+            onBlur={(e) => { void champIdentifiant.onBlur(e); prechargerEspacePresume(e.target.value); }}
           />
         </div>
         {errors.email && <p id="email-erreur" role="alert" className="text-[11px] font-semibold text-red-600">{errors.email.message}</p>}
@@ -266,32 +232,6 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
         </button>
       </div>
 
-      {DEMO_LOGIN && (
-      <div className="mt-4 pt-3 border-t border-[#E2DCDA]/60 space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">
-            Identifiants Rapides ({schoolDisplayName}) :
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(quickCredentials).map(([key, item]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setValue('email', item.email);
-                setValue('password', item.password);
-                clearErrors();
-              }}
-              title={`${item.label} : ${item.email}`}
-              className={`px-2.5 py-1 text-[9.5px] font-black rounded-lg border transition-all cursor-pointer active:scale-95 ${item.badgeClass}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      )}
     </motion.form>
   );
 }

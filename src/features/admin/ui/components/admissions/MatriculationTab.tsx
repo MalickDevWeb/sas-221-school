@@ -3,6 +3,7 @@ import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { MatriculationTable } from './MatriculationTable';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { ouvrirDocumentImprimable, tableauCleValeurHtml } from '@/shared/lib/documentImprimable';
 
 interface Props {
   candidates: ExtendedCandidate[];
@@ -61,14 +62,12 @@ function imprimerFiche(r: Inscription) {
     if (r.parent.motDePasseProvisoire) lignes.push(['Mot de passe provisoire du parent', r.parent.motDePasseProvisoire]);
   }
   if (r.dossierFinancier?.totalRequired != null) lignes.push(['Scolarité due (FCFA)', r.dossierFinancier.totalRequired.toLocaleString('fr-FR')]);
-  const w = window.open('', '_blank', 'width=720,height=900');
-  if (!w) return;
-  w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche d'inscription — ${echapper(r.eleve.matricule)}</title>
-<style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{font-size:20px}table{border-collapse:collapse;width:100%}td{border:1px solid #999;padding:8px;font-size:14px}td:first-child{width:45%;font-weight:bold}p{font-size:12px;color:#444}</style></head>
-<body><h1>Fiche d'inscription</h1><table>${lignes.map(([k, v]) => `<tr><td>${echapper(k)}</td><td>${echapper(v)}</td></tr>`).join('')}</table>
-<p>Remise le ${echapper(new Date().toLocaleDateString('fr-FR'))}. Les mots de passe provisoires ne sont affichés qu'une seule fois : conservez cette fiche en lieu sûr.</p>
-<script>window.onload=function(){window.print();}</script></body></html>`);
-  w.document.close();
+  // Modèle commun des documents de l'école (en-tête, logo ou initiales, pied, A4)
+  ouvrirDocumentImprimable({
+    titre: "Fiche d'inscription", sousTitre: r.eleve.nom, titreFenetre: `Fiche d'inscription — ${r.eleve.matricule}`,
+    corps: `${tableauCleValeurHtml(lignes.map(([k, v]) => ({ cle: k, valeur: String(v ?? '') })))}
+<p class="note">Remise le ${echapper(new Date().toLocaleDateString('fr-FR'))}. Les mots de passe provisoires ne sont affichés qu'une seule fois : conservez cette fiche en lieu sûr.</p>`,
+  });
 }
 
 export function MatriculationTab({ candidates, onEnroll, onError, onTogglePayment }: Props) {

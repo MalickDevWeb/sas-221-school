@@ -49,7 +49,6 @@ export function ProfessorHeaderBanner({ profName, coursesCount, onOpenPresence, 
 
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300 mt-2">
             <QrLocal valeur={badge} titre="QR Code Enseignant" className="w-[68px] h-[68px]" />
-            <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
           </div>
         </div>
 

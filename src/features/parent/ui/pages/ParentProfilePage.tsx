@@ -28,7 +28,9 @@ export function ParentProfilePage() {
   const nom = utilisateur?.nom?.trim() || '';
   const { data: profil, isLoading, isError, error: erreurChargement } = useParentProfile();
   const enregistrer = useUpdateParentProfile();
-  const email = profil?.email?.trim() || utilisateur?.email?.trim() || '';
+  const emailCompte = profil?.email?.trim() || utilisateur?.email?.trim() || '';
+  // Parent sans e-mail : son identifiant technique « parent-…@sans-email.invalid » n'est jamais affiché
+  const email = /\.invalid$/i.test(emailCompte) ? '' : emailCompte;
   const initiales = `${prenom[0] ?? ''}${nom[0] ?? ''}`.toUpperCase() || '—';
 
   const [champs, setChamps] = useState<Champs>({ telephone: '', adresse: '', profession: '' });

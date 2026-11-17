@@ -36,8 +36,12 @@ export function subscribeMeets(onUpdate: (meets: readonly VirtualClass[]) => voi
   return () => clearInterval(timer);
 }
 
-export async function saveMeet(mt: VirtualClass): Promise<void> {
-  await apiClient.post('/collaboration/meets', mt);
+/** Renvoie les comptes RÉELLEMENT prévenus par le serveur (élèves de la classe et leurs parents), ou null. */
+export async function saveMeet(mt: VirtualClass): Promise<{ eleves: number; parents: number; professeurs: number } | null> {
+  const { data } = await apiClient.post<{ prevenus?: { eleves?: number; parents?: number; professeurs?: number } }>('/collaboration/meets', mt);
+  const p = data?.prevenus;
+  const n = (v: unknown) => (typeof v === 'number' ? v : 0);
+  return p && typeof p.eleves === 'number' ? { eleves: p.eleves, parents: n(p.parents), professeurs: n(p.professeurs) } : null;
 }
 
 export function subscribeAdminMeets(onUpdate: (meets: readonly AdminMeeting[]) => void) {
@@ -59,8 +63,7 @@ export async function saveAdminMeet(am: AdminMeeting): Promise<void> {
   // est relue via GET /collaboration/admin-meets (APP-ARC-01).
   await apiClient.post('/collaboration/meets', {
     ...am,
-    link: am.meetLink,
-    time: am.date ? `${am.date} ${am.time}` : am.time,
+    link: am.meetLink,   // date et plage horaire : calculées par le serveur à partir de debut / fin
   });
 }
 

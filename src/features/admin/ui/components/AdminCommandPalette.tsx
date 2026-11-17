@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useOuvertureOngletAdmin } from './navigationAdmin';
 
 interface Props {
   isOpen: boolean;
@@ -8,20 +9,23 @@ interface Props {
 }
 
 const COMMANDS = [
-  { id: 'dashboard', label: 'Aller au Tableau de Bord CEO', shortcut: 'G + D', icon: 'dashboard', cat: 'Navigation' },
-  { id: 'school', label: 'Aller à Gestion École (Filières/Classes)', shortcut: 'G + S', icon: 'school', cat: 'Navigation' },
-  { id: 'schedule', label: 'Aller à Emploi du Temps / Planning', shortcut: 'G + P', icon: 'calendar_today', cat: 'Navigation' },
-  { id: 'personnel', label: 'Aller à Gestion Personnel / RH', shortcut: 'G + H', icon: 'badge', cat: 'Navigation' },
-  { id: 'students', label: 'Aller à Gestion Étudiants / Profils', shortcut: 'G + E', icon: 'group', cat: 'Navigation' },
-  { id: 'admissions', label: 'Aller aux Demandes Admissions', shortcut: 'G + A', icon: 'person_add', cat: 'Navigation' },
-  { id: 'finances', label: 'Aller à Finances & Recouvrement', shortcut: 'G + F', icon: 'payments', cat: 'Navigation' },
-  { id: 'notifications', label: 'Aller au Centre Notifications', shortcut: 'G + N', icon: 'mail', cat: 'Navigation' },
-  { id: 'new-student', label: 'Créer un nouvel étudiant', shortcut: 'Ctrl + Alt + N', icon: 'add_circle', cat: 'Actions Rapides' },
+  { id: 'dashboard', label: 'Aller au tableau de bord', shortcut: 'G + D', icon: 'dashboard', cat: 'Navigation' },
+  { id: 'school', label: 'Aller à la configuration de l’école', shortcut: 'G + S', icon: 'school', cat: 'Navigation' },
+  { id: 'schedule', label: 'Aller à l’emploi du temps', shortcut: 'G + P', icon: 'calendar_today', cat: 'Navigation' },
+  { id: 'personnel', label: 'Aller au personnel', shortcut: 'G + H', icon: 'badge', cat: 'Navigation' },
+  { id: 'students', label: 'Aller aux élèves', shortcut: 'G + E', icon: 'group', cat: 'Navigation' },
+  { id: 'admissions', label: 'Aller aux admissions', shortcut: 'G + A', icon: 'person_add', cat: 'Navigation' },
+  { id: 'finances', label: 'Aller aux finances', shortcut: 'G + F', icon: 'payments', cat: 'Navigation' },
+  { id: 'notifications', label: 'Aller aux annonces & alertes', shortcut: 'G + N', icon: 'mail', cat: 'Navigation' },
+  { id: 'new-student', label: 'Inscrire un nouvel élève', shortcut: 'Ctrl + Alt + N', icon: 'add_circle', cat: 'Actions Rapides' },
   { id: 'run-relance', label: 'Lancer les relances financières', shortcut: 'Ctrl + Alt + R', icon: 'send', cat: 'Actions Rapides' },
 ];
 
 export function AdminCommandPalette({ isOpen, onClose, onSelectTab }: Props) {
   const [query, setQuery] = useState('');
+  // Palette toujours montée dans l'espace administration : elle sert aussi les liens d'un écran vers un autre
+  // (ex. « Transferts d'élèves » depuis l'annuaire), sans toucher à la page AdminPage
+  useOuvertureOngletAdmin(onSelectTab);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

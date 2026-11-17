@@ -11,7 +11,7 @@ export function TenantFinderPage() {
     e.preventDefault();
     const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (!cleanSlug) {
-      setError('Veuillez saisir le slug de votre établissement');
+      setError("Tapez l'adresse courte de votre école (ex. lycee-thies).");
       return;
     }
     navigate(`/t/${cleanSlug}/login`);
@@ -35,21 +35,22 @@ export function TenantFinderPage() {
         <div className="bg-[#0D1322]/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-wider">
-              <Icon icon="solar:buildings-3-bold-duotone" className="text-sm" /><span>Portail Multi-Campus</span>
+              <Icon icon="solar:buildings-3-bold-duotone" className="text-sm" /><span>Espace des écoles</span>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">Accéder à votre École</h1>
-            <p className="text-xs text-slate-400 font-medium">Saisissez le slug de votre établissement pour rejoindre votre espace.</p>
+            <h1 className="text-2xl font-black text-white tracking-tight">Accéder à votre école</h1>
+            <p className="text-xs text-slate-400 font-medium">Tapez l'adresse courte de votre école, celle reçue à l'inscription (ex. lycee-thies).</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="school-slug" className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Identifiant de l'école (Slug)</label>
+              <label htmlFor="school-slug" className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Adresse de l'école</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-xs">/t/</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-xs" aria-hidden="true">/t/</span>
                 <input
                   id="school-slug"
                   type="text"
                   required
+                  data-msg-requis="Tapez l'adresse courte de votre école (ex. lycee-thies)."
                   autoFocus
                   placeholder="ex: lycee-thies"
                   value={slug}
@@ -78,7 +79,7 @@ export function TenantFinderPage() {
       </main>
 
       <footer className="relative z-10 text-center text-[10px] text-slate-500 py-3">
-        © 2026 My School SaaS Platform • Multi-Tenant Education Infrastructure
+        © 2026 My School
       </footer>
     </div>
   );

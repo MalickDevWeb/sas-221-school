@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Sparkles } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { superAdminService } from '@/services/superAdminService';
@@ -58,10 +58,7 @@ export const SuperAdminUsersPage = () => {
     <div className="p-6 md:p-8 space-y-6 flex flex-col h-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-2">
-            <Sparkles size={12} className="text-cyan-400" /> Sécurité & Contrôle d'Accès
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Utilisateurs Globaux</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Utilisateurs de la plateforme</h1>
           <p className="text-sm text-slate-400 mt-1">Gérer les comptes et privilèges des Super Administrateurs de la plateforme.</p>
         </div>
         <button

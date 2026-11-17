@@ -35,9 +35,6 @@ export function ProfessorQRZoomOverlay({ onClose }: Props) {
         {/* Minimalist QR code display */}
         <div className="relative w-full h-full bg-white rounded-2xl flex items-center justify-center overflow-hidden">
           <QrLocal valeur={qrUrl} titre="QR Code Enseignant" className="w-full h-full p-2" />
-          {/* Subtle scanning light animation bar */}
-          <div className="absolute left-0 right-0 h-[1.5px] bg-brand-red-deep opacity-80 shadow-[0_0_8px_#B3181C] top-1/2 -translate-y-1/2" />
-          <div className="absolute inset-x-0 h-0.5 bg-brand-red-deep/20 top-1 animate-[bounce_3s_infinite]" />
         </div>
       </div>
     </div>,

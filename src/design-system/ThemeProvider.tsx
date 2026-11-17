@@ -92,7 +92,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const currentTheme: SchoolTheme = useMemo(() => ({
     schoolId: currentTenant?.id,
     slug: currentTenant?.slug || 'ecole221',
-    name: currentTenant?.name || 'École 221',
+    name: currentTenant?.name || 'Votre établissement',
     logoUrl: currentTenant?.branding?.logoUrl,
     colors: fullColors,
   }), [currentTenant, fullColors]);

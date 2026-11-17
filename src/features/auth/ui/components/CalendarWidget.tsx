@@ -38,13 +38,33 @@ export function CalendarWidget({ variant = 'default' }: { variant?: 'default' | 
       )}
       <CalendarHeader state={state} />
       <div className="flex-grow overflow-y-auto no-scrollbar min-h-[300px] flex flex-col justify-start mt-1">
-        {state.viewType === 'weekly' && <WeeklyView state={state} />}
-        {state.viewType === 'monthly' && <MonthlyView state={state} juneDays={juneDays} />}
+        {!state.consultable ? (
+          // L'emploi du temps est personnel : il s'affiche une fois connecté (une grille vide avant connexion ferait
+          // croire que l'école n'a aucun emploi du temps).
+          <div id="calendrier-connexion-requise" className="m-auto text-center max-w-sm py-10 px-4">
+            <span className="mx-auto w-14 h-14 rounded-[999px] bg-primary-light text-primary flex items-center justify-center">
+              <span translate="no" className="material-symbols-outlined text-3xl">lock_clock</span>
+            </span>
+            <p className="mt-3 text-sm font-black text-neutral-800">
+              {state.estConnecte ? 'Pas d\'emploi du temps personnel pour ce compte' : 'Connectez-vous pour voir votre emploi du temps'}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500 font-semibold">
+              {state.estConnecte
+                ? 'L\'emploi du temps s\'affiche ici pour les élèves et les professeurs. Les parents le consultent dans leur espace (Planning).'
+                : 'Élèves et professeurs : vos cours de la semaine apparaissent ici dès que vous êtes connectés.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            {state.viewType === 'weekly' && <WeeklyView state={state} />}
+            {state.viewType === 'monthly' && <MonthlyView state={state} juneDays={juneDays} />}
+          </>
+        )}
       </div>
       <div className="pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-2 text-[9px] text-neutral-400 font-extrabold uppercase tracking-wider">
         <span className="flex items-center gap-1">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          Sélectionnez un cours pour y accéder directment
+          Sélectionnez un cours pour y accéder directement
         </span>
         <span className="text-neutral-300 font-bold">Version 2.3 · École 221</span>
       </div>

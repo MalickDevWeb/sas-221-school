@@ -4,18 +4,16 @@ import { getCourseDetails, submitHomework } from '@/features/student/api';
 export interface CourseLesson { titre: string; estDerniereEnseignee?: boolean; duree: string; complete: boolean }
 export interface CourseChapter { titre: string; lecons: CourseLesson[] }
 export interface CourseResource { titre: string; type: 'pdf' | 'video' | 'code' | 'link'; taille: string }
-export interface CourseQuiz { question: string; options: string[]; reponseCorrecte: number }
 export interface CourseHomework { id: string; titre: string; dateLimite: string; points: string; statut: 'A rendre' | 'Soumis' }
 
 export interface CourseDetails {
   chapitres: CourseChapter[];
   ressources: CourseResource[];
-  quizzes: CourseQuiz[];
   devoirs: CourseHomework[];
 }
 
 /** Détails vides : état honnête quand le backend ne renvoie rien pour ce cours. */
-export const EMPTY_COURSE_DETAILS: CourseDetails = { chapitres: [], ressources: [], quizzes: [], devoirs: [] };
+export const EMPTY_COURSE_DETAILS: CourseDetails = { chapitres: [], ressources: [], devoirs: [] };
 
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const str = (v: unknown): string => (typeof v === 'string' && v.trim() ? v : '—');
@@ -38,13 +36,7 @@ function normalize(raw: unknown): CourseDetails {
       type: (['pdf', 'video', 'code', 'link'].includes(res.type as string) ? res.type : 'link') as CourseResource['type'],
       taille: str(res.taille),
     })),
-    quizzes: asArray<Record<string, unknown>>(r.quizzes)
-      .filter((q) => Array.isArray(q.options) && typeof q.reponseCorrecte === 'number')
-      .map((q) => ({
-        question: str(q.question),
-        options: (q.options as unknown[]).map((o) => String(o)),
-        reponseCorrecte: q.reponseCorrecte as number,
-      })),
+    // Quiz : jamais lus ici ; voir quizEleveApi.
     devoirs: asArray<Record<string, unknown>>(r.devoirs)
       .filter((d) => typeof d.id === 'string' || typeof d.id === 'number')
       .map((d) => ({

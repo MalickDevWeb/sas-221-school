@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { VirtualClass, AdminMeeting, MeetAttendance } from '../domain/CollaborationModels';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { erreurLienMeet, normaliserLienMeet } from '@/shared/lib/lienMeet';
+import { erreurHoraire } from '../domain/horaireSeance';
+
+/** Heure de début (le lien apparaît aux élèves) et de fin (la séance disparaît), AAAA-MM-JJTHH:MM. */
+export interface HoraireSeance { readonly debut: string; readonly fin: string; }
 import { subscribeMeets, saveMeet, subscribeAdminMeets, saveAdminMeet, subscribeAttendances, saveAttendance } from '../infrastructure/msgService';
 
 export function useVirtualClassState(triggerToast: (msg: string, isSuccess: boolean) => void) {
@@ -25,7 +29,8 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
     classNames: readonly string[],
     subjectName: string,
     teacherName: string,
-    rawLink: string
+    rawLink: string,
+    horaire: HoraireSeance
   ) => {
     if (classIds.length === 0) {
       triggerToast('Erreur : vous devez affecter le cours à au moins une classe !', false);
@@ -39,6 +44,11 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       return;
     }
     const meetLink = normaliserLienMeet(rawLink);
+    const erreurH = erreurHoraire(horaire.debut, horaire.fin);
+    if (erreurH) {
+      triggerToast(erreurH, false);
+      return;
+    }
 
     const newMeet: VirtualClass = {
       id: `meet-${Date.now()}`,
@@ -48,14 +58,22 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       teacherName,
       meetLink,
       isPublished: true,
-      // Date / horaire non saisis dans le formulaire : jamais inventés
-      date: '—',
-      time: '—',
+      // Date et plage horaire calculées par le serveur à partir du début et de la fin
+      date: '',
+      time: '',
+      debut: horaire.debut,
+      fin: horaire.fin,
     };
 
     try {
-      await saveMeet(newMeet);
-      triggerToast(`Classe virtuelle publiée pour ${classNames.join(', ')}.`, true);
+      const prevenus = await saveMeet(newMeet);
+      // Nombres renvoyés par le serveur (jamais estimés à l'écran)
+      const detail = prevenus
+        ? prevenus.eleves === 0
+          ? ' Aucun élève n\'est encore inscrit dans cette classe : personne n\'a été prévenu.'
+          : ` ${prevenus.eleves} élève(s), ${prevenus.parents} parent(s)${prevenus.professeurs ? ` et ${prevenus.professeurs} professeur(s)` : ''} prévenu(s).`
+        : '';
+      triggerToast(`Classe virtuelle publiée pour ${classNames.join(', ')}.${detail}`, true);
     } catch (err) {
       triggerToast(`Classe virtuelle non publiée : ${resolveErrorMessage(err)}`, false);
     }
@@ -67,7 +85,8 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
     scope: AdminMeeting['targetScope'],
     details: string,
     type: AdminMeeting['type'],
-    meetLink: string
+    meetLink: string,
+    horaire: HoraireSeance
   ) => {
     if (!title || !meetLink) {
       triggerToast('Veuillez remplir tous les champs obligatoires.', false);
@@ -77,6 +96,11 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
     const erreurLien = erreurLienMeet(meetLink);
     if (erreurLien) {
       triggerToast(erreurLien, false);
+      return;
+    }
+    const erreurH = erreurHoraire(horaire.debut, horaire.fin);
+    if (erreurH) {
+      triggerToast(erreurH, false);
       return;
     }
     const newMeet: AdminMeeting = {
@@ -89,6 +113,8 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       meetLink: normaliserLienMeet(meetLink),
       date: '',
       time: '',
+      debut: horaire.debut,
+      fin: horaire.fin,
     };
     try {
       await saveAdminMeet(newMeet);

@@ -2,6 +2,26 @@ import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { LIBELLE_FRAIS, LIBELLE_STATUT, type DossierCandidat } from '../suiviApi';
+import { ouvrirDocumentImprimable, tableauCleValeurHtml } from '@/shared/lib/documentImprimable';
+
+/** Récépissé imprimé sur le modèle commun des documents de l'école. */
+function imprimerRecepisse(c: DossierCandidat) {
+  const nom = [c.prenom, c.nom].filter(Boolean).join(' ') || '—';
+  const depot = c.dateDepot ? new Date(c.dateDepot) : null;
+  ouvrirDocumentImprimable({
+    titre: 'Récépissé de dépôt de candidature', sousTitre: nom, titreFenetre: `Récépissé — ${c.id}`,
+    corps: `${tableauCleValeurHtml([
+      { cle: 'Numéro de dossier', valeur: c.id },
+      { cle: 'Candidat(e)', valeur: nom },
+      { cle: 'Formation demandée', valeur: c.formation ?? '—' },
+      { cle: 'Adresse e-mail', valeur: c.email },
+      ...(depot && !Number.isNaN(depot.getTime()) ? [{ cle: 'Déposé le', valeur: depot.toLocaleDateString('fr-FR') }] : []),
+      { cle: "Frais d'évaluation", valeur: LIBELLE_FRAIS[c.frais] },
+      { cle: 'Statut du dossier', valeur: LIBELLE_STATUT[c.statut] },
+    ])}
+<p class="note">Ce récépissé confirme l'enregistrement du dossier par l'école ; il ne vaut pas admission. Suivez la décision en ligne avec votre adresse e-mail et votre mot de passe de suivi.</p>`,
+  });
+}
 
 interface Props {
   candidate: DossierCandidat;
@@ -55,7 +75,7 @@ export function StepSuccessReceipt({ candidate, onGoToDashboard }: Props) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto pt-2">
-        <button onClick={() => window.print()} className="h-11 px-5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs">
+        <button onClick={() => imprimerRecepisse(candidate)} className="h-11 px-5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs">
           <span translate="no" className="material-symbols-outlined text-sm">print</span>
           <span>Imprimer Récépissé</span>
         </button>

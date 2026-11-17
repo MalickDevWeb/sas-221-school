@@ -5,6 +5,7 @@ import { ClassroomTab } from './tabs/ClassroomTab';
 import { ScheduleTab } from './tabs/ScheduleTab';
 import { CollaborationPage } from '@/features/collaboration/ui/pages/CollaborationPage';
 import { BoiteMessagesParents } from '@/features/messagerie-parents/BoiteMessagesParents';
+import { Corbeille, useOuvertureCorbeille } from '@/features/corbeille';
 
 type ViewModel = ReturnType<typeof useProfessorDashboardPage>;
 
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export function ProfessorDashboardTabContent({ vm }: Props) {
+  // Lien « Ouvrir la corbeille » d'un message de suppression (features/corbeille)
+  useOuvertureCorbeille(() => vm.setActiveTab('corbeille'));
   return (
     <main className="p-4 md:p-8 max-w-[1280px] mx-auto w-full flex-grow animate-fade-in relative min-h-screen">
       {vm.activeTab === 'dashboard' && <DashboardTab vm={vm} />}
@@ -22,6 +25,11 @@ export function ProfessorDashboardTabContent({ vm }: Props) {
       {vm.activeTab === 'messages-parents' && (
         <BoiteMessagesParents boite="/professor/messages-parents" titre="Messages des parents"
           description="Les parents qui vous écrivent depuis leur espace ; votre réponse leur parvient directement." />
+      )}
+      {vm.activeTab === 'corbeille' && (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-3 sm:p-6 shadow-sm">
+          <Corbeille espace="professeur" />
+        </div>
       )}
     </main>
   );

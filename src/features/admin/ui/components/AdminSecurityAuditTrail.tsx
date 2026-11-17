@@ -4,34 +4,16 @@ import { AuditTrailTab } from './security/AuditTrailTab';
 import { TerminalsTab } from './security/TerminalsTab';
 import { CryptoKeysTab } from './security/CryptoKeysTab';
 import { VigilRealtimeLogs } from './security/VigilRealtimeLogs';
-import { AuditLog, AccessTerminal } from '../../domain/SecurityModels';
-import { apiClient } from '@/shared/lib/apiClient';
+import { PointagesTab } from './security/PointagesTab';
+import { AccessTerminal } from '../../domain/SecurityModels';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { terminauxApi } from './security/terminauxApi';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
-
-const LIBELLES_ACTIONS: Record<string, string> = { CREATE: 'Création', UPDATE: 'Modification', DELETE: 'Suppression' };
-/** « 2026-11-14T10:52:04.808104 » → « 14/11/2026 10:52:04 » (texte brut conservé s'il n'est pas une date). */
-const dateLisible = (t?: string) => {
-  if (!t) return '';
-  const d = new Date(t);
-  return Number.isNaN(d.getTime()) ? t : d.toLocaleString('fr-FR');
-};
-const LIBELLES_ROLES: Record<string, string> = {
-  SUPER_ADMIN: 'Super-administrateur', ADMIN: 'Administration', ADMINISTRATOR: 'Administration', DIRECTEUR: 'Directeur',
-  SECRETAIRE: 'Secrétaire', COMPTABLE: 'Comptable', SURVEILLANT: 'Surveillant', RH: 'Ressources humaines',
-  PROFESSEUR: 'Enseignant', TEACHER: 'Enseignant', PROFESSOR: 'Enseignant', VIGIL: 'Vigile', VIGILE: 'Vigile',
-  STUDENT: 'Élève', ELEVE: 'Élève', PARENT: 'Parent',
-};
-const libelleRole = (r?: string) => (r ? LIBELLES_ROLES[r.toUpperCase()] || r : '');
+import { useRepliSousMenu } from '@/shared/components/SousMenuModule';
 
 export function AdminSecurityAuditTrail() {
   const [activeTab, setActiveTab] = useState('audit');
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  // Journal d'audit RÉEL (GET /audit/logs/recent) — avant : entrées inventées affichées en permanence
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [logsError, setLogsError] = useState('');
-  // Terminaux d'accès réels (APP-BE-21) — avant : liste vide, Activer / Révoquer ne changeaient que l'affichage
+  const [isCollapsed, basculerRepli] = useRepliSousMenu('securite');
+  // Terminaux d'accès réels (APP-BE-21)
   const [terminals, setTerminals] = useState<AccessTerminal[]>([]);
   const [terminalsLoading, setTerminalsLoading] = useState(true);
   const [terminalsError, setTerminalsError] = useState('');
@@ -43,24 +25,6 @@ export function AdminSecurityAuditTrail() {
       .finally(() => setTerminalsLoading(false));
   }, []);
 
-  useEffect(() => {
-    apiClient.get<any[]>('/audit/logs/recent', { params: { limit: 100 } })
-      .then((res) => {
-        // 2026-11-14 (ENF-07) : chaque écriture est journalisée par le serveur ; auteur affiché par son nom et son rôle
-        setLogs((Array.isArray(res.data) ? res.data : []).map((l: any) => ({
-          id: l.id,
-          time: dateLisible(l.timestamp),
-          user: l.actorName || l.userId || '',
-          role: libelleRole(l.actorRole),
-          action: LIBELLES_ACTIONS[l.action] || l.action || '',
-          details: l.description || '',
-          ip: l.ipAddress || '',
-          agent: l.userAgent || '',
-        })));
-        setLogsError('');
-      })
-      .catch(() => setLogsError("Journal d'audit indisponible."));
-  }, []);
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -108,14 +72,14 @@ export function AdminSecurityAuditTrail() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-security-root">
-      <TabletDrawerWrapper>
+      <div className="shrink-0 lg:sticky lg:top-4">
         <SecuritySubSidebar
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          onToggleCollapse={basculerRepli}
         />
-      </TabletDrawerWrapper>
+      </div>
 
       <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative">
         {toast && (
@@ -133,10 +97,13 @@ export function AdminSecurityAuditTrail() {
           </div>
         )}
 
-        {activeTab === 'audit' && logsError && <p className="text-sm text-rose-600 p-4">{logsError}</p>}
-        {activeTab === 'audit' && <AuditTrailTab logs={logs} />}
+        {/* Journal d'audit réel (GET /audit/logs/recent), chargé par l'onglet lui-même */}
+        {activeTab === 'audit' && <AuditTrailTab />}
 
         {activeTab === 'realtime' && <VigilRealtimeLogs />}
+
+        {/* Pointages d'arrivée et de départ des élèves et professeurs (GET /admin/pointages) */}
+        {activeTab === 'pointages' && <PointagesTab />}
 
         {activeTab === 'terminals' && (
           <TerminalsTab

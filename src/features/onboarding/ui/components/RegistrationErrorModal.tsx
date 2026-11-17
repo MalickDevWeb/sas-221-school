@@ -8,6 +8,8 @@ interface RegistrationErrorModalProps {
   title?: string;
   message: string;
   field?: string;
+  /** « Se connecter » n'est proposé que si le compte existe déjà (e-mail déjà enregistré). */
+  proposerConnexion?: boolean;
   onClose: () => void;
 }
 
@@ -16,6 +18,7 @@ export const RegistrationErrorModal: React.FC<RegistrationErrorModalProps> = ({
   title = 'Inscription interrompue',
   message,
   field,
+  proposerConnexion = false,
   onClose,
 }) => {
   const navigate = useNavigate();
@@ -56,6 +59,7 @@ export const RegistrationErrorModal: React.FC<RegistrationErrorModalProps> = ({
             >
               Corriger les informations
             </button>
+            {proposerConnexion && (
             <button
               type="button"
               onClick={() => navigate('/login')}
@@ -64,6 +68,7 @@ export const RegistrationErrorModal: React.FC<RegistrationErrorModalProps> = ({
               <span>Se connecter</span>
               <Icon icon="solar:arrow-right-line-duotone" className="text-sm" />
             </button>
+            )}
           </div>
         </motion.div>
       </div>

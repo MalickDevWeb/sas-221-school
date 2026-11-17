@@ -16,6 +16,12 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
   const ref = useRef<HTMLDivElement>(null);
   const DAY_DATES = datesSemaineCourante();
   const scroll = (dir: 'L' | 'R') => ref.current?.scrollBy({ left: dir === 'L' ? -280 : 280, behavior: 'smooth' });
+  // La ligne « Pause déjeuner » masquerait tout cours placé sur midi (12h - 14h existe dans la grille de
+  // l'administration) ; elle ne s'affiche que si aucun cours n'occupe 12:00.
+  const pauseDejeuner = !schedule.some((s) => {
+    const h = decouperHoraire(s.time);
+    return !!h && h.heureDebut <= 12 && h.heureFin > 12;
+  });
 
   return (
     <div className="space-y-4">
@@ -31,7 +37,7 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
       </div>
 
       <div ref={ref} className="overflow-x-auto rounded-3xl border border-neutral-gray-200/95 bg-white shadow-3xs select-none smooth-scroll leading-none">
-        <table className="w-full border-collapse table-fixed min-w-[980px]">
+        <table className="w-full border-collapse table-fixed min-w-[1120px]">
           <thead>
             <tr className="bg-primary-light/40 border-b border-neutral-200">
               <th className="w-[100px] h-14 text-center text-[10px] font-black text-neutral-500 tracking-widest uppercase border-r border-neutral-150">Horaire</th>
@@ -45,11 +51,11 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
           </thead>
           <tbody className="divide-y divide-neutral-150">
             {HOURS.map((time) => {
-              if (time === '12:00') {
+              if (time === '12:00' && pauseDejeuner) {
                 return (
                   <tr key={time} className="bg-[#FAF8F6] border-y border-neutral-200/60">
                     <td className="h-12 text-center font-black text-[10.5px] text-neutral-500 border-r border-neutral-150 flex items-center justify-center gap-1.5 bg-primary-light/20"><Coffee className="h-3.5 w-3.5 text-primary" /><span>12:00</span></td>
-                    <td colSpan={5} className="h-12 text-center bg-gradient-to-r from-transparent via-[#FFF5F5]/40 to-transparent">
+                    <td colSpan={DAYS.length} className="h-12 text-center bg-gradient-to-r from-transparent via-[#FFF5F5]/40 to-transparent">
                       <div className="flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-primary uppercase py-1">
                         <Coffee className="h-4 w-4 animate-bounce shrink-0" /><span>Pause Déjeuner · Repos académique</span><Coffee className="h-4 w-4 animate-bounce shrink-0" />
                       </div>
@@ -75,8 +81,8 @@ export function ProfessorGridView({ schedule, fitsFilters, onSelectSession, live
                     let rowSpan = 1;
                     const h = matched ? decouperHoraire(matched.time) : null;
                     if (h) {
-                      rowSpan = Math.max(1, h.heureFin - h.heureDebut);
-                      if (h.heureDebut < 12 && h.heureFin > 12) rowSpan = Math.max(1, rowSpan - 1);
+                      // une heure = une ligne (la pause n'est affichée que si aucun cours ne traverse midi)
+                      rowSpan = Math.max(1, Math.min(h.heureFin, 20) - h.heureDebut);
                     }
 
                     const match = matched ? fitsFilters(matched) : false;
