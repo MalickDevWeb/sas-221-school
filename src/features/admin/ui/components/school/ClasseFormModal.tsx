@@ -22,7 +22,7 @@ const entier = (v: string) => Number(v.trim());
 /** Identifiant d'une nouvelle classe (hors rendu : appelé seulement à l'enregistrement). */
 const nouvelIdClasse = () => `c-${Date.now()}`;
 
-/** Règles d'une classe (APP-FE-14 : react-hook-form + zod). Avant : capacité et frais acceptés vides, nuls ou négatifs. */
+/** Règles d'une classe (APP-FE-14 : react-hook-form + zod). */
 const schemaClasse = z.object({
   level: z.string().min(1, 'Choisissez le niveau.'),
   filiereId: z.string().min(1, 'Choisissez la filière de la classe.'),
@@ -69,8 +69,8 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete, o
       ...r,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
         const propre = chiffresSeuls(e.target.value);
-        // Comparaison faite AVANT de remplacer la valeur (16/11) : la fonction passée à setState peut s'exécuter
-        // plus tard, quand e.target.value vaut déjà « propre » ; l'aide « Chiffres uniquement » ne s'affichait jamais.
+        // Comparaison faite AVANT de remplacer la valeur : la fonction passée à setState peut s'exécuter plus tard,
+        // quand e.target.value vaut déjà « propre » ; l'aide « Chiffres uniquement » ne s'afficherait jamais.
         const refuses = propre !== e.target.value;
         setCaracteresRefuses(prev => ({ ...prev, [nom]: refuses }));
         if (refuses) e.target.value = propre;

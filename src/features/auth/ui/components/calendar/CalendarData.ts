@@ -10,7 +10,7 @@ export interface CourseSession {
   enCours?: boolean;
   color?: string;
   syllabus?: string;
-  /** Classe réelle de la séance (2026-11-14 : avant, trois classes inventées au choix). */
+  /** Classe réelle de la séance. */
   classe?: string;
 }
 

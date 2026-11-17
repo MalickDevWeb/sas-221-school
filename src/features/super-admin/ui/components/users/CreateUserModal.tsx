@@ -25,7 +25,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ onClose, onSuc
       onSuccess();
       onClose();
     } catch (error: any) {
-      // message RÉEL du serveur (avant : « Impossible de créer l'utilisateur » pour toute erreur)
+      // message RÉEL du serveur
       toast.error(resolveErrorMessage(error));
     } finally {
       setIsSubmitting(false);

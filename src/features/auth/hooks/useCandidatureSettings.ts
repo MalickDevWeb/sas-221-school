@@ -19,14 +19,12 @@ export interface CandidatureSettings {
 export const CLE_PARAMETRES_CANDIDATURE = ['candidatures', 'parametres'] as const;
 
 // Avant la réponse du serveur (ou s'il est injoignable) : FERMÉ et sans date — jamais de campagne
-// « ouverte » ni de dates inventées (avant : ouvert, 01/06 → 30/09/2026, « campagne officielle active »).
+// « ouverte » ni de dates inventées.
 const FERME: CandidatureSettings = { ouvert: false, dateOuverture: '', dateFermeture: '', messageAvis: '', showRegisterButton: false };
 
 /**
  * Paramètres de candidature (React Query) : une seule requête partagée par toutes les vues (connexion mobile,
- * tablette, bureau ; portail ; administration), remplace le cache fait main.
- * Avant : la sauvegarde affichait la nouvelle valeur AVANT la réponse du serveur et avalait tout refus
- * (Promise.allSettled), dont un appel à une route inexistante (/admin/candidatures/settings).
+ * tablette, bureau ; portail ; administration).
  */
 export function useCandidatureSettings() {
   const client = useQueryClient();

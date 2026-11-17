@@ -1,6 +1,5 @@
 /**
- * Dates réelles des jours de la semaine en cours (2026-11-13) : avant, l'en-tête affichait des dates écrites en dur
- * (« 23 Oct »…), sans rapport avec la semaine affichée.
+ * Dates réelles des jours de la semaine en cours.
  */
 export type JourSemaine = 'LUN' | 'MAR' | 'MER' | 'JEU' | 'VEN' | 'SAM';
 
@@ -13,8 +12,7 @@ export function dateDuJour(code: JourSemaine, maintenant: Date = new Date()): Da
 }
 
 /**
- * Date AAAAMMJJ du jour donné dans la semaine en cours, pour les exports d'agenda (2026-11-14 : avant, toutes les
- * séances exportées tombaient la semaine du 23 octobre 2023).
+ * Date AAAAMMJJ du jour donné dans la semaine en cours, pour les exports d'agenda.
  */
 export function dateCompacteDuJour(code: JourSemaine, maintenant: Date = new Date()): string {
   const d = dateDuJour(code, maintenant);

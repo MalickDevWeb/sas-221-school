@@ -10,7 +10,7 @@ import type {
 } from '../../domain/ProfessorModels';
 import { listeBrute, objetBrut, texte, nombreOuNull, ObjetBrut } from '@/shared/lib/lectureServeur';
 
-/** Statut d'une note : « Non noté » tant que la note finale manque (avant : 0/20 et « Rattrapage » inventés). */
+/** Statut d'une note : « Non noté » tant que la note finale manque. */
 function statutNote(g: ObjetBrut, finale: number | null): StudentGrade['status'] {
   if (finale === null) return 'Non noté';
   return finale >= 10 || ['A', 'B', 'C'].includes(texte(g.mention)) ? 'Validé' : 'Rattrapage';
@@ -33,8 +33,7 @@ function versNote(g: ObjetBrut, courseId: string, studentIdDefaut = ''): Student
 
 function mapStudentList(raw: unknown): StudentEnrolled[] {
   return listeBrute(raw).map((s) => {
-    // le serveur envoie firstName / lastName / fullName (avant : seuls prenom / nom / name étaient lus →
-    // élèves affichés SANS NOM dans l'appel et les notes — test navigateur du 2026-11-10)
+    // le serveur envoie firstName / lastName / fullName
     let prenom = texte(s.prenom || s.firstName);
     let nom = texte(s.nom || s.lastName);
     const complet = texte(s.name || s.fullName).trim();
@@ -62,11 +61,6 @@ function statutSeance(brut: unknown): 'a_venir' | 'annule' | 'reprogramme' | 'no
   return 'a_venir';
 }
 
-/**
- * Avant (jusqu'au 2026-11-10) : « MONDAY » devenait « Monday » → aucune séance placée (emploi du temps vide),
- * et les champs absents étaient remplis avec des valeurs inventées (« 08:00 - 11:00 », « Salle de classe »,
- * « Lundi 06 Juillet 2026 », classe « M1 GL », cours « course-1 »).
- */
 const TYPES_SEANCE: ProfessorSchedule['type'][] = ['CM', 'TP', 'TD'];
 
 function mapScheduleList(raw: unknown): ProfessorSchedule[] {
@@ -124,7 +118,7 @@ export class ApiProfessorScheduleRepository {
 
   async getHomeworks(courseId: string): Promise<ProfessorHomework[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/homeworks`);
-    // plus de valeurs inventées (« Devoir », « Cours », échéance « 2026-10-15 ») : champ absent = vide
+    // aucune valeur inventée : champ absent = vide
     return listeBrute(r.data).map((h) => {
       const p = texte(objetBrut(h.prio).value ?? h.prio ?? objetBrut(h.priority).value ?? h.priority).toUpperCase();
       return {
@@ -141,7 +135,7 @@ export class ApiProfessorScheduleRepository {
   }
 
   async createHomework(courseId: string, titre: string, desc: string, prio: 'haute' | 'normale', deadlineStr: string): Promise<ProfessorHomework> {
-    // priorité au format serveur (avant : « normale » était refusée → devoir impossible à créer)
+    // priorité au format serveur
     await apiClient.post(`/professor/courses/${courseId}/homeworks`, { titre, desc, prio: prio === 'haute' ? 'HIGH' : 'MEDIUM', deadlineStr });
     // le serveur ne renvoie pas le devoir créé : on le relit (aucune donnée fabriquée côté écran)
     const devoirs = await this.getHomeworks(courseId);

@@ -12,7 +12,7 @@ export function TerminalCard({ terminal, onToggle, onRevoke }: TerminalCardProps
   const isRevoked = terminal.status === 'Révoqué';
   const isActive = terminal.status === 'Actif';
   const [enCours, setEnCours] = useState(false);
-  // Révocation définitive : confirmation par un second clic (avant : un clic suffisait, sans aucun effet réel)
+  // Révocation définitive : confirmation par un second clic
   const [confirmer, setConfirmer] = useState(false);
 
   const agir = async (action: () => Promise<void>) => {

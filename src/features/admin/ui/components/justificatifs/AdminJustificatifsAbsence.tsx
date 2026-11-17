@@ -39,7 +39,7 @@ function Carte({ j }: { j: JustificatifAbsence }) {
   const [refus, setRefus] = useState(false);
   const [motif, setMotif] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
-  // 17/11 : justificatif confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
+  // Justificatif confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
   const [voir, setVoir] = useState(false);
   const telechargeable = usePeutTelecharger('eleves');
   const badge = BADGES[j.statut];

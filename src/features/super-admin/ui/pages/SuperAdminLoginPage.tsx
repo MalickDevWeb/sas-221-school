@@ -113,7 +113,6 @@ export const SuperAdminLoginPage = () => {
         </div>
         
         <div className="mt-8 text-center">
-          {/* Avant : identifiants du super-admin affichés en clair sur la page de connexion (« Test : … / SuperAdmin@221! »). */}
           <p className="text-xs text-slate-500 mb-2">
             Accès réservé aux administrateurs de la plateforme. Toute tentative d'accès non autorisé est journalisée.
           </p>

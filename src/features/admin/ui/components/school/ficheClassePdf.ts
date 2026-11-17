@@ -13,8 +13,7 @@ export interface DonneesFicheClasse {
 }
 
 /**
- * Fiche de classe officielle (modèle commun, 2026-11-15). Avant : « ÉCOLE 221 - FICHE DE PROMOTION » écrit en dur
- * pour toutes les écoles, espaces fines rendues « / », tableau vide sans message, ni logo, ni date, ni pagination.
+ * Fiche de classe officielle (modèle commun).
  * Renvoie le document sans l'enregistrer quand `enregistrer` vaut false (tests).
  */
 export async function ficheClassePdf(f: DonneesFicheClasse, options: { ecole?: IdentiteEcole; polices?: PolicesBase64 | null; enregistrer?: boolean; date?: Date } = {}) {

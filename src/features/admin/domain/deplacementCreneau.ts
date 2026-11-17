@@ -1,7 +1,7 @@
 import type { PlanningSlot } from './SchoolModels';
 
 /*
- * Déplacement d'un cours par glisser-déposer dans « Planning & Affectations » (2026-11-16).
+ * Déplacement d'un cours par glisser-déposer dans « Planning & Affectations ».
  * - Déposé sur une case libre : le cours change de jour et d'horaire. Il garde son identifiant, donc le serveur met à
  *   jour la même séance chez le professeur, les élèves et les parents (PUT /admin/planning/slots).
  * - Déposé sur un autre cours de la même classe : les deux cours échangent leurs horaires.

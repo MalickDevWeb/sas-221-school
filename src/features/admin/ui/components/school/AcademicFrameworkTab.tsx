@@ -18,11 +18,8 @@ interface Props {
 const jour = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /**
- * Cadre académique (2026-11-15). Avant : années 2023-2024 / 2024-2025 et deux semestres écrits en dur ; « Ajouter »
- * une année, une session, une promotion ou un module n'enregistrait rien (perdu au rechargement) ; modules avec crédits
- * ECTS et compétences inventés ; affectations et examens sans aucune donnée. Désormais : les vraies périodes de l'école
- * (même source que « Trimestres & bulletins », où elles se créent et se clôturent) et ses vraies classes ; les blocs
- * sans route serveur sont retirés et expliqués.
+ * Cadre académique : les vraies périodes de l'école (même source que « Trimestres & bulletins », où elles se créent
+ * et se clôturent) et ses vraies classes ; les blocs sans route serveur sont retirés et expliqués.
  */
 export function AcademicFrameworkTab({ classes, filieres, onOuvrirClasses }: Props) {
   const periodes = useQuery({

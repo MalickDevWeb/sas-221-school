@@ -1,6 +1,6 @@
 /**
- * Confirmation personnalisée (remplace window.confirm, demande du Tech Lead : plus de
- * boîtes natives du navigateur). Usage : if (await demanderConfirmation('Supprimer ?')) { … }
+ * Confirmation personnalisée (remplace window.confirm : pas de boîtes natives du navigateur).
+ * Usage : if (await demanderConfirmation('Supprimer ?')) { … }
  * Échap ou clic hors de la fenêtre = annuler ; Entrée = confirmer.
  */
 export function demanderConfirmation(

@@ -8,7 +8,7 @@ export interface FichierCharge {
 }
 
 /**
- * 17/11 : les documents sensibles (pièces d'identité, relevés, justificatifs, coffre de l'élève) ne s'ouvrent plus par un
+ * Les documents sensibles (pièces d'identité, relevés, justificatifs, coffre de l'élève) ne s'ouvrent pas par un
  * lien : le serveur vérifie la personne connectée, relit le fichier et le remet ici. Rien à copier ni à partager.
  * L'adresse locale est à libérer (URL.revokeObjectURL) quand le fichier n'est plus affiché.
  */

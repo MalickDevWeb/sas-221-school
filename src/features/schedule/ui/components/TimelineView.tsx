@@ -13,7 +13,7 @@ export function TimelineView({ state }: { state: any }) {
         <div className="flex lg:flex-col gap-2.5 overflow-x-auto pb-3 lg:pb-0 select-none no-scrollbar snap-x scroll-smooth">
           {joursAffiches(schedule as CourseSession[]).map((day) => {
             const dayLabel = LIBELLES_JOURS[day];
-            const dayDate = (datesSemaineCourante() as Record<string, string>)[day]; // dates réelles (avant : en dur)
+            const dayDate = (datesSemaineCourante() as Record<string, string>)[day]; // dates réelles
             const resultsCount = schedule.filter((c: CourseSession) => c.jour === day).filter(fitsFilters).length;
             const isSelected = selectedDayMobile === day;
 

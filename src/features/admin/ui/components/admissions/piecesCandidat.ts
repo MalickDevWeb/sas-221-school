@@ -18,7 +18,7 @@ export const cheminPiece = (candidatId: string, piece: CodePiece) =>
   `/admissions/candidats/${encodeURIComponent(candidatId)}/pieces/${encodeURIComponent(piece)}`;
 
 /**
- * 16/11 : les PDF déposés par les candidats étaient refusés par Cloudinary (401) ; 17/11 : pièces confidentielles.
+ * Les PDF déposés par les candidats sont refusés par Cloudinary (401) et les pièces sont confidentielles.
  * Le serveur relit la pièce et ne la remet qu'à l'administration de l'école.
  */
 export async function chargerPiece(candidatId: string, piece: CodePiece): Promise<PieceChargee> {

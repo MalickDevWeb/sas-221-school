@@ -80,7 +80,6 @@ export function ProfessorDashboardView({
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Séances à venir</span>
           </div>
-          {/* avant : « nombre de cours × 3 » présenté comme des actions à mener */}
           <p className="mt-5 text-3xl font-black text-neutral-800">{schedule.filter(s => s.status === 'a_venir').length}</p>
           <p className="mt-2.5 text-xs text-neutral-400 font-bold">Séances planifiées non annulées</p>
         </div>

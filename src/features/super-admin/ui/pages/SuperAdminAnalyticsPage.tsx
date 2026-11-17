@@ -4,8 +4,7 @@ import { motion } from 'motion/react';
 import { Activity, Users, TrendingUp, BookOpen, BarChart3, LineChart, Sparkles } from 'lucide-react';
 
 /**
- * Analytiques de la plateforme. Avant (jusqu'au 2026-11-10) : « +12,5 % de trafic », « 3 402 inscrits »,
- * « 89 % de rétention », « 1 204 contenus » inventés. Désormais : comptages réels des établissements ;
+ * Analytiques de la plateforme : comptages réels des établissements ;
  * les indicateurs sans source (trafic, rétention, historique) sont affichés « — ».
  */
 export const SuperAdminAnalyticsPage = () => {

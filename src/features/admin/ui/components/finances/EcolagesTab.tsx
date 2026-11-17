@@ -24,9 +24,8 @@ const champ = 'w-full px-3 py-2 border border-neutral-200 rounded-xl text-xs fon
 const erreurChamp = 'text-[10px] text-rose-600 font-bold mt-1';
 
 /**
- * Écolages (2026-11-14). Avant : tableau en lecture seule, filtré sur des classes inventées ; aucun moyen d'ouvrir le
- * dossier financier d'un élève ni d'encaisser un versement. Désormais : dossiers réels, « Ouvrir un dossier » et
- * « Encaisser », validés par le serveur ; la liste n'est mise à jour qu'après sa réponse.
+ * Écolages : dossiers réels, « Ouvrir un dossier » et « Encaisser », validés par le serveur ; la liste n'est mise à
+ * jour qu'après sa réponse.
  */
 export function EcolagesTab({ students, onOuvrir, onEncaisser }: Props) {
   const [selectedClass, setSelectedClass] = useState(TOUTES_CLASSES);

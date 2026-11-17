@@ -7,7 +7,7 @@ import { classesDe, libelleSemaine } from '@/features/schedule/domain/Schedule';
 export function ScheduleHeader({ state }: { state: any }) {
   const { currentTenant } = useTenantStore();
   const schoolName = currentTenant?.name || 'Université École 221';
-  // 2026-11-14 : semaine et classe réelles (avant : « Semaine du 23 au 27 Octobre 2023 • Semestre 1 • Classe L3-GL »)
+  // Semaine et classe réelles
   const classes = classesDe(state.schedule ?? []);
   const nomFichier = classes[0] || 'emploi-du-temps';
 

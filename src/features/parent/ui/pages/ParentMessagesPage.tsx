@@ -232,16 +232,14 @@ export function ParentMessagesPage() {
         const list = Array.isArray(res.data) ? res.data : [];
         setProfesseurs(list);
         if (list.length > 0) {
-          setSelectedProf(list[0].id);   // 2026-11-14 : l'identifiant (avant : le nom → « Professeur introuvable »)
+          setSelectedProf(list[0].id);   // L'identifiant (pas le nom)
         }
       })
       .catch(err => console.error('Erreur chargement profs:', err));
   }, []);
 
   const handleSendRdv = async () => {
-    // APP-FE-07 : plus de professeur de repli inventé ; un professeur réel doit être choisi.
-    // 2026-11-14 : avant, un champ manquant ne faisait rien (bouton grisé sans explication) et une erreur du serveur
-    // n'était écrite que dans la console ; la demande n'arrivait d'ailleurs chez personne.
+    // APP-FE-07 : aucun professeur de repli inventé ; un professeur réel doit être choisi.
     const err: Record<string, string> = {};
     if (!selectedProf) err.prof = 'Choisissez le professeur à rencontrer.';
     if (!selectedDate) err.date = 'Indiquez la date souhaitée.';

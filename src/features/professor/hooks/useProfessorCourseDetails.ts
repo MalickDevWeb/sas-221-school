@@ -48,8 +48,8 @@ export function useProfessorCourseDetails(selectedCourseId: string) {
         const loadedQuizzes = val<CourseQuiz[]>(5, []);
         const loadedStudents = val<StudentEnrolled[]>(6, []);
         r.forEach((x) => { if (x.status === 'rejected') console.warn('Salle de classe : chargement partiel', x.reason); });
-        // TOUS les élèves de la classe figurent dans les notes, notés ou non (avant : seuls les déjà notés →
-        // impossible de saisir une première note — test navigateur du 2026-11-10)
+        // TOUS les élèves de la classe figurent dans les notes, notés ou non (sinon, impossible de saisir une
+        // première note)
         const notes = new Map(loadedGrades.map((g) => [g.studentId, g]));
         const fusion: StudentGrade[] = [
           ...loadedGrades,

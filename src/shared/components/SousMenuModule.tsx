@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { EnTeteModule } from './EnTeteModule';
 
 /**
- * Modèle unique des modules de l'administration d'école (demande du Tech Lead, 2026-11-15, sur le modèle de
+ * Modèle unique des modules de l'administration d'école (sur le modèle de
  * « Finances & Recouvrement ») : sous-menu à gauche dans une carte blanche arrondie (titre, bouton « « » pour
  * replier, entrées avec icône, entrée active sur fond clair de la couleur de l'école), contenu dans une carte à
  * droite. Sur écran étroit (< 1024 px), le sous-menu devient une rangée d'onglets défilants au-dessus du contenu.
@@ -231,7 +231,7 @@ export function ModuleAvecSousMenu({ id, sousMenu, titre, sousTitre, actions, id
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-stretch lg:items-start w-full" id={id}>
       {sousMenu && <div className="shrink-0 lg:sticky lg:top-4">{sousMenu}</div>}
       <div id={idContenu} className={st.contenu}>
-        {/* En-tête commun des écrans de module (EnTeteModule, 16/11) */}
+        {/* En-tête commun des écrans de module (EnTeteModule) */}
         {(titre || sousTitre || actions) && (
           <EnTeteModule titre={titre} sousTitre={sousTitre} actions={actions} apparence={apparence} className="mb-5" />
         )}

@@ -14,8 +14,7 @@ interface Props {
 }
 
 /**
- * Export de l'agenda du professeur. APP-TL-26 (2026-11-14) : seul l'export .ics existe (aucune connexion à un
- * compte Google) ; la synchronisation par l'API Google Agenda, jamais proposée à l'écran, est retirée.
+ * Export de l'agenda du professeur. APP-TL-26 : seul l'export .ics existe (aucune connexion à un compte Google).
  */
 
 export function ProfessorSyncModal({

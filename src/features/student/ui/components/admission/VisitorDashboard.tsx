@@ -6,8 +6,7 @@ import { motion } from 'motion/react';
 export function VisitorDashboard() {
   const { utilisateur, deconnexion } = useAuthStore();
 
-  // Compte sans rôle dans cette école (VISITEUR). Avant : « Dossier déposé ✓ » et « En attente » affichés à
-  // tout visiteur, qu'il ait déposé un dossier ou non. Le suivi réel d'une candidature se fait sur le portail
+  // Compte sans rôle dans cette école (VISITEUR). Le suivi réel d'une candidature se fait sur le portail
   // candidat (email + mot de passe de suivi, APP-BE-12).
   const slug = window.location.pathname.match(/\/t\/([^/]+)/)?.[1] ?? 'ecole-221';
 

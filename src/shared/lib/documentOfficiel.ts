@@ -3,7 +3,7 @@ import { useTenantStore } from '@/core/store/tenantStore';
 import { anneeAcademique } from './anneeAcademique';
 
 /**
- * Documents officiels PDF de l'école (demande du Tech Lead, 2026-11-15) — un seul module pour tous les PDF.
+ * Documents officiels PDF de l'école — un seul module pour tous les PDF.
  *
  * - Police Unicode embarquée : Noto Sans (SIL Open Font License 1.1), sous-ensemble latin servi depuis
  *   /fonts/NotoSans-{Regular,Bold}-sousensemble.ttf (licence : /fonts/OFL-NotoSans.txt). Les polices standard de jsPDF
@@ -12,7 +12,7 @@ import { anneeAcademique } from './anneeAcademique';
  * - En-tête : logo de l'école (ou ses initiales dans une pastille à sa couleur), nom, coordonnées réelles, filet à la
  *   couleur de l'école ; titre ; « Édité le … — Année scolaire … ». Tableaux lisibles avec état vide. Pied :
  *   « Page x/n — <École> — Document généré par My School le <date> ». Lisible imprimé en noir et blanc.
- * Aucune école n'est traitée à part (plus de cas « École 221 » écrit en dur).
+ * Aucune école n'est traitée à part (pas de cas « École 221 » écrit en dur).
  */
 
 export type Rgb = [number, number, number];

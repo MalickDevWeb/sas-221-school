@@ -18,7 +18,7 @@ export interface DossierCandidat {
   diplomeDeclare: boolean;
   /** CONFIRMES : vérifiés par l'école ; DECLARES : référence saisie, en attente de vérification. */
   frais: 'CONFIRMES' | 'DECLARES' | 'NON_DECLARES';
-  /** 17/11 : session de suivi (2 h) — accès à SON dossier, ses pièces et ses échanges avec l'école. */
+  /** Session de suivi (2 h) — accès à SON dossier, ses pièces et ses échanges avec l'école. */
   jeton?: string;
   pieces?: PieceDossier[];
   messagesNonLus?: number;

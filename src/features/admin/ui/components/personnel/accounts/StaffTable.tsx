@@ -26,8 +26,7 @@ const initiales = (m: StaffMember) => `${(m.firstName || '').charAt(0)}${(m.last
 const boutonLigne = 'h-8 inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white text-slate-700 hover:bg-neutral-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
 
 /**
- * Comptes du personnel (mise en page du 16/11). Avant : tableau plus large que sa carte (barre de défilement masquée,
- * première colonne coupée), boutons empilés, pied sur deux lignes. Désormais :
+ * Comptes du personnel. Mise en page :
  * - largeurs fixes : la colonne « Membre » (nom, e-mail, matricule et téléphone en petit) prend la place restante,
  *   rien ne déborde ;
  * - actions sur une rangée alignée : « Modifier », lien d'accès (icône avec infobulle) et menu « ⋯ » (suspendre,

@@ -8,7 +8,7 @@ import { useGroupAuditState } from './useGroupAuditState';
 
 export function useCollaborationState() {
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
-  // Aucun groupe sélectionné tant que l'utilisateur n'en a pas choisi un (avant : « group-1 », identifiant inventé)
+  // Aucun groupe sélectionné tant que l'utilisateur n'en a pas choisi un
   const [activeGroupId, setActiveGroupId] = useState<string>('');
 
   const triggerToast = useCallback((message: string, success: boolean) => {

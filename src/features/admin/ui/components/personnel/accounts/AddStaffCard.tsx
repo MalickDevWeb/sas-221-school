@@ -31,8 +31,8 @@ const champCls = 'w-full h-10 px-3 border border-neutral-200 rounded-xl bg-white
 
 /**
  * Création d'un compte du personnel (APP-FE-14 : react-hook-form + zod ; erreurs du serveur sous le champ concerné).
- * 16/11 : panneau pleine largeur ouvert par le bouton « Ajouter un membre » de l'en-tête (avant : carte permanente à
- * droite du tableau, qui le rétrécissait). Le panneau reste ouvert après une création (formulaire vidé) pour enchaîner.
+ * Panneau pleine largeur ouvert par le bouton « Ajouter un membre » de l'en-tête. Le panneau reste ouvert après une
+ * création (formulaire vidé) pour enchaîner.
  */
 export const AddStaffCard: React.FC<Props> = ({ onAddStaff, onCreated, onFermer, roleImpose, titre = 'Ajouter un membre du personnel' }) => {
   const [erreurGlobale, setErreurGlobale] = useState('');

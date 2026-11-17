@@ -8,8 +8,7 @@ const LIBELLES: Record<string, string> = {
 };
 
 /**
- * Compte dont le rôle n'a pas encore d'espace dans l'application (2026-11-13). Avant : ces comptes étaient envoyés
- * vers l'espace élève, où chaque écran échouait (le serveur refuse ces rôles partout, par sécurité).
+ * Compte dont le rôle n'a pas encore d'espace dans l'application (le serveur refuse ces rôles partout, par sécurité).
  */
 export function EspaceIndisponiblePage() {
   const navigate = useNavigate();

@@ -14,7 +14,6 @@ type Demande = z.infer<typeof schemaDemande>;
 
 /**
  * « Mot de passe oublié » (APP-FEAT-02) : demande RÉELLE d'un lien de réinitialisation par e-mail.
- * Avant : « Lien envoyé » affiché après une attente simulée, sans aucun appel au serveur.
  * La réponse est la même que l'adresse corresponde à un compte ou non (le serveur ne révèle rien).
  */
 export function ForgotPasswordForm({ onRetour }: { onRetour: () => void }) {

@@ -3,8 +3,6 @@ import { FileText, Sparkles } from 'lucide-react';
 
 /**
  * Rapports & audit de la plateforme.
- * Avant (jusqu'au 2026-11-10) : trois rapports inventés (« Écoles actives — PDF 2,4 Mo », « Facturation Q3 »…),
- * un bouton « Filtrer » qui annonçait « Filtres appliqués » et des téléchargements simulés.
  * Aucun service de génération de rapports n'existe côté serveur : la page l'indique honnêtement.
  */
 export const SuperAdminReportsPage = () => (

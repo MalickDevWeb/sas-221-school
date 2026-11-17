@@ -18,9 +18,9 @@ export interface EnTeteModuleProps {
 }
 
 /**
- * En-tête commun des écrans de module (16/11, demande du Tech Lead : « cohérent avec les autres écrans ») :
- * titre et sous-titre à gauche, actions à droite, centrées verticalement ; sur téléphone, les actions passent sous
- * le titre. Utilisé aussi par ModuleAvecSousMenu (en-tête de sa carte de contenu) : une seule mise en page.
+ * En-tête commun des écrans de module : titre et sous-titre à gauche, actions à droite, centrées verticalement ;
+ * sur téléphone, les actions passent sous le titre. Utilisé aussi par ModuleAvecSousMenu (en-tête de sa carte de
+ * contenu) : une seule mise en page.
  * Action principale : bouton du design system (`Button`, variante « primary » : couleur de l'école).
  */
 export function EnTeteModule({ titre, sousTitre, aide, icone, actions, idTitre, apparence = 'clair', className = '' }: EnTeteModuleProps) {

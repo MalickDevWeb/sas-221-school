@@ -72,7 +72,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
               {campaign.imageUrl && <img src={campaign.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" />}
               <div>
                 <h4 className="text-xs font-black text-neutral-900 leading-snug">{campaign.title}</h4>
-                {/* Session de la campagne uniquement (avant : « Octobre 2026 » inventé par défaut) */}
+                {/* Session de la campagne uniquement */}
                 {campaign.intake && <span className="text-[10px] text-neutral-500 font-medium">Session {campaign.intake}</span>}
               </div>
             </div>

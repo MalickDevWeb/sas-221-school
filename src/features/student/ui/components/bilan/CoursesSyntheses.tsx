@@ -15,7 +15,7 @@ interface CoursesSynthesesProps {
 }
 
 export function CoursesSyntheses({ courses }: CoursesSynthesesProps) {
-  // Seulement les cours réels de l'élève (2026-11-13) : avant, trois cours inventés s'affichaient quand la liste était vide.
+  // Seulement les cours réels de l'élève.
   const displayCourses = courses;
 
   return (

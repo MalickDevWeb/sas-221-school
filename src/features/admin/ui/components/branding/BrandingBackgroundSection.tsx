@@ -19,7 +19,7 @@ export const BrandingBackgroundSection: React.FC = () => {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  /** Enregistré côté serveur d'abord (avant : gardé dans ce seul navigateur, « mise à jour » annoncée quand même). */
+  /** Enregistré côté serveur d'abord. */
   const handleSave = async (urlToSave: string) => {
     setIsSaving(true);
     try {

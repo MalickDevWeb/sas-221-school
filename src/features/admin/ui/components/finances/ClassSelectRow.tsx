@@ -9,8 +9,7 @@ interface Props {
 }
 
 /**
- * Classes RÉELLES des dossiers financiers (2026-11-14). Avant : quatre classes inventées écrites en dur
- * (« L1 Génie Civil »…) ; les élèves des vraies classes n'apparaissaient jamais dans les écolages.
+ * Classes RÉELLES des dossiers financiers.
  */
 export function ClassSelectRow({ selectedClass, onSelectClass, students }: Props) {
   const classes = [TOUTES_CLASSES, ...Array.from(new Set(students.map(classeAffichee))).sort((a, b) => a.localeCompare(b, 'fr'))];

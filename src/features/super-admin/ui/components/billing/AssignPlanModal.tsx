@@ -19,7 +19,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({ plans, tenants
 
   const assignMutation = useMutation({
     mutationFn: async (payload: AssignPlanCommand) => {
-      // le champ date donne « AAAA-MM-JJ » ; le serveur attend une date-heure (avant : toute date choisie → erreur)
+      // le champ date donne « AAAA-MM-JJ » ; le serveur attend une date-heure
       const corps = { ...payload, endDate: payload.endDate ? `${String(payload.endDate).slice(0, 10)}T23:59:59` : null };
       const res = await apiClient.post('/v1/super-admin/subscriptions', corps);
       return res.data;

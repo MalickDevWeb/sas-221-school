@@ -4,7 +4,7 @@ import { estObjet, objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 import { messageSuppression, ouvrirCorbeille, RAPPEL_RESTAURATION } from './navigationCorbeille';
 
 /**
- * Messages de suppression affichés par les écrans (16/11, réponses « placé dans la corbeille » du serveur) :
+ * Messages de suppression affichés par les écrans (réponses « placé dans la corbeille » du serveur) :
  * - DELETE … → { corbeille: true, message, libelle, … } (salles, créneaux, filières, classes, évaluations, valeurs
  *   de référentiel, messages de groupe) ;
  * - PUT des listes du planning (/admin/planning/rooms|filieres|classes|slots) → { …, misALaCorbeille: [...] } :

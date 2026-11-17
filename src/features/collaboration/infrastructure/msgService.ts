@@ -6,7 +6,7 @@ export function subscribeMessages(groupId: string, onUpdate: (messages: readonly
     if (!groupId) return;
     try {
       const res = await apiClient.get(`/collaboration/workgroups/${groupId}/messages`);
-      // APP-BE-14 : jamais de messages inventés (avant : INITIAL_MESSAGES en repli)
+      // APP-BE-14 : jamais de messages inventés
       onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
       onUpdate([]);
@@ -25,7 +25,7 @@ export function subscribeMeets(onUpdate: (meets: readonly VirtualClass[]) => voi
   const fetchMeets = async () => {
     try {
       const res = await apiClient.get('/collaboration/meets');
-      // APP-BE-14 : jamais de classes virtuelles inventées (avant : INITIAL_MEETS en repli)
+      // APP-BE-14 : jamais de classes virtuelles inventées
       onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
       onUpdate([]);

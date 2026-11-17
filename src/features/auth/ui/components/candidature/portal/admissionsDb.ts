@@ -8,9 +8,7 @@ let lastSyncTime = 0;
 const SYNC_INTERVAL_MS = 15000;
 
 /**
- * 2026-11-15 : copie locale RANGÉE PAR ÉCOLE. Avant : clés communes à toutes les écoles (« e221_candidates »…) → dans
- * un même navigateur, les dossiers d'une école s'affichaient dans une autre (fuite de données personnelles), et une
- * liste vide renvoyée par le serveur ne remplaçait jamais l'ancienne copie.
+ * Copie locale RANGÉE PAR ÉCOLE : dans un même navigateur, les dossiers d'une école ne s'affichent pas dans une autre.
  */
 type Nature = 'candidates' | 'campaigns' | 'audit_logs' | 'messages';
 const ANCIENNES_CLES = ['e221_candidates', 'e221_campaigns', 'e221_audit_logs', 'e221_messages'];
@@ -41,7 +39,7 @@ export function getAdmissionsDb() {
   }
 
   return {
-    // 16/11 : le serveur n'envoie pas `notifications` ; l'ouvrir dans un dossier faisait planter la page
+    // Le serveur n'envoie pas `notifications` ; l'ouvrir dans un dossier ferait planter la page
     // (« notifications.length » sur undefined → « Une erreur inattendue est survenue »).
     candidates: lire<ExtendedCandidate>('candidates')
       .map((c) => (Array.isArray(c.notifications) ? c : { ...c, notifications: [] })),
@@ -53,14 +51,12 @@ export function getAdmissionsDb() {
 
 /**
  * Données d'admission de l'école, réservées à l'administration (décision APP-TL-10).
- * Avant : lues et écrites avec le client PUBLIC (sans jeton) → 401 systématique, avalé en silence : l'écran ne
- * montrait que le stockage du navigateur et aucune campagne créée ici n'atteignait le serveur ni le portail.
  */
 export async function syncAdmissionsWithBackend() {
   try {
     const { data } = await apiClient.get("/admissions/db");
     if (data) {
-      // Le serveur fait foi : une liste vide REMPLACE la copie locale (avant : jamais, d'où des dossiers fantômes).
+      // Le serveur fait foi : une liste vide REMPLACE la copie locale.
       ecrire('candidates', Array.isArray(data.candidates) ? data.candidates : []);
       ecrire('campaigns', Array.isArray(data.campaigns) ? data.campaigns : []);
       ecrire('audit_logs', Array.isArray(data.auditLogs) ? data.auditLogs : []);

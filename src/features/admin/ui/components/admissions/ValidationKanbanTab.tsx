@@ -27,8 +27,8 @@ export function ValidationKanbanTab({ candidates, onUpdateCandidate }: Props) {
   }
 
   /*
-   * 16/11 : libellés justes et en français simple (avant : « Admis d'office », qui veut dire « admis sans examen »,
-   * pour la colonne des candidats admis) ; écran vide expliqué (avant : quatre colonnes vides de 420 px, sans un mot).
+   * Libellés justes et en français simple (pas « Admis d'office », qui veut dire « admis sans examen ») ;
+   * écran vide expliqué.
    */
   const columns: { id: ExtendedCandidate['step']; label: string; icon: string; bg: string; border: string; text: string }[] = [
     { id: 'new', label: 'Nouveaux dossiers', icon: 'solar:inbox-line-bold-duotone', bg: 'bg-neutral-50/60', border: 'border-neutral-200', text: 'text-neutral-600' },

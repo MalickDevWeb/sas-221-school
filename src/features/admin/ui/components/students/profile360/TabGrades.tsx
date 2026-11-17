@@ -21,7 +21,7 @@ export function TabGrades({ selectedStudent, erpData }: Props) {
   const chartData = finalErpData.ueList.map((g) => ({
     name: g.module.substring(0, 15) + '...',
     Note: g.grade,
-    MoyenneClasse: g.moyenneClasse   // valeur du serveur uniquement (avant : 14,5 écrit en dur)
+    MoyenneClasse: g.moyenneClasse   // valeur du serveur uniquement
   }));
 
   return (

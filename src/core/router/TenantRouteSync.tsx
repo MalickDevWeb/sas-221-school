@@ -16,7 +16,7 @@ export function TenantRouteSync() {
   useEffect(() => {
     if (!tenantSlug || error === `introuvable:${tenantSlug}`) return;
     // Revérifier l'école AU MOINS UNE FOIS par chargement de page, même si elle est déjà en mémoire
-    // (avant : une école supprimée restait affichée depuis le stockage local et chaque page échouait en 404).
+    // (sinon une école supprimée reste affichée depuis le stockage local et chaque page échoue en 404).
     if (tenantSlug !== currentTenant?.slug || !ecolesVerifiees.has(tenantSlug)) {
       ecolesVerifiees.add(tenantSlug);
       void resolveTenant(tenantSlug);

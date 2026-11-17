@@ -57,7 +57,7 @@ export function checkSchedulingConflicts(
   }
 
   // 4. Room Capacity Constraint
-  const targetRoom = sallesReelles.find((r) => r.name === slot.room);   // salles réelles (avant : catalogue fictif)
+  const targetRoom = sallesReelles.find((r) => r.name === slot.room);   // salles réelles
   if (targetRoom && slot.capacityRequired && targetRoom.capacity < slot.capacityRequired) {
     alerts.push({
       id: `err-cap-${Date.now()}-${Math.random()}`,
@@ -68,8 +68,7 @@ export function checkSchedulingConflicts(
     });
   }
 
-  // 5. Plafond horaire et indisponibilités des enseignants : aucune source réelle n'existe encore
-  //    (avant : plafonds inventés et règle codée en dur « le Dr. Diallo n'est pas disponible le mercredi »).
+  // 5. Plafond horaire et indisponibilités des enseignants : aucune source réelle n'existe encore.
   //    À réactiver quand ces données seront saisies (carte APP-BE-21).
 
   return alerts;

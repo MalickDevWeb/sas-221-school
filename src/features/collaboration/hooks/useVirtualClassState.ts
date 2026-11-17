@@ -31,8 +31,8 @@ export function useVirtualClassState(triggerToast: (msg: string, isSuccess: bool
       triggerToast('Erreur : vous devez affecter le cours à au moins une classe !', false);
       return;
     }
-    // Aucun lien n'est généré côté client (avant : lien Meet aléatoire inexistant) : le lien réel est collé.
-    // APP-TL-26 : même règle que le serveur (avant : tout texte contenant « meet.google.com/ » passait).
+    // Aucun lien n'est généré côté client : le lien réel est collé.
+    // APP-TL-26 : même règle que le serveur.
     const erreurLien = erreurLienMeet(rawLink);
     if (erreurLien) {
       triggerToast(erreurLien, false);

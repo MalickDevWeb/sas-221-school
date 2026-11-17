@@ -79,9 +79,7 @@ export function subscribeEvaluations(onUpdate: (evals: readonly GroupEvaluation[
 interface MessageGroupeServeur { id: string; sender?: string; content?: string; timestamp?: string }
 
 /**
- * Chat d'un groupe de travail (2026-11-13). Avant : l'écran écrivait dans une autre messagerie (discussions de groupe)
- * dont l'enregistrement était désactivé → « envoyé », puis le message disparaissait au rafraîchissement suivant.
- * L'auteur est désormais fixé par le serveur (compte connecté) : il n'est plus envoyé.
+ * Chat d'un groupe de travail. L'auteur est fixé par le serveur (compte connecté) : il n'est pas envoyé.
  */
 export async function getMessagesGroupe(groupId: string): Promise<CollabMessage[]> {
   const res = await apiClient.get<MessageGroupeServeur[]>(`/collaboration/workgroups/${encodeURIComponent(groupId)}/messages`);

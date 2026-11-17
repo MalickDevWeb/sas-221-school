@@ -27,7 +27,7 @@ function valeurInitiale(champ: Champ): string {
 }
 
 /**
- * Création / modification d'une règle d'admission (16/11) : SI condition(s) ALORS effet. Contrôles immédiats sous les
+ * Création / modification d'une règle d'admission : SI condition(s) ALORS effet. Contrôles immédiats sous les
  * champs ; le serveur revalide tout et son refus (400) s'affiche en bas du formulaire, qui reste ouvert.
  */
 export function RegleFormModal({ regle, sessions, onFermer, onEnregistrer }: Props) {

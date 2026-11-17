@@ -36,7 +36,7 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
   const [envoi, setEnvoi] = useState(false);
 
   const nouveau = valeurs.nouveau;
-  // Règles du rôle du compte, données par le serveur (15/11) : longueur minimale et conseils
+  // Règles du rôle du compte, données par le serveur : longueur minimale et conseils
   const reglesServeur = useReglesMotDePasse(utilisateur?.role ?? null);
   const longueurMin = reglesServeur.data?.longueurMin ?? null;
   const regles = longueurMin !== null
@@ -85,7 +85,7 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
       } catch { /* la session actuelle reste valable */ }
     }
     useAuthStore.getState().marquerMotDePasseProvisoire(false);
-    // Empreinte hors-ligne du nouveau mot de passe calculée en arrière-plan (16/11) : terminée avant onSucces, qui
+    // Empreinte hors-ligne du nouveau mot de passe calculée en arrière-plan : terminée avant onSucces, qui
     // peut recharger la page (changement du mot de passe provisoire)
     await memorisationHorsLigneTerminee();
     setValeurs({ ancien: '', nouveau: '', confirmation: '' });

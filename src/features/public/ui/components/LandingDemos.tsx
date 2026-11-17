@@ -166,7 +166,7 @@ const FamilyMockup: React.FC = () => {
     <div className="relative w-full h-36 flex items-center justify-center select-none overflow-hidden rounded-2xl bg-gradient-to-br from-pink-950/40 via-slate-900/90 to-slate-950 border border-pink-500/20 p-3">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Notification mobile & versements Wave/OM suivis (2026-11-14 : plus de « 1-Clic direct », aucun paiement en ligne) */}
+      {/* Notification mobile & versements Wave/OM suivis (aucun paiement en ligne) */}
       <div className="w-full max-w-[210px] space-y-2 relative z-10">
         {/* Notification pill */}
         <div className="bg-slate-900/90 border border-pink-500/30 rounded-xl p-2 shadow-lg flex items-center gap-2">

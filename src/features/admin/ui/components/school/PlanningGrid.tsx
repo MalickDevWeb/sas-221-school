@@ -9,7 +9,7 @@ interface Props {
   onDropItem: (day: string, slot: string, item: { type: 'teacher' | 'room' | 'class'; name: string }) => void;
   onClearCell: (day: string, slot: string) => void;
   onSelectSlot?: (slot: PlanningSlot) => void;
-  /** Cours glissé vers une autre case (16/11). Absent : les cours ne se déplacent pas. */
+  /** Cours glissé vers une autre case. Absent : les cours ne se déplacent pas. */
   onMoveSlot?: (slotId: string, day: string, slot: string) => void;
   /** Ce que donnerait le dépôt du cours glissé sur une case : déplacement, échange ou refus motivé. */
   apercuDeplacement?: (slotId: string, day: string, slot: string) => ApercuDeplacement;

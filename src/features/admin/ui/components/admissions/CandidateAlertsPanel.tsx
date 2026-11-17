@@ -6,13 +6,10 @@ interface Props {
 }
 
 /**
- * Situation scolaire d'un candidat (2026-11-14).
+ * Situation scolaire d'un candidat.
  *
- * Avant : un « Contrôle Auto » affichait « ✓ OUI (Validée) », « 0 FCFA » et « Aucune » sanction, puis « Tous les feux
- * sont au vert ! », alors que le serveur n'envoie aucune de ces données (valeurs par défaut inventées). Pour une
- * réinscription, un reste dû était en outre présenté comme « bloquant », contraire à la décision APP-TL-22 : les frais
- * ne pénalisent jamais l'élève. Ici : seules les valeurs réellement reçues sont affichées, sinon « Non renseigné » ; un
- * reste dû est une information pour la comptabilité, jamais un motif de refus.
+ * Seules les valeurs réellement reçues sont affichées, sinon « Non renseigné » ; un reste dû est une information pour
+ * la comptabilité, jamais un motif de refus (décision APP-TL-22 : les frais ne pénalisent jamais l'élève).
  */
 export function CandidateAlertsPanel({ candidate }: Props) {
   const isReinscription = candidate.type === 'REINSCRIPTION';

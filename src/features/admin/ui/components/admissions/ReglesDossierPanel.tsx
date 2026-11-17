@@ -5,7 +5,7 @@ import { usePeutTelecharger } from '@/shared/hooks/usePeutTelecharger';
 import { cheminPiece } from './piecesCandidat';
 
 /**
- * Règles d'admission appliquées au dépôt de ce dossier (16/11) : avertissements pour l'administration et pièces exigées
+ * Règles d'admission appliquées au dépôt de ce dossier : avertissements pour l'administration et pièces exigées
  * en plus par une règle (ouvertes par le serveur, PDF compris). Rien n'est affiché si aucune règle ne s'est appliquée.
  */
 export function ReglesDossierPanel({ candidate }: { candidate: ExtendedCandidate }) {

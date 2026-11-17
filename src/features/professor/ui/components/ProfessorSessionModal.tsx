@@ -30,7 +30,7 @@ export function ProfessorSessionModal({ session, onClose, onCancel, onReschedule
 
   const handleCancelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 2026-11-14 : simple garde-fou contre l'erreur de clic (avant : « code d'établissement » gardé dans le navigateur)
+    // Simple garde-fou contre l'erreur de clic
     const upper = code.trim().toUpperCase();
     if (!reason.trim()) { setError(true); return; }
     if (upper === 'ANNULER' || upper === 'CONFIRMER') {

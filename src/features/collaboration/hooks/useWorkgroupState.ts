@@ -7,9 +7,7 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 export type RegleChef = 'random' | 'first';
 
 /**
- * Groupes de travail réels (2026-11-13). Avant : membres, chef et classe envoyés puis ignorés par le serveur ;
- * la répartition « automatique » créait un seul groupe vide en annonçant « Groupes équilibrés créés » ;
- * changer de chef recréait le groupe en double.
+ * Groupes de travail réels.
  */
 export function useWorkgroupState(triggerToast: (msg: string, isSuccess: boolean) => void) {
   const [workgroups, setWorkgroups] = useState<readonly Workgroup[]>([]);

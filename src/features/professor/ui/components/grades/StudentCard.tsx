@@ -63,7 +63,7 @@ export function StudentCard({ grade, onClick }: Props) {
               : 'bg-amber-50 text-amber-700 border border-amber-500/10'
           }`}>
             <span className={`h-1.5 w-1.5 rounded-full ${finalGrade === null ? 'bg-neutral-400' : isPass ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            {/* note absente : « Non noté » (avant : « Rattrapage » pour un élève pas encore noté) */}
+            {/* note absente : « Non noté » */}
             {finalGrade === null ? 'Non noté' : isPass ? 'Validé' : 'Rattrapage'}
           </span>
 

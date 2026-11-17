@@ -15,8 +15,8 @@ const libelleMois = (m: string) => {
 };
 
 /**
- * Courbe réelle (GET /student/performance). Axes complets (0–20, 0–100 %) : avant, des bornes 10–20 et 80–100
- * masquaient les notes sous 10 et les présences sous 80 %, et une « moyenne de promo » 13,84 était inventée.
+ * Courbe réelle (GET /student/performance). Axes complets (0–20, 0–100 %) pour ne masquer ni les notes sous 10 ni
+ * les présences sous 80 %.
  */
 export function PerformanceComposedChart({ performanceData, activeTab }: Props) {
   const donnees = performanceData.map((d) => ({ ...d, libelle: libelleMois(d.mois) }));

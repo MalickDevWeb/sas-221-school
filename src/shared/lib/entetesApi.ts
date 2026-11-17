@@ -5,8 +5,8 @@ import { slugEcoleCourante } from './hoteEcole';
  * (envoi de fichier en XMLHttpRequest pour suivre la progression, déconnexion en fetch keepalive).
  * Module sans dépendance vers les stores, pour éviter les imports circulaires (authStore ↔ apiClient).
  *
- * 2026-11-15 (revue DevSecOps B3) : le serveur ne lit plus le Referer pour trouver l'école ; un appel sans
- * X-Tenant-Slug échouait (404) sur une adresse neutre, ou était attribué à tort à l'école par défaut.
+ * Revue DevSecOps B3 : le serveur ne lit pas le Referer pour trouver l'école ; un appel sans
+ * X-Tenant-Slug échoue (404) sur une adresse neutre, ou est attribué à tort à l'école par défaut.
  */
 
 /** Adresse de base de l'API (même règle que apiClient). */

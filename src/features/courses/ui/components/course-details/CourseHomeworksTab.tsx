@@ -17,8 +17,7 @@ export function CourseHomeworksTab({
   setHomeworkStatus: React.Dispatch<React.SetStateAction<Record<string, 'A rendre' | 'Soumis'>>>;
   triggerToast: (msg: string) => void;
 }) {
-  // Retrait d'un dépôt : aucun endpoint serveur → pas de bouton « Retirer » (avant : annulation locale seulement,
-  // le devoir restait déposé côté serveur alors que l'écran affichait « annulé »).
+  // Retrait d'un dépôt : aucun endpoint serveur → pas de bouton « Retirer ».
 
   return (
     <div className="space-y-4 animate-fade-in font-sans">

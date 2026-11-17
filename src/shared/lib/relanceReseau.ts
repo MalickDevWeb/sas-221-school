@@ -1,9 +1,8 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 /**
- * Réseau instable (2026-11-14) : une LECTURE coupée sans réponse du serveur (changement de réseau, passage 3G/4G,
- * Wi-Fi qui décroche) est relancée deux fois, après 0,4 s puis 0,8 s. Avant, l'écran restait en chargement ou
- * affichait « Erreur de connexion » à la première coupure.
+ * Réseau instable : une LECTURE coupée sans réponse du serveur (changement de réseau, passage 3G/4G,
+ * Wi-Fi qui décroche) est relancée deux fois, après 0,4 s puis 0,8 s.
  *
  * Jamais relancé : une écriture (POST, PUT, PATCH, DELETE : elle a pu être enregistrée), une requête annulée, un
  * dépassement du délai (15 s : l'attente deviendrait trop longue), une réponse du serveur (4xx, 5xx), ou quand le

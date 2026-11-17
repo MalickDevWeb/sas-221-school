@@ -4,8 +4,8 @@ import { URL_API, entetesServeur } from '@/shared/lib/entetesApi';
  * Téléverse un fichier vers Cloudinary via le backend Spring Boot (/api/media/upload)
  * avec rapport de progression XHR (0-100%).
  *
- * 2026-11-15 (revue DevSecOps B3) : l'XHR ne portait ni X-Tenant-Slug ni Authorization (hors axios) ; le serveur ne
- * lisant plus le Referer, le fichier était refusé (404) ou attribué à l'école par défaut. Mêmes en-têtes que le client axios (entetesApi).
+ * Revue DevSecOps B3 : mêmes en-têtes que le client axios (entetesApi) ; sans X-Tenant-Slug ni Authorization, le
+ * fichier serait refusé (404) ou attribué à l'école par défaut (le serveur ne lit pas le Referer).
  *
  * Deux modes :
  * - par défaut (comportement historique, conservé pour les appelants existants) : en cas d'échec,
@@ -31,7 +31,7 @@ export interface UploadOptions {
   /** Si vrai, aucun repli DataURL : l'échec est levé en `UploadError`. */
   strict?: boolean;
   /**
-   * 17/11 : document confidentiel (pièce d'identité, relevé, justificatif…) : rangé en privé, son lien n'ouvre rien ;
+   * Document confidentiel (pièce d'identité, relevé, justificatif…) : rangé en privé, son lien n'ouvre rien ;
    * il ne se consulte que dans l'application, après vérification de la personne connectée.
    */
   confidentiel?: boolean;

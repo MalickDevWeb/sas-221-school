@@ -17,10 +17,6 @@ interface QuizReel { id: string; title: string; description: string; questions: 
 
 /**
  * Fiche d'un module — données RÉELLES du serveur.
- *
- * Avant (jusqu'au 2026-11-10) : toute la fiche (exercices, leçons, quiz, devoirs, notes de devoirs, séquences,
- * modification du module) était enregistrée UNIQUEMENT dans le navigateur (localStorage) : rien n'atteignait le
- * serveur ni les élèves, alors que l'écran affichait des succès.
  */
 export function ModuleDetailModal({ module, onClose }: Props) {
   const [onglet, setOnglet] = useState<'info' | 'supports' | 'quiz' | 'devoirs'>('info');

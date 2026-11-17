@@ -32,7 +32,7 @@ export function AdminGlobalScheduler() {
     showToast(`${assigned.length} cours planifiés sans aucun conflit ! ✨`, true);
   };
 
-  /** Enregistre réellement le planning (avant : rien n'était enregistré et des SMS étaient annoncés). */
+  /** Enregistre réellement le planning. */
   const handlePublish = async () => {
     const res = await enregistrer();
     if ('erreur' in res) {
@@ -41,7 +41,7 @@ export function AdminGlobalScheduler() {
     }
     setIsPublished(true);
     addLog('Modification', 'Tous les cours', 'Brouillon', 'Enregistré', 'Enregistrement du planning');
-    // 2026-11-14 : le serveur transmet les séances aux professeurs, élèves et parents ; il signale les créneaux
+    // Le serveur transmet les séances aux professeurs, élèves et parents ; il signale les créneaux
     // sans matière (pas de feuille d'appel) ou sans professeur reconnu.
     const avertissement = avertissementBilan(res.bilan);
     showToast(avertissement ? `${messageBilan(res.bilan)} ${avertissement}` : messageBilan(res.bilan), !avertissement);
@@ -91,8 +91,7 @@ export function AdminGlobalScheduler() {
           </div>
         </div>
 
-        {/* État réel de l'enregistrement (avant : « synchronisation en cours » vers Google Calendar, Outlook et
-            écrans d'affichage, alors que rien n'était enregistré ni synchronisé) */}
+        {/* État réel de l'enregistrement */}
         {modifie ? (
           <div role="status" id="planning-non-enregistre" className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[10px] text-amber-900 font-bold">
             Modifications non enregistrées : cliquez sur « Publier le planning » pour les enregistrer.

@@ -10,7 +10,7 @@ interface IdentityStepFormProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
   fieldErrors?: Record<string, string>;
-  /** Disponibilité de l'identifiant, vérifiée pendant la saisie (16/11). */
+  /** Disponibilité de l'identifiant, vérifiée pendant la saisie. */
   slugStatus?: AvailabilityStatus;
   /** Vérification en cours après un clic sur « Continuer ». */
   verificationEnCours?: boolean;
@@ -38,8 +38,7 @@ export const IdentityStepForm: React.FC<IdentityStepFormProps> = ({
   slugStatus = 'idle',
   verificationEnCours = false,
 }) => {
-  // Identifiant déjà pris : message sous le champ dès la saisie, et « Continuer » désactivé (16/11 : avant, on passait
-  // aux étapes 2 et 3 et le refus n'arrivait qu'à l'envoi final)
+  // Identifiant déjà pris : message sous le champ dès la saisie, et « Continuer » désactivé
   const slugPris = slugStatus === 'unavailable';
   const erreurSlug = fieldErrors.slug || (slugPris ? MESSAGE_SLUG_PRIS : '');
   const bloque = slugPris || verificationEnCours;

@@ -1,4 +1,4 @@
-// 2026-11-14 : samedi ajouté (l'administration planifie du lundi au samedi ; un cours du samedi était invisible)
+// L'administration planifie du lundi au samedi.
 export type CourseDay = 'LUN' | 'MAR' | 'MER' | 'JEU' | 'VEN' | 'SAM';
 
 export const JOURS_OUVRES: CourseDay[] = ['LUN', 'MAR', 'MER', 'JEU', 'VEN'];
@@ -26,7 +26,7 @@ export interface CourseSession {
   readonly description: string;
   readonly status: CourseStatus;
   readonly cancellationReason?: string;
-  /** Nom de la classe (2026-11-14 : avant, « L3-GL » écrit en dur dans l'en-tête et les exports). */
+  /** Nom de la classe. */
   readonly classe?: string;
 }
 

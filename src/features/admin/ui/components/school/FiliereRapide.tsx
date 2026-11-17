@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { Filiere } from '../../../domain/SchoolModels';
 
 /**
- * Création d'une filière sans quitter la fenêtre « Créer une Nouvelle Classe » (demande du Tech Lead, 2026-11-15).
+ * Création d'une filière sans quitter la fenêtre « Créer une Nouvelle Classe ».
  * Mêmes champs obligatoires que l'écran « Filières & Spécialités » (FiliereFormModal : nom et code, code en
  * majuscules) et même enregistrement (PUT /admin/planning/filieres, via useAdminSchoolState.updateFilieres).
  * Pas de <form> imbriqué dans celui de la classe : Entrée dans un champ crée la filière, sans enregistrer la classe.

@@ -23,7 +23,7 @@ const EXTENSIONS: Record<string, string> = {
 };
 
 /**
- * Visionneuse intégrée (17/11) : le document s'affiche DANS l'application, par-dessus la page — aucun nouvel onglet,
+ * Visionneuse intégrée : le document s'affiche DANS l'application, par-dessus la page — aucun nouvel onglet,
  * aucune adresse à copier. PDF dans un lecteur intégré, image affichée, autre format : téléchargement si autorisé.
  * Consultation seule : barre d'outils du lecteur PDF masquée, enregistrement de l'image par clic droit bloqué (cela
  * décourage la copie sans pouvoir empêcher une capture d'écran).

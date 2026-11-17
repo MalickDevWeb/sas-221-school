@@ -12,8 +12,7 @@ const telephone = (vide: string) => z.string().trim()
 
 /**
  * Dossier du portail candidat (APP-FE-14 : react-hook-form + zod). Chaque étape ne laisse passer qu'avec des champs
- * valides et un message précis sous le champ. Avant : boutons grisés sans explication, email jamais vérifié, et des
- * valeurs inventées pré-remplies (date de naissance, lycée, adresse, profession du garant…).
+ * valides et un message précis sous le champ.
  */
 export const schemaCandidature = z.object({
   // 1. Identité
@@ -25,7 +24,7 @@ export const schemaCandidature = z.object({
     .refine(v => new Date(v) < new Date(), 'La date de naissance doit être passée.')
     .refine(v => new Date(v).getFullYear() >= 1950, 'Date de naissance invalide : vérifiez l’année.'),
   birthPlace: z.string().trim().min(1, 'Indiquez votre lieu de naissance.').max(100, '100 caractères au maximum.'),
-  // 16/11 : code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
+  // Code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
   nationality: z.string().trim().regex(/^[A-Z]{2}$/, 'Choisissez la nationalité dans la liste.'),
   cniNumber: z.string().trim()
     .min(1, 'Saisissez le numéro de votre CNI (NIN) ou de votre passeport.')

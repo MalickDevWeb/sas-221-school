@@ -48,7 +48,7 @@ export function useVigilLocalState() {
   // Dernier contenu lu par la caméra : un badge resté devant l'objectif n'est compté qu'une fois
   const dernierScanRef = useRef<{ texte: string; instant: number } | null>(null);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
-  // Passages et points de contrôle RÉELS uniquement (avant : passages d'élèves et points inventés)
+  // Passages et points de contrôle RÉELS uniquement (entrées inventées encore stockées : écartées)
   const [scanLogs, setScanLogs] = useState<ScanLogItem[]>(() => {
     try {
       const v = JSON.parse(localStorage.getItem('v_scan_logs') || '[]');
@@ -127,9 +127,9 @@ export function useVigilLocalState() {
   const handleScanSuccess = useCallback(async (badgeId: string, isManual = false) => {
     const brut = badgeId.trim();
     /*
-     * 16/11 (test caméra de bout en bout) : après chaque lecture, le scanner redémarre aussitôt et relisait le badge
-     * encore présenté : un même passage était enregistré 4 fois en 1,5 s. Même contenu relu par la caméra dans les
-     * 8 secondes : ignoré (pas de bip, pas de journal) ; le scanner reprend après une courte pause.
+     * Après chaque lecture, le scanner redémarre aussitôt et relirait le badge encore présenté (un même passage
+     * serait enregistré plusieurs fois). Même contenu relu par la caméra dans les 8 secondes : ignoré (pas de bip,
+     * pas de journal) ; le scanner reprend après une courte pause.
      */
     if (!isManual) {
       const precedent = dernierScanRef.current;

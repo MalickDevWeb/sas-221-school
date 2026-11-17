@@ -25,8 +25,7 @@ export function useAdminSchedulerState() {
       .then((res) => definirSallesReelles((Array.isArray(res.data) ? res.data : [])
         .map((r: any) => ({ name: r.name, capacity: Number(r.capacity) || 0 }))))
       .catch(() => definirSallesReelles([]));
-    // Créneaux réels. Le serveur renvoie jour, heureStr, nom, professeur, salle, classeId : avant, les noms lus
-    // (subject, prof, room, classe, slot) n'existaient pas → matière et professeur vides, « Salle non assignée ».
+    // Créneaux réels. Le serveur renvoie jour, heureStr, nom, professeur, salle, classeId.
     Promise.all([apiClient.get('/admin/planning/slots'), apiClient.get('/admin/planning/classes').catch(() => ({ data: [] }))])
       .then(([res, cls]) => {
         const nomsClasses = new Map<string, string>((Array.isArray(cls.data) ? cls.data : [])
@@ -57,7 +56,6 @@ export function useAdminSchedulerState() {
 
   /**
    * Enregistre le planning sur le serveur (PUT /admin/planning/slots, qui refuse les doubles réservations).
-   * Avant : aucune modification du planificateur n'était enregistrée, et « Publier » annonçait l'envoi de SMS.
    * Renvoie le bilan du serveur si enregistré (séances transmises, créneaux sans matière ou sans professeur),
    * sinon le message d'erreur à afficher.
    */

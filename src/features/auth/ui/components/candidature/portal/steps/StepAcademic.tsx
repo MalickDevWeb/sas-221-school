@@ -8,7 +8,6 @@ const NIVEAUX = ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
 
 /**
  * La filière, le niveau et la session viennent de la campagne choisie (publiée par l'école).
- * Avant : une liste de filières inventée, sans lien avec la campagne, et une session « Février 2027 » fictive.
  */
 export function StepAcademic({ campaign, onNext, onPrev }: { campaign: Campaign; onNext: () => void; onPrev: () => void }) {
   const champ = useChamp();

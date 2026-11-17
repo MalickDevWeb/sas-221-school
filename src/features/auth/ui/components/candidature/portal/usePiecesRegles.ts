@@ -40,7 +40,7 @@ function formatAccepte(fichier: File, formats: PieceRegle['formats']): boolean {
 }
 
 /**
- * Pièces exigées par les règles d'admission de l'école (16/11), pour le portail candidat et la page parent.
+ * Pièces exigées par les règles d'admission de l'école, pour le portail candidat et la page parent.
  * Le serveur évalue les règles d'après les réponses du dossier ; il les applique aussi au dépôt (400 si une pièce
  * manque) : cet écran ne fait que prévenir avant l'envoi. Les avertissements internes ne sont jamais renvoyés.
  */

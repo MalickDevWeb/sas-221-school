@@ -9,8 +9,6 @@ interface Props {
 
 /**
  * Connexion au suivi de candidature : vérifiée par le serveur (POST /candidatures/suivi).
- * Avant : « connexion » dans le navigateur, sans mot de passe, sur la base complète des candidats,
- * avec des comptes de démonstration affichés.
  */
 export function CandidatePortalLogin({ onLoginSuccess, onGoBack }: Props) {
   const [email, setEmail] = useState('');

@@ -44,7 +44,7 @@ export function AdminSidebar({ onLogout, activeTab, onSelectTab, isCollapsed, on
   const schoolName = currentTenant?.name || 'École 221';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
 
-  // Droits réels du compte, donnés par le serveur (avant : matrice du navigateur, sans effet sur le serveur)
+  // Droits réels du compte, donnés par le serveur
   useEffect(() => { void chargerMesDroits(); }, [chargerMesDroits, utilisateur?.id, currentTenant?.slug]);
   const visibleMenuItems = MENU_ITEMS.filter(item =>
     mesDroits !== null && (mesDroits.administration || mesDroits.permissions.includes(item.requiredPerm)));

@@ -58,8 +58,8 @@ export function ClasseDetailPage({
     allStudents.filter(s => (s.classeId ? s.classeId === classe.id : !!s.classe && s.classe.toLowerCase() === classe.name.toLowerCase())),
   [allStudents, classe.id, classe.name]);
   const [classStudents, setClassStudents] = useState<Student[]>(elevesDeLaClasse);
-  // 16/11 : avant, la liste n'était calculée qu'à l'ouverture de la fiche. Les élèves de l'école arrivent pourtant
-  // après (chargement asynchrone) ou sont relus après une inscription, et la fiche restait sur « Aucun élève » (0).
+  // Les élèves de l'école arrivent après l'ouverture de la fiche (chargement asynchrone) ou sont relus après une
+  // inscription : la liste est recalculée à chaque fois.
   useEffect(() => { setClassStudents(elevesDeLaClasse); }, [elevesDeLaClasse]);
 
   const filiereName = filieres.find(f => f.id === classe.filiereId)?.name || 'Tronc Commun / Multidisciplinaire';
@@ -81,7 +81,7 @@ export function ClasseDetailPage({
   const price = classe.price ?? null;
   const capacity = classe.capacityMax ?? null;
   const totalStudents = classStudents.length;
-  // APP-TL-22 (2026-11-14) : plus de statut de frais « En Règle / En Retard » saisi à la main ni de liste de
+  // APP-TL-22 : plus de statut de frais « En Règle / En Retard » saisi à la main ni de liste de
   // « débiteurs » : seul le montant attendu (tarif × effectif) est calculé ici ; les versements réels de chaque élève
   // sont suivis dans Finances › Écolages.
   const expectedRevenue = price != null ? totalStudents * price : null;
@@ -208,8 +208,7 @@ export function ClasseDetailPage({
     toast.success('Fiche promotionnelle exportée en Excel avec succès !');
   };
 
-  // Fiche de classe PDF : modèle commun des documents de l'école (2026-11-15 ; avant : « ÉCOLE 221 » écrit en dur,
-  // espaces fines rendues « / », tableau vide sans message, ni logo, ni date, ni pagination)
+  // Fiche de classe PDF : modèle commun des documents de l'école
   const exportClassToPDF = async () => {
     try {
       await ficheClassePdf({
@@ -319,7 +318,7 @@ export function ClasseDetailPage({
               <div className="w-full bg-white/20 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div className={`${capaciteDepassee ? 'bg-amber-400' : 'bg-primary'} h-full rounded-full transition-all`} style={{ width: `${occupancyRate ?? 0}%` }} />
               </div>
-              {/* 16/11 : capacité dépassée annoncée (avant : « 100% de remplissage », le taux étant plafonné) */}
+              {/* Capacité dépassée annoncée (le taux étant plafonné) */}
               <span id="classe-remplissage" className={`text-[9px] block mt-1 ${capaciteDepassee ? 'text-amber-300 font-bold' : 'text-neutral-400'}`}>
                 {occupancyRate == null ? 'Capacité non renseignée'
                   : capaciteDepassee && capacity != null ? `Capacité dépassée de ${avecNombre(totalStudents - capacity, 'élève')}`
@@ -408,7 +407,7 @@ export function ClasseDetailPage({
         {/* TAB 1: STUDENTS */}
         {activeTab === 'students' && (
           <div className="space-y-5">
-            {/* flex-wrap (16/11) : avec le 3e bouton, les boutons passent sous la recherche quand la place manque */}
+            {/* flex-wrap : avec le 3e bouton, les boutons passent sous la recherche quand la place manque */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-grow min-w-[14rem] max-w-lg">
                 <div className="relative flex-grow">
@@ -432,7 +431,7 @@ export function ClasseDetailPage({
                   <span translate="no" className="material-symbols-outlined text-sm text-emerald-600">upload_file</span>
                   <span>Importer Excel / CSV</span>
                 </button>
-                {/* 16/11 : élève déjà inscrit dans l'école (souvent sans classe) rangé dans cette classe ; liste relue */}
+                {/* Élève déjà inscrit dans l'école (souvent sans classe) rangé dans cette classe ; liste relue */}
                 <AjouterEleveExistant
                   classe={classe}
                   onRelu={(eleves) => {
@@ -553,8 +552,7 @@ export function ClasseDetailPage({
                   {filteredStudents.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-5 py-10 text-center text-neutral-500 font-bold">
-                        {/* 16/11 : la recherche ne porte que sur les élèves de la classe ; avant, une recherche sans résultat
-                            affichait « aucun élève affecté », comme si la classe était vide */}
+                        {/* La recherche ne porte que sur les élèves de la classe */}
                         {classStudents.length === 0 || !studentSearch.trim() ? (
                           'Aucun élève dans cette classe pour l\'instant.'
                         ) : (

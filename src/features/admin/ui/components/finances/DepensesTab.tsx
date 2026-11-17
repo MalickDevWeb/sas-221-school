@@ -35,7 +35,7 @@ export function DepensesTab({ expenses, onAddExpense }: Props) {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SaisieDepense>({
     resolver: zodResolver(schemaDepense), defaultValues: VIDE, mode: 'onTouched',
   });
-  // Verrou immédiat : un double clic n'enregistre la dépense qu'une fois (avant : deux dépenses identiques)
+  // Verrou immédiat : un double clic n'enregistre la dépense qu'une fois
   const enCours = useRef(false);
 
   const enregistrer = async (v: SaisieDepense) => {

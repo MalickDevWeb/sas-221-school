@@ -4,11 +4,10 @@ import { jetonSession } from '@/shared/lib/entetesApi';
 import { slugEcoleCourante } from '@/shared/lib/hoteEcole';
 
 /**
- * Droits d'accès du personnel (RBAC), ENREGISTRÉS ET APPLIQUÉS PAR LE SERVEUR (2026-11-13).
+ * Droits d'accès du personnel (RBAC), ENREGISTRÉS ET APPLIQUÉS PAR LE SERVEUR.
  *
- * Avant : la matrice était gardée dans le seul navigateur (zustand persist) et ne réglait que l'affichage des menus
- * sur l'appareil de l'administrateur. Désormais : GET/PUT /admin/rbac (matrice de l'école, administration seulement)
- * et GET /admin/rbac/moi (droits du compte connecté) ; le serveur refuse toute route non accordée.
+ * GET/PUT /admin/rbac (matrice de l'école, administration seulement) et GET /admin/rbac/moi (droits du compte
+ * connecté) ; le serveur refuse toute route non accordée.
  */
 export interface PermissionCatalogue {
   key: string;
@@ -55,7 +54,7 @@ interface RbacState {
 const copie = (m: Record<string, string[]>) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, [...v]]));
 
 /**
- * GET /admin/rbac/moi partagé (2026-11-16) : demandé dès la connexion, pendant le téléchargement du code de l'espace,
+ * GET /admin/rbac/moi partagé : demandé dès la connexion, pendant le téléchargement du code de l'espace,
  * puis repris par la barre latérale ou le menu mobile au lieu d'un second appel (même compte, même école, réponse
  * de moins de 5 s). Un échec n'est jamais réutilisé ; une réponse dépassée par une demande plus récente est ignorée.
  */

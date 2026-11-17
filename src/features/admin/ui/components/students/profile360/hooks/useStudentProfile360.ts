@@ -15,7 +15,6 @@ export interface ChampsProfil360 {
 
 /**
  * Dossier 360° d'un élève (React Query, APP-FE-02) : mis en cache par élève, rechargé après une modification.
- * Avant : chargement manuel à chaque affichage ; un échec d'enregistrement n'était signalé qu'en console.
  */
 export function useStudentProfile360(studentId: string, _studentName?: string) {
   const client = useQueryClient();

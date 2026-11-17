@@ -10,7 +10,7 @@ interface Props {
 }
 
 /**
- * Scan du QR d'entrée du vigile par l'élève ou le professeur (16/11). Le résultat affiché est celui du serveur :
+ * Scan du QR d'entrée du vigile par l'élève ou le professeur. Le résultat affiché est celui du serveur :
  * « Arrivée enregistrée à 08:12. » ou la raison du refus (QR expiré, d'une autre école, déjà pointé…).
  */
 export function ScannerPointage({ sens }: Props) {

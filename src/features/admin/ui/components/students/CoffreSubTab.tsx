@@ -5,7 +5,7 @@ import { usePeutTelecharger } from '@/shared/hooks/usePeutTelecharger';
 
 export function CoffreSubTab({ studentId }: { studentId: string }) {
   const { docs, loading, uploading, uploadFile, error } = useStudentDocuments(studentId);
-  // 17/11 : document confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
+  // Document confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
   const [visionne, setVisionne] = useState<{ id: string; name: string } | null>(null);
   const telechargeable = usePeutTelecharger('eleves');
 

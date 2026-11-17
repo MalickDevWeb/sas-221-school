@@ -15,8 +15,7 @@ interface Props {
 export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }: Props) {
   const [filter, setFilter] = useState<'ALL' | 'LICENCE' | 'MASTER'>('ALL');
   const [selectedShare, setSelectedShare] = useState<Campaign | null>(null);
-  // Données RÉELLES de l'école et de ses paramètres d'admission (avant : « Admissions ouvertes »,
-  // « cursus d'excellence École 221 », « Reconnus CAMES / ANAQ-Sup », « +92 % d'insertion » pour toutes les écoles)
+  // Données RÉELLES de l'école et de ses paramètres d'admission
   const ecole = useTenantStore((s) => s.currentTenant);
   const { settings, loading } = useCandidatureSettings();
   const nomEcole = ecole?.name || 'cet établissement';

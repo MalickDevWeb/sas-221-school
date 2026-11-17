@@ -5,7 +5,7 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { useRbacStore } from '@/core/store/rbacStore';
 
 /**
- * Trimestres de l'école et clôture des notes (BR-04, 2026-11-14). Une évaluation appartient à la période qui
+ * Trimestres de l'école et clôture des notes (BR-04). Une évaluation appartient à la période qui
  * contient sa date ; une période clôturée fige ses évaluations et leurs notes (règle appliquée par le serveur).
  */
 interface Periode { id: string; libelle: string; dateDebut: string; dateFin: string; cloturee: boolean; clotureeLe?: string | null }

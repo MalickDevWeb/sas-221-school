@@ -10,8 +10,7 @@ export class ApiDashboardRepository implements DashboardRepository {
       apiClient.get('/student/attendances?page=0&size=20').catch(() => ({ data: [] })),
       apiClient.get('/student/live-sessions?page=0&size=10').catch(() => ({ data: [] }))
     ]);
-    // /student/profile renvoie prenom / nom / classe (compte réel) : on compose le nom affiché
-    // (avant : la page lisait « name », absent → « Bonjour ! » sans prénom).
+    // /student/profile renvoie prenom / nom / classe (compte réel) : on compose le nom affiché.
     const brut = p.data;
     const profile = brut ? {
       ...brut,

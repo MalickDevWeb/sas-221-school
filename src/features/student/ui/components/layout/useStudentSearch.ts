@@ -5,14 +5,14 @@ import { ROUTES } from '@/shared/constants';
 
 export function useStudentSearch() {
   const navigate = useNavigate();
-  // 2026-11-14 : chemins dans l'école courante (/t/<école>/etudiant/…), comme le menu latéral
+  // Chemins dans l'école courante (/t/<école>/etudiant/…), comme le menu latéral
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
   const { currentTenant } = useTenantStore();
   const ecole = `/t/${tenantSlug || currentTenant?.slug || 'ecole-221'}`;
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 2026-11-14 : raccourci ⌘K / Ctrl+K annoncé dans l'en-tête (avant : aucun effet)
+  // Raccourci ⌘K / Ctrl+K annoncé dans l'en-tête
   useEffect(() => {
     const surTouche = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setShowSearch(true); }

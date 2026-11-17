@@ -9,7 +9,7 @@ interface Props {
   candidateCount?: number;
 }
 
-/** Sous-menu du module (modèle commun SousMenuModule, 2026-11-15). */
+/** Sous-menu du module (modèle commun SousMenuModule). */
 export function AdmissionsSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse, candidateCount = 0 }: Props) {
   const entrees: EntreeSousMenu[] = [
     { id: 'config', libelle: 'Configuration Sessions', icone: 'solar:settings-minimalistic-bold-duotone' },

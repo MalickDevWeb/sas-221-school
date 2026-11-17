@@ -23,7 +23,7 @@ const champ = 'w-full h-10 px-3 rounded-xl border border-neutral-200 bg-white te
   + 'placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15';
 
 /**
- * Barre de recherche et de filtres commune des listes (16/11) : recherche sur la moitié de la largeur avec la loupe
+ * Barre de recherche et de filtres commune des listes : recherche sur la moitié de la largeur avec la loupe
  * dans le champ, deux listes d'un quart, même hauteur et mêmes bordures ; les uns sous les autres sur téléphone. La
  * largeur mesurée est celle du conteneur (@container). La flèche des listes garde sa place (shared/design/reset.css).
  */

@@ -10,16 +10,15 @@ interface Props {
 }
 
 /*
- * 16/11 : onglet « Classes » retiré. Une classe déposée sur la grille devenait l'enseignant du cours (« L1 Genie »
- * affiché à la place du professeur) ; la classe se choisit dans la liste « Classe » au-dessus de la grille.
+ * Pas d'onglet « Classes » : une classe déposée sur la grille deviendrait l'enseignant du cours ; la classe se
+ * choisit dans la liste « Classe » au-dessus de la grille.
  */
 export function PlanningSidebar({ rooms }: Props) {
   const [activeTab, setActiveTab] = useState<'teachers' | 'rooms'>('teachers');
   
-  // 2026-11-15 : enseignants RÉELS de l'école (avant : quatre professeurs inventés, affichés même dans une école
-  // neuve). Liste vide → message explicite.
+  // Enseignants RÉELS de l'école. Liste vide → message explicite.
   const { professors: teachers, loading: chargementProfs, error: erreurProfs } = useSchoolProfessors();
-  // 16/11 : un professeur se crée ici même (avant : renvoi vers « Gestion Personnel › Création de Comptes »)
+  // Un professeur se crée ici même
   const [creationProf, setCreationProf] = useState(false);
   const [motDePasse, setMotDePasse] = useState<{ nom: string; email: string; motDePasse: string; id: string; telephone?: string } | null>(null);
   const boutonCreerProf = useRef<HTMLButtonElement>(null);

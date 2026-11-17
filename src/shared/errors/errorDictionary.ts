@@ -45,9 +45,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
  */
 /**
  * Codes trop vagues pour l'utilisateur : le message précis renvoyé par le serveur est préféré.
- * AUTH_ACCESS_DENIED (16/11) : le serveur pose ce code sur TOUT refus 403, y compris les refus métier motivés
- * (« Les candidatures ne sont pas ouvertes dans cette école. », « Cet élève n'est pas l'un de vos enfants. »…) ;
- * avant, le parent lisait « Accès refusé : vous n'avez pas les autorisations nécessaires. » au lieu du vrai motif.
+ * AUTH_ACCESS_DENIED : le serveur pose ce code sur TOUT refus 403, y compris les refus métier motivés
+ * (« Les candidatures ne sont pas ouvertes dans cette école. », « Cet élève n'est pas l'un de vos enfants. »…).
  */
 const CODES_GENERIQUES = new Set<string>([
   ERROR_CODES.VALIDATION_ERROR, ERROR_CODES.RESOURCE_NOT_FOUND, ERROR_CODES.OPERATION_NOT_ALLOWED,
@@ -87,8 +86,7 @@ export function messageErreur(erreur: unknown): string {
   const reponse = estObjet(error.response) ? error.response : null;
 
   // 1. Détection via ErrorCode applicatif retourné par le backend.
-  // Codes GÉNÉRIQUES : le message précis du serveur passe en priorité (avant : « Veuillez vérifier les
-  // informations… » à la place de « Cette adresse e-mail est déjà utilisée. » — test navigateur 2026-11-09).
+  // Codes GÉNÉRIQUES : le message précis du serveur passe en priorité.
   const data = reponse?.data;
   const corps = objetBrut(data);
   const precis = typeof corps.message === 'string' && corps.message.trim().length > 0 && !LIBELLE_HTTP_BRUT.test(corps.message.trim())
@@ -123,7 +121,6 @@ export function messageErreur(erreur: unknown): string {
   if (status === 500) return "Le serveur a rencontré une difficulté momentanée. Veuillez réessayer.";
 
   // 4. Erreur levée par l'écran lui-même (classe vide, trop de groupes…) : son propre message.
-  // Avant (2026-11-13) : toute erreur sans réponse HTTP devenait « hors ligne ».
   const message = typeof error.message === 'string' ? error.message : '';
   if (!reponse && error.isAxiosError !== true && erreur instanceof Error && message.trim()) {
     return message;

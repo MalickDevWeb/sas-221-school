@@ -19,8 +19,7 @@ interface Props {
 const champ = 'w-full text-xs px-2.5 py-1.5 border border-neutral-gray-200 rounded-lg focus:ring-1 focus:ring-brand-red-deep aria-[invalid=true]:border-rose-400';
 
 /**
- * Répartition automatique des élèves INSCRITS dans une classe. Avant (2026-11-13) : un seul groupe vide créé,
- * annoncé comme « groupes équilibrés » ; critères (moyenne, sexe, compétences) sans aucune donnée derrière.
+ * Répartition automatique des élèves INSCRITS dans une classe.
  */
 export function AutoGroupCreator({ onAutoGenerate }: Props) {
   const [baseName, setBaseName] = useState('');

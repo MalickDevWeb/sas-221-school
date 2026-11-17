@@ -30,7 +30,7 @@ export class ApiProfessorRepository implements ProfessorRepository {
   async getReminders(courseId: string): Promise<ClassroomReminder[]> { return scheduleRepo.getReminders(courseId); }
   async createReminder(courseId: string, content: string, isUrgent: boolean): Promise<ClassroomReminder> { return scheduleRepo.createReminder(courseId, content, isUrgent); }
 
-  // Listes : tableau attendu (avant : une page était renvoyée → « modules is not iterable », salle de classe plantée)
+  // Listes : tableau attendu
   async getLessons(courseId: string): Promise<ProfessorLesson[]> {
     const r = await apiClient.get(`/professor/courses/${courseId}/lessons`);
     return liste(r.data);

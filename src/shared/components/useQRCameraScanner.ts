@@ -25,14 +25,12 @@ export const CONTRAINTES_VIDEO_QR = (facingMode: 'environment' | 'user'): MediaT
 });
 
 /*
- * 16/11 : « rien ne se passe » devant un QR bien cadré. html5-qrcode décodait une copie de l'image À LA TAILLE DU
- * CADRE AFFICHÉ (≈ 170 px CSS dans le cadre de 192 px), pas à celle de la caméra : une image 1920 × 1080 y était
- * réduite d'un facteur 10 en largeur et 5,6 en hauteur (le recadrage `object-fit: cover` faussait en plus le calcul).
- * Un QR qui remplissait le cadre tombait à environ 40 × 70 px, soit moins de 2 px par module : jamais lisible.
- * Le lecteur gère désormais lui-même la caméra et lit le carré visible à pleine résolution :
+ * html5-qrcode seul décode une copie de l'image À LA TAILLE DU CADRE AFFICHÉ, pas à celle de la caméra : un QR qui
+ * remplit le cadre tombe à moins de 2 px par module, jamais lisible.
+ * Le lecteur gère donc lui-même la caméra et lit le carré visible à pleine résolution :
  * - détecteur NATIF du navigateur (BarcodeDetector, Android, ChromeOS, macOS) s'il déclare lire les QR codes ;
  * - sinon le décodeur ZXing fourni par html5-qrcode, sur le carré central.
- * Mesuré le même jour (badge élève signé, ≈ 45 modules, image floue et bruitée) : ZXing réussit ou échoue selon la
+ * Mesuré (badge élève signé, ≈ 45 modules, image floue et bruitée) : ZXing réussit ou échoue selon la
  * taille des modules en pixels (même image : lue à 720 et 360 px, jamais à 540 ou 800). Chaque lecture essaie donc
  * 720 px puis une seconde taille qui change à chaque tour : un QR proche ou lointain finit lu en quelques tours.
  */

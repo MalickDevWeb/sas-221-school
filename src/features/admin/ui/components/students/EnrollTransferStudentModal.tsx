@@ -22,9 +22,7 @@ type Saisie = z.infer<typeof schemaInscription>;
 /**
  * Inscription d'un élève existant dans l'école courante (APP-FE-14 : react-hook-form + zod).
  *
- * Avant : un bouton « Oui, archiver & Transférer » envoyait un transfert depuis une école inventée
- * (« autre-ecole-id ») et l'école courante pouvait être remplacée par « default-tenant-id ». Le serveur
- * n'autorise un administrateur d'école à transférer que DEPUIS sa propre école : le transfert vers cette
+ * Le serveur n'autorise un administrateur d'école à transférer que DEPUIS sa propre école : le transfert vers cette
  * école se demande donc à l'école d'origine (ou à l'administration de la plateforme).
  */
 export function EnrollTransferStudentModal({ isOpen, onClose, onSuccess }: Props) {

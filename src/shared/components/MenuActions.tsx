@@ -22,7 +22,7 @@ interface Props {
 }
 
 /**
- * Menu « ⋯ » des actions moins fréquentes d'une ligne (16/11, sur le modèle du menu des rôles de « Droits d'accès »).
+ * Menu « ⋯ » des actions moins fréquentes d'une ligne (sur le modèle du menu des rôles de « Droits d'accès »).
  * Le menu s'ouvre dans une couche au-dessus de la page (portail) : il n'est jamais coupé par un tableau ou une carte à
  * bords arrondis. Placé sous le bouton, ou au-dessus s'il manque de place en bas. Clavier : flèches haut et bas pour
  * passer d'une action à l'autre, Échap ou Tab pour fermer (le focus revient au bouton).

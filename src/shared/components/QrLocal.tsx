@@ -12,7 +12,7 @@ interface Props {
 }
 
 /**
- * QR code dessiné localement en SVG (2026-11-13) : plus aucun contenu (matricule, jeton d'accès, lien) envoyé à un
+ * QR code dessiné localement en SVG : aucun contenu (matricule, jeton d'accès, lien) envoyé à un
  * service externe, et QR disponibles hors ligne.
  */
 export function QrLocal({ valeur, className, titre = 'QR code', couleur = '#1b1c1e' }: Props) {

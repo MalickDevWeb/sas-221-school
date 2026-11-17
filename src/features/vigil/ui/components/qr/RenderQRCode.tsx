@@ -7,9 +7,9 @@ interface Props {
 }
 
 /**
- * QR d'entrée de l'école affiché par le vigile (16/11) : signé par le serveur, propre à l'école et renouvelé chaque
- * minute ; l'élève ou le professeur le scanne pour pointer son arrivée ou son départ. Avant : QR fixe
- * « 221-VIGILE-PORTAL-MAIN », identique pour toutes les écoles. Sans réponse du serveur, aucun QR n'est inventé.
+ * QR d'entrée de l'école affiché par le vigile : signé par le serveur, propre à l'école et renouvelé chaque
+ * minute ; l'élève ou le professeur le scanne pour pointer son arrivée ou son départ. Sans réponse du serveur, aucun
+ * QR n'est inventé.
  */
 export function RenderQRCode({ className = 'w-44 h-44 select-none' }: Props) {
   const { contenu, chargement, erreur } = useQrEntree();

@@ -1,20 +1,16 @@
 import { estObjet, listeBrute, nombreOuNull, objetBrut, texte } from '@/shared/lib/lectureServeur';
 
 /*
- * Dossier 360° d'un élève tel que renvoyé par GET /admin/students/{id}/profile360 (APP-FE-03, 2026-11-13).
- * Avant : lu en `any` par chaque onglet. Le typage a révélé deux défauts corrigés ici :
- *  - les allergies étaient lues dans « sante » découpé à la virgule, alors que le serveur les renvoie dans
- *    « extra.allergies » : enregistrées, elles ne réapparaissaient jamais ;
- *  - le graphique des notes affichait une moyenne de classe écrite en dur (14,5) : seule la valeur du serveur
- *    est désormais utilisée.
- * Les rubriques sans source côté serveur restent vides (jamais remplies par l'écran).
+ * Dossier 360° d'un élève tel que renvoyé par GET /admin/students/{id}/profile360 (APP-FE-03).
+ * Les allergies sont lues dans « extra.allergies », où le serveur les renvoie ; le graphique des notes n'utilise que
+ * la moyenne de classe du serveur. Les rubriques sans source côté serveur restent vides (jamais remplies par l'écran).
  */
 export interface UeProfil { id: string; ue: string; module: string; coefficient: number | null; grade: number | null; moyenneClasse: number | null; status: string; teacher: string; volumeHoraire: string; validation: string }
 export interface ConnexionProfil { timestamp: string; ip: string; device: string; browser: string; duration: string }
 export interface ActiviteProfil { timestamp: string; module: string; action: string; result: string }
 export interface EvenementProfil { year: string; title: string; desc: string; status: string }
 export interface PaiementProfil { date: string; label: string; amount: number | null; method: string; status: string; receiptNumber: string }
-/** Dossier financier saisi par la comptabilité (2026-11-14) ; null sans dossier. */
+/** Dossier financier saisi par la comptabilité ; null sans dossier. */
 export interface SituationFinanciereProfil { classe: string; totalDu: number | null; paye: number | null; resteDu: number | null; statut: string }
 export interface MessageProfil { sender: string; text: string; date: string }
 export interface PresenceProfil { date: string; time: string; course: string; status: string; comment: string; info: string }

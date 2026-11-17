@@ -71,10 +71,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       deconnexion: () => {
-        // Déconnexion réelle (2026-11-13) : avant, aucun bouton n'appelait le serveur et le jeton restait dans le
-        // navigateur (auth_token) comme dans le cookie HttpOnly → la session restait ouverte pour la personne suivante
-        // sur un poste partagé. Le serveur révoque le jeton et efface le cookie ; le navigateur oublie le jeton.
-        // Mêmes en-têtes qu'apiClient (X-Tenant-Slug + jeton) : le serveur ne lit plus le Referer (revue B3, 15/11)
+        // Déconnexion réelle : le serveur révoque le jeton et efface le cookie ; le navigateur oublie le jeton (sinon
+        // la session reste ouverte pour la personne suivante sur un poste partagé).
+        // Mêmes en-têtes qu'apiClient (X-Tenant-Slug + jeton) : le serveur ne lit pas le Referer (revue B3)
         const entetes = entetesServeur({ avecJeton: true });
         try {
           void fetch(`${URL_API}/auth/logout`, {

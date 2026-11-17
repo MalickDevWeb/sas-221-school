@@ -7,7 +7,7 @@ export function CourseModal({ state }: { readonly state: any }) {
   const { selectedCourse } = state;
   if (!selectedCourse) return null;
 
-  // classe réelle de la séance (avant : « L3 developpement Web » par défaut, classe inventée)
+  // classe réelle de la séance
   const classLabel = selectedCourse.classe || 'Classe non renseignée';
 
   return (

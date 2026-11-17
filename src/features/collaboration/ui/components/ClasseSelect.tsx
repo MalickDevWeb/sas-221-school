@@ -11,7 +11,7 @@ interface Props {
   readonly invalide?: boolean;
 }
 
-/** Classes réelles de l'école (avant : texte libre pré-rempli « L3-INFO »). */
+/** Classes réelles de l'école. */
 export function ClasseSelect({ id, value, onChange, optionVide, invalide }: Props) {
   const [classes, setClasses] = useState<ClasseEcole[]>([]);
   const [erreur, setErreur] = useState('');

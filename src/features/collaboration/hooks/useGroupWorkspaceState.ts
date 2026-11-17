@@ -22,9 +22,7 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
     };
     fetchMsgs();
 
-    // Messages relus toutes les 4 s. Révision du 2026-11-13 : la connexion WebSocket ouverte ici écoutait
-    // /topic/collaboration, canal sur lequel le serveur ne publie rien (et non cloisonné par école) ; elle ne
-    // servait à rien et se reconnectait en boucle (erreurs de console relevées par le balayage des écrans).
+    // Messages relus toutes les 4 s : le serveur ne publie rien sur /topic/collaboration, canal non cloisonné par école.
     const timer = setInterval(fetchMsgs, 4000);
 
     const unsubDocs = subscribeDocs(activeGroupId, setDocs);
@@ -45,8 +43,7 @@ export function useGroupWorkspaceState(activeGroupId: string, triggerToast: (msg
     fileType?: CollabMessage['fileType'],
     fileName?: string
   ) => {
-    // Message enregistré par le serveur, puis liste relue : plus d'affichage provisoire qui disparaissait au
-    // rafraîchissement (avant : la messagerie appelée n'enregistrait rien). L'auteur est le compte connecté.
+    // Message enregistré par le serveur, puis liste relue. L'auteur est le compte connecté.
     void senderName; void role;
     const contenu = fileType && fileType !== 'none' ? (text || `[Fichier joint : ${fileName}]`) : text;
     if (!contenu.trim()) {

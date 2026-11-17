@@ -17,7 +17,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
 
-  /** Le candidat n'est mis à jour à l'écran qu'APRÈS l'enregistrement par le serveur (avant : sans attendre, échec ignoré). */
+  /** Le candidat n'est mis à jour à l'écran qu'APRÈS l'enregistrement par le serveur. */
   const enregistrer = async (updated: ExtendedCandidate, action: string) => {
     setErreur(null);
     setEnvoi(true);
@@ -49,7 +49,6 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
       ]
     };
 
-    // Avant : montant « 25 000 FCFA » inventé dans la notification et le journal
     void enregistrer(updated, 'Validation manuelle du paiement des frais de dossier par l’administration');
   };
 

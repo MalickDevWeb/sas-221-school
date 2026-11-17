@@ -16,7 +16,7 @@ interface StaffMember {
 const nomComplet = (m: StaffMember) => `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim() || m.id;
 
 interface Props {
-  /** Terminaux enregistrés de l'école (avant : trois portes écrites dans le code). */
+  /** Terminaux enregistrés de l'école. */
   terminals: AccessTerminal[];
   onAssign: (terminalId: string, vigilId: string) => Promise<AccessTerminal>;
 }
@@ -63,7 +63,7 @@ export function GateAssignmentForm({ terminals, onAssign }: Props) {
     }
     setLoading(true);
     try {
-      // Affectation enregistrée sur le terminal (un vigile n'a qu'un terminal ; avant : une seule affectation par école)
+      // Affectation enregistrée sur le terminal (un vigile n'a qu'un terminal)
       const t = await onAssign(terminal.id, vigil.id);
       setSuccessMsg(`Terminal « ${t.name} » affecté à ${t.vigilName ?? nomComplet(vigil)}.`);
     } catch (err) {

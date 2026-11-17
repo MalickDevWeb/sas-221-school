@@ -13,7 +13,7 @@ export interface SchoolRegistrationFormData {
   primaryColor: string;
   adminPassword?: string;
   adminPasswordConfirm?: string;
-  /** APP-BE-32 (15/11) : accord de l'administrateur pour être contacté par l'équipe My School (facultatif). */
+  /** APP-BE-32 : accord de l'administrateur pour être contacté par l'équipe My School (facultatif). */
   consentementContact?: boolean;
   savedAt?: string;
 }

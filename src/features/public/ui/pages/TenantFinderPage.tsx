@@ -66,8 +66,7 @@ export function TenantFinderPage() {
             </button>
           </form>
 
-          {/* 2026-11-15 : raccourci vers l'école de démonstration « École 221 » retiré (écrit en dur, affiché même
-              quand cette école n'existe pas) : chaque école se rejoint par son identifiant. */}
+          {/* Pas de raccourci vers l'école de démonstration « École 221 » : chaque école se rejoint par son identifiant. */}
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 pt-2">
             <Link to="/register-school" className="hover:text-indigo-300 transition-colors">+ Inscrire mon école</Link>
             <Link to="/super-admin" className="hover:text-purple-300 transition-colors flex items-center gap-1">

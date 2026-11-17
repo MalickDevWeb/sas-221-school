@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParentContext } from '../components/layout/ParentLayout';
 import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
-// 2026-11-14 : samedi ajouté (l'école planifie du lundi au samedi) ; le dimanche ouvre sur le lundi.
+// L'école planifie du lundi au samedi ; le dimanche ouvre sur le lundi.
 const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const TODAY = JOURS_SEMAINE[new Date().getDay() - 1] ?? 'Lundi';
 

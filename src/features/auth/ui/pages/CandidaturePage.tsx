@@ -46,7 +46,7 @@ export function CandidaturePage() {
 
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-[11px] font-bold text-neutral-600">
-            {/* avant : « Diplômes reconnus CAMES · Accréditation ANAQ-Sup · Conforme CDP » affirmés pour toute école */}
+            {/* aucune accréditation affirmée : elle ne vaut pas pour toute école */}
             <span>Portail officiel des admissions</span>
           </div>
           <div className="text-[11px] text-neutral-400">

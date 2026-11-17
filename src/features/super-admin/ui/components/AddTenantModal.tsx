@@ -20,7 +20,7 @@ export const AddTenantModal: React.FC<AddTenantModalProps> = ({ isOpen, onClose 
   const { createTenant } = usePlatformStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateTenantCommand>(EMPTY_FORM);
-  // Identifiants de l'administrateur créé, affichés UNE fois (avant : mot de passe devinable « e-mail + 221! »)
+  // Identifiants de l'administrateur créé, affichés UNE fois
   const [identifiants, setIdentifiants] = useState<{ ecole: string; email: string; motDePasse: string } | null>(null);
   const [copie, setCopie] = useState(false);
 

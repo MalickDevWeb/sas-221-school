@@ -12,11 +12,8 @@ import type { Classe } from '../../../domain/SchoolModels';
 import { mapStudentFromApi, type Student } from '../../../domain/StudentModels';
 
 /**
- * « Ajouter un élève existant » depuis la fiche d'une classe (16/11, demande du Tech Lead).
+ * « Ajouter un élève existant » depuis la fiche d'une classe.
  *
- * Avant : la fiche ne savait que créer un NOUVEL élève ou importer un fichier ; un élève déjà inscrit dans l'école
- * sans classe (profil « Classe : Non renseigné ») ne pouvait être rangé dans aucune classe depuis l'écran, alors que
- * le serveur le permet.
  * Routes (aucune ajoutée) : GET /admin/students (élèves de l'école, avec classeId et classe) ;
  * PUT /admin/students/{id}/classe { classeId } (404 si l'élève n'est pas de l'école, 400 si la classe est inconnue).
  * Après l'envoi, la liste de l'école est relue : la fiche affiche les élèves que le SERVEUR range dans la classe,

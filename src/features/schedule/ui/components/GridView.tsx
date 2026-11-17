@@ -9,7 +9,7 @@ export function GridView({ state }: { state: any }) {
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   const days = joursAffiches(schedule as CourseSession[]);   // samedi affiché s'il porte une séance
   const dayLabels = Object.fromEntries(days.map((d) => [d, LIBELLES_JOURS[d].toUpperCase()])) as Record<string, string>;
-  const dayDates: Record<string, string> = datesSemaineCourante(); // dates réelles (avant : « 23 Oct »… en dur)
+  const dayDates: Record<string, string> = datesSemaineCourante(); // dates réelles
 
   return (
     <div className="space-y-4">

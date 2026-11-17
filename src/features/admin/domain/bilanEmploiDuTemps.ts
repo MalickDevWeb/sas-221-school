@@ -1,5 +1,5 @@
 /**
- * Bilan renvoyé par PUT /admin/planning/slots (2026-11-14) : chaque créneau rattaché à une classe devient une séance du
+ * Bilan renvoyé par PUT /admin/planning/slots : chaque créneau rattaché à une classe devient une séance du
  * professeur, visible aussi par les élèves de la classe et leurs parents. Un créneau sans matière de même nom dans sa
  * classe n'a pas de feuille d'appel ; un créneau sans professeur reconnu n'apparaît chez aucun professeur.
  */

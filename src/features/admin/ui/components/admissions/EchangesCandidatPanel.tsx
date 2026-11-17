@@ -22,10 +22,9 @@ const heure = (iso: string) => {
 };
 
 /**
- * Échanges avec le candidat (17/11). Remplace le panneau « Notifications automatiques (Email / SMS) » qui n'envoyait
- * rien (messages types gardés dans le navigateur, date d'entretien inventée). Ici : vrais messages, enregistrés ;
- * le candidat les lit dans son suivi et reçoit un e-mail à chaque message de l'école. « Prévenir par WhatsApp » ouvre
- * la conversation du candidat avec un message prêt (lien vers son suivi) ; l'école l'envoie elle-même.
+ * Échanges avec le candidat : vrais messages, enregistrés ; le candidat les lit dans son suivi et reçoit un e-mail à
+ * chaque message de l'école. « Prévenir par WhatsApp » ouvre la conversation du candidat avec un message prêt (lien
+ * vers son suivi) ; l'école l'envoie elle-même.
  */
 export function EchangesCandidatPanel({ candidate }: { candidate: ExtendedCandidate }) {
   const client = useQueryClient();

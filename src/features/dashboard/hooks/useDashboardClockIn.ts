@@ -33,7 +33,7 @@ export function useDashboardClockIn({ triggerToast, loadData }: ClockInProps) {
     // No-op - Camera is fully managed by the CameraScanner component
   }, []);
 
-  /** Vrai seulement si le serveur a enregistré le pointage (16/11 : l'écran ne l'annonce plus avant sa réponse). */
+  /** Vrai seulement si le serveur a enregistré le pointage (l'écran ne l'annonce pas avant sa réponse). */
   const registerClockIn = useCallback(async (method: string, keepOpen = false): Promise<boolean> => {
     playBeep();
     try {

@@ -30,7 +30,7 @@ export function StudentDetailModal({
 
   const [erreurNote, setErreurNote] = useState<string | null>(null);
   const handleSaveGrades = async () => {
-    // contrôle AVANT envoi : champ vide ou hors 0–20 (avant : un champ effacé devenait 0/20 en silence)
+    // contrôle AVANT envoi : champ vide ou hors 0–20 (sinon un champ effacé deviendrait 0/20 en silence)
     const invalide = (n: number) => Number.isNaN(n) || n < 0 || n > 20;
     if (invalide(editCC) || invalide(editExam)) {
       setErreurNote('Saisissez deux notes entre 0 et 20 (CC et Examen).');
@@ -81,8 +81,7 @@ export function StudentDetailModal({
                   {isSavingGrade ? 'Enregistrement...' : 'Enregistrer les notes'}
                 </button>
               </div>
-              {/* avant : « exercices » enregistrés seulement dans le navigateur (localStorage) — l'élève ne les
-                  recevait jamais. Les travaux se donnent à toute la classe dans « Devoirs de classe ». */}
+              {/* Les travaux se donnent à toute la classe dans « Devoirs de classe ». */}
               <p className="text-[11px] text-neutral-500 font-semibold">
                 Pour donner un travail, utilisez l'onglet « Devoirs de classe » : il est enregistré et visible des élèves.
               </p>

@@ -11,8 +11,7 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 2026-11-14 : simple garde-fou contre l'erreur de clic (avant : « code de sécurité » gardé dans le navigateur,
-    // valeur « 221 » par défaut) ; les droits de suppression sont vérifiés par le serveur.
+    // Simple garde-fou contre l'erreur de clic ; les droits de suppression sont vérifiés par le serveur.
     const inputUpper = code.trim().toUpperCase();
     if (inputUpper === 'SUPPRIMER' || inputUpper === 'CONFIRMER') {
       onConfirm();

@@ -5,7 +5,7 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { useRbacStore } from '@/core/store/rbacStore';
 
 /**
- * Transferts d'élèves entre écoles (2026-11-13), comme dans la vraie vie : l'école d'origine fait la demande,
+ * Transferts d'élèves entre écoles, comme dans la vraie vie : l'école d'origine fait la demande,
  * l'école d'accueil l'accepte ou la refuse ; à l'acceptation, l'élève change d'école et l'école d'accueil reçoit
  * une copie de son dossier. Toutes les règles sont vérifiées par le serveur (/admin/transferts).
  */

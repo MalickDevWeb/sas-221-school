@@ -70,8 +70,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
     return Promise.reject(error);
   }
 
-  // Message lisible pour les écrans qui affichent error.message (avant : « Request failed with
-  // status code 404 » affiché tel quel) — dictionnaire d'erreurs commun, en français.
+  // Message lisible pour les écrans qui affichent error.message — dictionnaire d'erreurs commun, en français.
   try {
     error.message = messageErreur(error);
   } catch { /* message d'origine conservé */ }
@@ -81,8 +80,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   const isLoginRequest = url.includes('auth/login');
   const currentPath = (window.location.pathname.replace(/\/+$/, '') || '/');
 
-  // Session expirée ou invalidée (jeton refusé) : avant, ce cas était rejeté sans rien faire et
-  // l'écran affichait « Unauthorized » tout en indiquant « Connecté ».
+  // Session expirée ou invalidée (jeton refusé)
   if (status === 401) {
     const surPageDeConnexion = currentPath === ROUTES.login || /\/login$/.test(currentPath) ||
       ['/', '/accueil', '/admin', '/super-admin'].includes(currentPath);
@@ -147,7 +145,7 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   } else if (status !== 404 && !isBackgroundUrl(url)) {
     const serverMsg = texteOuNull(objetBrut(error.response?.data).message);
     // Différé : si l'écran affiche lui-même le message (resolveErrorMessage dans son catch, exécuté avant
-    // ce délai), le message global n'est pas répété — avant, deux messages pour une même erreur 400/409.
+    // ce délai), le message global n'est pas répété.
     setTimeout(() => {
       if (erreurDejaAffichee(error)) return;
       toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });

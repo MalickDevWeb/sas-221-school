@@ -11,7 +11,7 @@ interface Props {
 
 export function TabFinances({ selectedStudent, erpData }: Props) {
   // APP-FE-04 : uniquement les données réelles du backend — plus de reçus fictifs (StudentMockData).
-  // 2026-11-14 : versements et dossier financier réels (module Finances) ; « non_disponible » sans dossier.
+  // Versements et dossier financier réels (module Finances) ; « non_disponible » sans dossier.
   const payments = erpData?.payments ?? [];
   const situation = erpData?.situationFinanciere ?? null;
   const dossierFinancier = erpData?.paymentsStatus === 'disponible';

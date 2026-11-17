@@ -53,7 +53,7 @@ export function StatsTab({ associations, slots, onRemoveAssociation }: Props) {
         <div className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3 shadow-sm">
           <h4 className="text-[11px] font-black text-[#1E293B] uppercase tracking-wider">Volume Horaire Réparti (sur 2h/cours)</h4>
           <div className="space-y-3">
-            {/* APP-FE-10 : enseignants réels du planning (avant : liste fictive) ; plafond horaire non renseigné */}
+            {/* APP-FE-10 : enseignants réels du planning ; plafond horaire non renseigné */}
             {Array.from(new Set(slots.map((s) => s.prof).filter(Boolean))).map((nom) => {
               const teacher = { name: nom as string, maxHours: null as number | null };
               const currentHours = slots.filter((s) => s.prof === teacher.name).length * 2;

@@ -1,5 +1,5 @@
 /**
- * Pays (code ISO 3166-1 alpha-2 → nom en français), figés le 16/11 depuis Intl.DisplayNames("fr") sur la liste
+ * Pays (code ISO 3166-1 alpha-2 → nom en français), figés depuis Intl.DisplayNames("fr") sur la liste
  * de java.util.Locale.getISOCountries() : la même que celle qui valide les codes côté serveur (ReglesAdmissionService).
  * Constante figée : le libellé ne dépend pas du navigateur.
  */

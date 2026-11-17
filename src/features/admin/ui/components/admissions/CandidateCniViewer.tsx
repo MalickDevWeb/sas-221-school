@@ -20,8 +20,8 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
   // APP-FE-09 : jamais de pièce ni de NIN de démonstration — un admin ne doit valider que le vrai document
   const cniJointe = Boolean(candidate.details?.cniUrl);
   const nin = candidate.details?.cniNumber || '—';
-  // 16/11 : la pièce est remise par le SERVEUR (les PDF étaient refusés par Cloudinary, 401) et affichée selon son
-  // type : lecteur PDF intégré ou image. Avant : <img> sur le lien Cloudinary, donc une CNI en PDF était « illisible ».
+  // La pièce est remise par le SERVEUR (les PDF sont refusés par Cloudinary, 401) et affichée selon son
+  // type : lecteur PDF intégré ou image.
   const [cni, setCni] = useState<PieceChargee | null>(null);
   const [cniErreur, setCniErreur] = useState('');
   const cniEstPdf = cni?.type === 'application/pdf';
@@ -43,7 +43,7 @@ export function CandidateCniViewer({ candidate, onUpdateCandidate }: Props) {
     { libelle: 'Relevés de notes', code: 'releves', url: candidate.details?.transcriptsUrl },
     { libelle: 'Diplôme / attestation', code: 'diplome', url: candidate.details?.diplomaUrl },
   ] as { libelle: string; code: CodePiece; url?: string | null }[]).filter((p) => typeof p.url === 'string' && /^https?:\/\//i.test(p.url));
-  // 17/11 : chaque pièce s'ouvre DANS l'application (visionneuse intégrée) ; « Télécharger » seulement si autorisé
+  // Chaque pièce s'ouvre DANS l'application (visionneuse intégrée) ; « Télécharger » seulement si autorisé
   const telechargeable = usePeutTelecharger('admissions');
   const [visionnee, setVisionnee] = useState<{ code: CodePiece; libelle: string } | null>(null);
   const messageAbsence = !cniJointe ? 'Aucune pièce d’identité fournie'

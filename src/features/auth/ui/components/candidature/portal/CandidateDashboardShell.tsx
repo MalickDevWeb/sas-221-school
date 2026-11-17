@@ -9,8 +9,7 @@ interface Props {
 
 /**
  * Espace candidat : uniquement le(s) dossier(s) renvoyé(s) par le serveur pour CE candidat.
- * Avant : pièces, paiements, messagerie et journal étaient lus et « enregistrés » dans le navigateur
- * (base locale + /admissions/db, fermé) : de faux succès. Ces onglets sont retirés tant qu'aucune route réelle n'existe.
+ * Pas d'onglets pièces, paiements, messagerie ni journal tant qu'aucune route réelle n'existe.
  */
 export function CandidateDashboardShell({ dossiers, onLogout }: Props) {
   const [choisi, setChoisi] = useState(dossiers[0]?.id ?? '');

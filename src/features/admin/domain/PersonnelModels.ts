@@ -33,5 +33,5 @@ export const STAFF_ROLES = ['Administrateur', 'Directeur', 'Secrétaire', 'Compt
 /** Libellé affichable d'un collaborateur (jamais la clé technique si le libellé est connu). */
 export const libelleRole = (m: { role?: string | null; roleLabel?: string | null }) => m.roleLabel || m.role || '—';
 
-// Catalogue des droits : fourni par le serveur (GET /admin/rbac), voir core/store/rbacStore.ts (2026-11-13).
+// Catalogue des droits : fourni par le serveur (GET /admin/rbac), voir core/store/rbacStore.ts.
 

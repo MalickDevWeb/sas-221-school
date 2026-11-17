@@ -14,7 +14,7 @@ import { ROUTES } from '@/shared/constants';
 
 /**
  * Règles de saisie de la connexion (APP-FE-14 : react-hook-form + zod, décision APP-TL-08).
- * APP-TL-23 (2026-11-14) : un élève inscrit sans e-mail se connecte avec son MATRICULE. Un identifiant avec « @ » doit
+ * APP-TL-23 : un élève inscrit sans e-mail se connecte avec son MATRICULE. Un identifiant avec « @ » doit
  * être une adresse valide ; sans « @ », c'est un matricule (lettres, chiffres et tirets). Le serveur n'accepte le
  * matricule que pour un compte élève.
  */

@@ -6,7 +6,7 @@ import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { estObjet, listeBrute, objetBrut } from '@/shared/lib/lectureServeur';
 
 /**
- * Élèves de l'école (GET /admin/users). `erreurEnLigne` (16/11) : l'écran affiche lui-même l'erreur de chargement,
+ * Élèves de l'école (GET /admin/users). `erreurEnLigne` : l'écran affiche lui-même l'erreur de chargement,
  * avec « Réessayer », au lieu d'une notification passagère (annuaire des élèves).
  */
 export function useAdminStudents(options: { erreurEnLigne?: boolean } = {}) {

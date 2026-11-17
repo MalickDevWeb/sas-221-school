@@ -1,7 +1,6 @@
 /**
  * Dossier financier d'un élève (écolages), tel que renvoyé par GET /finance/students.
- * 2026-11-14 : identifiant de l'élève et montant dû conservés (encaissement, reste) ; plus aucune donnée inventée
- * (avant : classes et dossiers fictifs écrits en dur, et la liste des écolages filtrée sur ces classes inventées).
+ * Identifiant de l'élève et montant dû conservés (encaissement, reste) ; aucune donnée inventée.
  */
 export interface StudentFinance {
   /** Identifiant du dossier financier. */

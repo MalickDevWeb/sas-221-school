@@ -10,9 +10,7 @@ import { annoncerMisesALaCorbeille } from '@/features/corbeille/annonceCorbeille
 /*
  * Salles, filières, classes et créneaux de l'école courante, lus et enregistrés via /admin/planning/*
  * (persistés en base, cloisonnés par école).
- * Avant : repli silencieux sur PUT /planning/* (qui répondait 200 sans rien enregistrer) et normalisation
- * qui inventait des valeurs (« Projecteur », capacité 40/35, tarif 450 000, « Enseignant », « Salle Principale »).
- * Désormais : une valeur absente reste vide/null, et un échec d'enregistrement est signalé puis l'état
+ * Une valeur absente reste vide/null, et un échec d'enregistrement est signalé puis l'état
  * est rechargé depuis le serveur (pas de faux succès).
  */
 
@@ -135,7 +133,7 @@ export function useAdminSchoolState() {
   /**
    * Enregistre la liste complète ; en cas d'échec, signale l'erreur et recharge l'état réel du serveur.
    * Renvoie null si le serveur a enregistré, sinon le message d'erreur (la liste est alors rechargée).
-   * Lignes retirées (16/11) : le serveur les place dans la corbeille et les liste dans « misALaCorbeille » →
+   * Lignes retirées : le serveur les place dans la corbeille et les liste dans « misALaCorbeille » →
    * son message et « Ouvrir la corbeille » ; réponse sans ce détail → « Salle « B12 » supprimée. ».
    */
   const enregistrer = async (chemin: CheminPlanning, liste: unknown[], quoi: string, retirees: string[] = []): Promise<string | null> => {
@@ -144,7 +142,7 @@ export function useAdminSchoolState() {
       setError(null);
       if (!annoncerMisesALaCorbeille(data) && retirees.length > 0) toast.success(messageRetrait(chemin, retirees));
       if (chemin === 'slots') {
-        // 2026-11-14 : créneau sans matière de ce nom dans la classe → pas de feuille d'appel ; signalé tout de suite
+        // Créneau sans matière de ce nom dans la classe → pas de feuille d'appel ; signalé tout de suite
         const avertissement = avertissementBilan(lireBilan(data));
         if (avertissement) toast.warning(avertissement);
       }

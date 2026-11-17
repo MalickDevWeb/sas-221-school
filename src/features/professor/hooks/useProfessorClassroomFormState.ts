@@ -35,8 +35,7 @@ export function useProfessorClassroomFormState(professor: ProfessorWithClassroom
     }
   });
 
-  // Avant (jusqu'au 2026-11-10) : changement LOCAL seulement + « Présence mise à jour » → aucun appel n'était
-  // jamais enregistré. Désormais : enregistré sur le serveur (date du jour), affiché seulement après succès.
+  // Présence enregistrée sur le serveur (date du jour), affichée seulement après succès.
   const handleMarkAttendance = useCallback(async (studentId: string, status: AttendanceStatus) => {
     const courseId = professor.selectedCourseId;
     if (!courseId) return;

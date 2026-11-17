@@ -13,7 +13,6 @@ const ONGLETS: { id: Onglet; label: string }[] = [
 
 /**
  * Performance de l'élève, mois par mois (GET /student/performance, APP-BE-13).
- * Avant : badge « GPA 3.4 » et « Moyenne promo 13.84 » codés en dur, et aucune donnée réelle.
  */
 export function PerformanceChart() {
   const [onglet, setOnglet] = useState<Onglet>('combined');

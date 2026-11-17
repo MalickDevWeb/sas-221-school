@@ -28,8 +28,8 @@ const STATUTS: StudentFinance['status'][] = ['Non renseigné', 'En Règle', 'En 
 const statutConnu = (s: string): StudentFinance['status'] =>
   STATUTS.includes(s as StudentFinance['status']) ? (s as StudentFinance['status']) : 'Non renseigné';
 
-// 2026-11-14 : nom lu dans « studentName » (avant : « name », absent → tous les élèves affichés « Étudiant ») ;
-// identifiant de l'élève et montant dû conservés ; « Non soldé » si reste dû sans statut adapté (jamais « en règle »).
+// Nom lu dans « studentName » ; identifiant de l'élève et montant dû conservés ; « Non soldé » si reste dû sans statut
+// adapté (jamais « en règle »).
 const versEleve = (item: Brut, index: number): StudentFinance => {
   const reste = Number(item.debt) || 0;
   const statut = statutConnu(texte(item.status));
@@ -51,8 +51,8 @@ export interface NouveauDossier { eleveId: string; montantDu: number; classe?: s
 export interface NouveauVersement { eleveId: string; montant: number; moyen: string; reference?: string; date?: string }
 
 /**
- * Finances de l'école (React Query, APP-FE-02). Avant : chargement manuel dont les erreurs étaient avalées — un
- * échec affichait des listes vides, qu'on pouvait prendre pour « aucune dépense ». L'erreur est maintenant exposée.
+ * Finances de l'école (React Query, APP-FE-02). L'erreur de chargement est exposée : une liste vide après un échec
+ * passerait pour « aucune dépense ».
  */
 export function useAdminFinances() {
   const client = useQueryClient();
@@ -94,7 +94,7 @@ export function useAdminFinances() {
     onSuccess: (creee) => client.setQueryData<Expense[]>(CLES_FINANCES.depenses, (avant = []) => [creee, ...avant]),
   });
 
-  // Écolages (2026-11-14) : la liste n'est relue qu'après la réponse du serveur ; l'erreur remonte au formulaire.
+  // Écolages : la liste n'est relue qu'après la réponse du serveur ; l'erreur remonte au formulaire.
   const ouvrir = useMutation({
     mutationFn: async (d: NouveauDossier) => (await apiClient.post('/finance/ecolages/dossiers', d)).data,
     onSuccess: () => client.invalidateQueries({ queryKey: CLES_FINANCES.eleves }),

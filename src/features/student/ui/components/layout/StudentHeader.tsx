@@ -22,7 +22,7 @@ interface Props {
   onNotifClick: (id: string) => void;
   onOpenSettings: () => void;
   onOpenSupport: () => void;
-  /** 2026-11-14 : ouvre la recherche (avant : bouton « Rechercher… ⌘K » sans aucune action). */
+  /** Ouvre la recherche. */
   onOpenSearch: () => void;
   triggerToast: (msg: string) => void;
   onMoodSave: () => void;

@@ -1,5 +1,5 @@
 /*
- * Partage WhatsApp SANS API payante (FEAT-007, 16/11). Le lien https://wa.me/?text=… ouvre WhatsApp (téléphone, WhatsApp
+ * Partage WhatsApp SANS API payante (FEAT-007). Le lien https://wa.me/?text=… ouvre WhatsApp (téléphone, WhatsApp
  * Web ou Desktop) avec le message prêt ; on y choisit le groupe puis on appuie sur « Envoyer ». Aucun lien gratuit ne
  * permet de publier directement dans un groupe précis : le lien d'invitation (chat.whatsapp.com/…) sert à le rejoindre.
  */
@@ -10,7 +10,7 @@ export function lienPartageWhatsapp(texte: string): string {
 }
 
 /**
- * Lien qui ouvre la conversation WhatsApp de CE numéro avec le texte prêt (17/11) ; null si le numéro est inutilisable.
+ * Lien qui ouvre la conversation WhatsApp de CE numéro avec le texte prêt ; null si le numéro est inutilisable.
  * Numéro sénégalais à 9 chiffres (« 77 123 45 67 ») complété par l'indicatif 221.
  */
 export function lienWhatsappVers(numero: string | null | undefined, texte: string): string | null {

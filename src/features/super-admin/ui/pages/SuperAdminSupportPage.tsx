@@ -3,8 +3,7 @@ import { MessageSquare, Sparkles } from 'lucide-react';
 
 /**
  * Support & tickets.
- * Avant (jusqu'au 2026-11-10) : trois tickets inventés (« TK-2042 Synchronisation biométrique campus Thiès »…),
- * « 1,8 h » de délai moyen et « 142 incidents résolus » fictifs. Aucun système de tickets n'existe côté serveur.
+ * Aucun système de tickets n'existe côté serveur.
  */
 export const SuperAdminSupportPage = () => (
   <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">

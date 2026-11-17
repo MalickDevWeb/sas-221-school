@@ -4,11 +4,9 @@ import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 /*
- * Pointage d'arrivée et de départ par le QR d'entrée du vigile (16/11, décision du Tech Lead : option « a »).
+ * Pointage d'arrivée et de départ par le QR d'entrée du vigile.
  * Le terminal du vigile affiche un QR signé par le serveur, propre à l'école et renouvelé chaque minute ; l'élève ou le
  * professeur le scanne et le serveur décide seul s'il s'agit d'une arrivée ou d'un départ.
- * Avant : QR fixe « 221-VIGILE-PORTAL-MAIN » ; l'élève envoyait « arrivée »/« départ » à une route qui refusait
- * toujours (400) tout en affichant « Pointage Validé ! », et le professeur n'envoyait rien.
  */
 
 export type SensPointage = 'arrivée' | 'départ';

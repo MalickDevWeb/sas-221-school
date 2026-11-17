@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/lib/apiClient';
 
 /**
- * Décision d'accès HORS LIGNE du terminal du vigile (EF-10, 2026-11-14).
+ * Décision d'accès HORS LIGNE du terminal du vigile (EF-10).
  *
  * Tant que le réseau est là, le terminal télécharge la liste d'accès de l'école (GET /vigil/acces-hors-ligne) : clé
  * PUBLIQUE des badges, élèves actifs (matricule et nom seulement), personnel. Sans réseau, il décide seul :
@@ -11,7 +11,7 @@ import { apiClient } from '@/shared/lib/apiClient';
  *   - tout le reste : refusé.
  * Chaque scan est gardé puis transmis au serveur au retour du réseau (POST /vigil/scans-hors-ligne), qui refait le
  * contrôle et signale les décisions contestées. La liste est effacée à la déconnexion (préfixe off_cache_).
- * APP-TL-22 (2026-11-14) : l'accès ne dépend jamais des frais de scolarité ; un champ financier éventuellement présent
+ * APP-TL-22 : l'accès ne dépend jamais des frais de scolarité ; un champ financier éventuellement présent
  * dans une ancienne liste en cache est ignoré.
  */
 const CLE_LISTE = 'off_cache_vigil_acces_hors_ligne';

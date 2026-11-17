@@ -46,7 +46,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // 16/11 : pièces exigées par les règles d'admission de l'école, d'après les réponses (étapes 1 à 3)
+  // Pièces exigées par les règles d'admission de l'école, d'après les réponses (étapes 1 à 3)
   const regles = usePiecesRegles();
   const { evaluer } = regles;
   useEffect(() => {
@@ -107,7 +107,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
     setPayment({ method, isPaid: false, declared: true, transactionRef: ref, amount: campaign.fees ?? 0 });
   };
 
-  /** Pièces obligatoires manquantes → message sous chaque pièce (avant : bouton grisé sans explication). */
+  /** Pièces obligatoires manquantes → message sous chaque pièce. */
   const verifierPieces = (): boolean => {
     const manquantes: DocErrors = {};
     for (const [cle, libelle] of PIECES_OBLIGATOIRES) {
@@ -140,8 +140,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
     setIsSubmitting(true);
     // Le dossier n'est confirmé au candidat QUE si le serveur l'a enregistré (identifiant attribué par le serveur).
     // Le mot de passe choisi ici est enregistré (haché) : il sert au suivi en ligne du dossier (APP-BE-12).
-    // Toutes les informations saisies sont transmises (avant : seuls nom, email, téléphone et filière partaient ;
-    // le garant, le cursus et les fichiers des pièces étaient perdus).
+    // Toutes les informations saisies sont transmises.
     try {
       await publicApiClient.post('/candidatures/submit', {
         nom: v.lastName, prenom: v.firstName,
@@ -162,7 +161,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
         modePaiement: payment.declared ? payment.method : undefined,
         referencePaiement: payment.transactionRef,
         motDePasse: v.password,
-        // 16/11 : session choisie et pièces exigées par les règles de l'école (vérifiées aussi par le serveur)
+        // Session choisie et pièces exigées par les règles de l'école (vérifiées aussi par le serveur)
         campagneId: campaign.id,
         piecesSupplementaires: regles.corps(),
       });

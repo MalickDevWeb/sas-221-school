@@ -1,9 +1,8 @@
 import { GroupMember } from './CollaborationModels';
 
 /**
- * Critères de répartition automatique. Seuls ceux qui reposent sur des données réelles sont proposés (2026-11-13) :
- * la moyenne, le sexe et les compétences n'étant pas transmis par le serveur, les anciens critères « équilibrés »
- * répartissaient en réalité au hasard.
+ * Critères de répartition automatique. Seuls ceux qui reposent sur des données réelles sont proposés : la moyenne,
+ * le sexe et les compétences ne sont pas transmis par le serveur.
  */
 export type GroupingCriterion = 'alpha' | 'random';
 

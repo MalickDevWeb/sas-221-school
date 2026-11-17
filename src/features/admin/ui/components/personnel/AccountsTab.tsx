@@ -24,10 +24,9 @@ interface Props {
 }
 
 /**
- * Personnel › Comptes du personnel. Mise en page du 16/11 : en-tête commun (titre, sous-titre, bouton principal
+ * Personnel › Comptes du personnel. Mise en page : en-tête commun (titre, sous-titre, bouton principal
  * « Ajouter un membre »), formulaire d'ajout dans un panneau pleine largeur ouvert par ce bouton, puis recherche et
- * filtres, puis tableau pleine largeur. Avant : formulaire permanent à droite, qui rétrécissait le tableau au point de
- * le faire déborder (première colonne coupée).
+ * filtres, puis tableau pleine largeur.
  */
 export function AccountsTab({
   staff,

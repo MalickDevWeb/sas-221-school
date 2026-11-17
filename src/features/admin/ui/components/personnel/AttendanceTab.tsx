@@ -35,8 +35,7 @@ export function AttendanceTab({ onShowToast, staff = [] }: Props) {
   const [statusFilter, setStatusFilter] = useState<'Tous' | 'À l\'heure' | 'En retard' | 'Absent'>('Tous');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Pointages réels uniquement, mis en cache (React Query, APP-FE-02). Avant : chargement manuel, sans
-  // dépendances déclarées (avertissement react-hooks/exhaustive-deps).
+  // Pointages réels uniquement, mis en cache (React Query, APP-FE-02).
   const client = useQueryClient();
   const pointages = useQuery({
     queryKey: CLE_POINTAGES,

@@ -13,7 +13,6 @@ const cleDocuments = (studentId: string) => ['admin', 'eleves', studentId, 'docu
 
 /**
  * Coffre de documents d'un élève (React Query, APP-FE-02).
- * Avant : un échec de chargement ou d'envoi n'était écrit que dans la console — l'écran ne disait rien.
  */
 export function useStudentDocuments(studentId: string) {
   const client = useQueryClient();
@@ -32,7 +31,7 @@ export function useStudentDocuments(studentId: string) {
       const form = new FormData();
       form.append('file', file);
       form.append('userId', studentId);
-      form.append('confidentiel', 'true');   // 17/11 : coffre de l'élève, lisible seulement dans l'application
+      form.append('confidentiel', 'true');   // Coffre de l'élève, lisible seulement dans l'application
       const upRes = await apiClient.post<{ url?: string }>('/media/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });

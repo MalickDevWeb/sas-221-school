@@ -12,7 +12,7 @@ export const ROLE_UTILISATEUR = {
   VIGIL:       'VIGIL',
   VISITEUR:    'VISITEUR',
   PARENT:      'PARENT',
-  // Personnel de l'école (2026-11-13) : espace administration filtré par la matrice des droits du serveur
+  // Personnel de l'école : espace administration filtré par la matrice des droits du serveur
   DIRECTEUR:   'DIRECTEUR',
   SURVEILLANT: 'SURVEILLANT',
   RH:          'RH',

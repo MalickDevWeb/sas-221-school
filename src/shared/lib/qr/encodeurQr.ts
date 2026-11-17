@@ -1,9 +1,6 @@
 /**
- * Encodeur de QR code local (2026-11-13).
- *
- * Avant : chaque QR de l'application (badge élève, badge professeur, retrait d'un élève, lien de candidature, QR du
- * vigile) était une image demandée à un service externe (api.qrserver.com), qui recevait ainsi le contenu — dont le
- * matricule de l'élève et son jeton d'accès valide — et rendait les QR indisponibles hors ligne.
+ * Encodeur de QR code local : aucun service externe ne reçoit le contenu des QR (matricule, jeton d'accès), et les
+ * QR restent disponibles hors ligne.
  *
  * Norme ISO/IEC 18004 (QR Code modèle 2) : mode octet (UTF-8), niveau de correction M, versions 1 à 40, choix du
  * masque par score de pénalité. Structure d'après l'implémentation de référence de Project Nayuki (licence MIT).

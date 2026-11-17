@@ -64,8 +64,8 @@ export function useSchedulePageState() {
     return () => { document.body.style.overflow = ''; };
   }, [activePlanCourse]);
 
-  // 2026-11-14 : retrait de la lecture d'un « #access_token » dans l'adresse (n'importe quel jeton était rangé dans le
-  // navigateur, avec « Connexion Google Calendar réussie ! ») ; l'agenda s'exporte en .ics, sans compte Google.
+  // L'adresse n'est pas lue pour un « #access_token » (n'importe quel jeton serait rangé dans le navigateur) ;
+  // l'agenda s'exporte en .ics, sans compte Google.
 
   return {
     schedule, isSyncModalOpen, setIsSyncModalOpen, selectedDayMobile, setSelectedDayMobile, activePlanCourse, setActivePlanCourse,

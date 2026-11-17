@@ -23,9 +23,8 @@ function useSessions() {
 const ICONES: Record<Regle['effet']['type'], string> = { EXIGER_PIECE: 'upload_file', BLOQUER: 'block', AVERTIR: 'warning' };
 
 /**
- * Règles d'admission de l'école (16/11). Avant : maquette (« Moteur de règles ») — 8 typologies et 4 cases écrites
- * dans le navigateur, valeurs inventées (60 crédits, 3 ans de VAE), rien d'enregistré ni d'appliqué. Ici l'école crée
- * ses propres règles « SI … ALORS … » ; le serveur les enregistre et les applique au dépôt de chaque dossier.
+ * Règles d'admission de l'école. Ici l'école crée ses propres règles « SI … ALORS … » ; le serveur les enregistre et
+ * les applique au dépôt de chaque dossier.
  */
 export function AdmissionsRulesEngine() {
   const { liste, enregistrer, supprimer } = useReglesAdmission();

@@ -41,7 +41,7 @@ export function MatriculationTable({ admitted, enrollingId, onEnrollClick, onTog
                     <CandidateAdmissionBadge type={c.type} />
                   </td>
                   <td className="px-5 py-4">
-                    {/* Pièces réellement reçues (avant : « Dossier Conforme » affiché pour tous) */}
+                    {/* Pièces réellement reçues */}
                     <span className="text-[10px] font-black text-neutral-500 block">Pièce d'identité : {c.docs.idCard ? 'reçue' : 'absente'}</span>
                     <span className="text-[10px] font-black text-neutral-500 block">Diplôme : {c.docs.diploma ? 'reçu' : 'absent'}</span>
                   </td>

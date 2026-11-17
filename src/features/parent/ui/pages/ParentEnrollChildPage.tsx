@@ -46,7 +46,7 @@ const TAILLE_MAX = 5 * 1024 * 1024;
 
 /**
  * Règles du dossier (APP-FE-14 : react-hook-form + zod). Chaque étape ne laisse passer que si ses champs sont
- * valides, avec un message précis sous le champ (avant : bouton « Suivant » grisé sans explication, email non vérifié).
+ * valides, avec un message précis sous le champ.
  */
 const schemaInscription = z.object({
   // Étape 1
@@ -57,7 +57,7 @@ const schemaInscription = z.object({
     .refine(v => new Date(v) < new Date(), 'La date de naissance doit être passée.')
     .refine(v => new Date(v).getFullYear() >= 1950, 'Date de naissance invalide : vérifiez l’année.'),
   lieuNaissance: z.string().trim().min(1, 'Indiquez le lieu de naissance.'),
-  // 16/11 : code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
+  // Code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
   nationalite: z.string().trim().regex(/^[A-Z]{2}$/, 'Choisissez la nationalité dans la liste.'),
   sexe: z.string().refine((v): boolean => v === 'M' || v === 'F', "Indiquez le sexe de l'enfant."),
   email: z.string().trim()
@@ -213,7 +213,6 @@ function Step2({ register, errors }: { register: Enregistrer; errors: Erreurs })
 /**
  * Envoi RÉEL du fichier (POST /media/upload, mode strict : aucun repli local). La pièce n'est marquée reçue
  * qu'avec le lien renvoyé par le serveur ; en cas d'échec, le message du serveur s'affiche sous la zone.
- * Avant : seul le nom du fichier restait dans le navigateur et rien n'était joint au dossier.
  */
 function UploadZone({ id, label, hint, accept, types, nomFichier, erreur, onEnvoi, onEnvoye, onEchec }: {
   id: Champ; label: string; hint: string; accept: string; types: string[];
@@ -378,8 +377,8 @@ function Step4({ form, register, errors, noms }: {
 // ─── Page principale ─────────────────────────────────────────
 export function ParentEnrollChildPage() {
   const navigate = useNavigate();
-  // 16/11 : le serveur refuse tout dossier quand l'école n'a pas ouvert les candidatures (403). Avant, le parent
-  // ne l'apprenait qu'au dernier clic, après 4 étapes et l'envoi de ses fichiers : on le prévient dès l'ouverture.
+  // Le serveur refuse tout dossier quand l'école n'a pas ouvert les candidatures (403) : on prévient le parent dès
+  // l'ouverture, avant les 4 étapes et l'envoi de ses fichiers.
   const { settings: reglages, chargee: reglagesCharges, isCampaignActive, isPeriodStarted, isPeriodEnded } = useCandidatureSettings();
   const candidaturesFermees = reglagesCharges && !isCampaignActive;
   const [step, setStep]     = useState(1);
@@ -395,7 +394,7 @@ export function ParentEnrollChildPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schemaInscription), defaultValues: EMPTY_FORM, mode: 'onTouched' });
   const form = useWatch({ control }) as FormData;
-  // 16/11 : pièces exigées par les règles d'admission de l'école, évaluées à l'étape des pièces (dépôt par un parent)
+  // Pièces exigées par les règles d'admission de l'école, évaluées à l'étape des pièces (dépôt par un parent)
   const regles = usePiecesRegles();
   const { evaluer } = regles;
   useEffect(() => {

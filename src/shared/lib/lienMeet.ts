@@ -1,5 +1,5 @@
 /**
- * Lien d'une réunion Google Meet collé par l'enseignant ou l'administration (APP-TL-26, 2026-11-14).
+ * Lien d'une réunion Google Meet collé par l'enseignant ou l'administration (APP-TL-26).
  * Aucune API Google ni connexion à un compte Google depuis l'application : la réunion est créée sur
  * meet.google.com (gratuite avec un compte Gmail), puis son lien est collé ici.
  * Même règle que le serveur (POST /student/live-sessions et POST /collaboration/meets).

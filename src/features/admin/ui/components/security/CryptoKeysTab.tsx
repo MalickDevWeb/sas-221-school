@@ -2,10 +2,8 @@ import React from 'react';
 import { ApiKeyCard } from './ApiKeyCard';
 
 /**
- * Onglet « Clés de sécurité ». 2026-11-14 : retrait de deux cartes trompeuses — « Clé AES-256 régénérée » (aucun appel au
- * serveur ; les badges ne sont pas chiffrés en AES mais signés en Ed25519) et un « code de sécurité des suppressions »
- * gardé dans le navigateur avec la valeur « 221 » par défaut (la confirmation acceptait de toute façon « CONFIRMER »).
- * L'encart décrit le vrai mécanisme.
+ * Onglet « Clés de sécurité ». Les badges ne sont pas chiffrés en AES mais signés en Ed25519 : l'encart décrit le
+ * vrai mécanisme.
  */
 export function CryptoKeysTab() {
   return (

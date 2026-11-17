@@ -17,8 +17,8 @@ interface Props {
   /** Présent pour un élève : bouton « Imprimer la fiche » (nom, classe, identifiant, mot de passe, consigne). */
   fiche?: Omit<FicheIdentifiantsEleve, 'motDePasse'>;
   /**
-   * Compte créé (16/11) : bouton « Envoyer l'accès par WhatsApp ». Le message contient un LIEN PERSONNEL pour choisir
-   * son mot de passe (LienAccesModal) — jamais le mot de passe provisoire (règle du 15/11). Administration seulement.
+   * Compte créé : bouton « Envoyer l'accès par WhatsApp ». Le message contient un LIEN PERSONNEL pour choisir
+   * son mot de passe (LienAccesModal) — jamais le mot de passe provisoire. Administration seulement.
    */
   envoiAcces?: CompteLien;
 }

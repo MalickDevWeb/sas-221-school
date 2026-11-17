@@ -8,7 +8,7 @@ interface NouveauMotDePasse {
 }
 
 /**
- * Accès de l'élève (APP-TL-23, 2026-11-14). Un élève inscrit sans e-mail se connecte avec son matricule et ne peut pas
+ * Accès de l'élève (APP-TL-23). Un élève inscrit sans e-mail se connecte avec son matricule et ne peut pas
  * recevoir de lien « Mot de passe oublié » : s'il oublie son mot de passe, l'école lui en remet un provisoire ici.
  * Le mot de passe est affiché une seule fois (jamais envoyé) ; l'élève doit le changer à sa prochaine connexion et ses
  * sessions ouvertes sont fermées. L'action est inscrite au journal d'audit.

@@ -13,7 +13,7 @@ interface Props {
 export function ProfessorHeaderBanner({ profName, coursesCount, onOpenPresence, onZoomQR }: Props) {
   const currentHour = new Date().getHours();
   const welcomeMessage = currentHour >= 18 ? "Bonsoir, " : currentHour >= 12 ? "Bon après-midi, " : "Bonjour, ";
-  const { prochainType: nextPointerType, sensConnu } = useMesPointages();   // 16/11 : donné par le serveur
+  const { prochainType: nextPointerType, sensConnu } = useMesPointages();   // Donné par le serveur
   const badge = useBadgePersonnel();
 
   return (

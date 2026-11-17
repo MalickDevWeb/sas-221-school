@@ -12,8 +12,7 @@ interface SuperAdminStatsGridProps {
 }
 
 /**
- * Avant (jusqu'au 2026-11-10) : « comptes = écoles × 15 », « flux mensuel = écoles × 49 000 F »,
- * « disponibilité 99,9 % » codés en dur. Désormais : uniquement des valeurs réelles, « — » sinon.
+ * Uniquement des valeurs réelles, « — » sinon.
  */
 export const SuperAdminStatsGrid: React.FC<SuperAdminStatsGridProps> = ({ tenants, comptes = null, revenuMensuel = null }) => {
   const totalTenants = tenants.length;

@@ -182,8 +182,7 @@ export const useTenantStore = create<TenantState>()(
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
         } catch (err: unknown) {
-          // École inexistante (404) : la signaler — avant, une école était INVENTÉE à partir de l'URL
-          // (nom tiré du slug) et l'on pouvait remplir toute une candidature pour une école inexistante.
+          // École inexistante (404) : la signaler
           if (axios.isAxiosError(err) && err.response?.status === 404) {
             try {
               localStorage.removeItem(`tenant_theme_${slug}`);
@@ -236,8 +235,8 @@ export const useTenantStore = create<TenantState>()(
         };
 
         // ── Couleur principale ──────────────────────────────────────────
-        // 2026-11-15 : l'application pose du texte blanc sur la couleur principale (« bg-primary text-white », près de
-        // 300 fois). Une couleur d'école très claire (ex. #eef1e7) rendait boutons et menus illisibles (blanc sur
+        // L'application pose du texte blanc sur la couleur principale (« bg-primary text-white », près de
+        // 300 fois). Une couleur d'école très claire (ex. #eef1e7) rendrait boutons et menus illisibles (blanc sur
         // blanc). Sous le seuil WCAG de 3:1 avec le blanc, on garde la teinte de l'école dans sa variante foncée,
         // garantie lisible (primaryDark ≥ 4,5:1) ; la couleur d'origine reste visible en fond clair (primaryLight).
         const primaireLisible = getContrastRatio(palette.primary, '#FFFFFF') >= 3 ? palette.primary : palette.primaryDark;

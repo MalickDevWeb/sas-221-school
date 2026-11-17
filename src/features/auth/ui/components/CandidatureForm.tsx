@@ -16,8 +16,7 @@ export function CandidatureForm({ onBack }: Props) {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [dossiers, setDossiers] = useState<DossierCandidat[] | null>(null);
 
-  // Campagnes publiées de l'école (GET /candidatures/campagnes). Avant : lues dans la base locale du
-  // navigateur alimentée par /admissions/db, fermé au public : plus aucune campagne ne s'affichait.
+  // Campagnes publiées de l'école (GET /candidatures/campagnes).
   useEffect(() => {
     let actif = true;
     suiviApi.campagnes()

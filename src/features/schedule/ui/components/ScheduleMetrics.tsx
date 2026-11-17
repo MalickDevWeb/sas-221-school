@@ -3,8 +3,7 @@ import { Clock, Ban, BookOpen } from 'lucide-react';
 import { CourseSession, dureeHeures } from '@/features/schedule/domain/Schedule';
 
 /**
- * Chiffres de la semaine, calculés sur l'emploi du temps réel (2026-11-14). Avant : « 24 Heures — Conforme syllabus
- * académique », « 100% Recommandé » et « Mode Hybride », écrits en dur quel que soit l'emploi du temps.
+ * Chiffres de la semaine, calculés sur l'emploi du temps réel.
  */
 export function ScheduleMetrics({ schedule }: { schedule: readonly CourseSession[] }) {
   const actives = schedule.filter((s) => s.status !== 'annule');

@@ -2,9 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getDigitalBadge } from '../api';
 
 /**
- * Badge QR de l'élève, signé par le serveur et renouvelé chaque minute (2026-11-13). Avant : le navigateur calculait
- * lui-même le jeton avec une clé écrite dans le code (badge falsifiable par n'importe qui, et refusé par le serveur
- * qui utilisait une autre clé).
+ * Badge QR de l'élève, signé par le serveur et renouvelé chaque minute ; une clé côté navigateur rendrait le badge
+ * falsifiable.
  * @param actif faux tant qu'aucun matricule n'est connu (pas d'appel inutile).
  */
 export function useBadgeNumerique(actif: boolean) {

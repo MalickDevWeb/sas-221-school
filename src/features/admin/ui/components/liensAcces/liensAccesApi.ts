@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/lib/apiClient';
 import { listeBrute, objetBrut, texte, texteOuNull, vrai } from '@/shared/lib/lectureServeur';
 
 /**
- * Liens d'accès émis par l'école (15/11) — contrat lu dans LienAccesController / LienAccesService :
+ * Liens d'accès émis par l'école — contrat lu dans LienAccesController / LienAccesService :
  * - POST /admin/comptes/{id}/lien-acces  {canal: WHATSAPP | SMS | EMAIL}
  * - POST /admin/liens-acces/{lienId}/accord   (second administrateur, ni demandeur ni titulaire)
  * - GET  /admin/liens-acces/en-attente

@@ -23,7 +23,7 @@ export interface StudentDoc {
   size: string;
 }
 
-/** Fiche élève renvoyée par GET/POST /admin/students : uniquement des champs réels. APP-TL-22 (2026-11-14) : aucune
+/** Fiche élève renvoyée par GET/POST /admin/students : uniquement des champs réels. APP-TL-22 : aucune
  *  donnée financière (l'état financier reste dans Finances › Écolages, sous la permission finances.lire). */
 export function mapStudentFromApi(raw: unknown, idx = 0): Student {
   const s = objetBrut(raw);

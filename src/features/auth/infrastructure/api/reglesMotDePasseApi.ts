@@ -3,9 +3,9 @@ import { publicApiClient } from '@/shared/lib/apiClient';
 import { nombreOuNull, objetBrut, texte, textes } from '@/shared/lib/lectureServeur';
 
 /**
- * Règles de mot de passe d'un rôle, données par le serveur (GET /auth/regles-mot-de-passe?role=, public, 15/11 :
- * politique unique PolitiqueMotDePasse). Plus aucune règle écrite en dur dans les formulaires : longueur minimale
- * selon le rôle (10 élèves et parents, 12 école, 14 plateforme), phrases de passe acceptées, plus de « une lettre
+ * Règles de mot de passe d'un rôle, données par le serveur (GET /auth/regles-mot-de-passe?role=, public :
+ * politique unique PolitiqueMotDePasse). Aucune règle écrite en dur dans les formulaires : longueur minimale
+ * selon le rôle (10 élèves et parents, 12 école, 14 plateforme), phrases de passe acceptées, pas de « une lettre
  * et un chiffre ». Le serveur reste juge : ses refus (nom, école, mot courant…) sont affichés sous le champ.
  */
 export interface ReglesMotDePasse {

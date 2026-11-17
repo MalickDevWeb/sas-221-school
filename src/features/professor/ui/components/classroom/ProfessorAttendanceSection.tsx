@@ -20,7 +20,7 @@ export function ProfessorAttendanceSection({ students, attendance, onMarkAttenda
   const stats = useMemo(() => {
     let p = 0, r = 0, a = 0;
     students.forEach((s) => {
-      // élève pas encore noté : ni présent ni absent (avant : compté « absent » d'office, taux 0 %)
+      // élève pas encore noté : ni présent ni absent
       const st = attendance[s.id];
       if (st === 'present') p++; else if (st === 'retard') r++; else if (st === 'absent') a++;
     });

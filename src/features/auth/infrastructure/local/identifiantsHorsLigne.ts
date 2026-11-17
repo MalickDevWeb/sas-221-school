@@ -2,8 +2,7 @@ import type { Utilisateur } from '../../domain/model/Utilisateur';
 
 /**
  * Connexion hors-ligne : seule une EMPREINTE du mot de passe est conservée (PBKDF2-SHA-256, sel aléatoire
- * propre à chaque compte), jamais le mot de passe lui-même. Avant : `btoa(motDePasse)`, simple encodage
- * base64 lisible par quiconque accède au navigateur.
+ * propre à chaque compte), jamais le mot de passe lui-même.
  * Web Crypto n'existe qu'en contexte sécurisé (HTTPS ou localhost) : ailleurs, la connexion hors-ligne est
  * désactivée plutôt que de retomber sur un stockage faible.
  */
@@ -96,7 +95,7 @@ export async function verifierHorsLigne(email: string, motDePasse: string): Prom
 
 /**
  * Rôle d'un compte déjà connecté sur cet appareil (null sinon). Sert seulement à télécharger à l'avance le code de son
- * espace pendant la vérification du mot de passe (2026-11-16) : aucune donnée n'est affichée avant la réponse du serveur.
+ * espace pendant la vérification du mot de passe : aucune donnée n'est affichée avant la réponse du serveur.
  */
 export function roleMemorise(email: string): string | null {
   if (typeof localStorage === 'undefined') return null;
@@ -115,7 +114,7 @@ export function rolesMemorises(): string[] {
 let memorisationsEnCours: Promise<void> = Promise.resolve();
 
 /**
- * Mémorise en arrière-plan (2026-11-16) : l'empreinte PBKDF2 prend 100 à 500 ms selon l'appareil et retardait
+ * Mémorise en arrière-plan : l'empreinte PBKDF2 prend 100 à 500 ms selon l'appareil et retarderait
  * l'ouverture de l'espace. Une page qui se recharge juste après une connexion attend `memorisationHorsLigneTerminee()`
  * (sinon le rechargement interromprait le calcul).
  */

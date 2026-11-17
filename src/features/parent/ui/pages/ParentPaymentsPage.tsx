@@ -4,7 +4,7 @@ import { apiClient } from '../../../../shared/lib/apiClient';
 
 /**
  * Réponse de GET /parent/paiements (PaymentDto côté backend, APP-BE-18).
- * 2026-11-14 : situation RÉELLE des enfants, saisie par la comptabilité de l'école (versements = PAYE, reste dû =
+ * Situation RÉELLE des enfants, saisie par la comptabilité de l'école (versements = PAYE, reste dû =
  * EN_COURS ou RETARD, sans date d'échéance inventée). Sans dossier financier : { statut: 'non_disponible' }.
  * Aucun paiement en ligne n'est branché : « Comment payer » l'explique au lieu d'afficher de faux moyens de paiement.
  */

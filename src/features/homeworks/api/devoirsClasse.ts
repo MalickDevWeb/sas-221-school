@@ -2,12 +2,8 @@ import { apiClient } from '@/shared/lib/apiClient';
 import { estObjet, listeBrute, nombreOuNull, objetBrut, texte, texteOuNull } from '@/shared/lib/lectureServeur';
 
 /**
- * Devoirs de classe de l'élève (2026-11-13).
- *
- * Avant : la page « Mes devoirs » lisait GET /student/homeworks (une table de devoirs personnels que rien
- * n'alimente → liste toujours vide), filtrait sur une liste de cours écrite en dur, et déposait les fichiers sur
- * POST /student/homeworks/{id}/submit, route inexistante. Les devoirs publiés par les professeurs (avec rendu,
- * retard, note et commentaire) étaient pourtant servis par GET /student/devoirs-classe, que rien n'appelait.
+ * Devoirs de classe de l'élève : devoirs publiés par les professeurs (avec rendu, retard, note et commentaire),
+ * servis par GET /student/devoirs-classe.
  */
 export type EtatDevoir = 'a_rendre' | 'rendu' | 'corrige';
 

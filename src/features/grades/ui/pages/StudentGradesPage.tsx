@@ -10,8 +10,6 @@ const fmt = (v: number | null | undefined) =>
  * Page « Notes » de l'élève : uniquement des données réelles.
  * - Bulletin calculé à partir des évaluations saisies par les professeurs (même calcul que leur écran).
  * - Ancien relevé « CC / Examen », s'il existe des notes de ce type.
- * Avant : rang déduit de paliers (« 105ème sur 142 étudiants »), crédits ECTS, « Année 2023-24 » et message
- * de félicitations affichés quelle que soit la réalité.
  */
 export function StudentGradesPage() {
   const { grades, isLoading, error } = useGrades();

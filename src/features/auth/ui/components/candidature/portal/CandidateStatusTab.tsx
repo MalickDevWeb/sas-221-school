@@ -20,9 +20,9 @@ const heure = (iso: string) => {
 };
 
 /**
- * Espace du candidat (17/11) : statut réel du dossier, SES pièces (consultées dans l'application, ajoutées ou
- * remplacées tant que la décision n'est pas rendue) et ses échanges avec l'école. Avant : lecture seule et
- * « contactez directement l'école ». Session de suivi de 2 h : à l'expiration, retour à la connexion.
+ * Espace du candidat : statut réel du dossier, SES pièces (consultées dans l'application, ajoutées ou
+ * remplacées tant que la décision n'est pas rendue) et ses échanges avec l'école. Session de suivi de 2 h : à
+ * l'expiration, retour à la connexion.
  */
 export function CandidateStatusTab({ dossier: initial, onSessionExpiree }: { dossier: DossierCandidat; onSessionExpiree?: () => void }) {
   const [dossier, setDossier] = useState(initial);

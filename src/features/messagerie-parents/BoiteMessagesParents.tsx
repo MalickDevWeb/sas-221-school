@@ -101,7 +101,7 @@ export function BoiteMessagesParents({ boite, titre, description }: { boite: Boi
       {erreur && <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold">{erreur}</div>}
 
       {messages === null ? (
-        // Échec de chargement : seul le message d'erreur s'affiche (avant : « Aucun message », trompeur)
+        // Échec de chargement : seul le message d'erreur s'affiche (« Aucun message » serait trompeur)
         boiteQ.error ? null : <p className="text-sm text-neutral-500">Chargement des messages…</p>
       ) : fils.length === 0 ? (
         <div className="p-8 text-center bg-white rounded-2xl border border-neutral-100">

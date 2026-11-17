@@ -16,7 +16,7 @@ export function exportToICS(sessions: CourseSession[], className: string = 'L3-G
     'X-WR-TIMEZONE:Africa/Dakar'
   ];
 
-  // Dates de la semaine EN COURS (2026-11-14 : avant, toutes les séances tombaient la semaine du 23 octobre 2023)
+  // Dates de la semaine EN COURS
   const getFormattedDate = (jour: CourseSession['jour'], time: string): string => {
     const cleanTime = (time || '00:00').replace(':', '') + '00';   // "08:00" -> "080000"
     return `${dateCompacteDuJour(jour)}T${cleanTime}`;

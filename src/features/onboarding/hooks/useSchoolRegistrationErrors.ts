@@ -69,7 +69,7 @@ export function mapRegistrationApiError(
   const msg = rawMessage || '';
   const lowerMsg = msg.toLowerCase();
 
-  // 16/11 : refus du mot de passe par le serveur (politique unique : longueur, mot courant, nom de l'école, e-mail,
+  // Refus du mot de passe par le serveur (politique unique : longueur, mot courant, nom de l'école, e-mail,
   // téléphone…) affiché SOUS le champ. Testé en premier : ces messages citent aussi « téléphone » ou « e-mail ».
   if (lowerMsg.includes('mots de passe saisis ne correspondent')) {
     return { fieldErrors: { adminPasswordConfirm: msg }, sousLeChampSeulement: true,

@@ -18,7 +18,7 @@ export function CalendarWidget({ variant = 'default' }: { variant?: 'default' | 
     const dayName = daysNameMap[dayOfWeekIndex];
     let classItem, hasClass = false, mainColor = '';
 
-    if (dayOfWeekIndex < 6) {   // samedi compris (2026-11-14)
+    if (dayOfWeekIndex < 6) {   // samedi compris
       const dayKeys: ('LUN'|'MAR'|'MER'|'JEU'|'VEN'|'SAM')[] = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
       classItem = state.rawSessions.find(s => s.jour === dayKeys[dayOfWeekIndex]);
       if (classItem) {

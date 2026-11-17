@@ -1,9 +1,8 @@
 /**
- * Lecture typée des réponses JSON du serveur (APP-FE-03, 2026-11-13).
+ * Lecture typée des réponses JSON du serveur (APP-FE-03).
  *
- * Avant : chaque écran lisait les réponses en `any` (`(r: any) => r.nom`) : une faute de nom de champ passait
- * inaperçue à la compilation et l'écran affichait vide ou « undefined ». Ces fonctions acceptent une valeur
- * inconnue (`unknown`) et renvoient un type sûr, sans jamais inventer de valeur : un champ absent reste vide ou null.
+ * Ces fonctions acceptent une valeur inconnue (`unknown`) et renvoient un type sûr, sans jamais inventer de valeur :
+ * un champ absent reste vide ou null. En `any`, une faute de nom de champ passerait inaperçue à la compilation.
  */
 
 /** Objet JSON reçu, lu champ par champ. */

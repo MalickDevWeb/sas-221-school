@@ -1,8 +1,7 @@
 /**
- * Bandeau d'erreurs d'exécution, en DÉVELOPPEMENT uniquement.
- * Avant : script en ligne dans index.html, actif en production pour tous les utilisateurs, qui affichait
- * le message brut et la trace de pile (fuite d'informations internes) via innerHTML (HTML interprété),
- * et empêchait une politique de sécurité du contenu sans 'unsafe-inline' (APP-SEC-07).
+ * Bandeau d'erreurs d'exécution, en DÉVELOPPEMENT uniquement (APP-SEC-07) : en production, le message brut et la
+ * trace de pile seraient une fuite d'informations internes ; pas de script en ligne dans index.html, pour une
+ * politique de sécurité du contenu sans 'unsafe-inline'.
  */
 const ignorer = (texte: string) => texte.toLowerCase().includes('websocket');
 

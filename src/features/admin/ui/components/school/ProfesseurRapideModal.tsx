@@ -11,7 +11,7 @@ interface Props {
 }
 
 /**
- * Création d'un professeur sans quitter l'emploi du temps (16/11) : formulaire EXISTANT de Gestion Personnel
+ * Création d'un professeur sans quitter l'emploi du temps : formulaire EXISTANT de Gestion Personnel
  * (AddStaffCard : validation, erreurs du serveur sous le champ) avec le rôle fixé à « Enseignant ».
  * Après création, les listes « Profs » du planning et du personnel sont relues : le professeur se glisse aussitôt.
  */

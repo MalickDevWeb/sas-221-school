@@ -10,7 +10,7 @@ interface Props {
   readonly onChangeLeader: (groupId: string, leaderId: string, leaderName: string) => Promise<void>;
 }
 
-/** Membres réels du groupe sélectionné et désignation du chef (2026-11-13). */
+/** Membres réels du groupe sélectionné et désignation du chef. */
 export function GroupMembersPanel({ group, peutChangerChef, onChangeLeader }: Props) {
   const [erreur, setErreur] = useState('');
   const [envoi, setEnvoi] = useState(false);

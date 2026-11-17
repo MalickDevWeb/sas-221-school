@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { ACCEPT_FORMATS, LIBELLE_FORMATS, type PiecesRegles as EtatPieces, type PieceRegle } from './usePiecesRegles';
 
 /**
- * Pièces demandées par l'école d'après ses règles d'admission (16/11) : liste, envoi au format exigé, blocage
+ * Pièces demandées par l'école d'après ses règles d'admission : liste, envoi au format exigé, blocage
  * éventuel expliqué. Rien n'est affiché si aucune règle ne s'applique au dossier.
  */
 export function PiecesRegles({ regles }: { regles: EtatPieces }) {

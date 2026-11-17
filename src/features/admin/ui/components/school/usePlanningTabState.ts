@@ -35,7 +35,7 @@ export function usePlanningTabState(
   const apercuDeplacement = (id: string, day: string, slot: string) => evaluerDeplacement(slots, id, day, slot, nomClasse);
 
   /**
-   * Cours glissé vers une autre case (16/11) : liste complète enregistrée tout de suite, le cours garde son identifiant.
+   * Cours glissé vers une autre case : liste complète enregistrée tout de suite, le cours garde son identifiant.
    * Message de réussite seulement quand le serveur a accepté ; un refus du serveur (409) affiche son message et la
    * grille est relue (useAdminSchoolState).
    */
@@ -75,7 +75,6 @@ export function usePlanningTabState(
   const handleDropItem = (day: string, slot: string, item: { type: 'teacher' | 'room' | 'class'; name: string }) => {
     if (!selectedClassId) return;
     if (item.type === 'class') {
-      // Avant : la classe déposée devenait l'enseignant du cours (« L1 Genie » affiché à la place du professeur)
       annoncer('erreur', 'Une classe ne se dépose pas sur la grille : choisissez-la dans la liste « Classe » en haut.', 6000);
       return;
     }

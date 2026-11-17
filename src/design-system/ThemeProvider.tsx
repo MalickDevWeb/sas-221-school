@@ -66,8 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   /**
-   * Couleur enregistrée côté serveur AVANT d'être appliquée (avant : appliquée dans ce seul navigateur, puis
-   * « palette mise à jour pour l'établissement » annoncée). Lève l'erreur du serveur en cas de refus.
+   * Couleur enregistrée côté serveur AVANT d'être appliquée. Lève l'erreur du serveur en cas de refus.
    */
   const saveTheme = async (primaryHex: string) => {
     await enregistrerIdentite({ primaryColor: primaryHex });

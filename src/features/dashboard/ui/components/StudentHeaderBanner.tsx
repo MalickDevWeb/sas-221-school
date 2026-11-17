@@ -22,8 +22,7 @@ export function StudentHeaderBanner({
   const greeting = currentHour >= 18 ? 'Bonsoir' : currentHour >= 12 ? 'Bon après-midi' : 'Bonjour';
   const welcomeMessage = nameToDisplay ? `${greeting}, ${nameToDisplay} !` : `${greeting} !`;
 
-  // 16/11 : sens du prochain pointage et pointages du jour donnés par le serveur (avant : parité du nombre de
-  // présences aux cours, sans rapport avec les pointages)
+  // Sens du prochain pointage et pointages du jour donnés par le serveur
   const { prochainType: nextPointerType, aujourdhui, sensConnu } = useMesPointages();
 
   // Aucun QR sans matricule réel (pas de badge inventé) ; le contenu est signé par le serveur (QR dessiné localement).

@@ -2,7 +2,7 @@ import { nomPays } from '@/shared/constants/pays';
 import { MENTIONS, SERIES_BAC } from '@/features/auth/ui/components/candidature/portal/listesBac';
 
 /**
- * Règles d'admission de l'école (16/11) — miroir du serveur (ReglesAdmissionService) :
+ * Règles d'admission de l'école — miroir du serveur (ReglesAdmissionService) :
  * « SI condition(s) ALORS effet », pour une session ou pour toutes, appliquées au dépôt du dossier.
  */
 export type Champ = 'nationalite' | 'age' | 'sexe' | 'serieBac' | 'mentionBac' | 'anneeBac' | 'depotParent';

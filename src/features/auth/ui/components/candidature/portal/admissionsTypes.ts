@@ -37,7 +37,7 @@ export interface UploadedDocInfo {
   uploadedAt: string;
   status: 'ready' | 'uploaded';
   url?: string;
-  /** 17/11 : aperçu dans l'application (fichier resté dans le navigateur) — la pièce envoyée est confidentielle. */
+  /** Aperçu dans l'application (fichier resté dans le navigateur) — la pièce envoyée est confidentielle. */
   apercu?: { url: string; type: string };
 }
 

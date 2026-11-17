@@ -13,7 +13,7 @@ export function ProfessorModuleList({ modules, students, onSelectModule }: Props
   const [localModules, setLocalModules] = useState<CourseModule[]>([]);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
 
-  // modules RÉELS du serveur (avant : une ancienne copie du navigateur « p_modules » les remplaçait)
+  // modules RÉELS du serveur
   const syncModules = React.useCallback(() => {
     setLocalModules([...modules]);
   }, [modules]);

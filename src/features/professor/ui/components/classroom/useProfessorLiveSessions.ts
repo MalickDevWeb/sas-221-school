@@ -32,12 +32,11 @@ export function useProfessorLiveSessions(courseName: string, triggerToast: (msg:
     return () => clearInterval(interval);
   }, [fetchSessions]);
 
-  // 2026-11-14 : statut renvoyé « ACTIVE » (avant : comparé à « active » → le cours en direct n'était jamais reconnu)
+  // Statut renvoyé « ACTIVE »
   const active = sessions.find((s) => s.courseName === courseName && String(s.status).toLowerCase() === 'active');
 
   /**
-   * Diffuse le cours aux élèves. 2026-11-14 : le lien Google Meet est collé par le professeur (avant : il fallait
-   * d'abord se connecter à Google par Firebase, configuré avec des valeurs factices → cours impossible à lancer).
+   * Diffuse le cours aux élèves. Le lien Google Meet est collé par le professeur.
    * Renvoie null si le cours est diffusé, sinon le message à afficher sous le champ.
    */
   const startMeet = async (title: string, rawUrl: string, profName: string): Promise<string | null> => {

@@ -1,5 +1,5 @@
 /**
- * Validation personnalisée des formulaires (demande du Tech Lead, 2026-11-09).
+ * Validation personnalisée des formulaires.
  *
  * Les règles restent celles déclarées sur les champs (required, type="email", minLength,
  * pattern, min/max…), mais la bulle native du navigateur (« Veuillez renseigner ce champ. »)

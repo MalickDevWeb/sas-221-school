@@ -26,7 +26,7 @@ export function CandidatureNavbar({ schoolDisplayName, onBack }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* téléphone RÉEL de l'école (avant : « +221 33 800 00 00 » pour toutes) ; masqué s'il n'est pas renseigné */}
+          {/* téléphone RÉEL de l'école ; masqué s'il n'est pas renseigné */}
           {telephoneEcole && (
             <a
               href={`tel:${telephoneEcole.replace(/\s+/g, '')}`}

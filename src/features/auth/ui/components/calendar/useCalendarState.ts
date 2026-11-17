@@ -46,8 +46,7 @@ function toCalendarSession(raw: any): CourseSession | null {
 
 export function useCalendarState() {
   const { utilisateur } = useAuthStore();
-  // 2026-11-14 : plus de choix entre trois classes inventées (L3GL, L2SR, M1IA) qui ne filtraient rien ; la classe
-  // affichée est celle des séances réelles. « level » ne sert plus qu'à ranger les notes personnelles.
+  // La classe affichée est celle des séances réelles. « level » ne sert qu'à ranger les notes personnelles.
   const level = 'perso';
   const setLevel = (_v: string) => undefined;
   const [weekType, setWeekType] = useState<'currentWeek' | 'nextWeek'>('currentWeek');
@@ -126,7 +125,7 @@ export function useCalendarState() {
     }
   };
 
-  // L'emploi du temps est hebdomadaire : la semaine prochaine reprend les mêmes séances (2026-11-14 : avant, vide).
+  // L'emploi du temps est hebdomadaire : la semaine prochaine reprend les mêmes séances.
   const rawSessions = realSessions;
 
   const displayedSessions = rawSessions.filter(c => {

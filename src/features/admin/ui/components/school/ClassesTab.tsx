@@ -18,8 +18,7 @@ function dansCycle(cls: Classe, cycle: Cycle): boolean {
   return true;
 }
 
-/** Même règle que la fiche 360° de la classe : identifiant de classe, sinon nom exact (avant : tout élève dont la
- * classe CONTENAIT le niveau, ex. « L1 », était compté dans chaque classe de L1). */
+/** Même règle que la fiche 360° de la classe : identifiant de classe, sinon nom exact. */
 const estDansClasse = (s: Student, cls: Classe) =>
   s.classeId ? s.classeId === cls.id : !!s.classe && s.classe.toLowerCase() === cls.name.toLowerCase();
 

@@ -5,7 +5,7 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useSessionConfigState() {
   const { settings, updateSettings } = useCandidatureSettings();
-  // Valeurs du serveur uniquement (avant : session « ouverte », clôture au 31/10/2026 et 50 000 FCFA inventés)
+  // Valeurs du serveur uniquement
   const [generalOpen, setGeneralOpen] = useState(settings.ouvert);
   const [generalDeadline, setGeneralDeadline] = useState(settings.dateFermeture);
   const [generalFees, setGeneralFees] = useState<number | null>(null);

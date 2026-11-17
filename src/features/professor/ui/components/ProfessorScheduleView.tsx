@@ -6,7 +6,7 @@ import { ProfessorGridView } from './ProfessorGridView';
 import { ProfessorTimelineView } from './ProfessorTimelineView';
 import { ProfessorSessionModal } from './ProfessorSessionModal';
 
-/** Semaine RÉELLE (lundi → vendredi) — avant : « Semaine du 23 au 27 Octobre 2023 • Semestre 1 » en dur. */
+/** Semaine RÉELLE (lundi → vendredi). */
 function semaineCourante(aujourdhui: Date = new Date()): string {
   const lundi = new Date(aujourdhui);
   lundi.setDate(aujourdhui.getDate() - ((aujourdhui.getDay() + 6) % 7));
@@ -50,8 +50,8 @@ export function ProfessorScheduleView({ schedule, handleCancelCourse, handleResc
     return mType && mStatus && mClass && mSearch;
   };
 
-  // APP-TL-26 (2026-11-14) : l'adresse n'est plus lue pour un « #access_token » (avant : n'importe quel jeton
-  // était gardé dans le navigateur, avec « Connexion à Google Calendar réussie ! ») ; l'agenda s'exporte en .ics.
+  // APP-TL-26 : l'adresse n'est pas lue pour un « #access_token » (n'importe quel jeton serait gardé dans le
+  // navigateur) ; l'agenda s'exporte en .ics.
 
   return (
     <div className="flex-1 min-h-screen bg-[#FAF8F6] relative">

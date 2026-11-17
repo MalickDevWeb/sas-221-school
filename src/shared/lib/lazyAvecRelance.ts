@@ -30,7 +30,7 @@ export function lazyAvecRelance<T extends Chargeable>(
     let dernierRechargement = 0;
     try { dernierRechargement = Number(sessionStorage.getItem(CLE_RECHARGEMENT) ?? 0); } catch { /* stockage indisponible */ }
     // Rechargement seulement avec du réseau : hors ligne, il afficherait la page d'erreur du navigateur au lieu de
-    // l'écran d'erreur de l'application (relevé par hors_ligne_navigateur le 14/11).
+    // l'écran d'erreur de l'application (relevé par hors_ligne_navigateur).
     const enLigne = typeof navigator === 'undefined' || navigator.onLine;
     if (enLigne && Date.now() - dernierRechargement > 60_000) {
       try { sessionStorage.setItem(CLE_RECHARGEMENT, String(Date.now())); } catch { /* stockage indisponible */ }

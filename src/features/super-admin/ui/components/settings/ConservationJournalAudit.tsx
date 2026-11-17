@@ -17,8 +17,8 @@ interface Conservation {
 const CHEMIN = '/v1/super-admin/parametres/journal-audit';
 
 /**
- * Durée de conservation du journal d'audit (2026-11-14) — RÉELLEMENT enregistrée sur le serveur (paramètres de la
- * plateforme, migration V14). Décision du Tech Lead : 30 minutes pour l'instant, modifiable ici sans toucher au code.
+ * Durée de conservation du journal d'audit — RÉELLEMENT enregistrée sur le serveur (paramètres de la
+ * plateforme, migration V14) : 30 minutes pour l'instant, modifiable ici sans toucher au code.
  * La base n'admet la suppression d'une entrée qu'après cette durée ; la purge passe chaque minute.
  */
 export const ConservationJournalAudit: React.FC = () => {

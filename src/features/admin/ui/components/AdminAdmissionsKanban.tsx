@@ -34,7 +34,7 @@ export function AdminAdmissionsKanban() {
   /** Enregistre la liste côté serveur ; l'écran n'est mis à jour qu'après réponse 2xx. */
   const persistCandidates = async (nextList: ExtendedCandidate[]): Promise<boolean> => {
     try {
-      // Client authentifié (avant : client public sans jeton → 401 à chaque décision, route réservée à l'administration)
+      // Client authentifié : route réservée à l'administration
       await saveAdmissionsDb({ candidates: nextList });
       setCandidates(nextList);
       return true;

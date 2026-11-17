@@ -36,7 +36,7 @@ export function useSchoolRegistration() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registeredOrg, setRegisteredOrg] = useState<RegisteredSchool | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  // Règles du mot de passe de l'administration d'école, données par le serveur (16/11 : plus de « 8 caractères » en dur)
+  // Règles du mot de passe de l'administration d'école, données par le serveur
   const longueurMin = useReglesMotDePasse('ADMIN').data?.longueurMin ?? null;
   const [errorModal, setErrorModal] = useState<{ isOpen: boolean; title: string; message: string; field?: string }>({
     isOpen: false, title: '', message: '',
@@ -57,8 +57,8 @@ export function useSchoolRegistration() {
   };
 
   /**
-   * Étape 1 valide = format correct ET identifiant libre (16/11 : avant, seul le format était contrôlé ; un identifiant
-   * déjà pris laissait passer aux étapes 2 et 3 et n'était refusé qu'à l'envoi final).
+   * Étape 1 valide = format correct ET identifiant libre (sinon un identifiant déjà pris n'est refusé qu'à l'envoi
+   * final).
    */
   const validerEtape1 = async (): Promise<boolean> => {
     const erreurs = validateRegistrationStep1(formData);
@@ -130,15 +130,15 @@ export function useSchoolRegistration() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 16/11 : les trois étapes sont dans un seul formulaire ; « Entrée » aux étapes 1 et 2 envoyait l'inscription.
-    // Elle fait maintenant passer à l'étape suivante, avec les mêmes vérifications que « Continuer ».
+    // Les trois étapes sont dans un seul formulaire : « Entrée » aux étapes 1 et 2 fait passer à l'étape suivante,
+    // avec les mêmes vérifications que « Continuer ».
     if (step < 3) {
       await goToNextStep();
       return;
     }
     const valErrors = validateRegistrationStep3(formData, longueurMin);
     if (Object.keys(valErrors).length > 0) {
-      // 2026-11-15 : champs vides ou invalides → on reste sur le formulaire, sans fenêtre ni appel au serveur ; les
+      // Champs vides ou invalides → on reste sur le formulaire, sans fenêtre ni appel au serveur ; les
       // messages sont sous les champs et le curseur va au premier champ en erreur.
       signalerErreurs(valErrors);
       return;
@@ -146,7 +146,7 @@ export function useSchoolRegistration() {
 
     setIsLoading(true);
     setFieldErrors({});
-    // 16/11 : dernière vérification juste avant l'envoi (une autre école a pu prendre l'identifiant, l'e-mail ou le
+    // Dernière vérification juste avant l'envoi (une autre école a pu prendre l'identifiant, l'e-mail ou le
     // numéro entre-temps) : message sous le champ concerné, sans fenêtre ; identifiant pris → retour à l'étape 1.
     const dispo = await verifierDisponibilite({
       slug: formData.slug?.trim(),
@@ -206,8 +206,8 @@ export function useSchoolRegistration() {
     draftManagementUseCase.clearDraft();
     const theme = { primaryColor: subData.primaryColor, palette: branding.palette };
     useTenantStore.setState({
-      // 16/11 : sans statut, « Accéder au portail » réutilisait cette copie (resolveTenant) et montrait le formulaire de
-      // connexion au lieu de l'écran « en attente de validation ». Une école qui vient de s'inscrire est en attente.
+      // Une école qui vient de s'inscrire est en attente : sans statut, « Accéder au portail » réutiliserait cette
+      // copie (resolveTenant) et montrerait le formulaire de connexion au lieu de l'écran « en attente de validation ».
       currentTenant: { id: res.id, name: res.name || subData.schoolName, slug: subData.slug, branding: theme,
         statut: (res.status?.value ?? 'PENDING').toUpperCase() },
     });

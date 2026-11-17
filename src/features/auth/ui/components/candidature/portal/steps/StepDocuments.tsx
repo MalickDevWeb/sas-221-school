@@ -18,13 +18,13 @@ interface Props {
   removeDoc: (key: keyof DocumentsState) => void;
   onNext: () => void;
   onPrev: () => void;
-  /** 16/11 : pièces exigées par les règles d'admission de l'école (absent : aucune). */
+  /** Pièces exigées par les règles d'admission de l'école (absent : aucune). */
   regles?: EtatPiecesRegles;
 }
 
 export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, uploadProgress = 0, simulateDocUpload, removeDoc, onNext, onPrev, regles }: Props) {
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-  // 17/11 : aperçu de SA pièce dans l'application (la pièce envoyée est confidentielle : aucun lien à ouvrir)
+  // Aperçu de SA pièce dans l'application (la pièce envoyée est confidentielle : aucun lien à ouvrir)
   const [apercu, setApercu] = useState<{ titre: string; url: string; type: string } | null>(null);
   const docList = [
     { key: 'idCard' as const, label: "Carte Nationale d'Identité ou Passeport", required: true, icon: 'solar:user-id-bold-duotone' },

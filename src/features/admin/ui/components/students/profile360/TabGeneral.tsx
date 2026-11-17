@@ -22,7 +22,7 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
   const [isSaved, setIsSaved] = useState(false);
   const [echec, setEchec] = useState(false);
 
-  /** « Enregistré » seulement si le serveur a accepté (avant : affiché même en cas de refus, résultat ignoré). */
+  /** « Enregistré » seulement si le serveur a accepté. */
   const handleSave = async () => {
     setEchec(false);
     const enregistre = onUpdateProfileFields
@@ -91,7 +91,7 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
         </button>
       </div>
 
-      {/* APP-BE-27 (2026-11-14) : comptes parents liés à l'élève */}
+      {/* APP-BE-27 : comptes parents liés à l'élève */}
       <ParentsEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
     </div>
   );

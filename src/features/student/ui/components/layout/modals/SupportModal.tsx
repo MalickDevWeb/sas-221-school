@@ -8,8 +8,8 @@ interface Props {
 }
 
 /**
- * Support de l'élève (2026-11-14). Avant : formulaire de « ticket » dont l'envoi était simulé (rien n'arrivait nulle
- * part). Aucun service de tickets n'existe : on oriente l'élève vers la scolarité de SON école, avec ses coordonnées.
+ * Support de l'élève. Aucun service de tickets n'existe : on oriente l'élève vers la scolarité de SON école, avec ses
+ * coordonnées.
  */
 export function SupportModal({ showSupportModal, setShowSupportModal }: Props) {
   const { currentTenant } = useTenantStore();

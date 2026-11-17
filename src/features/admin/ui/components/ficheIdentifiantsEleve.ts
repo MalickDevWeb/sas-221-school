@@ -27,7 +27,7 @@ export function imprimerFicheIdentifiantsEleve(f: FicheIdentifiantsEleve): boole
     if (f.parent.identifiant) lignes.push(['Identifiant du parent', f.parent.identifiant]);
     if (f.parent.motDePasse) lignes.push(['Mot de passe provisoire du parent', f.parent.motDePasse]);
   }
-  // 2026-11-15 : modèle commun des documents de l'école (en-tête, logo ou initiales, pied « Page x/n », A4)
+  // Modèle commun des documents de l'école (en-tête, logo ou initiales, pied « Page x/n », A4)
   return ouvrirDocumentImprimable({
     titre: "Fiche d'identifiants de l'élève", sousTitre: f.nom, titreFenetre: `Fiche d'identifiants — ${f.matricule ?? f.nom}`,
     corps: `${tableauCleValeurHtml(lignes.map(([k, v]) => ({ cle: k, valeur: String(v ?? '') })))}

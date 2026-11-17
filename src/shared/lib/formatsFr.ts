@@ -1,7 +1,7 @@
 import { dateServeur } from './dateServeur';
 
 /**
- * Formats français partagés (charte d'écriture, §2 et §3 ; 2026-11-15). À utiliser au lieu des variantes locales
+ * Formats français partagés (charte d'écriture, §2 et §3). À utiliser au lieu des variantes locales
  * (`fcfa()`, `fmt()`, `toLocaleString()` sans locale, `toFixed()` affiché tel quel).
  * Valeur absente ou illisible : « — » (jamais « null », « NaN » ni un 0 non mesuré).
  */

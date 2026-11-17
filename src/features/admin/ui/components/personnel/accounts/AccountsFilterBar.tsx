@@ -11,7 +11,7 @@ interface Props {
   onFilterStatusChange: (val: string) => void;
 }
 
-/** Recherche et filtres des comptes du personnel (barre commune des listes, 16/11). */
+/** Recherche et filtres des comptes du personnel (barre commune des listes). */
 export const AccountsFilterBar: React.FC<Props> = ({
   search,
   onSearchChange,

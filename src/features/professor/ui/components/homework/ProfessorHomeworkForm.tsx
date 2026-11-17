@@ -29,7 +29,7 @@ export function ProfessorHomeworkForm(props: Props) {
             <option value="haute">Haute</option>
           </select>
         </div>
-        {/* vrai sélecteur de date (avant : texte libre « 15 Octobre - 23h59 », refusé par le serveur) */}
+        {/* vrai sélecteur de date */}
         <div>
           <label className="text-[10px] font-black uppercase text-secondary">Date limite</label>
           <input type="date" required data-msg-requis="Choisissez la date limite du devoir." value={props.hwDeadline}

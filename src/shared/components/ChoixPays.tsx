@@ -7,9 +7,9 @@ type Props = React.SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 /**
- * Liste des pays (16/11) : la valeur est le code ISO (« SN »), le libellé le nom du pays (« Sénégal »).
- * Avant : nationalité en saisie libre (« Sénégalaise », « senegalais », « SN »…), impossible à comparer dans une règle
- * d'admission. Liste native : fiable sur les téléphones d'entrée de gamme, accessible au clavier et aux lecteurs d'écran.
+ * Liste des pays : la valeur est le code ISO (« SN »), le libellé le nom du pays (« Sénégal ») ; une saisie libre
+ * serait impossible à comparer dans une règle d'admission. Liste native : fiable sur les téléphones d'entrée de
+ * gamme, accessible au clavier et aux lecteurs d'écran.
  * Compatible react-hook-form ({...register('nationalite')}).
  */
 export const ChoixPays = React.forwardRef<HTMLSelectElement, Props>(function ChoixPays(

@@ -11,9 +11,8 @@ export interface Disponibilites {
 }
 
 /**
- * Vérification immédiate (sans délai de frappe), faite avant de changer d'étape et avant l'envoi de l'inscription
- * (16/11 : on pouvait atteindre l'étape 3 avec un identifiant déjà pris). null si le serveur ne répond pas : on ne bloque
- * pas alors, l'inscription revérifie de toute façon côté serveur.
+ * Vérification immédiate (sans délai de frappe), faite avant de changer d'étape et avant l'envoi de l'inscription.
+ * null si le serveur ne répond pas : on ne bloque pas alors, l'inscription revérifie de toute façon côté serveur.
  */
 export async function verifierDisponibilite(params: { email?: string; phone?: string; slug?: string }): Promise<Disponibilites | null> {
   const requete: Record<string, string> = {};

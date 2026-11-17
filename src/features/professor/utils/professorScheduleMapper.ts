@@ -2,8 +2,7 @@ import type { ProfessorSchedule } from '../domain/ProfessorModels';
 import type { CourseSession } from '@/features/schedule/domain/Schedule';
 import { decouperHoraire } from './scheduleFormatter';
 
-// 2026-11-14 : samedi et noms anglais reconnus ; avant, tout jour non reconnu (« Samedi », « MONDAY »…) tombait
-// le lundi (jour inventé).
+// Samedi et noms anglais reconnus.
 const DAY_MAP: Record<string, CourseSession['jour']> = {
   LUNDI: 'LUN', LUN: 'LUN', MONDAY: 'LUN',
   MARDI: 'MAR', MAR: 'MAR', TUESDAY: 'MAR',

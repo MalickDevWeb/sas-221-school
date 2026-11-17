@@ -13,7 +13,7 @@ export function ParentHeader() {
   const [pushPerm, setPushPerm] = useState<NotificationPermission>(() => getPushPermission());
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name || 'École 221';
-  // Initiales du compte connecté (avant : « MD » codé en dur pour tous les parents)
+  // Initiales du compte connecté
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const prenomCompte = (utilisateur as { prenom?: string } | null)?.prenom?.trim() || '';
   const initiales = `${prenomCompte[0] ?? ''}${utilisateur?.nom?.trim()?.[0] ?? ''}`.toUpperCase() || '—';

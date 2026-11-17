@@ -8,7 +8,7 @@ interface Props {
   onToggleCollapse: () => void;
 }
 
-/** Sous-menu du module (modèle commun SousMenuModule, 2026-11-15). */
+/** Sous-menu du module (modèle commun SousMenuModule). */
 export function SchoolSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
   const entrees: EntreeSousMenu[] = [
     { id: 'classes', libelle: 'Classes', icone: 'account_tree' },

@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/lib/apiClient';
 import { AccessTerminal } from '../../../domain/SecurityModels';
 
-/** Terminaux d'accès de l'école (APP-BE-21) — avant : aucune source, actions seulement affichées. */
+/** Terminaux d'accès de l'école (APP-BE-21). */
 export const terminauxApi = {
   lister: async () => (await apiClient.get<AccessTerminal[]>('/admin/terminaux')).data,
   creer: async (corps: { name: string; location?: string }) => (await apiClient.post<AccessTerminal>('/admin/terminaux', corps)).data,
