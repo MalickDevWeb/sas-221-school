@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
+import { nomPays } from '@/shared/constants/pays';
 
 /** Libellés des informations saisies au dépôt (portail candidat ou espace parent). */
 const LIBELLES_DOSSIER: Record<string, string> = {
@@ -22,7 +23,7 @@ export function CandidateDetailsSection({ candidate }: { candidate: ExtendedCand
         <div>Filière Cible : <span className="text-[#1E293B] block font-extrabold">{candidate.course}</span></div>
 
         {dossier.map(([cle, v]) => (
-          <div key={cle}>{LIBELLES_DOSSIER[cle]} : <span className="text-[#1E293B] block">{cle === 'sexe' ? (v === 'F' ? 'Féminin' : v === 'M' ? 'Masculin' : v) : v}</span></div>
+          <div key={cle}>{LIBELLES_DOSSIER[cle]} : <span className="text-[#1E293B] block">{cle === 'sexe' ? (v === 'F' ? 'Féminin' : v === 'M' ? 'Masculin' : v) : cle === 'nationalite' ? nomPays(v) : v}</span></div>
         ))}
 
         {d?.universityOfOrigin && (<>

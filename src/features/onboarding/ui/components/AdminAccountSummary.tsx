@@ -72,7 +72,7 @@ export const AdminAccountSummary: React.FC<AdminAccountSummaryProps> = ({
         >
           {isLoading ? (
             <>
-              <Icon icon="solar:spinner-bold" className="text-lg animate-spin" />
+              <Icon icon="solar:refresh-bold" className="text-lg animate-spin" />
               <span>Génération de votre école...</span>
             </>
           ) : (

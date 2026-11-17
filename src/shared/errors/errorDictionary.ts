@@ -43,10 +43,19 @@ export const ERROR_MESSAGES: Record<string, string> = {
 /**
  * Résout le meilleur message d'erreur pour l'utilisateur
  */
-/** Codes trop vagues pour l'utilisateur : le message précis renvoyé par le serveur est préféré. */
+/**
+ * Codes trop vagues pour l'utilisateur : le message précis renvoyé par le serveur est préféré.
+ * AUTH_ACCESS_DENIED (16/11) : le serveur pose ce code sur TOUT refus 403, y compris les refus métier motivés
+ * (« Les candidatures ne sont pas ouvertes dans cette école. », « Cet élève n'est pas l'un de vos enfants. »…) ;
+ * avant, le parent lisait « Accès refusé : vous n'avez pas les autorisations nécessaires. » au lieu du vrai motif.
+ */
 const CODES_GENERIQUES = new Set<string>([
   ERROR_CODES.VALIDATION_ERROR, ERROR_CODES.RESOURCE_NOT_FOUND, ERROR_CODES.OPERATION_NOT_ALLOWED,
+  ERROR_CODES.AUTH_ACCESS_DENIED,
 ]);
+
+/** Libellés HTTP anglais bruts (« Forbidden », « Not Found »…) renvoyés quand le serveur n'a pas de motif : jamais affichés. */
+const LIBELLE_HTTP_BRUT = /^(bad request|unauthorized|forbidden|not found|conflict|internal server error|access denied)\.?$/i;
 
 /** Marque posée sur une erreur dont l'écran affiche lui-même le message (évite le double message global). */
 export const ERREUR_AFFICHEE = '__erreurAffichee';
@@ -82,7 +91,8 @@ export function messageErreur(erreur: unknown): string {
   // informations… » à la place de « Cette adresse e-mail est déjà utilisée. » — test navigateur 2026-11-09).
   const data = reponse?.data;
   const corps = objetBrut(data);
-  const precis = typeof corps.message === 'string' && corps.message.trim().length > 0 ? corps.message.trim() : null;
+  const precis = typeof corps.message === 'string' && corps.message.trim().length > 0 && !LIBELLE_HTTP_BRUT.test(corps.message.trim())
+    ? corps.message.trim() : null;
   const code = typeof corps.code === 'string' ? corps.code : null;
   if (code && CODES_GENERIQUES.has(code) && precis) {
     return precis;

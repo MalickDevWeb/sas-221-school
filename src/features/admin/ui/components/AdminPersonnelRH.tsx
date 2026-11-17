@@ -5,16 +5,17 @@ import { AccountsTab } from './personnel/AccountsTab';
 import { RbacTab } from './personnel/RbacTab';
 import { AttendanceTab } from './personnel/AttendanceTab';
 import { StaffMember } from '../../domain/PersonnelModels';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { apiClient } from '@/shared/lib/apiClient';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { useRepliSousMenu } from '@/shared/components/SousMenuModule';
+import { creerCompteCollaborateur } from './personnel/accounts/creerCompteCollaborateur';
 
 /** Clé de cache du personnel de l'école. */
 const CLE_PERSONNEL = ['admin', 'personnel'] as const;
 
 export function AdminPersonnelRH() {
   const [activeTab, setActiveTab] = useState('accounts');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, basculerRepli] = useRepliSousMenu('personnel');
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -39,15 +40,17 @@ export function AdminPersonnelRH() {
   const handleAddStaff = async (newMember: { firstName: string; lastName: string; email: string; phone: string; role: string }) => {
     // Une erreur du serveur est levée telle quelle : le formulaire l'affiche sous le champ concerné
     // (ex. « Cette adresse e-mail est déjà utilisée. »), au lieu d'une simple notification.
-    const res = await apiClient.post('/admin/staff', newMember);
-    const { motDePasseProvisoire, ...created } = res.data ?? {};
-    if (!created?.id) {
+    const resultat = await creerCompteCollaborateur(newMember);
+    if (!resultat) {
       showToast("Réponse du serveur incomplète : rechargez la liste du personnel.", false);
       return null;
     }
-    setStaff(prev => [...prev.filter(s => s.id !== created.id), created as StaffMember]);
+    const created = resultat.member;
+    setStaff(prev => [...prev.filter(s => s.id !== created.id), created]);
+    // Un nouvel enseignant doit aussi apparaître dans l'onglet « Profs » du planning
+    void client.invalidateQueries({ queryKey: ['admin', 'professeurs'] });
     showToast(`Compte pour ${created.firstName || newMember.firstName} créé.`, true);
-    return { member: created as StaffMember, motDePasseProvisoire: (motDePasseProvisoire as string | undefined) ?? null };
+    return resultat;
   };
 
   const handleUpdateStaff = async (updated: StaffMember): Promise<boolean> => {
@@ -90,14 +93,14 @@ export function AdminPersonnelRH() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-personnel-rh-root">
-      <TabletDrawerWrapper>
+      <div className="shrink-0 lg:sticky lg:top-4">
         <PersonnelSubSidebar
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          onToggleCollapse={basculerRepli}
         />
-      </TabletDrawerWrapper>
+      </div>
 
       <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden">
         {toast && (
@@ -118,6 +121,7 @@ export function AdminPersonnelRH() {
         {activeTab === 'accounts' && (
           <AccountsTab
             staff={staff}
+            chargement={personnel.isPending}
             onAddStaff={handleAddStaff}
             onUpdateStaff={handleUpdateStaff}
             onDeleteStaff={handleDeleteStaff}

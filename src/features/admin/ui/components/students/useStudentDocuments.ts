@@ -32,6 +32,7 @@ export function useStudentDocuments(studentId: string) {
       const form = new FormData();
       form.append('file', file);
       form.append('userId', studentId);
+      form.append('confidentiel', 'true');   // 17/11 : coffre de l'élève, lisible seulement dans l'application
       const upRes = await apiClient.post<{ url?: string }>('/media/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });

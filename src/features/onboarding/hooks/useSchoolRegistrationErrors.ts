@@ -2,6 +2,8 @@ import type { SchoolRegistrationFormData } from '../domain/OnboardingModels';
 
 export interface MappedErrorResult {
   fieldErrors: Record<string, string>;
+  /** Refus rattaché à un champ de l'étape affichée (mot de passe) : message sous le champ, sans fenêtre. */
+  sousLeChampSeulement?: boolean;
   modalTitle: string;
   modalMessage: string;
   modalField?: string;
@@ -26,7 +28,11 @@ export function validateRegistrationStep1(data: SchoolRegistrationFormData): Rec
 /** Téléphone sénégalais : +221 suivi d'un numéro à 9 chiffres commençant par 7 ou 3 (espaces tolérés). */
 export const TELEPHONE_SN = /^(\+?221[\s.-]?)?[37]\d([\s.-]?\d){7}$/;
 
-export function validateRegistrationStep3(data: SchoolRegistrationFormData): Record<string, string> {
+/**
+ * @param longueurMin longueur minimale du mot de passe de l'administration d'école, donnée par le serveur
+ *   (GET /auth/regles-mot-de-passe?role=ADMIN) ; null tant qu'elle n'est pas connue (le serveur contrôle alors seul).
+ */
+export function validateRegistrationStep3(data: SchoolRegistrationFormData, longueurMin: number | null = null): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (!data.adminFirstName?.trim()) errors.adminFirstName = 'Le prénom est requis.';
@@ -44,8 +50,8 @@ export function validateRegistrationStep3(data: SchoolRegistrationFormData): Rec
   if (data.adminPassword !== undefined) {
     if (!data.adminPassword) {
       errors.adminPassword = 'Le mot de passe est obligatoire.';
-    } else if (data.adminPassword.length < 8) {
-      errors.adminPassword = 'Le mot de passe doit comporter au moins 8 caractères.';
+    } else if (longueurMin !== null && [...data.adminPassword].length < longueurMin) {
+      errors.adminPassword = `Le mot de passe doit contenir au moins ${longueurMin} caractères.`;
     }
 
     if (data.adminPasswordConfirm !== undefined && data.adminPassword !== data.adminPasswordConfirm) {
@@ -62,6 +68,17 @@ export function mapRegistrationApiError(
 ): MappedErrorResult {
   const msg = rawMessage || '';
   const lowerMsg = msg.toLowerCase();
+
+  // 16/11 : refus du mot de passe par le serveur (politique unique : longueur, mot courant, nom de l'école, e-mail,
+  // téléphone…) affiché SOUS le champ. Testé en premier : ces messages citent aussi « téléphone » ou « e-mail ».
+  if (lowerMsg.includes('mots de passe saisis ne correspondent')) {
+    return { fieldErrors: { adminPasswordConfirm: msg }, sousLeChampSeulement: true,
+      modalTitle: 'Mot de passe à corriger', modalMessage: msg, modalField: 'Mot de passe' };
+  }
+  if (lowerMsg.includes('mot de passe')) {
+    return { fieldErrors: { adminPassword: msg }, sousLeChampSeulement: true,
+      modalTitle: 'Mot de passe à corriger', modalMessage: msg, modalField: 'Mot de passe' };
+  }
 
   if (errorCode === 'USER_PHONE_ALREADY_EXISTS' || lowerMsg.includes('téléphone') || lowerMsg.includes('telephone')) {
     return {

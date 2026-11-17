@@ -429,7 +429,7 @@ export function SmartExcelImportModal({
                 <table className="w-full text-left border-collapse text-xs font-semibold text-neutral-600">
                   <thead>
                     <tr className="bg-[#FAF8F6] text-[10px] font-black text-neutral-400 uppercase tracking-wider border-b border-neutral-200">
-                      <th className="px-5 py-3">Champ Système École 221</th>
+                      <th className="px-5 py-3">Champ de l'application</th>
                       <th className="px-5 py-3">Correspondance détectée</th>
                       <th className="px-5 py-3">Colonne Associée</th>
                     </tr>

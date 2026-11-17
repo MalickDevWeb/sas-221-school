@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStudentDocuments } from './useStudentDocuments';
+import { VisionneuseFichier } from '@/shared/components/VisionneuseFichier';
+import { usePeutTelecharger } from '@/shared/hooks/usePeutTelecharger';
 
 export function CoffreSubTab({ studentId }: { studentId: string }) {
   const { docs, loading, uploading, uploadFile, error } = useStudentDocuments(studentId);
+  // 17/11 : document confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
+  const [visionne, setVisionne] = useState<{ id: string; name: string } | null>(null);
+  const telechargeable = usePeutTelecharger('eleves');
 
   return (
     <div className="space-y-3 text-xs" id="coffre-sub-tab">
@@ -63,19 +68,22 @@ export function CoffreSubTab({ studentId }: { studentId: string }) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[9px] text-neutral-400 font-medium">{d.size}</span>
-                <a
-                  href={d.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-md font-black text-[9px] uppercase tracking-wider transition-colors inline-block"
+                <button
+                  type="button"
+                  onClick={() => setVisionne({ id: d.id, name: d.name })}
+                  className="px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-md font-black text-[9px] uppercase tracking-wider transition-colors inline-block border-0 cursor-pointer"
                 >
-                  Ouvrir
-                </a>
+                  Voir
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+      {visionne && (
+        <VisionneuseFichier titre={visionne.name} chemin={`/admin/students/${encodeURIComponent(studentId)}/documents/${encodeURIComponent(visionne.id)}/fichier`}
+          telechargeable={telechargeable} nomFichier="document" onFermer={() => setVisionne(null)} />
+      )}
     </div>
   );
 }

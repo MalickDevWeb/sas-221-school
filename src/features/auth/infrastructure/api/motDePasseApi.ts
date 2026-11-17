@@ -3,16 +3,15 @@ import { apiClient } from '@/shared/lib/apiClient';
 /** Code renvoyé par le serveur (403) tant que le mot de passe provisoire n'a pas été remplacé. */
 export const CODE_MOT_DE_PASSE_PROVISOIRE = 'MOT_DE_PASSE_PROVISOIRE';
 
-/** Mêmes règles que le serveur (ChangementMotDePasseService.erreurRegles). */
-export const LONGUEUR_MIN_MOT_DE_PASSE = 10;
-
-export function erreurReglesMotDePasse(nouveau: string): string | null {
+/**
+ * Contrôle avant envoi, avec la longueur minimale donnée par le serveur pour le rôle du compte
+ * (GET /auth/regles-mot-de-passe, voir reglesMotDePasseApi.ts) ; null si elle n'est pas encore connue (le serveur
+ * contrôle alors seul). 15/11 : plus de règle « une lettre et un chiffre » (phrases de passe acceptées).
+ */
+export function erreurReglesMotDePasse(nouveau: string, longueurMin: number | null): string | null {
   if (!nouveau.trim()) return 'Le nouveau mot de passe est obligatoire.';
-  if (nouveau.length < LONGUEUR_MIN_MOT_DE_PASSE) {
-    return `Le nouveau mot de passe doit contenir au moins ${LONGUEUR_MIN_MOT_DE_PASSE} caractères.`;
-  }
-  if (!/\p{L}/u.test(nouveau) || !/\p{N}/u.test(nouveau)) {
-    return 'Le nouveau mot de passe doit contenir au moins une lettre et un chiffre.';
+  if (longueurMin !== null && [...nouveau].length < longueurMin) {
+    return `Le nouveau mot de passe doit contenir au moins ${longueurMin} caractères.`;
   }
   return null;
 }

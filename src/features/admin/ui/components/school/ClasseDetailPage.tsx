@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
+import { ficheClassePdf } from './ficheClassePdf';
 import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
 import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
+import { AjouterEleveExistant } from './AjouterEleveExistant';
 import { MotDePasseProvisoireModal } from '../MotDePasseProvisoireModal';
+import { avecNombre } from '@/shared/lib/pluriel';
 import { apiClient } from '@/shared/lib/apiClient';
 import { demanderConfirmation } from '@/shared/lib/confirmation';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
@@ -14,6 +16,8 @@ import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const fcfa = (n: number | null | undefined) => (n == null ? '—' : `${n.toLocaleString('fr-FR')} FCFA`);
+/** Valeur par défaut stable (un « [] » recréé à chaque rendu relancerait la synchronisation sans fin). */
+const AUCUN_ELEVE: Student[] = [];
 
 interface Props {
   classe: Classe;
@@ -29,7 +33,7 @@ export function ClasseDetailPage({
   classe,
   filieres,
   slots,
-  allStudents = [],
+  allStudents = AUCUN_ELEVE,
   onBack,
   onEditClasse,
   onUpdateStudents,
@@ -44,13 +48,19 @@ export function ClasseDetailPage({
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [newStudentMatricule, setNewStudentMatricule] = useState('');   // vide = généré par le serveur
   const [newStudentPhone, setNewStudentPhone] = useState('');
+  // APP-TL-23 : élève sans e-mail → connexion par matricule (même règle que l'inscription des admis)
+  const [newStudentSansEmail, setNewStudentSansEmail] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
-  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; email: string; motDePasse: string } | null>(null);
+  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; identifiant: string; connexionParMatricule: boolean; matricule: string | null; motDePasse: string } | null>(null);
 
   // Élèves de cette classe : uniquement ceux que le serveur rattache à la classe (aucun élève emprunté à d'autres classes)
-  const [classStudents, setClassStudents] = useState<Student[]>(() =>
-    allStudents.filter(s => (s.classeId ? s.classeId === classe.id : !!s.classe && s.classe.toLowerCase() === classe.name.toLowerCase()))
-  );
+  const elevesDeLaClasse = useMemo(() =>
+    allStudents.filter(s => (s.classeId ? s.classeId === classe.id : !!s.classe && s.classe.toLowerCase() === classe.name.toLowerCase())),
+  [allStudents, classe.id, classe.name]);
+  const [classStudents, setClassStudents] = useState<Student[]>(elevesDeLaClasse);
+  // 16/11 : avant, la liste n'était calculée qu'à l'ouverture de la fiche. Les élèves de l'école arrivent pourtant
+  // après (chargement asynchrone) ou sont relus après une inscription, et la fiche restait sur « Aucun élève » (0).
+  useEffect(() => { setClassStudents(elevesDeLaClasse); }, [elevesDeLaClasse]);
 
   const filiereName = filieres.find(f => f.id === classe.filiereId)?.name || 'Tronc Commun / Multidisciplinaire';
   const classSlots = slots.filter(s => s.classeId === classe.id || s.classeId === classe.name);
@@ -76,6 +86,7 @@ export function ClasseDetailPage({
   // sont suivis dans Finances › Écolages.
   const expectedRevenue = price != null ? totalStudents * price : null;
   const occupancyRate = capacity ? Math.min(100, Math.round((totalStudents / capacity) * 100)) : null;
+  const capaciteDepassee = capacity != null && capacity > 0 && totalStudents > capacity;
 
   const filteredStudents = classStudents.filter(s => {
     const matchesSearch =
@@ -95,13 +106,15 @@ export function ClasseDetailPage({
       if (champ) afficherErreur(champ, 'Le nom et le prénom de l\'élève sont obligatoires.');
       return;
     }
-    if (!EMAIL_VALIDE.test(email)) {
+    if (!newStudentSansEmail && !EMAIL_VALIDE.test(email)) {
       const champ = form.querySelector<HTMLInputElement>('input[name="email"]');
-      if (champ) afficherErreur(champ, 'Une adresse e-mail valide est obligatoire (identifiant de connexion).');
+      if (champ) afficherErreur(champ, "Saisissez l'adresse e-mail de l'élève, ou cochez « Sans e-mail » (connexion par matricule).");
       return;
     }
 
-    const body: Record<string, string> = { name: nom, email, classeId: classe.id };
+    const body: Record<string, string | boolean> = newStudentSansEmail
+      ? { name: nom, sansEmail: true, classeId: classe.id }
+      : { name: nom, email, classeId: classe.id };
     if (newStudentPhone.trim()) body.telephone = newStudentPhone.trim();
     if (newStudentMatricule.trim()) body.matricule = newStudentMatricule.trim();
 
@@ -109,18 +122,27 @@ export function ClasseDetailPage({
     try {
       const { data } = await apiClient.post<unknown>('/admin/students', body);
       const cree = mapStudentFromApi(data);
-      const motDePasseProvisoire = texteOuNull(objetBrut(data).motDePasseProvisoire);
+      const brut = objetBrut(data);
+      const motDePasseProvisoire = texteOuNull(brut.motDePasseProvisoire);
+      const connexionParMatricule = brut.sansEmail === true;
       const updated = [cree, ...classStudents];
       setClassStudents(updated);
       if (onUpdateStudents) onUpdateStudents(updated);
       toast.success(`Compte élève créé pour ${cree.name}.`);
       if (motDePasseProvisoire) {
-        setMotDePasseInfo({ nom: cree.name, email: cree.email, motDePasse: motDePasseProvisoire });
+        setMotDePasseInfo({
+          nom: cree.name,
+          identifiant: texteOuNull(brut.identifiant) ?? (connexionParMatricule ? cree.matricule : cree.email),
+          connexionParMatricule,
+          matricule: cree.matricule || null,
+          motDePasse: motDePasseProvisoire,
+        });
       }
       setNewStudentName('');
       setNewStudentEmail('');
       setNewStudentMatricule('');
       setNewStudentPhone('');
+      setNewStudentSansEmail(false);
       setIsAddingStudent(false);
     } catch (err) {
       toast.error(resolveErrorMessage(err));   // formulaire conservé, liste inchangée
@@ -186,42 +208,18 @@ export function ClasseDetailPage({
     toast.success('Fiche promotionnelle exportée en Excel avec succès !');
   };
 
-  // Export de la promotion en PDF officiel
-  const exportClassToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`ÉCOLE 221 - FICHE DE PROMOTION`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Classe : ${classe.name} (${classe.level})`, 14, 30);
-    doc.text(`Filière : ${filiereName}`, 14, 38);
-    doc.text(`Effectif : ${totalStudents} élèves • Frais annuels : ${fcfa(price)}`, 14, 46);
-
-    doc.setLineWidth(0.5);
-    doc.line(14, 58, 196, 58);
-
-    doc.setFontSize(10);
-    let y = 68;
-    doc.setFont('helvetica', 'bold');
-    doc.text('N°', 14, y);
-    doc.text('Nom & Prénom', 26, y);
-    doc.text('Matricule', 85, y);
-    doc.text('Téléphone', 125, y);
-
-    doc.setFont('helvetica', 'normal');
-    classStudents.forEach((s, idx) => {
-      y += 8;
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(String(idx + 1), 14, y);
-      doc.text(s.name.substring(0, 28), 26, y);
-      doc.text(s.matricule, 85, y);
-      doc.text(s.phoneParent || '—', 125, y);
-    });
-
-    doc.save(`Fiche_Officielle_${classe.name.replace(/\s+/g, '_')}.pdf`);
-    toast.success('Document PDF officiel de la promotion téléchargé !');
+  // Fiche de classe PDF : modèle commun des documents de l'école (2026-11-15 ; avant : « ÉCOLE 221 » écrit en dur,
+  // espaces fines rendues « / », tableau vide sans message, ni logo, ni date, ni pagination)
+  const exportClassToPDF = async () => {
+    try {
+      await ficheClassePdf({
+        classe: classe.name, niveau: classe.level, filiere: filiereName, fraisAnnuels: price, capacite: capacity,
+        eleves: classStudents.map(s => ({ nom: s.name, matricule: s.matricule, telephone: s.phoneParent || null })),
+      });
+      toast.success('Fiche de classe téléchargée (PDF).');
+    } catch (err) {
+      toast.error(`Fiche de classe non produite : ${err instanceof Error ? err.message : 'erreur inconnue'}.`);
+    }
   };
 
   return (
@@ -258,7 +256,7 @@ export function ClasseDetailPage({
           </button>
 
           <button
-            onClick={exportClassToPDF}
+            onClick={() => void exportClassToPDF()}
             className="px-3 py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             title="Générer la fiche PDF officielle"
           >
@@ -319,9 +317,14 @@ export function ClasseDetailPage({
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Effectif Actuel</span>
               <span className="text-xl font-black text-white mt-0.5 block">{totalStudents} / {capacity ?? '—'}</span>
               <div className="w-full bg-white/20 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${occupancyRate ?? 0}%` }} />
+                <div className={`${capaciteDepassee ? 'bg-amber-400' : 'bg-primary'} h-full rounded-full transition-all`} style={{ width: `${occupancyRate ?? 0}%` }} />
               </div>
-              <span className="text-[9px] text-neutral-400 block mt-1">{occupancyRate == null ? 'Capacité non renseignée' : `${occupancyRate}% de remplissage`}</span>
+              {/* 16/11 : capacité dépassée annoncée (avant : « 100% de remplissage », le taux étant plafonné) */}
+              <span id="classe-remplissage" className={`text-[9px] block mt-1 ${capaciteDepassee ? 'text-amber-300 font-bold' : 'text-neutral-400'}`}>
+                {occupancyRate == null ? 'Capacité non renseignée'
+                  : capaciteDepassee && capacity != null ? `Capacité dépassée de ${avecNombre(totalStudents - capacity, 'élève')}`
+                    : `${occupancyRate}\u00a0% de remplissage`}
+              </span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
@@ -405,13 +408,15 @@ export function ClasseDetailPage({
         {/* TAB 1: STUDENTS */}
         {activeTab === 'students' && (
           <div className="space-y-5">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-grow max-w-lg">
+            {/* flex-wrap (16/11) : avec le 3e bouton, les boutons passent sous la recherche quand la place manque */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-grow min-w-[14rem] max-w-lg">
                 <div className="relative flex-grow">
                   <span translate="no" className="material-symbols-outlined absolute left-3 top-2.5 text-neutral-400 text-sm">search</span>
                   <input
                     type="text"
-                    placeholder="Rechercher par nom ou matricule..."
+                    placeholder="Rechercher dans cette classe (nom ou matricule)…"
+                    aria-label="Rechercher un élève de cette classe par nom ou matricule"
                     value={studentSearch}
                     onChange={e => setStudentSearch(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-[#FAF8F6] border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
@@ -419,7 +424,7 @@ export function ClasseDetailPage({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setShowExcelImport(true)}
                   className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
@@ -427,6 +432,14 @@ export function ClasseDetailPage({
                   <span translate="no" className="material-symbols-outlined text-sm text-emerald-600">upload_file</span>
                   <span>Importer Excel / CSV</span>
                 </button>
+                {/* 16/11 : élève déjà inscrit dans l'école (souvent sans classe) rangé dans cette classe ; liste relue */}
+                <AjouterEleveExistant
+                  classe={classe}
+                  onRelu={(eleves) => {
+                    setClassStudents(eleves);
+                    if (onUpdateStudents) onUpdateStudents(eleves);
+                  }}
+                />
                 <button
                   onClick={() => setIsAddingStudent(!isAddingStudent)}
                   className="px-4 py-2 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all flex items-center gap-1.5 cursor-pointer border-0"
@@ -470,16 +483,25 @@ export function ClasseDetailPage({
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email * (identifiant de connexion)</label>
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email {newStudentSansEmail ? '' : '* '}(identifiant de connexion)</label>
                     <input
                       type="email"
                       name="email"
-                      required
-                      placeholder="prenom.nom@exemple.sn"
+                      required={!newStudentSansEmail}
+                      disabled={newStudentSansEmail}
+                      placeholder={newStudentSansEmail ? 'Connexion par matricule' : 'prenom.nom@exemple.sn'}
                       value={newStudentEmail}
                       onChange={e => setNewStudentEmail(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary disabled:bg-neutral-100"
                     />
+                    <label className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newStudentSansEmail}
+                        onChange={e => { setNewStudentSansEmail(e.target.checked); if (e.target.checked) setNewStudentEmail(''); }}
+                      />
+                      Sans e-mail (connexion par matricule)
+                    </label>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Téléphone</label>
@@ -493,7 +515,7 @@ export function ClasseDetailPage({
                   </div>
                 </div>
                 <p className="text-[10px] text-neutral-500 font-semibold m-0">
-                  Le compte est créé dans l'école ; un mot de passe provisoire est généré par le serveur et affiché une seule fois.
+                  Le compte est créé dans l'école ; un mot de passe provisoire est généré par le serveur et affiché une seule fois, avec une fiche à imprimer.
                   L'élève est affecté à cette classe.
                 </p>
                 <div className="flex justify-end gap-2 pt-1">
@@ -530,8 +552,20 @@ export function ClasseDetailPage({
                 <tbody className="divide-y divide-neutral-100">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-5 py-10 text-center text-neutral-400 font-bold">
-                        Aucun élève affecté à cette classe pour le moment.
+                      <td colSpan={5} className="px-5 py-10 text-center text-neutral-500 font-bold">
+                        {/* 16/11 : la recherche ne porte que sur les élèves de la classe ; avant, une recherche sans résultat
+                            affichait « aucun élève affecté », comme si la classe était vide */}
+                        {classStudents.length === 0 || !studentSearch.trim() ? (
+                          'Aucun élève dans cette classe pour l\'instant.'
+                        ) : (
+                          <span className="inline-flex flex-col items-center gap-2">
+                            <span>Aucun élève de cette classe ne correspond à « {studentSearch.trim()} ».</span>
+                            <button type="button" onClick={() => setStudentSearch('')}
+                              className="text-xs font-bold text-primary underline underline-offset-2 cursor-pointer">
+                              Effacer la recherche
+                            </button>
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ) : (
@@ -727,8 +761,16 @@ export function ClasseDetailPage({
       {motDePasseInfo && (
         <MotDePasseProvisoireModal
           nom={motDePasseInfo.nom}
-          identifiant={motDePasseInfo.email}
+          identifiant={motDePasseInfo.identifiant}
           motDePasse={motDePasseInfo.motDePasse}
+          connexionParMatricule={motDePasseInfo.connexionParMatricule}
+          fiche={{
+            nom: motDePasseInfo.nom,
+            classe: classe.name,
+            matricule: motDePasseInfo.matricule,
+            identifiant: motDePasseInfo.identifiant,
+            connexionParMatricule: motDePasseInfo.connexionParMatricule,
+          }}
           onClose={() => setMotDePasseInfo(null)}
         />
       )}

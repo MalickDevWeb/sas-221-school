@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { X, Save, Palette, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { superAdminService } from '@/services/superAdminService';
-import { useTenantStore } from '@/core/store/tenantStore';
-import { useAuthStore } from '@/core/store/authStore';
 import type { Tenant, CreateTenantCommand } from '../../../domain/models/PlatformModels';
+import { useEntrerDansEcole } from '../../hooks/useEntrerDansEcole';
 
 interface Props {
   tenant: Tenant;
@@ -15,7 +13,7 @@ interface Props {
 }
 
 export const EditTenantModal: React.FC<Props> = ({ tenant, onClose, onUpdated }) => {
-  const navigate = useNavigate();
+  const entrerDansEcole = useEntrerDansEcole();
   const [form, setForm] = useState<Partial<CreateTenantCommand>>({
     name: tenant.name || '', email: tenant.email || '', city: tenant.city || '',
     country: tenant.country || '', phone: tenant.phone || '', website: tenant.website || '', address: tenant.address || '',
@@ -35,11 +33,8 @@ export const EditTenantModal: React.FC<Props> = ({ tenant, onClose, onUpdated })
   };
 
   const jumpTo = (path: string) => {
-    const slug = tenant.slug || tenant.id;
-    useTenantStore.getState().setTenantContext(tenant);
-    useAuthStore.getState().impersonateSchoolAdmin();
     onClose();
-    navigate(`/t/${slug}${path}`);
+    entrerDansEcole(tenant, path);
   };
 
   return (

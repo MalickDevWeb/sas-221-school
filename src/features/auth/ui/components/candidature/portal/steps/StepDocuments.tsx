@@ -1,7 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Icon } from '@iconify/react';
 import { DocumentsState } from '../admissionsTypes';
+import { PiecesRegles } from '../PiecesRegles';
+import { VisionneuseFichier } from '@/shared/components/VisionneuseFichier';
+import type { PiecesRegles as EtatPiecesRegles } from '../usePiecesRegles';
 
 interface Props {
   docs: DocumentsState;
@@ -15,10 +18,14 @@ interface Props {
   removeDoc: (key: keyof DocumentsState) => void;
   onNext: () => void;
   onPrev: () => void;
+  /** 16/11 : pièces exigées par les règles d'admission de l'école (absent : aucune). */
+  regles?: EtatPiecesRegles;
 }
 
-export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, uploadProgress = 0, simulateDocUpload, removeDoc, onNext, onPrev }: Props) {
+export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, uploadProgress = 0, simulateDocUpload, removeDoc, onNext, onPrev, regles }: Props) {
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  // 17/11 : aperçu de SA pièce dans l'application (la pièce envoyée est confidentielle : aucun lien à ouvrir)
+  const [apercu, setApercu] = useState<{ titre: string; url: string; type: string } | null>(null);
   const docList = [
     { key: 'idCard' as const, label: "Carte Nationale d'Identité ou Passeport", required: true, icon: 'solar:user-id-bold-duotone' },
     { key: 'diploma' as const, label: 'Attestation de Réussite ou Diplôme du Bac', required: true, icon: 'solar:diploma-bold-duotone' },
@@ -92,7 +99,10 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
                 <div className="flex items-center gap-2 shrink-0">
                   {doc ? (
                     <div className="flex items-center gap-1">
-                      {doc.url && <a href={doc.url} target="_blank" rel="noreferrer" className="px-2 py-1 text-[10px] font-bold text-neutral-600 hover:bg-neutral-100 rounded-lg">Voir</a>}
+                      {doc.apercu && (
+                        <button type="button" onClick={() => setApercu({ titre: item.label, ...doc.apercu! })}
+                          className="px-2 py-1 text-[10px] font-bold text-neutral-600 hover:bg-neutral-100 rounded-lg cursor-pointer bg-transparent border-0">Voir</button>
+                      )}
                       <button type="button" onClick={() => removeDoc(item.key)} className="px-2 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer">Remplacer</button>
                     </div>
                   ) : (
@@ -114,6 +124,11 @@ export function StepDocuments({ docs, docErrors = {}, uploadDoc, uploadingDoc, u
           );
         })}
       </div>
+
+      {regles && <PiecesRegles regles={regles} />}
+      {apercu && (
+        <VisionneuseFichier titre={apercu.titre} local={{ url: apercu.url, type: apercu.type }} onFermer={() => setApercu(null)} />
+      )}
 
       <div className="pt-3 border-t border-neutral-100 flex justify-between">
         <button type="button" onClick={onPrev} className="h-11 px-5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">

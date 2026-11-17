@@ -1,6 +1,11 @@
+import { URL_API, entetesServeur } from '@/shared/lib/entetesApi';
+
 /**
  * Téléverse un fichier vers Cloudinary via le backend Spring Boot (/api/media/upload)
  * avec rapport de progression XHR (0-100%).
+ *
+ * 2026-11-15 (revue DevSecOps B3) : l'XHR ne portait ni X-Tenant-Slug ni Authorization (hors axios) ; le serveur ne
+ * lisant plus le Referer, le fichier était refusé (404) ou attribué à l'école par défaut. Mêmes en-têtes que le client axios (entetesApi).
  *
  * Deux modes :
  * - par défaut (comportement historique, conservé pour les appelants existants) : en cas d'échec,
@@ -25,6 +30,11 @@ export class UploadError extends Error {
 export interface UploadOptions {
   /** Si vrai, aucun repli DataURL : l'échec est levé en `UploadError`. */
   strict?: boolean;
+  /**
+   * 17/11 : document confidentiel (pièce d'identité, relevé, justificatif…) : rangé en privé, son lien n'ouvre rien ;
+   * il ne se consulte que dans l'application, après vérification de la personne connectée.
+   */
+  confidentiel?: boolean;
 }
 
 function defaultMessageForStatus(status: number): string {
@@ -50,13 +60,17 @@ function parseJson(text: string): unknown {
   }
 }
 
-function sendUpload(file: File, onProgress?: (percent: number) => void): Promise<string> {
+function sendUpload(file: File, onProgress?: (percent: number) => void, confidentiel = false): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
+  if (confidentiel) formData.append('confidentiel', 'true');
 
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/media/upload');
+    xhr.open('POST', `${URL_API}/media/upload`);
+    xhr.withCredentials = true;   // cookie de session HttpOnly, comme apiClient
+    // Content-Type laissé au navigateur (multipart avec sa frontière) ; jamais X-Tenant-Id (fiche 04)
+    Object.entries(entetesServeur({ avecJeton: true })).forEach(([nom, valeur]) => xhr.setRequestHeader(nom, valeur));
 
     if (onProgress && xhr.upload) {
       xhr.upload.onprogress = (e) => {
@@ -93,11 +107,11 @@ export async function uploadToCloudinary(
   options: UploadOptions = {}
 ): Promise<string> {
   if (options.strict) {
-    return sendUpload(file, onProgress);
+    return sendUpload(file, onProgress, options.confidentiel);
   }
 
   try {
-    return await sendUpload(file, onProgress);
+    return await sendUpload(file, onProgress, options.confidentiel);
   } catch (err) {
     console.warn('[Cloudinary] Backend upload fallback to DataURL:', err);
   }

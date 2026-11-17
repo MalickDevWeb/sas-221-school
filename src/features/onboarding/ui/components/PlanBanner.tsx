@@ -24,7 +24,7 @@ export const PlanBanner: React.FC<PlanBannerProps> = ({ planParam, isTrial }) =>
           ) : planParam === 'enterprise' ? (
             <Icon icon="solar:global-bold-duotone" className="text-xl text-indigo-400" />
           ) : (
-            <Icon icon="solar:school-bold-duotone" className="text-xl text-cyan-400" />
+            <Icon icon="solar:square-academic-cap-bold-duotone" className="text-xl text-cyan-400" />
           )}
         </div>
         <div>

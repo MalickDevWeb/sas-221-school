@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Classe, Filiere } from '../../../domain/SchoolModels';
 import { reporterErreurServeur } from '@/shared/errors/erreursServeurChamps';
 import { DeleteConfirmInput } from './DeleteConfirmInput';
+import { FiliereRapide } from './FiliereRapide';
 
 interface Props {
   classe?: Classe | null;
@@ -13,6 +14,8 @@ interface Props {
   /** Renvoie le message du serveur en cas d'échec (la fenêtre reste alors ouverte avec la saisie). */
   onSave: (classe: Classe) => Promise<string | null> | void;
   onDelete?: (id: string) => void;
+  /** Crée une filière sans quitter la fenêtre (null si enregistrée, sinon le message du serveur). */
+  onCreerFiliere?: (filiere: Filiere) => Promise<string | null>;
 }
 
 const entier = (v: string) => Number(v.trim());
@@ -31,13 +34,20 @@ const schemaClasse = z.object({
 });
 type SaisieClasse = z.infer<typeof schemaClasse>;
 
+/** Saisie numérique : seuls les chiffres sont gardés (« zzzzz » ou « 450 000 » collé → « » ou « 450000 »). */
+const chiffresSeuls = (v: string) => v.replace(/\D/g, '');
+
 const MOTS_CLES = { capacity: /capacité/i, price: /frais/i, filiereId: /filière/i, name: /\bnom\b/i } as const;
 const champCls = 'w-full mt-1 px-3 py-2 border border-neutral-200 rounded-xl bg-white text-xs focus:outline-none focus:border-primary aria-[invalid=true]:border-rose-400';
 
-export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }: Props) {
+export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete, onCreerFiliere }: Props) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [erreurGlobale, setErreurGlobale] = useState('');
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<SaisieClasse>({
+  const [filiereRapideOuverte, setFiliereRapideOuverte] = useState(false);
+  /** Filière créée ici, à sélectionner dès qu'elle apparaît dans la liste. */
+  const [filiereASelectionner, setFiliereASelectionner] = useState<string | null>(null);
+  const [caracteresRefuses, setCaracteresRefuses] = useState<Partial<Record<'capacity' | 'price', boolean>>>({});
+  const { register, handleSubmit, setError, setValue, formState: { errors, isSubmitting } } = useForm<SaisieClasse>({
     resolver: zodResolver(schemaClasse),
     mode: 'onTouched',
     defaultValues: {
@@ -45,6 +55,33 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
       capacity: classe?.capacityMax?.toString() || '', price: classe?.price?.toString() || '',
     },
   });
+  useEffect(() => {
+    if (filiereASelectionner && filieres.some(f => f.id === filiereASelectionner)) {
+      setValue('filiereId', filiereASelectionner, { shouldValidate: true, shouldDirty: true });
+      setFiliereASelectionner(null);
+    }
+  }, [filieres, filiereASelectionner, setValue]);
+
+  /** Champ numérique : les caractères autres que des chiffres sont retirés à la frappe, avec une explication. */
+  const champNombre = (nom: 'capacity' | 'price') => {
+    const r = register(nom);
+    return {
+      ...r,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        const propre = chiffresSeuls(e.target.value);
+        // Comparaison faite AVANT de remplacer la valeur (16/11) : la fonction passée à setState peut s'exécuter
+        // plus tard, quand e.target.value vaut déjà « propre » ; l'aide « Chiffres uniquement » ne s'affichait jamais.
+        const refuses = propre !== e.target.value;
+        setCaracteresRefuses(prev => ({ ...prev, [nom]: refuses }));
+        if (refuses) e.target.value = propre;
+        return r.onChange(e);
+      },
+    };
+  };
+  const aideChiffres = (nom: 'capacity' | 'price') => caracteresRefuses[nom] && !errors[nom] && (
+    <p id={`classe-${nom}-aide`} className="mt-1 text-[10px] font-bold text-amber-700">Chiffres uniquement : les autres caractères ont été retirés.</p>
+  );
+
   const aria = (id: keyof SaisieClasse) => errors[id] ? { 'aria-invalid': true as const, 'aria-describedby': `classe-${id}-erreur` } : {};
   const message = (id: keyof SaisieClasse) => errors[id] && (
     <p id={`classe-${id}-erreur`} role="alert" className="mt-1 text-[10px] font-bold text-rose-700">{errors[id]?.message}</p>
@@ -90,14 +127,30 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
               <div>
                 <label htmlFor="classe-filiereId" className="text-[10px] uppercase font-black text-neutral-400">Filière d'Étude</label>
                 <select id="classe-filiereId" className={`${champCls} font-bold`} {...register('filiereId')} {...aria('filiereId')}>
-                  {filieres.length === 0 && <option value="">Aucune filière — créez-en une d'abord</option>}
+                  {filieres.length === 0 && <option value="">{onCreerFiliere ? 'Aucune filière — créez-en une ci-dessous' : "Aucune filière — créez-en une d'abord"}</option>}
                   {filieres.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
                 {errors.filiereId && filieres.length === 0
-                  ? <p id="classe-filiereId-erreur" role="alert" className="mt-1 text-[10px] font-bold text-rose-700">Aucune filière : créez-en une dans « Filières & Spécialités ».</p>
+                  ? <p id="classe-filiereId-erreur" role="alert" className="mt-1 text-[10px] font-bold text-rose-700">
+                      {onCreerFiliere ? 'Aucune filière : créez-en une avec « + Nouvelle filière ».' : 'Aucune filière : créez-en une dans « Filières & Spécialités ».'}
+                    </p>
                   : message('filiereId')}
+                {onCreerFiliere && !filiereRapideOuverte && (
+                  <button id="classe-nouvelle-filiere" type="button" onClick={() => setFiliereRapideOuverte(true)}
+                          className="mt-1 text-[11px] font-bold text-primary hover:underline cursor-pointer border-0 bg-transparent p-0">
+                    + Nouvelle filière
+                  </button>
+                )}
               </div>
             </div>
+            {onCreerFiliere && filiereRapideOuverte && (
+              <FiliereRapide
+                filieres={filieres}
+                onCreer={onCreerFiliere}
+                onCreee={(f) => { setFiliereASelectionner(f.id); setFiliereRapideOuverte(false); }}
+                onAnnuler={() => setFiliereRapideOuverte(false)}
+              />
+            )}
             <div>
               <label htmlFor="classe-name" className="text-[10px] uppercase font-black text-neutral-400">Libellé Personnalisé (Optionnel)</label>
               <input id="classe-name" type="text" className={`${champCls} font-semibold`} placeholder="Laisser vide pour calcul automatique" {...register('name')} {...aria('name')} />
@@ -106,13 +159,15 @@ export function ClasseFormModal({ classe, filieres, onClose, onSave, onDelete }:
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label htmlFor="classe-capacity" className="text-[10px] uppercase font-black text-neutral-400">Capacité Max</label>
-                <input id="classe-capacity" inputMode="numeric" placeholder="Ex. : 40" className={`${champCls} font-semibold`} {...register('capacity')} {...aria('capacity')} />
+                <input id="classe-capacity" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" placeholder="Ex. : 40" className={`${champCls} font-semibold`} {...champNombre('capacity')} {...aria('capacity')} />
                 {message('capacity')}
+                {aideChiffres('capacity')}
               </div>
               <div>
                 <label htmlFor="classe-price" className="text-[10px] uppercase font-black text-neutral-400">Frais Annuels (FCFA)</label>
-                <input id="classe-price" inputMode="numeric" placeholder="Ex. : 450000" className={`${champCls} font-semibold`} {...register('price')} {...aria('price')} />
+                <input id="classe-price" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" placeholder="Ex. : 450000" className={`${champCls} font-semibold`} {...champNombre('price')} {...aria('price')} />
                 {message('price')}
+                {aideChiffres('price')}
               </div>
             </div>
           </div>

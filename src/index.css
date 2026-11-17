@@ -21,6 +21,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 /* Fix Chrome / WebKit autofill in dark mode so inputs never turn white */
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -33,9 +36,12 @@ textarea:-webkit-autofill {
   transition: background-color 5000s ease-in-out 0s !important;
 }
 
-/* Custom fade in animation transition helper */
+/* Custom fade in animation transition helper.
+   16/11 : « backwards » au lieu de « both ». Avec « both », la page gardait transform: translateY(0) après
+   l'animation ; un élément transformé devient le cadre des éléments « fixed » qu'il contient : les fenêtres
+   (« Écrire à l'école »…) se centraient dans la page, sous la barre du haut, au lieu de l'écran. */
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 /* Global scrollbar suppression while preserving full mouse wheel and trackpad scroll */

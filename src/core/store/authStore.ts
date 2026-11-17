@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RoleUtilisateur } from '@/shared/constants';
+import { URL_API, entetesServeur } from '@/shared/lib/entetesApi';
 
 export interface UtilisateurConnecte {
   id: string;
@@ -73,14 +74,14 @@ export const useAuthStore = create<AuthState>()(
         // Déconnexion réelle (2026-11-13) : avant, aucun bouton n'appelait le serveur et le jeton restait dans le
         // navigateur (auth_token) comme dans le cookie HttpOnly → la session restait ouverte pour la personne suivante
         // sur un poste partagé. Le serveur révoque le jeton et efface le cookie ; le navigateur oublie le jeton.
-        let jeton: string | null = null;
-        try { jeton = localStorage.getItem('auth_token') || localStorage.getItem('access_token'); } catch { /* stockage indisponible */ }
+        // Mêmes en-têtes qu'apiClient (X-Tenant-Slug + jeton) : le serveur ne lit plus le Referer (revue B3, 15/11)
+        const entetes = entetesServeur({ avecJeton: true });
         try {
-          void fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/logout`, {
+          void fetch(`${URL_API}/auth/logout`, {
             method: 'POST',
             credentials: 'include',
             keepalive: true,
-            headers: jeton ? { Authorization: `Bearer ${jeton}` } : {},
+            headers: entetes,
           }).catch(() => { /* hors ligne : le jeton expirera de lui-même */ });
         } catch { /* fetch indisponible */ }
         try {

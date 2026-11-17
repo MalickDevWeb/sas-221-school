@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Building2, CheckCircle2, Clock, AlertTriangle, Sliders, ExternalLink, Archive } from 'lucide-react';
-import { useTenantStore } from '@/core/store/tenantStore';
-import { useAuthStore } from '@/core/store/authStore';
 import type { Tenant } from '../../../domain/models/PlatformModels';
+import { useEntrerDansEcole } from '../../hooks/useEntrerDansEcole';
 
 interface Props {
   tenants: Tenant[];
@@ -25,14 +23,7 @@ const statusConfig = {
 export const TenantsCardGrid: React.FC<Props> = ({
   tenants, isLoading, onApprove, onSuspend, onActivate, onArchive, onEdit
 }) => {
-  const navigate = useNavigate();
-
-  const enterSchool = (tenant: Tenant) => {
-    const slug = tenant.slug || tenant.id;
-    useTenantStore.getState().setTenantContext(tenant);
-    useAuthStore.getState().impersonateSchoolAdmin();
-    navigate(`/t/${slug}/admin/dashboard`);
-  };
+  const enterSchool = useEntrerDansEcole();
 
   if (isLoading) return (
     <div className="flex-1 flex items-center justify-center py-16">

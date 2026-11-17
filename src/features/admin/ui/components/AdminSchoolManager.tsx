@@ -7,7 +7,7 @@ import { PlanningTab } from './school/PlanningTab';
 import { AcademicFrameworkTab } from './school/AcademicFrameworkTab';
 import { useAdminSchoolState } from '../../hooks/useAdminSchoolState';
 import { useAdminStudents } from './students/useAdminStudents';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { useRepliSousMenu } from '@/shared/components/SousMenuModule';
 
 interface Props {
   defaultTab?: string;
@@ -15,7 +15,7 @@ interface Props {
 
 export function AdminSchoolManager({ defaultTab = 'classes' }: Props) {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, basculerRepli] = useRepliSousMenu('ecole');
   const { students } = useAdminStudents();
 
   const {
@@ -40,17 +40,17 @@ export function AdminSchoolManager({ defaultTab = 'classes' }: Props) {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="school-manager-root">
-      <TabletDrawerWrapper>
+      <div className="shrink-0 lg:sticky lg:top-4">
         <SchoolSubSidebar
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          onToggleCollapse={basculerRepli}
         />
-      </TabletDrawerWrapper>
+      </div>
       <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] overflow-hidden">
         {activeTab === 'academic' && (
-          <AcademicFrameworkTab />
+          <AcademicFrameworkTab classes={classes} filieres={filieres} onOuvrirClasses={() => setActiveTab('classes')} />
         )}
         {activeTab === 'rooms' && (
           <RoomsTab rooms={rooms} onUpdateRooms={updateRooms} slots={slots} onUpdateSlots={updateSlots} />
@@ -65,6 +65,7 @@ export function AdminSchoolManager({ defaultTab = 'classes' }: Props) {
             slots={slots} 
             students={students}
             onUpdateClasses={updateClasses} 
+            onCreerFiliere={(f) => updateFilieres([...filieres, f])}
           />
         )}
         {activeTab === 'planning' && (

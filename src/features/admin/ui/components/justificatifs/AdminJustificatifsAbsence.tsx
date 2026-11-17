@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { VisionneuseFichier } from '@/shared/components/VisionneuseFichier';
+import { usePeutTelecharger } from '@/shared/hooks/usePeutTelecharger';
 import {
   useDeciderJustificatif,
   useJustificatifsAdmin,
@@ -37,6 +39,9 @@ function Carte({ j }: { j: JustificatifAbsence }) {
   const [refus, setRefus] = useState(false);
   const [motif, setMotif] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
+  // 17/11 : justificatif confidentiel, consulté DANS l'application ; « Télécharger » si droit d'écriture « Élèves »
+  const [voir, setVoir] = useState(false);
+  const telechargeable = usePeutTelecharger('eleves');
   const badge = BADGES[j.statut];
 
   const envoyer = (accepter: boolean) => {
@@ -72,10 +77,14 @@ function Carte({ j }: { j: JustificatifAbsence }) {
             {j.traiteLe ? ` · traité le ${dateFr(j.traiteLe, true)}` : ''}
           </p>
           {j.fichierUrl && (
-            <a href={j.fichierUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline mt-2">
+            <button type="button" onClick={() => setVoir(true)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline mt-2 bg-transparent border-0 p-0 cursor-pointer">
               <span translate="no" className="material-symbols-outlined text-[16px]">attach_file</span>Voir le justificatif
-            </a>
+            </button>
+          )}
+          {voir && (
+            <VisionneuseFichier titre={`Justificatif — ${j.eleve ?? 'élève'}`} chemin={`/admin/justificatifs-absence/${encodeURIComponent(j.id)}/fichier`}
+              telechargeable={telechargeable} nomFichier="justificatif" onFermer={() => setVoir(false)} />
           )}
           {j.statut === 'REFUSE' && j.motifRefus && (
             <p className="text-xs text-red-700 font-semibold mt-2">Motif du refus : {j.motifRefus}</p>

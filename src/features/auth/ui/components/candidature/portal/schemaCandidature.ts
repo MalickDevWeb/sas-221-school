@@ -25,7 +25,8 @@ export const schemaCandidature = z.object({
     .refine(v => new Date(v) < new Date(), 'La date de naissance doit être passée.')
     .refine(v => new Date(v).getFullYear() >= 1950, 'Date de naissance invalide : vérifiez l’année.'),
   birthPlace: z.string().trim().min(1, 'Indiquez votre lieu de naissance.').max(100, '100 caractères au maximum.'),
-  nationality: z.string().trim().max(60, '60 caractères au maximum.'),
+  // 16/11 : code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
+  nationality: z.string().trim().regex(/^[A-Z]{2}$/, 'Choisissez la nationalité dans la liste.'),
   cniNumber: z.string().trim()
     .min(1, 'Saisissez le numéro de votre CNI (NIN) ou de votre passeport.')
     .refine(v => /^[A-Za-z0-9 ]{5,30}$/.test(v), 'Numéro invalide : lettres, chiffres et espaces uniquement (5 à 30 caractères).'),

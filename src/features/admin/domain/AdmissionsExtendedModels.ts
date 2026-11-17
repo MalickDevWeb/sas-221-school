@@ -38,6 +38,10 @@ export interface CandidateDocs {
 }
 
 export interface CandidateDetails {
+  /** 16/11 : règles d'admission appliquées au dépôt (avertissements, pièces exigées en plus, session). */
+  alertesRegles?: string[];
+  piecesSupplementaires?: { code: string; libelle: string }[];
+  campagneId?: string | null;
   // Transfert
   universityOfOrigin?: string;
   facultyOfOrigin?: string;
@@ -121,4 +125,7 @@ export interface ExtendedCandidate {
   details?: CandidateDetails;
   equivalence?: EquivalenceDetails;
   notifications: AdmissionNotification[];
+  /** 17/11 : téléphone du candidat (« Prévenir par WhatsApp ») et messages du candidat non lus par l'école. */
+  phone?: string | null;
+  messagesNonLus?: number;
 }

@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { apiClient } from '@/shared/lib/apiClient';
+import { jetonSession } from '@/shared/lib/entetesApi';
+import { slugEcoleCourante } from '@/shared/lib/hoteEcole';
 
 /**
  * Droits d'accès du personnel (RBAC), ENREGISTRÉS ET APPLIQUÉS PAR LE SERVEUR (2026-11-13).
@@ -52,6 +54,15 @@ interface RbacState {
 
 const copie = (m: Record<string, string[]>) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, [...v]]));
 
+/**
+ * GET /admin/rbac/moi partagé (2026-11-16) : demandé dès la connexion, pendant le téléchargement du code de l'espace,
+ * puis repris par la barre latérale ou le menu mobile au lieu d'un second appel (même compte, même école, réponse
+ * de moins de 5 s). Un échec n'est jamais réutilisé ; une réponse dépassée par une demande plus récente est ignorée.
+ */
+let demandeMesDroits: { cle: string; promesse: Promise<void>; reussieA: number | null } | null = null;
+const FRAICHEUR_MES_DROITS_MS = 5000;
+const cleMesDroits = () => `${jetonSession() ?? ''}|${slugEcoleCourante() ?? ''}`;
+
 export const useRbacStore = create<RbacState>()((set, get) => ({
   catalogue: [],
   roles: [],
@@ -71,13 +82,28 @@ export const useRbacStore = create<RbacState>()((set, get) => ({
     }
   },
 
-  chargerMesDroits: async () => {
-    try {
-      const { data } = await apiClient.get('/admin/rbac/moi');
-      set({ mesDroits: { role: data?.role ?? null, administration: Boolean(data?.administration), permissions: data?.permissions ?? [] } });
-    } catch {
-      set({ mesDroits: { role: null, administration: false, permissions: [] } });
+  chargerMesDroits: () => {
+    const cle = cleMesDroits();
+    const precedente = demandeMesDroits;
+    if (precedente && precedente.cle === cle
+        && (precedente.reussieA === null || Date.now() - precedente.reussieA < FRAICHEUR_MES_DROITS_MS)) {
+      return precedente.promesse;
     }
+    const demande: { cle: string; promesse: Promise<void>; reussieA: number | null } = { cle, promesse: Promise.resolve(), reussieA: null };
+    demandeMesDroits = demande;
+    demande.promesse = (async () => {
+      try {
+        const { data } = await apiClient.get('/admin/rbac/moi');
+        if (demandeMesDroits !== demande) return;
+        demande.reussieA = Date.now();
+        set({ mesDroits: { role: data?.role ?? null, administration: Boolean(data?.administration), permissions: data?.permissions ?? [] } });
+      } catch {
+        if (demandeMesDroits !== demande) return;
+        demandeMesDroits = null;
+        set({ mesDroits: { role: null, administration: false, permissions: [] } });
+      }
+    })();
+    return demande.promesse;
   },
 
   basculer: (role, cle) => {
@@ -119,5 +145,8 @@ export const useRbacStore = create<RbacState>()((set, get) => ({
     return d.administration || d.permissions.includes(cle);
   },
 
-  vider: () => set({ catalogue: [], roles: [], matrice: {}, brouillon: {}, mesDroits: null }),
+  vider: () => {
+    demandeMesDroits = null;
+    set({ catalogue: [], roles: [], matrice: {}, brouillon: {}, mesDroits: null });
+  },
 }));

@@ -45,7 +45,7 @@ export function CandidateDashboardShell({ dossiers, onLogout }: Props) {
       )}
 
       <div className="bg-white border border-neutral-200 rounded-2xl p-4">
-        <CandidateStatusTab dossier={dossier} />
+        <CandidateStatusTab key={dossier.id} dossier={dossier} onSessionExpiree={onLogout} />
       </div>
     </div>
   );

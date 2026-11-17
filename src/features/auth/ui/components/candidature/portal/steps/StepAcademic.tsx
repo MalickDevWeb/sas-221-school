@@ -2,9 +2,8 @@ import { motion } from 'motion/react';
 import type { Campaign } from '../admissionsTypes';
 import { Champ, ChoixBoutons, NavigationEtape } from './champs';
 import { inputCls, useChamp } from './champsCandidature';
+import { SERIES_BAC, MENTIONS } from '../listesBac';
 
-const SERIES_BAC = ['S1', 'S2', 'S3', "L'", 'L1', 'L2', 'G', 'STEG', 'T1', 'T2', 'Autre'];
-const MENTIONS = ['Passable', 'Assez Bien', 'Bien', 'Très Bien'];
 const NIVEAUX = ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
 
 /**

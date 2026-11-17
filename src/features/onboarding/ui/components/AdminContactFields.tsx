@@ -67,7 +67,7 @@ export const AdminContactFields: React.FC<AdminContactFieldsProps> = ({
             <Icon icon="solar:letter-bold-duotone" className="text-purple-400 text-sm" />
             <span>Email administrateur</span>
           </span>
-          {emailStatus === 'checking' && <Icon icon="solar:spinner-bold" className="animate-spin text-slate-400 text-xs" />}
+          {emailStatus === 'checking' && <Icon icon="solar:refresh-bold" className="animate-spin text-slate-400 text-xs" />}
           {emailStatus === 'available' && <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">✓ Disponible</span>}
           {emailStatus === 'unavailable' && <span className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">⚠️ Déjà utilisé</span>}
         </label>
@@ -95,7 +95,7 @@ export const AdminContactFields: React.FC<AdminContactFieldsProps> = ({
             <span>Téléphone / WhatsApp</span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">🇸🇳 +221</span>
           </span>
-          {phoneStatus === 'checking' && <Icon icon="solar:spinner-bold" className="animate-spin text-slate-400 text-xs" />}
+          {phoneStatus === 'checking' && <Icon icon="solar:refresh-bold" className="animate-spin text-slate-400 text-xs" />}
           {phoneStatus === 'available' && <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">✓ Disponible</span>}
           {phoneStatus === 'unavailable' && <span className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">⚠️ Déjà utilisé</span>}
         </label>

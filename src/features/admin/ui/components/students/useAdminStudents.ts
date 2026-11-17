@@ -5,9 +5,16 @@ import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { estObjet, listeBrute, objetBrut } from '@/shared/lib/lectureServeur';
 
-export function useAdminStudents() {
+/**
+ * Élèves de l'école (GET /admin/users). `erreurEnLigne` (16/11) : l'écran affiche lui-même l'erreur de chargement,
+ * avec « Réessayer », au lieu d'une notification passagère (annuaire des élèves).
+ */
+export function useAdminStudents(options: { erreurEnLigne?: boolean } = {}) {
+  const { erreurEnLigne = false } = options;
   const [students, setStudents] = useState<Student[]>([]);   // données réelles uniquement (plus d'élèves fictifs au départ ni en repli)
-  const [loading, setLoading] = useState(false);
+  // Vrai dès le premier affichage : le chargement part au montage (évite un « Aucun élève » affiché un instant)
+  const [loading, setLoading] = useState(true);
+  const [erreur, setErreur] = useState<string | null>(null);
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -15,13 +22,16 @@ export function useAdminStudents() {
       const { data } = await apiClient.get<unknown>('/admin/users');
       const studentList = listeBrute(estObjet(data) && Array.isArray(data.students) ? data.students : data);
       setStudents(studentList.map((s, idx) => mapStudentFromApi(s, idx)));
+      setErreur(null);
     } catch (err) {
       // erreur : liste inchangée (vide au départ), jamais d'élèves fictifs
-      toast.error(resolveErrorMessage(err));
+      const message = resolveErrorMessage(err);
+      setErreur(message);
+      if (!erreurEnLigne) toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [erreurEnLigne]);
 
   /** Suspension / réactivation réelle de l'élève (badge et connexion) : l'état affiché vient de la réponse serveur. */
   const toggleQrStatus = useCallback(async (studentId: string) => {
@@ -47,6 +57,7 @@ export function useAdminStudents() {
     students,
     setStudents,
     loading,
+    erreur,
     refetch: fetchStudents,
     toggleQrStatus
   };

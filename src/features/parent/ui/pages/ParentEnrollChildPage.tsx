@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useWatch, type FieldErrors, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,6 +7,16 @@ import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload
 import { ROUTES } from '@/shared/constants';
 import { parentApi } from '@/features/parent/api';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';
+import { usePiecesRegles } from '@/features/auth/ui/components/candidature/portal/usePiecesRegles';
+import { PiecesRegles } from '@/features/auth/ui/components/candidature/portal/PiecesRegles';
+import { ChoixPays } from '@/shared/components/ChoixPays';
+import { nomPays } from '@/shared/constants/pays';
+
+const dateFr = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('fr-FR');
+};
 
 // ─── Étapes du processus ────────────────────────────────────
 const STEPS = [
@@ -47,7 +57,8 @@ const schemaInscription = z.object({
     .refine(v => new Date(v) < new Date(), 'La date de naissance doit être passée.')
     .refine(v => new Date(v).getFullYear() >= 1950, 'Date de naissance invalide : vérifiez l’année.'),
   lieuNaissance: z.string().trim().min(1, 'Indiquez le lieu de naissance.'),
-  nationalite: z.string().trim(),
+  // 16/11 : code ISO du pays (liste), obligatoire : les règles d'admission de l'école peuvent en dépendre
+  nationalite: z.string().trim().regex(/^[A-Z]{2}$/, 'Choisissez la nationalité dans la liste.'),
   sexe: z.string().refine((v): boolean => v === 'M' || v === 'F', "Indiquez le sexe de l'enfant."),
   email: z.string().trim()
     .min(1, "Saisissez l'adresse e-mail de l'enfant : elle sert au suivi du dossier.")
@@ -83,7 +94,7 @@ const CHAMPS_ETAPE: Record<number, Champ[]> = {
 
 const EMPTY_FORM: FormData = {
   prenom: '', nom: '', dateNaissance: '', lieuNaissance: '',
-  nationalite: 'Sénégalaise', sexe: '', email: '', telephone: '', adresse: '',
+  nationalite: '', sexe: '', email: '', telephone: '', adresse: '',
   filiere: '', niveau: '', diplomePrecedent: '', etablissementPrecedent: '',
   anneeBac: '', mentionBac: '',
   photoIdentiteUrl: '', relevesNotesUrl: '', diplomeUrl: '',
@@ -135,8 +146,8 @@ function Step1({ register, errors }: { register: Enregistrer; errors: Erreurs })
       <Field id="lieuNaissance" label="Lieu de naissance" required erreur={errors.lieuNaissance?.message}>
         <input id="lieuNaissance" className={inputCls} {...register('lieuNaissance')} {...aria(errors, 'lieuNaissance')} placeholder="Ex: Dakar" />
       </Field>
-      <Field id="nationalite" label="Nationalité" erreur={errors.nationalite?.message}>
-        <input id="nationalite" className={inputCls} {...register('nationalite')} placeholder="Ex: Sénégalaise" />
+      <Field id="nationalite" label="Nationalité" required erreur={errors.nationalite?.message}>
+        <ChoixPays id="nationalite" className={selectCls} {...register('nationalite')} {...aria(errors, 'nationalite')} />
       </Field>
       <Field id="sexe" label="Sexe" required erreur={errors.sexe?.message}>
         <select id="sexe" className={selectCls} {...register('sexe')} {...aria(errors, 'sexe')}>
@@ -226,7 +237,7 @@ function UploadZone({ id, label, hint, accept, types, nomFichier, erreur, onEnvo
     setProgression(0);
     onEnvoi(true);
     try {
-      const url = await uploadToCloudinary(file, setProgression, { strict: true });
+      const url = await uploadToCloudinary(file, setProgression, { strict: true, confidentiel: true });
       onEnvoye(url, file.name);
     } catch (err) {
       onEchec(err instanceof UploadError ? err.message : 'L’envoi du fichier a échoué. Veuillez réessayer.');
@@ -305,7 +316,7 @@ function Step4({ form, register, errors, noms }: {
   const rows = [
     ['Prénom', form.prenom], ['Nom', form.nom],
     ['Date de naissance', form.dateNaissance], ['Lieu de naissance', form.lieuNaissance],
-    ['Nationalité', form.nationalite], ['Sexe', form.sexe === 'F' ? 'Féminin' : form.sexe === 'M' ? 'Masculin' : '—'],
+    ['Nationalité', nomPays(form.nationalite)], ['Sexe', form.sexe === 'F' ? 'Féminin' : form.sexe === 'M' ? 'Masculin' : '—'],
     ['Email', form.email], ['Téléphone', form.telephone || '—'],
     ['Filière', form.filiere], ['Niveau', form.niveau],
     ['Diplôme précédent', form.diplomePrecedent], ['Établissement', form.etablissementPrecedent],
@@ -367,6 +378,10 @@ function Step4({ form, register, errors, noms }: {
 // ─── Page principale ─────────────────────────────────────────
 export function ParentEnrollChildPage() {
   const navigate = useNavigate();
+  // 16/11 : le serveur refuse tout dossier quand l'école n'a pas ouvert les candidatures (403). Avant, le parent
+  // ne l'apprenait qu'au dernier clic, après 4 étapes et l'envoi de ses fichiers : on le prévient dès l'ouverture.
+  const { settings: reglages, chargee: reglagesCharges, isCampaignActive, isPeriodStarted, isPeriodEnded } = useCandidatureSettings();
+  const candidaturesFermees = reglagesCharges && !isCampaignActive;
   const [step, setStep]     = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -380,7 +395,16 @@ export function ParentEnrollChildPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schemaInscription), defaultValues: EMPTY_FORM, mode: 'onTouched' });
   const form = useWatch({ control }) as FormData;
-  const envoiEnCours = Object.values(envois).some(Boolean);
+  // 16/11 : pièces exigées par les règles d'admission de l'école, évaluées à l'étape des pièces (dépôt par un parent)
+  const regles = usePiecesRegles();
+  const { evaluer } = regles;
+  useEffect(() => {
+    if (step !== 3) return;
+    const v = getValues();
+    void evaluer({ nationalite: v.nationalite, sexe: v.sexe, dateNaissance: v.dateNaissance,
+      mentionBac: v.mentionBac, anneeBac: v.anneeBac, depotParent: true });
+  }, [step, getValues, evaluer]);
+  const envoiEnCours = Object.values(envois).some(Boolean) || regles.envoiEnCours !== null;
 
   const recevoir = (id: Champ, url: string, nom: string) => {
     setValue(id, url, { shouldValidate: true });
@@ -400,7 +424,12 @@ export function ParentEnrollChildPage() {
       return;
     }
     // Les champs de l'étape sont vérifiés : chaque erreur s'affiche sous son champ, le premier reçoit le focus.
-    if (await trigger(CHAMPS_ETAPE[step], { shouldFocus: true })) setStep(s => s + 1);
+    const champsOk = await trigger(CHAMPS_ETAPE[step], { shouldFocus: true });
+    if (step === 3) {
+      if (regles.blocages.length > 0) { setError(`Le dossier ne peut pas être déposé : ${regles.blocages[0]}`); return; }
+      if (!regles.verifier() || !champsOk) return;
+    }
+    if (champsOk) setStep(s => s + 1);
   };
   const handleBack = () => { setError(''); setStep(s => s - 1); };
 
@@ -427,6 +456,7 @@ export function ParentEnrollChildPage() {
         photoIdentiteUrl: valeurs.photoIdentiteUrl,
         relevesNotesUrl: valeurs.relevesNotesUrl,
         diplomeUrl: valeurs.diplomeUrl,
+        piecesSupplementaires: regles.corps(),
       });
       setDossierId(depot.dossierId);
       setSuccess(true);
@@ -513,6 +543,38 @@ export function ParentEnrollChildPage() {
         </div>
       </div>
 
+      {candidaturesFermees ? (
+        <section id="inscription-fermee" role="status" className="bg-white border border-amber-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
+          <div className="flex items-start gap-3">
+            <span translate="no" aria-hidden="true" className="material-symbols-outlined text-amber-600 text-[28px]">event_busy</span>
+            <div className="space-y-1">
+              <h2 className="text-base font-black text-neutral-900">
+                {!reglages.ouvert
+                  ? "Les inscriptions en ligne ne sont pas ouvertes dans cette école pour le moment."
+                  : !isPeriodStarted
+                    ? `Les inscriptions en ligne ouvriront le ${dateFr(reglages.dateOuverture)}.`
+                    : `Les inscriptions en ligne sont closes depuis le ${dateFr(reglages.dateFermeture)}.`}
+              </h2>
+              {reglages.messageAvis?.trim() && <p className="text-sm text-neutral-600 font-medium whitespace-pre-line">{reglages.messageAvis.trim()}</p>}
+              <p className="text-sm text-neutral-500 font-medium">
+                {isPeriodEnded || !reglages.ouvert
+                  ? "Pour inscrire votre enfant, écrivez à l'école : elle vous indiquera la marche à suivre."
+                  : "Revenez à cette date pour déposer le dossier, ou écrivez à l'école pour toute question."}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-end">
+            <button type="button" onClick={() => navigate(ROUTES.parent.dashboard)}
+              className="px-4 py-2.5 rounded-xl border border-neutral-200 text-xs font-black text-neutral-600 hover:bg-neutral-50">
+              Retour à l'accueil
+            </button>
+            <button type="button" onClick={() => navigate(ROUTES.parent.messages)}
+              className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-black hover:opacity-90">
+              Écrire à l'école
+            </button>
+          </div>
+        </section>
+      ) : (<>
       {/* Stepper */}
       <div className="flex items-center gap-0 mb-8 overflow-x-auto pb-2">
         {STEPS.map((s, i) => (
@@ -560,6 +622,7 @@ export function ParentEnrollChildPage() {
           <Step3 errors={errors} noms={noms} recevoir={recevoir} echec={echec}
             setEnvoi={(id, enCours) => { setEnvois(v => ({ ...v, [id]: enCours })); if (enCours) clearErrors(id); }} />
         )}
+        {step === 3 && <div className="mt-4"><PiecesRegles regles={regles} /></div>}
         {step === 4 && <Step4 form={form} register={register} errors={errors} noms={noms} />}
       </div>
 
@@ -606,6 +669,7 @@ export function ParentEnrollChildPage() {
         )}
       </div>
       </form>
+      </>)}
     </div>
   );
 }

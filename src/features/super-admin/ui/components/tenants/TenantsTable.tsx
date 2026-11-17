@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Building2, CheckCircle2, Clock, AlertTriangle, Archive, Sliders, ExternalLink } from 'lucide-react';
-import { useTenantStore } from '@/core/store/tenantStore';
-import { useAuthStore } from '@/core/store/authStore';
 import type { Tenant } from '../../../domain/models/PlatformModels';
+import { useEntrerDansEcole } from '../../hooks/useEntrerDansEcole';
 
 interface TenantsTableProps {
   tenants: Tenant[];
@@ -18,13 +16,7 @@ interface TenantsTableProps {
 export const TenantsTable: React.FC<TenantsTableProps> = ({
   tenants, isLoading, onApprove, onSuspend, onActivate, onArchive, onEdit
 }) => {
-  const navigate = useNavigate();
-  const enterSchool = (org: Tenant) => {
-    const slug = org.slug || org.id;
-    useTenantStore.getState().setTenantContext(org);
-    useAuthStore.getState().impersonateSchoolAdmin();
-    navigate(`/t/${slug}/admin/dashboard`);
-  };
+  const enterSchool = useEntrerDansEcole();
   return (
     <div className="flex-1 overflow-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <table className="min-w-full text-left border-collapse">

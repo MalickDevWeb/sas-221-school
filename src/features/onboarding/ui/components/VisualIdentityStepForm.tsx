@@ -69,7 +69,7 @@ export const VisualIdentityStepForm: React.FC<VisualIdentityStepFormProps> = ({
         <label className="relative flex items-center gap-4 p-4 border-2 border-dashed border-slate-700/80 hover:border-purple-500/60 rounded-2xl cursor-pointer bg-slate-950/80 group transition-all">
           <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center bg-slate-900 border border-white/10">
             {isExtracting ? (
-              <Icon icon="solar:spinner-bold" className="text-2xl text-purple-400 animate-spin" />
+              <Icon icon="solar:refresh-bold" className="text-2xl text-purple-400 animate-spin" />
             ) : logoPreview ? (
               <img src={logoPreview} className="w-full h-full object-contain p-1" alt="Logo preview" />
             ) : (

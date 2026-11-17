@@ -57,6 +57,8 @@ export function useCandidatureSettings() {
   return {
     settings,
     loading: requete.isLoading,
+    /** Réponse du serveur reçue : sans elle, `settings` vaut FERMÉ par prudence (ne pas en conclure que c'est fermé). */
+    chargee: requete.isSuccess,
     isCampaignActive,
     isPeriodStarted,
     isPeriodEnded,

@@ -3,7 +3,9 @@ import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/core/store/authStore';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { loginUseCase } from '../../infrastructure/config/dependencies';
-import { changerMotDePasse, erreurReglesMotDePasse, LONGUEUR_MIN_MOT_DE_PASSE } from '../../infrastructure/api/motDePasseApi';
+import { memorisationHorsLigneTerminee } from '../../infrastructure/local/identifiantsHorsLigne';
+import { changerMotDePasse, erreurReglesMotDePasse } from '../../infrastructure/api/motDePasseApi';
+import { conseilsSansLongueur, useReglesMotDePasse } from '../../infrastructure/api/reglesMotDePasseApi';
 
 type Champ = 'ancien' | 'nouveau' | 'confirmation';
 
@@ -34,11 +36,13 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
   const [envoi, setEnvoi] = useState(false);
 
   const nouveau = valeurs.nouveau;
-  const regles = [
-    { ok: nouveau.length >= LONGUEUR_MIN_MOT_DE_PASSE, texte: `Au moins ${LONGUEUR_MIN_MOT_DE_PASSE} caractères` },
-    { ok: /\p{L}/u.test(nouveau), texte: 'Au moins une lettre' },
-    { ok: /\p{N}/u.test(nouveau), texte: 'Au moins un chiffre' },
-  ];
+  // Règles du rôle du compte, données par le serveur (15/11) : longueur minimale et conseils
+  const reglesServeur = useReglesMotDePasse(utilisateur?.role ?? null);
+  const longueurMin = reglesServeur.data?.longueurMin ?? null;
+  const regles = longueurMin !== null
+    ? [{ ok: [...nouveau].length >= longueurMin, texte: `Au moins ${longueurMin} caractères (les espaces et les accents sont acceptés)` }]
+    : [];
+  const conseils = conseilsSansLongueur(reglesServeur.data);
 
   const modifier = (champ: Champ) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setValeurs((v) => ({ ...v, [champ]: e.target.value }));
@@ -49,7 +53,7 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
   const valider = (): Partial<Record<Champ, string>> => {
     const er: Partial<Record<Champ, string>> = {};
     if (!valeurs.ancien) er.ancien = messageAncienVide;
-    const regle = erreurReglesMotDePasse(valeurs.nouveau);
+    const regle = erreurReglesMotDePasse(valeurs.nouveau, longueurMin);
     if (regle) er.nouveau = regle;
     else if (valeurs.nouveau === valeurs.ancien) er.nouveau = 'Le nouveau mot de passe doit être différent de l\'ancien.';
     if (!valeurs.confirmation) er.confirmation = 'Confirmez votre nouveau mot de passe.';
@@ -81,6 +85,9 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
       } catch { /* la session actuelle reste valable */ }
     }
     useAuthStore.getState().marquerMotDePasseProvisoire(false);
+    // Empreinte hors-ligne du nouveau mot de passe calculée en arrière-plan (16/11) : terminée avant onSucces, qui
+    // peut recharger la page (changement du mot de passe provisoire)
+    await memorisationHorsLigneTerminee();
     setValeurs({ ancien: '', nouveau: '', confirmation: '' });
     setEnvoi(false);
     onSucces();
@@ -141,6 +148,12 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
             {r.texte}
           </li>
         ))}
+        {conseils.map((c) => (
+          <li key={c} className="flex items-start gap-1.5 text-[#8E7977]">
+            <Icon icon="solar:info-circle-linear" className="text-sm shrink-0 mt-px" />
+            {c}
+          </li>
+        ))}
       </ul>
 
       {champ('confirmation', 'Confirmer le nouveau mot de passe', 'solar:lock-keyhole-bold-duotone', 'new-password')}
@@ -148,9 +161,9 @@ export function FormulaireMotDePasse({ libelleAncien, aideAncien, messageAncienV
       <button
         type="submit"
         disabled={envoi}
-        className="w-full h-11 md:h-12 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+        className="w-full h-11 md:h-12 rounded-xl bg-primary text-text-on-primary text-sm font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
       >
-        {envoi && <Icon icon="solar:spinner-bold" className="text-base animate-spin" />}
+        {envoi && <Icon icon="solar:refresh-bold" className="text-base animate-spin" />}
         {texteBouton}
       </button>
     </form>

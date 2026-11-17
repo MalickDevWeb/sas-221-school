@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Campaign, DocumentsState, PaymentDetails } from './admissionsTypes';
@@ -7,6 +7,7 @@ import { suiviApi, type DossierCandidat } from './suiviApi';
 import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
 import { publicApiClient } from '@/shared/lib/apiClient';
+import { usePiecesRegles } from './usePiecesRegles';
 
 export type DocKey = keyof DocumentsState;
 export type DocErrors = Partial<Record<DocKey, string>>;
@@ -45,6 +46,17 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 16/11 : pièces exigées par les règles d'admission de l'école, d'après les réponses (étapes 1 à 3)
+  const regles = usePiecesRegles();
+  const { evaluer } = regles;
+  useEffect(() => {
+    if (step !== 4) return;
+    const v = form.getValues();
+    void evaluer({
+      campagneId: campaign.id, nationalite: v.nationality, sexe: v.gender, dateNaissance: v.birthDate,
+      serieBac: v.bacSeries, mentionBac: v.bacMention, anneeBac: v.bacYear,
+    });
+  }, [step, form, campaign.id, evaluer]);
 
   const clearDocError = (key: DocKey) => setDocErrors(prev => {
     if (!(key in prev)) return prev;
@@ -59,9 +71,14 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
     clearDocError(key);
     try {
       // Mode strict : aucun repli DataURL, l'échec backend remonte ici.
-      const url = await uploadToCloudinary(file, (pct) => setUploadProgress(pct), { strict: true });
+      const url = await uploadToCloudinary(file, (pct) => setUploadProgress(pct), { strict: true, confidentiel: true });
       const sizeStr = file.size > 1048576 ? `${(file.size / 1048576).toFixed(1)} Mo` : `${Math.round(file.size / 1024)} Ko`;
-      setDocs(prev => ({ ...prev, [key]: { name: file.name, size: sizeStr, uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url } }));
+      setDocs(prev => {
+        const avant = prev[key]?.apercu?.url;
+        if (avant) URL.revokeObjectURL(avant);
+        return { ...prev, [key]: { name: file.name, size: sizeStr, uploadedAt: new Date().toLocaleTimeString('fr-FR'), status: 'uploaded', url,
+          apercu: { url: URL.createObjectURL(file), type: file.type } } };
+      });
     } catch (err) {
       // Le document n'est PAS marqué comme envoyé ; on affiche le message du backend à côté de la pièce.
       const message = err instanceof UploadError
@@ -97,14 +114,16 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
       if (!docs[cle]?.url) manquantes[cle] = `Pièce manquante : joignez ${libelle}.`;
     }
     setDocErrors(prev => ({ ...prev, ...manquantes }));
-    return Object.keys(manquantes).length === 0;
+    const reglesOk = regles.verifier();
+    return Object.keys(manquantes).length === 0 && reglesOk;
   };
 
   /** Étape suivante seulement si l'étape courante est valide ; les erreurs s'affichent sous les champs. */
   const suivant = async () => {
     setError('');
     if (step === 4) {
-      if (uploadingDoc) return setError('Patientez : une pièce est encore en cours d’envoi.');
+      if (uploadingDoc || regles.envoiEnCours) return setError('Patientez : une pièce est encore en cours d’envoi.');
+      if (regles.blocages.length > 0) return setError(`Votre dossier ne peut pas être déposé : ${regles.blocages[0]}`);
       if (verifierPieces()) setStep(5);
       return;
     }
@@ -143,6 +162,9 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
         modePaiement: payment.declared ? payment.method : undefined,
         referencePaiement: payment.transactionRef,
         motDePasse: v.password,
+        // 16/11 : session choisie et pièces exigées par les règles de l'école (vérifiées aussi par le serveur)
+        campagneId: campaign.id,
+        piecesSupplementaires: regles.corps(),
       });
     } catch (err) {
       setIsSubmitting(false);
@@ -172,7 +194,7 @@ export function useCandidateApplicationState(campaign: Campaign, onSuccess: (dos
 
   return {
     form, step, setStep, suivant, precedent, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress,
-    simulateDocUpload, removeDoc, payment, declarePayment, error, setError, isSubmitting, handleFinalSubmit
+    simulateDocUpload, removeDoc, payment, declarePayment, error, setError, isSubmitting, handleFinalSubmit, regles
   };
 }
 

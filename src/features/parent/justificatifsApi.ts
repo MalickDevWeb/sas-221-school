@@ -28,6 +28,7 @@ export const LONGUEUR_MAX_MOTIF = 500;
 export async function deposerFichierJustificatif(fichier: File): Promise<string> {
   const form = new FormData();
   form.append('file', fichier);
+  form.append('confidentiel', 'true');   // 17/11 : justificatif (souvent médical) lisible seulement dans l'application
   const r = await apiClient.post<{ url?: string }>('/media/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 60_000,

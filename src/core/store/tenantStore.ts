@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import axios from 'axios';
 import { publicApiClient } from '@/shared/lib/apiClient';
 import type { TenantPalette } from '@/shared/utils/colorExtractor';
 import { ECOLE_221_PALETTE, generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
@@ -20,7 +21,25 @@ interface TenantInfo {
   phone?: string | null;
   email?: string | null;
   city?: string | null;
+  /** Statut renvoyé par GET /public/tenants/{slug} (ex. « PENDING » : en attente de validation) ; null si absent. */
+  statut?: string | null;
 }
+
+/** Réponse de GET /public/tenants/{slug} (champs absents tolérés). */
+type ReponseTenantPublique = {
+  id?: string;
+  name?: string;
+  slug?: string;
+  statut?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  branding?: { primaryColor?: string; palette?: TenantPalette; logoUrl?: string } | null;
+};
+
+/** Vrai si l'école est en attente de validation par l'équipe My School. */
+export const estEnAttenteDeValidation = (tenant: { statut?: string | null } | null | undefined): boolean =>
+  (tenant?.statut ?? '').toUpperCase() === 'PENDING';
 
 interface TenantState {
   currentTenant: TenantInfo | null;
@@ -103,7 +122,9 @@ export const useTenantStore = create<TenantState>()(
 
       resolveTenant: async (slug: string) => {
         // 1. Si le tenant en mémoire correspond déjà et a un branding, réappliquer
-        if (get().currentTenant?.slug === slug && get().currentTenant?.branding?.primaryColor) {
+        // (sauf école en attente de validation : son statut est revérifié, elle a pu être validée depuis)
+        if (get().currentTenant?.slug === slug && get().currentTenant?.branding?.primaryColor
+            && !estEnAttenteDeValidation(get().currentTenant)) {
           get().applyTheme(get().currentTenant!.branding);
           return;
         }
@@ -131,8 +152,8 @@ export const useTenantStore = create<TenantState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { data } = await publicApiClient.get(`/public/tenants/${slug}`);
-          const branding = data.branding || {};
+          const { data } = await publicApiClient.get<ReponseTenantPublique>(`/public/tenants/${slug}`);
+          const branding: NonNullable<ReponseTenantPublique['branding']> = data.branding || {};
           const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
           const primaryColor = isEcole221 ? '#B3181C' : (branding.primaryColor || localCachedBranding?.primaryColor || '#B3181C');
           const palette = isEcole221 ? ECOLE_221_PALETTE : (branding.palette || generatePaletteFromHex(primaryColor));
@@ -144,6 +165,7 @@ export const useTenantStore = create<TenantState>()(
             phone: data.phone ?? null,
             email: data.email ?? null,
             city: data.city ?? null,
+            statut: typeof data.statut === 'string' ? data.statut.toUpperCase() : null,
             branding: {
               primaryColor,
               palette,
@@ -159,10 +181,10 @@ export const useTenantStore = create<TenantState>()(
 
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
-        } catch (err: any) {
+        } catch (err: unknown) {
           // École inexistante (404) : la signaler — avant, une école était INVENTÉE à partir de l'URL
           // (nom tiré du slug) et l'on pouvait remplir toute une candidature pour une école inexistante.
-          if (err?.response?.status === 404) {
+          if (axios.isAxiosError(err) && err.response?.status === 404) {
             try {
               localStorage.removeItem(`tenant_theme_${slug}`);
               if (localStorage.getItem('tenant_slug') === slug) {

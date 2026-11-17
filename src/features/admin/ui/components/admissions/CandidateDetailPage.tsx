@@ -4,7 +4,8 @@ import { ExtendedCandidate, EquivalenceDetails } from '../../../domain/Admission
 import { CandidateAdmissionBadge } from './CandidateAdmissionBadge';
 import { EquivalencePanel } from './EquivalencePanel';
 import { CandidateAlertsPanel } from './CandidateAlertsPanel';
-import { NotificationPanel } from './NotificationPanel';
+import { EchangesCandidatPanel } from './EchangesCandidatPanel';
+import { ReglesDossierPanel } from './ReglesDossierPanel';
 import { CandidateDetailsSection } from './CandidateDetailsSection';
 import { CandidateWorkflowPanel } from './CandidateWorkflowPanel';
 import { CandidateCniViewer } from './CandidateCniViewer';
@@ -17,10 +18,6 @@ interface Props {
 }
 
 export function CandidateDetailPage({ candidate, onBack, onUpdateCandidate }: Props) {
-  const handleSendNotification = (type: string, message: string) => {
-    const newNotif = { id: `not-${Date.now()}`, type, message, sentAt: new Date().toISOString() };
-    onUpdateCandidate({ ...candidate, notifications: [newNotif, ...candidate.notifications] });
-  };
 
   const handleSaveEquivalence = (eq: EquivalenceDetails) => {
     onUpdateCandidate({ ...candidate, equivalence: eq });
@@ -73,6 +70,7 @@ export function CandidateDetailPage({ candidate, onBack, onUpdateCandidate }: Pr
         {/* Left Column: CNI & Academic Dossier */}
         <div className="space-y-5">
           <CandidateCniViewer candidate={candidate} onUpdateCandidate={onUpdateCandidate} />
+          <ReglesDossierPanel candidate={candidate} />
           <CandidateDetailsSection candidate={candidate} />
           <CandidateAlertsPanel candidate={candidate} />
         </div>
@@ -84,7 +82,7 @@ export function CandidateDetailPage({ candidate, onBack, onUpdateCandidate }: Pr
           {['TRANSFER', 'VAE', 'L2', 'L3', 'M1', 'M2', 'DOC'].includes(candidate.type) && (
             <EquivalencePanel initialEquivalence={candidate.equivalence} onSave={handleSaveEquivalence} />
           )}
-          <NotificationPanel notifications={candidate.notifications} onSendNotification={handleSendNotification} />
+          <EchangesCandidatPanel candidate={candidate} />
         </div>
       </div>
     </div>

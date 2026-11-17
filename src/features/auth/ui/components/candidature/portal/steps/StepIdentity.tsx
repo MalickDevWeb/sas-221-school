@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Champ, ChoixBoutons, NavigationEtape } from './champs';
 import { inputCls, useChamp } from './champsCandidature';
+import { ChoixPays } from '@/shared/components/ChoixPays';
 
 export function StepIdentity({ onNext }: { onNext: () => void }) {
   const champ = useChamp();
@@ -33,7 +34,7 @@ export function StepIdentity({ onNext }: { onNext: () => void }) {
         <Champ id="cniNumber" label="N° CNI (NIN) ou Passeport *">
           <input type="text" placeholder="Ex: 1 751 2005 02841" className={`${inputCls} font-mono`} {...champ('cniNumber')} />
         </Champ>
-        <Champ id="nationality" label="Nationalité"><input type="text" placeholder="Ex: Sénégalaise" className={inputCls} {...champ('nationality')} /></Champ>
+        <Champ id="nationality" label="Nationalité *"><ChoixPays className={inputCls} {...champ('nationality')} /></Champ>
         <Champ id="address" label="Ville & Quartier de résidence"><input type="text" placeholder="Ex: Sacré-Cœur 3, Dakar" className={inputCls} {...champ('address')} /></Champ>
       </div>
 

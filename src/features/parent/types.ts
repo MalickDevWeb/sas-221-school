@@ -140,6 +140,8 @@ export interface EnrollChildPayload {
   photoIdentiteUrl: string;
   relevesNotesUrl: string;
   diplomeUrl: string;
+  /** 16/11 : pièces exigées par les règles d'admission de l'école (code de la pièce → lien). */
+  piecesSupplementaires?: Record<string, string>;
 }
 
 export interface ParentApplication {

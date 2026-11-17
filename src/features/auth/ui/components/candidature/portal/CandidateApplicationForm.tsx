@@ -29,7 +29,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
 
   const {
     form, step, suivant, precedent, docs, docErrors, uploadDoc, uploadingDoc, uploadProgress, simulateDocUpload, removeDoc,
-    payment, declarePayment, error, isSubmitting, handleFinalSubmit
+    payment, declarePayment, error, isSubmitting, handleFinalSubmit, regles
   } = state;
 
   const stepLabels = ['Identité', 'Garant', 'Cursus', 'Documents', 'Frais', 'Compte'];
@@ -109,7 +109,7 @@ export function CandidateApplicationForm({ campaign, onSuccess, onCancel }: Prop
             {step === 1 && <StepIdentity key="step1" onNext={() => void suivant()} />}
             {step === 2 && <StepGuardian key="step2" onNext={() => void suivant()} onPrev={precedent} />}
             {step === 3 && <StepAcademic key="step3" campaign={campaign} onNext={() => void suivant()} onPrev={precedent} />}
-            {step === 4 && <StepDocuments key="step4" docs={docs} docErrors={docErrors} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => void suivant()} onPrev={precedent} />}
+            {step === 4 && <StepDocuments key="step4" docs={docs} docErrors={docErrors} uploadDoc={uploadDoc} uploadingDoc={uploadingDoc} uploadProgress={uploadProgress} simulateDocUpload={simulateDocUpload} removeDoc={removeDoc} onNext={() => void suivant()} onPrev={precedent} regles={regles} />}
             {step === 5 && <StepPayment key="step5" payment={payment} declarePayment={declarePayment} onNext={() => void suivant()} onPrev={precedent} />}
             {step === 6 && <StepAccount key="step6" onSubmit={handleFinalSubmit} onPrev={precedent} isSubmitting={isSubmitting} error={error} />}
           </AnimatePresence>

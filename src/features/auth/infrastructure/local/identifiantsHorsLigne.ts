@@ -94,6 +94,42 @@ export async function verifierHorsLigne(email: string, motDePasse: string): Prom
   }
 }
 
+/**
+ * Rôle d'un compte déjà connecté sur cet appareil (null sinon). Sert seulement à télécharger à l'avance le code de son
+ * espace pendant la vérification du mot de passe (2026-11-16) : aucune donnée n'est affichée avant la réponse du serveur.
+ */
+export function roleMemorise(email: string): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  const role: unknown = lire()[email.toLowerCase().trim()]?.utilisateur?.role;
+  return typeof role === 'string' ? role : null;
+}
+
+/** Rôles des comptes déjà connectés sur cet appareil (sans doublon). */
+export function rolesMemorises(): string[] {
+  if (typeof localStorage === 'undefined') return [];
+  const roles = Object.values(lire()).map((e): unknown => e.utilisateur?.role);
+  return Array.from(new Set(roles.filter((r): r is string => typeof r === 'string')));
+}
+
+/** Mémorisations en cours, enchaînées (jamais deux écritures concurrentes du cache). */
+let memorisationsEnCours: Promise<void> = Promise.resolve();
+
+/**
+ * Mémorise en arrière-plan (2026-11-16) : l'empreinte PBKDF2 prend 100 à 500 ms selon l'appareil et retardait
+ * l'ouverture de l'espace. Une page qui se recharge juste après une connexion attend `memorisationHorsLigneTerminee()`
+ * (sinon le rechargement interromprait le calcul).
+ */
+export function lancerMemorisationHorsLigne(email: string, motDePasse: string, utilisateur: Utilisateur, token: string): void {
+  memorisationsEnCours = memorisationsEnCours
+    .then(() => memoriserHorsLigne(email, motDePasse, utilisateur, token))
+    .catch(() => { /* pas de connexion hors-ligne pour ce compte ; la chaîne reste utilisable */ });
+}
+
+/** Se résout quand les mémorisations lancées sont terminées (jamais en échec). */
+export function memorisationHorsLigneTerminee(): Promise<void> {
+  return memorisationsEnCours;
+}
+
 export async function memoriserHorsLigne(email: string, motDePasse: string, utilisateur: Utilisateur, token: string): Promise<void> {
   const cle = email.toLowerCase().trim();
   const entrees = disponible() ? lire() : {};
