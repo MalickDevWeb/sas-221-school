@@ -5,10 +5,11 @@ import { WorkspaceWiki } from './WorkspaceWiki';
 import { GroupEvaluationPanel } from './GroupEvaluationPanel';
 import { WorkspaceAuditLogs } from './WorkspaceAuditLogs';
 import { Workgroup } from '../../domain/CollaborationModels';
+import type { useCollaborationState } from '../../hooks/useCollaborationState';
 
 interface Props {
   readonly activeGroup: Workgroup;
-  readonly state: any;
+  readonly state: ReturnType<typeof useCollaborationState>;
   readonly isTeacher: boolean;
   readonly userName: string;
 }
@@ -17,7 +18,7 @@ export function WorkspacePanels({ activeGroup, state, isTeacher, userName }: Pro
   const [activeTab, setActiveTab] = useState<'dashboard' | 'kanban' | 'wiki' | 'evaluation' | 'audit'>('dashboard');
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Tableau de bord & IA' },
+    { id: 'dashboard', label: '📊 Tableau de bord' },
     { id: 'kanban', label: '📋 Kanban & Tâches' },
     { id: 'wiki', label: '📝 Wiki & Notes' },
     { id: 'evaluation', label: '🎓 Évaluation & Suivi' },
@@ -28,8 +29,8 @@ export function WorkspacePanels({ activeGroup, state, isTeacher, userName }: Pro
     state.addAuditLog(activeGroup.id, userName, action);
   };
 
-  const completedCount = state.tasks.filter((t: any) => t.groupId === activeGroup.id && t.status === 'Terminé').length;
-  const totalCount = state.tasks.filter((t: any) => t.groupId === activeGroup.id).length;
+  const completedCount = state.tasks.filter((t) => t.groupId === activeGroup.id && t.status === 'Terminé').length;
+  const totalCount = state.tasks.filter((t) => t.groupId === activeGroup.id).length;
 
   return (
     <div className="space-y-4">

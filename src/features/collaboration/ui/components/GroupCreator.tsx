@@ -4,6 +4,7 @@ import { GroupingCriterion } from '../../domain/CollaborationAlgorithms';
 import { GroupMember } from '../../domain/CollaborationModels';
 import { ManualGroupCreator } from './ManualGroupCreator';
 import { AutoGroupCreator } from './AutoGroupCreator';
+import type { RegleChef } from '../../hooks/useWorkgroupState';
 
 interface Props {
   readonly onAutoGenerate: (
@@ -11,15 +12,15 @@ interface Props {
     classId: string,
     criterion: GroupingCriterion,
     count: number,
-    leaderRule: 'random' | 'gpa' | 'teacher'
-  ) => void;
+    leaderRule: RegleChef
+  ) => Promise<string>;
   readonly onCreateManual: (
     name: string,
     description: string,
     classId: string,
     leader: GroupMember,
     members: readonly GroupMember[]
-  ) => void;
+  ) => Promise<void>;
 }
 
 export function GroupCreator({ onAutoGenerate, onCreateManual }: Props) {

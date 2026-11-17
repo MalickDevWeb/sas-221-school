@@ -11,9 +11,9 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const storedCode = localStorage.getItem('school_delete_security_code');
+    // Simple garde-fou contre l'erreur de clic ; les droits de suppression sont vérifiés par le serveur.
     const inputUpper = code.trim().toUpperCase();
-    if (inputUpper === 'SUPPRIMER' || inputUpper === 'CONFIRMER' || (storedCode && code.trim() === storedCode)) {
+    if (inputUpper === 'SUPPRIMER' || inputUpper === 'CONFIRMER') {
       onConfirm();
     } else {
       setError(true);
@@ -22,24 +22,23 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 bg-red-50/70 border border-red-200 rounded-xl space-y-2.5 animate-fade-in w-full text-left">
+    <form onSubmit={handleSubmit} noValidate className="p-3 bg-red-50/70 border border-red-200 rounded-xl space-y-2.5 animate-fade-in w-full text-left">
       <div className="text-[10px] font-black text-red-800 uppercase tracking-wide flex items-center gap-1">
         <span translate="no" className="material-symbols-outlined text-xs">security</span>
-        <span>Validation de Sécurité Requise</span>
+        <span>Confirmation requise</span>
       </div>
       <p className="text-[9.5px] text-neutral-500 font-semibold leading-tight">
-        Saisissez le code de sécurité pour confirmer cette action.
+        Tapez CONFIRMER pour valider cette action définitive.
       </p>
       <div className="flex gap-2">
         <input
-          type="password"
+          type="text"
           value={code}
           onChange={e => setCode(e.target.value)}
-          placeholder="Tapez CONFIRMER ou code"
+          placeholder="CONFIRMER"
           className={`flex-grow px-2.5 py-1.5 border rounded-lg text-xs font-bold focus:outline-none focus:border-red-600 bg-white ${
             error ? 'border-red-500 text-red-600' : 'border-neutral-200 text-[#1E293B]'
           }`}
-          required
         />
         <button
           type="submit"
@@ -57,7 +56,7 @@ export function DeleteConfirmInput({ onConfirm, onCancel }: Props) {
       </div>
       {error && (
         <p className="text-[9px] text-red-600 font-black tracking-tight">
-          Code incorrect. Action refusée.
+          Tapez exactement CONFIRMER pour valider (rien n'a été supprimé).
         </p>
       )}
     </form>

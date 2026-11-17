@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { CalendarSlot, DAYS } from '../../../domain/PlanningModels';
+import { ouvrirDocumentImprimable, tableauHtml } from '@/shared/lib/documentImprimable';
+import { nomDeFichier } from '@/shared/lib/documentOfficiel';
 
 interface Props {
   readonly viewMode: 'classe' | 'salle' | 'prof';
@@ -7,7 +10,7 @@ interface Props {
   readonly activeFilter: string;
   readonly setActiveFilter: (filter: string) => void;
   readonly filterOptions: string[];
-  readonly slots: any[];
+  readonly slots: CalendarSlot[];
 }
 
 export function CalendarToolbar({
@@ -20,16 +23,40 @@ export function CalendarToolbar({
 }: Props) {
   const [showExport, setShowExport] = useState(false);
 
-  const triggerDownload = (format: string) => {
+  // Exports réels.
+  const COLONNES = ['Jour', 'Créneau', 'Matière', 'Type', 'Enseignant', 'Salle', 'Classe'];
+  const ordreJour = (j: string) => { const i = (DAYS as readonly string[]).indexOf(j); return i < 0 ? 99 : i; };
+  const lignes = () => [...slots]
+    .sort((x, y) => ordreJour(x.day) - ordreJour(y.day) || x.slot.localeCompare(y.slot))
+    .map((s) => [s.day, s.slot, s.subject, s.type, s.prof || '—', s.room || '—', s.classe || '—']);
+  const libelleFiltre = activeFilter === 'ALL' ? 'Toutes les classes'
+    : `${viewMode === 'classe' ? 'Classe' : viewMode === 'salle' ? 'Salle' : 'Enseignant'} : ${activeFilter}`;
+
+  const imprimer = () => {
     setShowExport(false);
-    const content = format === 'csv'
-      ? "Sujet,Professeur,Salle,Classe,Jour,Creneau,Type,Semestre,Annee\n" + slots.map(s => `"${s.subject}","${s.prof}","${s.room}","${s.classe}","${s.day}","${s.slot}","${s.type}","${s.semestre}","${s.anneeAcademique}"`).join("\n")
-      : `Planning Export - ${format.toUpperCase()}\nTotal: ${slots.length} cours`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
+    const ok = ouvrirDocumentImprimable({
+      titre: 'Emploi du temps', sousTitre: libelleFiltre,
+      corps: tableauHtml(COLONNES, lignes(), 'Aucun cours planifié pour cette sélection.'),
+    });
+    if (!ok) toast.error("La fenêtre d'impression a été bloquée par le navigateur : autorisez les fenêtres de ce site.");
+  };
+
+  const triggerDownload = async (format: 'excel' | 'csv') => {
+    setShowExport(false);
+    const nom = `emploi-du-temps-${nomDeFichier(activeFilter === 'ALL' ? 'toutes-les-classes' : activeFilter)}`;
+    if (format === 'excel') {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([COLONNES, ...lignes()]), 'Emploi du temps');
+      XLSX.writeFile(wb, `${nom}.xlsx`);
+      return;
+    }
+    const cellule = (v: string) => `"${(/^[=+\-@\t\r]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`;
+    const contenu = [COLONNES, ...lignes()].map((l) => l.map(cellule).join(';')).join('\n');
+    const url = URL.createObjectURL(new Blob(['\ufeff' + contenu], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `emploi-du-temps-${activeFilter.replace(/\s+/g, '-')}.${format === 'excel' ? 'xlsx' : format}`;
+    a.download = `${nom}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -84,16 +111,13 @@ export function CalendarToolbar({
           </button>
           {showExport && (
             <div className="absolute right-0 mt-2 w-44 bg-white border border-neutral-200 rounded-xl shadow-lg z-50 overflow-hidden">
-              <button onClick={() => window.print()} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
-                <span translate="no" className="material-symbols-outlined text-sm text-neutral-400">print</span> Imprimer direct
+              <button onClick={imprimer} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
+                <span translate="no" className="material-symbols-outlined text-sm text-neutral-400">print</span> Imprimer ou PDF
               </button>
-              <button onClick={() => triggerDownload('pdf')} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
-                <span translate="no" className="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span> Document PDF
-              </button>
-              <button onClick={() => triggerDownload('excel')} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
+              <button onClick={() => void triggerDownload('excel')} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
                 <span translate="no" className="material-symbols-outlined text-sm text-emerald-600">table_view</span> Feuille Excel
               </button>
-              <button onClick={() => triggerDownload('csv')} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
+              <button onClick={() => void triggerDownload('csv')} className="w-full text-left px-4 py-2 hover:bg-neutral-50 text-xs font-bold text-neutral-700 flex items-center gap-2">
                 <span translate="no" className="material-symbols-outlined text-sm text-blue-500">csv</span> Fichier CSV
               </button>
             </div>

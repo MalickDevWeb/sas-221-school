@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 import { resolveErrorMessage } from '../errors/errorDictionary';
 import { isConflict, isValidationError, isAuthError, isServerError } from '../errors/httpStatus';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 export interface SafeApiOptions<T> {
   /** Titre ou contexte affiché dans la notification Toast (ex: "Inscription Établissement") */
@@ -47,11 +48,10 @@ export async function safeApiCall<T>(
   } = options;
 
   try {
-    const response: any = await apiPromise;
+    const response: unknown = await apiPromise;
     // Supporter à la fois AxiosResponse<{ data: T }> et un retour direct de use-case ou repo Promise<T>
-    const data: T = (response && typeof response === 'object' && 'data' in response && response.data !== undefined)
-      ? response.data
-      : (response ?? fallback);
+    const enveloppe = response && typeof response === 'object' && 'data' in response && response.data !== undefined;
+    const data = (enveloppe ? (response as { data: T }).data : (response ?? fallback)) as T;
 
     if (successMessage) {
       toast.success(successMessage, {
@@ -63,13 +63,13 @@ export async function safeApiCall<T>(
       data,
       error: null,
       errorCode: null,
-      status: response?.status ?? 200,
+      status: (response && typeof response === 'object' && 'status' in response && typeof response.status === 'number') ? response.status : 200,
       isSuccess: true,
     };
-  } catch (err: any) {
-    const status = err?.response?.status ?? null;
-    const errorData = err?.response?.data;
-    const errorCode = errorData?.code ?? null;
+  } catch (err: unknown) {
+    const reponse = objetBrut(objetBrut(err).response);
+    const status = typeof reponse.status === 'number' ? reponse.status : null;
+    const errorCode = texteOuNull(objetBrut(reponse.data).code);
     const errorMessage = resolveErrorMessage(err);
 
     if (showToastOnError) {

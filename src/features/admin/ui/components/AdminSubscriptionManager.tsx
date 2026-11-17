@@ -1,98 +1,148 @@
 import React, { useState } from 'react';
-import { Star, Sparkles } from 'lucide-react';
-import { motion } from 'motion/react';
+import { useQuery } from '@tanstack/react-query';
+import { Layers, RefreshCw } from 'lucide-react';
+import { ModuleAvecSousMenu, SousMenuModule, useRepliSousMenu } from '@/shared/components/SousMenuModule';
+import { apiClient } from '@/shared/lib/apiClient';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { SubscriptionPlanCard } from './subscription/SubscriptionPlanCard';
 import { SubscriptionQuotaSection } from './subscription/SubscriptionQuotaSection';
 import { SubscriptionInvoicesTable } from './subscription/SubscriptionInvoicesTable';
 import { SubscriptionPaymentModal } from './subscription/SubscriptionPaymentModal';
 import { SubscriptionUpgradeModal } from './subscription/SubscriptionUpgradeModal';
-import { INITIAL_PLAN, INITIAL_INVOICES, INITIAL_PAYMENT_METHODS } from './subscription/subscriptionData';
-import { SubscriptionPlan, PaymentMethodInfo } from './subscription/subscriptionModels';
+import { SubscriptionFormulesList } from './subscription/SubscriptionFormulesList';
+import { SECTIONS_ABONNEMENT } from './subscription/subscriptionModels';
+import type { AbonnementEcoleReponse, QuotaFeature, SectionAbonnement, SubscriptionPlan } from './subscription/subscriptionModels';
 
+const icone = (code: string): QuotaFeature['iconName'] =>
+  code === 'MAX_TEACHERS' ? 'teachers' : code === 'MAX_CLASSES' ? 'classes' : 'users';
+
+/** Offre RÉELLE de l'école (GET /admin/abonnement) ; null sans abonnement enregistré. */
+const lireAbonnement = async (): Promise<SubscriptionPlan | null> => {
+  const { data } = await apiClient.get<AbonnementEcoleReponse>('/admin/abonnement');
+  if (!data?.disponible || !data.plan) return null;
+  const p = data.plan;
+  return {
+    id: p.id,
+    name: p.name,
+    tagline: p.tagline ?? '',
+    priceMonthly: Number(p.priceMonthly) || 0,
+    priceYearly: Number(p.priceYearly) || 0,
+    status: p.status,
+    billingCycle: p.billingCycle,
+    endDate: p.endDate ?? null,
+    // consommation null = non mesurée (remplacée par 0, elle donnerait un faux « 0 / 10 » pour les classes)
+    features: (p.features ?? []).map((f) => ({ code: f.code, label: f.label, limit: f.limit ?? null, used: f.used ?? null, iconName: icone(f.code) })),
+  };
+};
+
+/**
+ * « Mon Abonnement », sur le modèle commun des modules de l'administration (« Finances & Recouvrement ») :
+ * sous-menu à gauche (Ma formule, Formules disponibles, Quotas, Factures), contenu dans la carte de droite.
+ */
 export const AdminSubscriptionManager: React.FC = () => {
-  const [plan, setPlan] = useState<SubscriptionPlan>(INITIAL_PLAN);
-  const [invoices] = useState(INITIAL_INVOICES);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>(INITIAL_PAYMENT_METHODS);
+  const abonnement = useQuery({ queryKey: ['admin', 'abonnement'], queryFn: lireAbonnement });
+  const plan = abonnement.data ?? null;
+  const [section, setSection] = useState<SectionAbonnement>('formule');
+  const [replie, basculerRepli] = useRepliSousMenu('abonnement');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-
-  const handleUpgradeSuccess = (newPlanName: string, newPrice: number) => {
-    setPlan((prev) => ({
-      ...prev,
-      name: newPlanName,
-      priceMonthly: newPrice,
-      features: prev.features.map(f => ({ ...f, limit: f.limit * 2 }))
-    }));
+  const courante = SECTIONS_ABONNEMENT.find((e) => e.id === section) ?? SECTIONS_ABONNEMENT[0];
+  const choisir = (id: string) => {
+    const entree = SECTIONS_ABONNEMENT.find((e) => e.id === id);
+    if (entree) setSection(entree.id);
   };
 
-  const handleSelectDefaultMethod = (type: string) => {
-    setPaymentMethods((prev) => prev.map(m => ({ ...m, isDefault: m.type === type })));
-  };
+  const etatAbonnement = abonnement.isPending ? (
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-3 animate-pulse" aria-label="Chargement de votre abonnement">
+      <div className="h-4 w-1/3 bg-gray-200 rounded" />
+      <div className="h-3 w-2/3 bg-gray-100 rounded" />
+    </div>
+  ) : abonnement.isError ? (
+    <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 space-y-3">
+      <p>Impossible de charger votre abonnement : {resolveErrorMessage(abonnement.error)}</p>
+      <button type="button" onClick={() => void abonnement.refetch()}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-rose-200 text-xs font-bold hover:bg-rose-100">
+        <RefreshCw size={14} /> Réessayer
+      </button>
+    </div>
+  ) : !plan ? (
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600">
+      Aucun abonnement n'est encore enregistré pour votre établissement. Il est créé par l'équipe My School : consultez
+      les formules disponibles et contactez-la.
+    </div>
+  ) : null;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn">
-      {/* ── HEADER ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Mon Abonnement</h2>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
-              <Sparkles size={12} /> Établissement
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Gérez votre formule, vos quotas et l'ensemble de vos quittances de facturation
-          </p>
-        </div>
-
+    <ModuleAvecSousMenu
+      id="admin-abonnement-root"
+      idContenu="abonnement-contenu"
+      titre={`Mon Abonnement — ${courante.libelle}`}
+      sousTitre={courante.sousTitre}
+      actions={section !== 'formules' && (
         <button
+          type="button"
           onClick={() => setIsUpgradeModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white text-sm font-bold shadow-lg shadow-indigo-600/25 hover:shadow-xl hover:shadow-indigo-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors cursor-pointer"
         >
-          <Star size={16} className="text-amber-300 fill-amber-300" />
-          <span>Mettre à niveau (Premium)</span>
+          <Layers size={15} />
+          <span>Voir les formules</span>
         </button>
-      </motion.div>
+      )}
+      sousMenu={
+        <SousMenuModule
+          id="abonnement-subsidebar"
+          titre="Abonnement"
+          entrees={SECTIONS_ABONNEMENT}
+          actif={section}
+          onChoisir={choisir}
+          replie={replie}
+          onBasculerRepli={basculerRepli}
+        />
+      }
+    >
+      {section === 'formule' && (
+        <section id="abonnement-formule" aria-label="Ma formule" className="max-w-xl">
+          {etatAbonnement ?? (plan && (
+            <SubscriptionPlanCard
+              plan={plan}
+              onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
+              onOpenUpgradeModal={() => setSection('formules')}
+            />
+          ))}
+        </section>
+      )}
 
-      {/* ── MAIN GRID ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
-        {/* Left Column: Plan Card */}
-        <div className="lg:col-span-1">
-          <SubscriptionPlanCard
-            plan={plan}
-            onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
-            onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
-          />
-        </div>
+      {section === 'formules' && (
+        <section id="abonnement-formules" aria-label="Formules disponibles">
+          <SubscriptionFormulesList currentPlanId={plan?.id ?? null} />
+        </section>
+      )}
 
-        {/* Right Column: Quotas & Invoices */}
-        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-          <SubscriptionQuotaSection
-            features={plan.features}
-            onUpgradeClick={() => setIsUpgradeModalOpen(true)}
-          />
+      {section === 'quotas' && (
+        <section id="abonnement-quotas" aria-label="Quotas">
+          {plan ? (
+            <SubscriptionQuotaSection features={plan.features} onUpgradeClick={() => setSection('formules')} />
+          ) : etatAbonnement && (abonnement.isPending || abonnement.isError) ? etatAbonnement : (
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600">
+              Les quotas s'affichent dès qu'un abonnement est enregistré pour votre établissement.
+            </div>
+          )}
+        </section>
+      )}
 
-          <SubscriptionInvoicesTable invoices={invoices} />
-        </div>
-      </div>
+      {section === 'factures' && (
+        <section id="abonnement-factures" aria-label="Factures">
+          <SubscriptionInvoicesTable />
+        </section>
+      )}
 
-      {/* ── INTERACTIVE MODALS ── */}
-      <SubscriptionPaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        methods={paymentMethods}
-        onSelectDefault={handleSelectDefaultMethod}
-      />
-
+      {/* ── FENÊTRES (portail vers document.body : non coupées par la carte de contenu) ── */}
+      <SubscriptionPaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} />
       <SubscriptionUpgradeModal
         isOpen={isUpgradeModalOpen}
         onClose={() => setIsUpgradeModalOpen(false)}
-        onUpgradeSuccess={handleUpgradeSuccess}
+        currentPlanId={plan?.id ?? null}
       />
-    </div>
+    </ModuleAvecSousMenu>
   );
 };

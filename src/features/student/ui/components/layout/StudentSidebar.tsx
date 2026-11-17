@@ -2,14 +2,14 @@ import React from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
+import { anneeAcademiqueCourte } from '@/shared/lib/anneeAcademique';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface Props {
-  onOpenSettings: () => void;
   triggerToast: (msg: string) => void;
 }
 
-export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
+export function StudentSidebar({ triggerToast }: Props) {
   const navigate = useNavigate();
   const { deconnexion } = useAuthStore();
   const { currentTenant } = useTenantStore();
@@ -41,7 +41,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
           </div>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Étudiant</p>
         </div>
-        <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2025-26</p>
+        <p className="text-secondary font-label-md text-xs mt-1">Année Académique {anneeAcademiqueCourte()}</p>
       </div>
 
       <nav className="flex flex-col gap-1 flex-grow">
@@ -51,6 +51,7 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
           { to: `${base}/planning`,      icon: 'calendar_today', label: 'Planning' },
           { to: `${base}/devoirs`,       icon: 'assignment',     label: 'Devoirs' },
           { to: `${base}/notes`,         icon: 'grade',          label: 'Notes' },
+          { to: `${base}/absences`,      icon: 'event_busy',     label: 'Absences' },
           { to: `${base}/collaboration`, icon: 'groups',         label: 'Collaboration' },
         ].map(({ to, icon, label }) => (
           <NavLink
@@ -67,22 +68,22 @@ export function StudentSidebar({ onOpenSettings, triggerToast }: Props) {
 
       <div className="mt-auto space-y-2 shrink-0">
         <NavLink
-          to={`${base}/tuteur`}
+          to={`${base}/bilan`}
           className={({ isActive }) =>
             `w-full flex flex-row items-center justify-start gap-3 px-3 py-3 text-white rounded-lg font-label-md text-label-md active:opacity-80 transition-all cursor-pointer ${
               isActive ? 'bg-primary ring-2 ring-white/20' : 'bg-primary-dark/85 hover:bg-primary-dark'
             }`
           }
         >
-          <span translate="no" className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-          <span className="leading-none">Tuteur IA</span>
+          <span translate="no" className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
+          <span className="leading-none">Mon bilan</span>
         </NavLink>
 
         <div className="pt-4 border-t border-neutral-gray-200">
-          <button onClick={onOpenSettings} className="w-full flex flex-row items-center justify-start gap-3 px-3 py-2 text-secondary hover:bg-secondary-container/50 font-label-md text-label-md rounded-lg cursor-pointer">
-            <span translate="no" className="material-symbols-outlined text-[20px]">settings</span>
-            <span>Paramètres</span>
-          </button>
+          <NavLink to={`${base}/profil`} className={({ isActive }) => `w-full flex flex-row items-center justify-start gap-3 px-3 py-2 font-label-md text-label-md rounded-lg cursor-pointer ${isActive ? 'bg-primary text-text-on-primary font-black' : 'text-secondary hover:bg-secondary-container/50'}`}>
+            <span translate="no" className="material-symbols-outlined text-[20px]">account_circle</span>
+            <span>Mon profil</span>
+          </NavLink>
           <button
             onClick={() => {
               deconnexion();

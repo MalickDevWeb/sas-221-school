@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/core/store/authStore';
-import { SCHOOL_TENANTS, SchoolTenant } from '../domain/AdminTenants';
 import { AdminSidebar } from '../ui/components/AdminSidebar';
 import { AdminCommandPalette } from '../ui/components/AdminCommandPalette';
 import { AdminTabViews } from '../ui/components/AdminTabViews';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { MobileBottomNav } from '@/features/screenguard/ui/components/MobileBottomNav';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { ClocheNotifications } from '@/shared/components/ClocheNotifications';
+import { LogoEcole } from '@/shared/components/LogoEcole';
+import { useOuvertureCorbeille } from '@/features/corbeille';
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -15,8 +17,9 @@ export function AdminPage() {
   const { currentTenant } = useTenantStore();
   const isSuperAdmin = utilisateur?.role === 'SUPER_ADMIN' || utilisateur?.role === 'PLATFORM_OWNER' || !!originalSuperAdminRole;
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [tenant] = useState<SchoolTenant>(SCHOOL_TENANTS[0]);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Lien « Ouvrir la corbeille » d'un message de suppression (features/corbeille)
+  useOuvertureCorbeille(() => setActiveTab('corbeille'));
   const { isMobile } = useDeviceStore();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('admin_sidebar_collapsed');
@@ -31,7 +34,9 @@ export function AdminPage() {
     });
   };
 
-  const schoolName = currentTenant?.name || tenant.name || 'École 221';
+  const schoolName = currentTenant?.name || 'Votre établissement';
+  // Devise de l'école courante ; « XOF » seulement si l'école n'en déclare aucune.
+  const currency = (currentTenant as { currency?: string } | null)?.currency || 'XOF';
   const primaryColor = currentTenant?.branding?.primaryColor || '#B3181C';
   const handleLogout = () => { deconnexion(); localStorage.removeItem('access_token'); navigate('/admin'); };
   const leftMarginClass = isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64';
@@ -50,21 +55,22 @@ export function AdminPage() {
 
       <div className={`flex-grow min-w-0 w-full overflow-x-hidden transition-all duration-300 bg-neutral-50 min-h-screen flex flex-col pb-20 ${leftMarginClass}`}>
         {isSuperAdmin && (
-          <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 border-b border-purple-500/30 px-6 py-2 flex items-center justify-between text-xs text-white sticky top-0 z-40">
+          // Couleurs de l'école (couleur principale + texte lisible du thème)
+          <div className="bg-primary text-text-on-primary border-b border-black/10 px-6 py-2 flex items-center justify-between text-xs sticky top-0 z-40">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <span className="font-bold">Super Admin :</span>
-              <span className="text-purple-200">Gestion de l'établissement <strong className="text-white">"{schoolName}"</strong></span>
+              <span className="opacity-90">Gestion de l'établissement <strong className="opacity-100">"{schoolName}"</strong></span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setActiveTab('branding')} className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[11px] font-bold cursor-pointer">🎨 Personnalisation</button>
-              <button onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }} className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded-lg text-[11px] font-bold cursor-pointer">← Retour Super Admin</button>
+              <button onClick={() => setActiveTab('branding')} className="px-2.5 py-1 bg-black/10 hover:bg-black/20 text-text-on-primary rounded-lg text-[11px] font-bold cursor-pointer border-0">🎨 Personnalisation</button>
+              <button onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }} className="px-2.5 py-1 bg-black/25 hover:bg-black/35 text-text-on-primary rounded-lg text-[11px] font-bold cursor-pointer border-0">← Retour Super Admin</button>
             </div>
           </div>
         )}
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-neutral-200 px-6 h-16 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <span translate="no" className="material-symbols-outlined text-xl" style={{ color: primaryColor }}>school</span>
+            <LogoEcole taille={30} />
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider">{schoolName}</span>
           </div>
 
@@ -76,13 +82,17 @@ export function AdminPage() {
             <span>Rechercher partout... (Ctrl+K)</span>
           </button>
 
-          <span className="text-[10px] uppercase font-black tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full animate-pulse">
-            Connecté
-          </span>
+          <div className="flex items-center gap-3">
+            {/* Annonces « Personnel » et alertes reçues par le compte ; pas pour la plateforme en visite */}
+            {!isSuperAdmin && <ClocheNotifications />}
+            <span className="text-[10px] uppercase font-black tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full animate-pulse">
+              Connecté
+            </span>
+          </div>
         </header>
 
         <main className={`p-4 md:p-6 w-full space-y-6 flex-grow ${activeTab === 'schedule' ? 'max-w-none' : 'max-w-[1440px] mx-auto'}`}>
-          <AdminTabViews activeTab={activeTab} currency={tenant.currency} />
+          <AdminTabViews activeTab={activeTab} currency={currency} />
         </main>
       </div>
 

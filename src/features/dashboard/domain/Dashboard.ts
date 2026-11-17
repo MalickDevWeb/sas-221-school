@@ -42,9 +42,16 @@ export interface DashboardData {
   readonly liveSessions: LiveSession[];
 }
 
+/** Un mois de GET /student/performance : null = aucune donnée ce mois-là (jamais de valeur inventée). */
 export interface PerformanceData {
+  /** AAAA-MM */
   mois: string;
-  note: number;
-  presence: number;
-  promoMoy: number;
+  /** Moyenne de l'élève sur 20 (évaluations du mois, règle du professeur). */
+  note: number | null;
+  /** Moyenne des élèves notés aux mêmes évaluations. */
+  moyenneClasse: number | null;
+  /** % de séances où l'élève était présent ou en retard. */
+  presence: number | null;
+  seances: number;
+  evaluations: number;
 }

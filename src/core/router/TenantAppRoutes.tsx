@@ -1,39 +1,43 @@
-import React, { lazy } from 'react';
-import { Route } from 'react-router-dom';
+import React from 'react';
+import { Navigate, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { TenantRouteSync } from './TenantRouteSync';
 import { DashboardRedirect } from './RouteRedirects';
 import { ROLE_UTILISATEUR } from '@/shared/constants';
-
-const AdminPage = lazy(() => import('@/features/admin').then(m => ({ default: m.AdminPage })));
-const BrandingSettingsPage = lazy(() => import('@/features/admin/ui/pages/BrandingSettingsPage').then(m => ({ default: m.BrandingSettingsPage })));
-const ProfessorDashboardPage = lazy(() => import('@/features/professor').then(m => ({ default: m.ProfessorDashboardPage })));
-const ParentLayout = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentLayout })));
-const ParentDashboardPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentDashboardPage })));
-const ParentSchedulePage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentSchedulePage })));
-const ParentAttendancePage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentAttendancePage })));
-const ParentGradesPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentGradesPage })));
-const ParentMessagesPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentMessagesPage })));
-const ParentEnrollChildPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentEnrollChildPage })));
-const ParentApplicationTrackingPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentApplicationTrackingPage })));
-const ParentPaymentsPage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentPaymentsPage })));
-const ParentProfilePage = lazy(() => import('@/features/parent').then(m => ({ default: m.ParentProfilePage })));
-const VigilLayout = lazy(() => import('@/features/vigil').then(m => ({ default: m.VigilLayout })));
-const VigilPatrolPage = lazy(() => import('@/features/vigil').then(m => ({ default: m.VigilPatrolPage })));
-const StudentLayout = lazy(() => import('@/features/student/ui/components/layout/StudentLayout').then(m => ({ default: m.StudentLayout })));
-const StudentDashboardPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentDashboardPage })));
-const StudentCoursesPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentCoursesPage })));
-const CourseDetailPage = lazy(() => import('@/features/student').then(m => ({ default: m.CourseDetailPage })));
-const StudentHomeworksPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentHomeworksPage })));
-const StudentSchedulePage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentSchedulePage })));
-const StudentGradesPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentGradesPage })));
-const StudentTutorPage = lazy(() => import('@/features/student').then(m => ({ default: m.StudentTutorPage })));
-const CollaborationPage = lazy(() => import('@/features/collaboration/ui/pages/CollaborationPage').then(m => ({ default: m.CollaborationPage })));
+import {
+  AdminPage,
+  BrandingSettingsPage,
+  ProfessorDashboardPage,
+  ParentLayout,
+  ParentDashboardPage,
+  ParentSchedulePage,
+  ParentAttendancePage,
+  ParentGradesPage,
+  ParentMessagesPage,
+  ParentEnrollChildPage,
+  ParentApplicationTrackingPage,
+  ParentPaymentsPage,
+  ParentProfilePage,
+  VigilLayout,
+  VigilPatrolPage,
+  StudentLayout,
+  StudentDashboardPage,
+  StudentCoursesPage,
+  CourseDetailPage,
+  StudentHomeworksPage,
+  StudentSchedulePage,
+  StudentGradesPage,
+  StudentAbsencesPage,
+  StudentProfilePage,
+  StudentBilanPage,
+  CollaborationPage,
+} from './TenantAppPages';
 
 export function renderTenantAppRoutes() {
   return (
     <Route path="/t/:tenantSlug" element={<TenantRouteSync />}>
-      <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER]} />}>
+      <Route element={<ProtectedRoute rolesAutorises={[ROLE_UTILISATEUR.ADMIN, ROLE_UTILISATEUR.ADMINISTRATOR, ROLE_UTILISATEUR.SUPER_ADMIN, ROLE_UTILISATEUR.PLATFORM_OWNER,
+        ROLE_UTILISATEUR.DIRECTEUR, ROLE_UTILISATEUR.SECRETAIRE, ROLE_UTILISATEUR.COMPTABLE, ROLE_UTILISATEUR.SURVEILLANT, ROLE_UTILISATEUR.RH]} />}>
         <Route path="admin" element={<AdminPage />} />
         <Route path="admin/dashboard" element={<AdminPage />} />
         <Route path="admin/branding" element={<BrandingSettingsPage />} />
@@ -74,7 +78,11 @@ export function renderTenantAppRoutes() {
           <Route path="etudiant/devoirs" element={<StudentHomeworksPage />} />
           <Route path="etudiant/planning" element={<StudentSchedulePage />} />
           <Route path="etudiant/notes" element={<StudentGradesPage />} />
-          <Route path="etudiant/tuteur" element={<StudentTutorPage />} />
+          <Route path="etudiant/absences" element={<StudentAbsencesPage />} />
+          <Route path="etudiant/profil" element={<StudentProfilePage />} />
+          <Route path="etudiant/bilan" element={<StudentBilanPage />} />
+          {/* APP-TL-24 : ancienne adresse du « Tuteur IA », retiré ; les favoris mènent au bilan */}
+          <Route path="etudiant/tuteur" element={<Navigate to="../bilan" relative="path" replace />} />
           <Route path="etudiant/collaboration" element={<CollaborationPage />} />
         </Route>
       </Route>

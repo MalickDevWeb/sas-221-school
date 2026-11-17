@@ -22,7 +22,7 @@ export function QRModal({ state }: { state: any }) {
           {state.presenceSuccess && <div className="absolute inset-0 bg-emerald-500 text-white flex flex-col items-center justify-center"><CheckCircle className="h-10 w-10" /></div>}
         </div>
         <div className="space-y-2 pt-2">
-          <button onClick={state.triggerAttendanceScan} disabled={state.presenceLoading || state.presenceSuccess} className="w-full py-2.5 bg-[#5D2EE7] text-white text-xs font-black rounded-xl">{state.presenceSuccess ? "Émargement effectué" : "Simuler Émargement"}</button>
+          <button onClick={state.triggerAttendanceScan} disabled={state.presenceLoading || state.presenceSuccess} className="w-full py-2.5 bg-[#5D2EE7] text-white text-xs font-black rounded-xl">{state.presenceSuccess ? "Émargement effectué" : "Valider ma présence"}</button>
           <button onClick={() => state.setShowQRModal(false)} className="w-full py-1.5 bg-neutral-100 text-[10.5px] font-black rounded-xl">Retour</button>
         </div>
       </div>

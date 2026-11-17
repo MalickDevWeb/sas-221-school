@@ -83,13 +83,13 @@ export const SAAS_50_PALETTES: SaaSColorPreset[] = [
 ];
 
 export const CATEGORY_FILTERS: Array<{ key: PresetCategory; label: string; icon: string }> = [
-  { key: 'tous', label: 'Toutes les 50', icon: 'solar:palette-bold-duotone' },
+  { key: 'tous', label: 'Toutes', icon: 'solar:palette-bold-duotone' },
   { key: 'education', label: 'Éducation & Sénégal', icon: 'solar:square-academic-cap-bold-duotone' },
-  { key: 'bleus', label: 'Bleus Pros & SaaS', icon: 'solar:cloud-bold-duotone' },
+  { key: 'bleus', label: 'Bleus', icon: 'solar:cloud-bold-duotone' },
   { key: 'verts', label: 'Verts & Nature', icon: 'solar:leaf-bold-duotone' },
   { key: 'violets', label: 'Violets & Prestige', icon: 'solar:crown-bold-duotone' },
   { key: 'chaudes', label: 'Chaudes & Énergie', icon: 'solar:fire-bold-duotone' },
-  { key: 'neutres', label: 'Corporate & Neutres', icon: 'solar:buildings-bold-duotone' },
+  { key: 'neutres', label: 'Sobres & neutres', icon: 'solar:buildings-bold-duotone' },
 ];
 
 /**

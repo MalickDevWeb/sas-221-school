@@ -11,7 +11,7 @@ const renderPricingIllustration = (type: string) => {
     case 'essential':
       return (
         <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <Icon icon="solar:school-bold-duotone" className="text-3xl text-cyan-400" />
+          <Icon icon="solar:square-academic-cap-bold-duotone" className="text-3xl text-cyan-400" />
         </div>
       );
     case 'premium':

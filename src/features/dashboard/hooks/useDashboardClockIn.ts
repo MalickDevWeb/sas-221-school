@@ -33,7 +33,8 @@ export function useDashboardClockIn({ triggerToast, loadData }: ClockInProps) {
     // No-op - Camera is fully managed by the CameraScanner component
   }, []);
 
-  const registerClockIn = useCallback(async (method: string, keepOpen = false) => {
+  /** Vrai seulement si le serveur a enregistré le pointage (l'écran ne l'annonce pas avant sa réponse). */
+  const registerClockIn = useCallback(async (method: string, keepOpen = false): Promise<boolean> => {
     playBeep();
     try {
       await registerClockInUseCase(pointageType, method);
@@ -43,9 +44,11 @@ export function useDashboardClockIn({ triggerToast, loadData }: ClockInProps) {
       }
       triggerToast(`Pointage ${pointageType} validé`);
       await loadData();
+      return true;
     } catch (e) {
       console.error(e);
       triggerToast("Erreur lors du pointage");
+      return false;
     }
   }, [pointageType, triggerToast, loadData]);
 

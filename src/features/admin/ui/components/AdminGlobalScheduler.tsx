@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { PlanningSubSidebar } from './planning/PlanningSubSidebar';
 import { CalendarTab } from './planning/CalendarTab';
 import { ConflictsTab } from './planning/ConflictsTab';
-import { AssistantIaTab } from './planning/AssistantIaTab';
 import { HistoryTab } from './planning/HistoryTab';
 import { StatsTab } from './planning/StatsTab';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
 import { useAdminSchedulerState } from '../../hooks/useAdminSchedulerState';
+import { avertissementBilan, messageBilan } from '../../domain/bilanEmploiDuTemps';
 import { generateOptimizedSchedule } from '../../domain/PlanningGenerator';
-import { INITIAL_SLOTS, INITIAL_UNASSIGNED, INITIAL_CONFLICTS } from '../../domain/PlanningMockData';
 
 export function AdminGlobalScheduler() {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -16,7 +14,7 @@ export function AdminGlobalScheduler() {
   const [isPublished, setIsPublished] = useState(false);
 
   const {
-    slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
+    recharger, enregistrer, modifie, slots, setSlots, unassigned, setUnassigned, conflicts, setConflicts,
     associations, setAssociations, logs, setLogs, week, setWeek, toast, showToast, addLog,
     scheduleCourse, removeSlot, moveCourse, duplicateCourse
   } = useAdminSchedulerState();
@@ -29,22 +27,31 @@ export function AdminGlobalScheduler() {
     }
     setSlots(prev => [...prev, ...assigned]);
     setUnassigned(remaining);
-    addLog('IA', 'Moteur Auto', `${unassigned.length} en attente`, `${assigned.length} planifiés automatiquement`, 'Génération heuristique par IA');
+    addLog('Placement automatique', 'Moteur Auto', `${unassigned.length} en attente`, `${assigned.length} planifiés automatiquement`, 'Placement automatique sans conflit (premier créneau libre)');
     showToast(`${assigned.length} cours planifiés sans aucun conflit ! ✨`, true);
   };
 
-  const handlePublish = () => {
+  /** Enregistre réellement le planning. */
+  const handlePublish = async () => {
+    const res = await enregistrer();
+    if ('erreur' in res) {
+      showToast(`Planning non enregistré : ${res.erreur}`, false);
+      return;
+    }
     setIsPublished(true);
-    addLog('Modification', 'Tous les cours', 'Brouillon', 'Publié', 'Publication et alertes synchrones');
-    showToast("Planning publié ! Notification SMS envoyée aux étudiants et courriels aux professeurs. 📡", true);
+    addLog('Modification', 'Tous les cours', 'Brouillon', 'Enregistré', 'Enregistrement du planning');
+    // Le serveur transmet les séances aux professeurs, élèves et parents ; il signale les créneaux
+    // sans matière (pas de feuille d'appel) ou sans professeur reconnu.
+    const avertissement = avertissementBilan(res.bilan);
+    showToast(avertissement ? `${messageBilan(res.bilan)} ${avertissement}` : messageBilan(res.bilan), !avertissement);
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-start w-full" id="global-scheduler-root">
       {!isClosed ? (
-        <TabletDrawerWrapper>
+        <div className="shrink-0 lg:sticky lg:top-4">
           <PlanningSubSidebar activeTab={activeTab} onSelectTab={setActiveTab} isCollapsed={false} onToggleCollapse={() => {}} onClose={() => setIsClosed(true)} />
-        </TabletDrawerWrapper>
+        </div>
       ) : (
         <button onClick={() => setIsClosed(false)} className="bg-white border border-[#E2DCDA] hover:bg-neutral-50 px-3.5 py-4 rounded-2xl shadow-xs cursor-pointer shrink-0 w-16 text-center font-black">
           <span translate="no" className="material-symbols-outlined text-lg text-primary">visibility</span>
@@ -83,21 +90,20 @@ export function AdminGlobalScheduler() {
           </div>
         </div>
 
-        {/* Sync Status Banner */}
-        {isPublished && (
-          <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex items-center justify-between text-[10px] text-blue-800 font-bold">
-            <span className="flex items-center gap-2">
-              <span translate="no" className="material-symbols-outlined text-sm animate-pulse text-blue-600">sensors</span>
-              <span>Synchronisation en cours : portails étudiants, portails enseignants, écrans d'affichage, Google Calendar & Outlook.</span>
-            </span>
-            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[9px] uppercase font-black">Actif</span>
+        {/* État réel de l'enregistrement */}
+        {modifie ? (
+          <div role="status" id="planning-non-enregistre" className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[10px] text-amber-900 font-bold">
+            Modifications non enregistrées : cliquez sur « Publier le planning » pour les enregistrer.
+          </div>
+        ) : isPublished && (
+          <div role="status" id="planning-enregistre" className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-[10px] text-emerald-800 font-bold">
+            Planning enregistré sur le serveur.
           </div>
         )}
 
         {activeTab === 'calendar' && <CalendarTab slots={slots} unassigned={unassigned} onSchedule={scheduleCourse} onMoveCourse={moveCourse} onDuplicateCourse={duplicateCourse} onRemoveSlot={removeSlot} />}
         {activeTab === 'conflicts' && <ConflictsTab conflicts={conflicts} onClearConflict={(id) => setConflicts(conflicts.filter(c => c.id !== id))} onClearAll={() => setConflicts([])} />}
-        {activeTab === 'ai_opt' && <AssistantIaTab onApplyIaSchedule={(newSlots, info) => { setSlots([...slots, ...newSlots]); showToast(info, true); }} />}
-        {activeTab === 'history' && <HistoryTab logs={logs} slots={slots} unassigned={unassigned} onRestore={(log) => { setSlots(INITIAL_SLOTS); setUnassigned(INITIAL_UNASSIGNED); setConflicts(INITIAL_CONFLICTS); showToast("Grille restaurée à l'état initial avec succès.", true); }} />}
+        {activeTab === 'history' && <HistoryTab logs={logs} slots={slots} unassigned={unassigned} onRestore={() => { recharger(); setUnassigned([]); setConflicts([]); showToast("Grille rechargée depuis le planning enregistré.", true); }} />}
         {activeTab === 'stats' && <StatsTab associations={associations} slots={slots} onRemoveAssociation={(id) => setAssociations(associations.filter(a => a.id !== id))} />}
       </div>
     </div>

@@ -1,64 +1,39 @@
 import { GroupMember } from './CollaborationModels';
 
-export type GroupingCriterion = 'random' | 'alpha' | 'gpa' | 'gender' | 'mixed';
+/**
+ * Critères de répartition automatique. Seuls ceux qui reposent sur des données réelles sont proposés : la moyenne,
+ * le sexe et les compétences ne sont pas transmis par le serveur.
+ */
+export type GroupingCriterion = 'alpha' | 'random';
 
-export function splitIntoBalancedGroups(
-  students: readonly GroupMember[],
-  targetGroupCount: number,
-  criterion: GroupingCriterion
-): GroupMember[][] {
-  if (students.length === 0 || targetGroupCount <= 0) return [];
-
-  // Initialize empty groups
-  const groups: GroupMember[][] = Array.from({ length: targetGroupCount }, () => []);
-  const pool = [...students];
-
-  if (criterion === 'random') {
-    pool.sort(() => Math.random() - 0.5);
-  } else if (criterion === 'alpha') {
-    pool.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (criterion === 'gpa') {
-    // Zig-zag round-robin to balance GPA
-    pool.sort((a, b) => b.gpa - a.gpa);
-    let direction = 1;
-    let groupIndex = 0;
-    for (const student of pool) {
-      groups[groupIndex].push(student);
-      groupIndex += direction;
-      if (groupIndex === targetGroupCount) {
-        groupIndex = targetGroupCount - 1;
-        direction = -1;
-      } else if (groupIndex === -1) {
-        groupIndex = 0;
-        direction = 1;
-      }
-    }
-    return groups;
-  } else if (criterion === 'gender') {
-    const males = pool.filter((s) => s.gender === 'M');
-    const females = pool.filter((s) => s.gender === 'F');
-    let idx = 0;
-    males.forEach((m) => {
-      groups[idx % targetGroupCount].push(m);
-      idx++;
-    });
-    females.forEach((f) => {
-      groups[idx % targetGroupCount].push(f);
-      idx++;
-    });
-    return groups;
+/** Répartit les élèves en `nombre` groupes d'effectifs égaux à un élève près (aucun groupe vide). */
+export function repartirEleves(eleves: readonly GroupMember[], nombre: number, critere: GroupingCriterion,
+                               hasard: () => number = Math.random): GroupMember[][] {
+  const n = Math.min(Math.max(1, Math.floor(nombre)), eleves.length);
+  if (eleves.length === 0) return [];
+  const pool = [...eleves];
+  if (critere === 'alpha') {
+    pool.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   } else {
-    // mixed: Sort by combination of GPA and Gender
-    pool.sort((a, b) => {
-      if (a.gender !== b.gender) return a.gender.localeCompare(b.gender);
-      return a.gpa - b.gpa;
-    });
+    for (let i = pool.length - 1; i > 0; i--) {   // mélange de Fisher-Yates (le tri aléatoire est biaisé)
+      const j = Math.floor(hasard() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
   }
-
-  // Standard round-robin for general criteria
-  pool.forEach((student, index) => {
-    groups[index % targetGroupCount].push(student);
-  });
-
-  return groups;
+  if (critere === 'alpha') {
+    // blocs consécutifs : A–D, E–K…
+    const taille = Math.floor(pool.length / n);
+    const reste = pool.length % n;
+    const groupes: GroupMember[][] = [];
+    let debut = 0;
+    for (let g = 0; g < n; g++) {
+      const fin = debut + taille + (g < reste ? 1 : 0);
+      groupes.push(pool.slice(debut, fin));
+      debut = fin;
+    }
+    return groupes;
+  }
+  const groupes: GroupMember[][] = Array.from({ length: n }, () => []);
+  pool.forEach((e, i) => groupes[i % n].push(e));
+  return groupes;
 }

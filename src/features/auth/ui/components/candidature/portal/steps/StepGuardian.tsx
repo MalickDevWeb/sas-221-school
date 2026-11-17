@@ -1,17 +1,11 @@
-import React from 'react';
 import { motion } from 'motion/react';
-import { GuardianDetails } from '../admissionsTypes';
+import { Champ, ChoixBoutons, NavigationEtape } from './champs';
+import { inputCls, useChamp } from './champsCandidature';
 
-interface Props {
-  guardian: GuardianDetails;
-  setGuardian: React.Dispatch<React.SetStateAction<GuardianDetails>>;
-  onNext: () => void;
-  onPrev: () => void;
-}
+const RELATIONS = ['Père', 'Mère', 'Tuteur Légal', 'Autre'];
 
-export function StepGuardian({ guardian, setGuardian, onNext, onPrev }: Props) {
-  const relations = ['Père', 'Mère', 'Tuteur Légal', 'Autre'] as const;
-
+export function StepGuardian({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
+  const champ = useChamp();
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
       <div>
@@ -19,61 +13,26 @@ export function StepGuardian({ guardian, setGuardian, onNext, onPrev }: Props) {
         <p className="text-xs text-neutral-500 font-medium">Personne à contacter pour le suivi administratif et financier du dossier.</p>
       </div>
 
-      <div>
-        <label className="text-[11px] font-bold text-neutral-700 block mb-1.5">Lien de parenté / Relation *</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {relations.map(rel => (
-            <button key={rel} type="button" onClick={() => setGuardian(g => ({ ...g, relationship: rel }))} className={`h-10 rounded-xl text-xs font-black transition-all border ${guardian.relationship === rel ? 'bg-primary text-white border-primary shadow-xs' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'}`}>
-              {rel}
-            </button>
-          ))}
-        </div>
+      <Champ id="guardianRelationship" label="Lien de parenté / Relation *">
+        <ChoixBoutons id="guardianRelationship" options={RELATIONS.map(r => ({ valeur: r, libelle: r }))} />
+      </Champ>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Champ id="guardianName" label="Nom complet du garant *"><input type="text" placeholder="Ex: El Hadji Babacar Diop" className={inputCls} {...champ('guardianName')} /></Champ>
+        <Champ id="guardianProfession" label="Profession / Activité"><input type="text" placeholder="Ex: Enseignant" className={inputCls} {...champ('guardianProfession')} /></Champ>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Nom complet du garant *</label>
-          <input required type="text" placeholder="Ex: El Hadji Babacar Diop" value={guardian.fullName} onChange={e => setGuardian(g => ({ ...g, fullName: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Profession / Activité</label>
-          <input type="text" placeholder="Ex: Cadre banquier / Enseignant" value={guardian.profession} onChange={e => setGuardian(g => ({ ...g, profession: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Téléphone portable du garant *</label>
-          <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 focus-within:border-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 transition-all overflow-hidden h-11">
-            <div className="flex items-center gap-1.5 px-3 bg-neutral-100/80 border-r border-neutral-200 text-neutral-700 text-xs font-bold select-none shrink-0">
-              <span className="text-sm">🇸🇳</span>
-              <span className="font-mono font-bold text-neutral-800">+221</span>
-            </div>
-            <input required type="tel" placeholder="77 654 32 10" value={guardian.phone} onChange={e => setGuardian(g => ({ ...g, phone: e.target.value }))} className="w-full h-full px-3.5 bg-transparent text-xs font-semibold text-neutral-800 placeholder-neutral-400 outline-none" />
-          </div>
-        </div>
-        <div>
-          <label className="text-[11px] font-bold text-neutral-700 block mb-1">Email du garant</label>
-          <input type="email" placeholder="tuteur@domaine.sn" value={guardian.email} onChange={e => setGuardian(g => ({ ...g, email: e.target.value }))} className="w-full h-11 px-3.5 bg-neutral-50 border border-neutral-200 focus:border-primary focus:bg-white rounded-xl text-xs font-semibold text-neutral-800 outline-none transition-all" />
-        </div>
+        <Champ id="guardianPhone" label="Téléphone portable du garant *"><input type="tel" placeholder="77 654 32 10" className={inputCls} {...champ('guardianPhone')} /></Champ>
+        <Champ id="guardianEmail" label="Email du garant"><input type="email" placeholder="tuteur@domaine.sn" className={inputCls} {...champ('guardianEmail')} /></Champ>
       </div>
 
       <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center gap-2.5 text-neutral-600 text-[11px]">
         <span translate="no" className="material-symbols-outlined text-primary text-base">info</span>
-        <span>Le garant recevra une copie numérique de la lettre d'admission et des convocations aux entretiens.</span>
+        <span>Ces coordonnées sont jointes à votre dossier : l'école pourra contacter votre garant pour son suivi.</span>
       </div>
 
-      <div className="pt-3 border-t border-neutral-100 flex justify-between">
-        <button onClick={onPrev} className="h-11 px-5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_back</span>
-          <span>Précédent</span>
-        </button>
-        <button disabled={!guardian.fullName || !guardian.phone} onClick={onNext} className="h-11 px-6 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer">
-          <span>Suivant : Parcours Académique</span>
-          <span translate="no" className="material-symbols-outlined text-sm">arrow_forward</span>
-        </button>
-      </div>
+      <NavigationEtape onPrev={onPrev} onNext={onNext} libelleSuivant="Suivant : Parcours Académique" />
     </motion.div>
   );
 }
-

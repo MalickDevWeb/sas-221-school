@@ -1,86 +1,204 @@
-import React from 'react';
-import { ExtendedCandidate } from '@/features/admin/domain/AdmissionsExtendedModels';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { uploadToCloudinary, UploadError } from '@/shared/utils/cloudinaryUpload';
+import { VisionneuseFichier } from '@/shared/components/VisionneuseFichier';
+import {
+  LIBELLE_FRAIS, LIBELLE_STATUT, sessionExpiree, suiviApi,
+  type DossierCandidat, type MessageEchange, type PieceDossier,
+} from './suiviApi';
 
-interface Props {
-  candidate: ExtendedCandidate;
-}
+const ETAPES: Record<string, string> = {
+  new: 'Dossier reçu', docs: 'Vérification des pièces', interview: 'Entretien', admitted: 'Admission', rejected: 'Décision rendue',
+};
+const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp';
+const ACTUALISATION_MS = 30_000;
 
-export function CandidateStatusTab({ candidate }: Props) {
-  const steps = [
-    { label: 'Dossier Créé', done: true, current: false },
-    { label: 'Vérification Administrative', done: candidate.step !== 'new', current: candidate.step === 'new' },
-    { label: 'Paiement Étude', done: candidate.registrationFeePaid, current: false },
-    { label: 'Décision d\'Admission', done: candidate.step === 'admitted', current: candidate.step === 'docs' }
+const heure = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+};
+
+/**
+ * Espace du candidat : statut réel du dossier, SES pièces (consultées dans l'application, ajoutées ou
+ * remplacées tant que la décision n'est pas rendue) et ses échanges avec l'école. Session de suivi de 2 h : à
+ * l'expiration, retour à la connexion.
+ */
+export function CandidateStatusTab({ dossier: initial, onSessionExpiree }: { dossier: DossierCandidat; onSessionExpiree?: () => void }) {
+  const [dossier, setDossier] = useState(initial);
+  const [messages, setMessages] = useState<MessageEchange[]>([]);
+  const [chargementMessages, setChargementMessages] = useState(true);
+  const [texte, setTexte] = useState('');
+  const [envoi, setEnvoi] = useState(false);
+  const [erreurMessage, setErreurMessage] = useState('');
+  const [depot, setDepot] = useState<string | null>(null);
+  const [erreursPieces, setErreursPieces] = useState<Record<string, string>>({});
+  const [vue, setVue] = useState<PieceDossier | null>(null);
+  const entree = useRef<HTMLInputElement>(null);
+  const cible = useRef<PieceDossier | null>(null);
+  const finFil = useRef<HTMLDivElement>(null);
+  const jeton = dossier.jeton ?? '';
+
+  const echec = useCallback((err: unknown): string => {
+    if (sessionExpiree(err)) {
+      toast.error('Votre session de suivi a expiré : reconnectez-vous.');
+      onSessionExpiree?.();
+    }
+    return resolveErrorMessage(err);
+  }, [onSessionExpiree]);
+
+  const relireMessages = useCallback(async () => {
+    if (!jeton) return;
+    try {
+      setMessages(await suiviApi.messages(jeton));
+    } catch (err) {
+      setErreurMessage(echec(err));
+    } finally {
+      setChargementMessages(false);
+    }
+  }, [jeton, echec]);
+
+  useEffect(() => {
+    void relireMessages();
+    const id = window.setInterval(() => { void relireMessages(); }, ACTUALISATION_MS);
+    return () => window.clearInterval(id);
+  }, [relireMessages]);
+  useEffect(() => { finFil.current?.scrollIntoView({ block: 'nearest' }); }, [messages.length]);
+
+  const envoyer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = texte.trim();
+    if (!t) { setErreurMessage('Écrivez votre message.'); return; }
+    setEnvoi(true); setErreurMessage('');
+    try {
+      const m = await suiviApi.ecrire(jeton, t);
+      setMessages((l) => [...l, m]);
+      setTexte('');
+    } catch (err) {
+      setErreurMessage(echec(err));
+    } finally {
+      setEnvoi(false);
+    }
+  };
+
+  const choisirFichier = (p: PieceDossier) => { cible.current = p; entree.current?.click(); };
+  const deposer = async (fichier: File) => {
+    const p = cible.current;
+    if (!p) return;
+    setErreursPieces((x) => ({ ...x, [p.code]: '' }));
+    if (fichier.size > 10 * 1024 * 1024) { setErreursPieces((x) => ({ ...x, [p.code]: 'Fichier trop lourd : 10 Mo au maximum.' })); return; }
+    setDepot(p.code);
+    try {
+      const lien = await uploadToCloudinary(fichier, undefined, { strict: true, confidentiel: true });
+      const pieces = await suiviApi.deposerPiece(jeton, p.code, lien);
+      setDossier((d) => ({ ...d, pieces }));
+      toast.success(`« ${p.libelle} » ${p.jointe ? 'remplacée' : 'ajoutée'} : l'école est prévenue.`);
+      void relireMessages();
+    } catch (err) {
+      setErreursPieces((x) => ({ ...x, [p.code]: err instanceof UploadError ? `Non envoyé : ${err.message}` : echec(err) }));
+    } finally {
+      setDepot(null);
+    }
+  };
+
+  const decide = dossier.statut === 'ACCEPTE' || dossier.statut === 'REFUSE';
+  const couleur = dossier.statut === 'ACCEPTE' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+    : dossier.statut === 'REFUSE' ? 'bg-rose-50 text-rose-800 border-rose-200'
+    : 'bg-blue-50 text-blue-800 border-blue-200';
+  const pieces = dossier.pieces ?? [
+    { code: 'pieceIdentite', libelle: "Pièce d'identité", jointe: dossier.pieceIdentiteDeclaree },
+    { code: 'diplome', libelle: 'Diplôme ou attestation', jointe: dossier.diplomeDeclare },
   ];
-
-  const getStatusColor = () => {
-    if (candidate.step === 'admitted') return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    if (candidate.step === 'rejected') return 'bg-rose-50 text-rose-800 border-rose-200';
-    return 'bg-blue-50 text-blue-800 border-blue-200';
-  };
-
-  const getStatusLabel = () => {
-    if (candidate.step === 'admitted') return 'Félicitations ! Vous êtes ADMIS';
-    if (candidate.step === 'rejected') return 'Dossier REFUSÉ ou en attente d\'Équivalences';
-    return 'Dossier EN COURS DE TRAITEMENT';
-  };
+  const modifiable = dossier.modifiable ?? !decide;
 
   return (
-    <div className="space-y-4 animate-fade-in text-xs font-bold text-neutral-600" id="candidate-status-tab-content">
-      {/* Alert Header Banner */}
-      <div className={`p-4 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 ${getStatusColor()}`}>
-        <div>
-          <h4 className="font-extrabold text-sm leading-tight uppercase">{getStatusLabel()}</h4>
-          <p className="text-[10px] mt-1 font-semibold opacity-90">
-            Candidat ID : <strong className="font-mono">{candidate.id}</strong> · Cursus : {candidate.course}
-          </p>
-        </div>
-        {candidate.step === 'admitted' && (
-          <span className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm animate-bounce inline-block text-center sm:text-left">
-            Matricule en cours de génération
-          </span>
+    <div className="space-y-4 text-xs font-bold text-neutral-600" id="candidate-status-tab-content">
+      <div className={`p-4 border rounded-2xl ${couleur}`} id="candidate-statut">
+        <h4 className="font-extrabold text-sm leading-tight uppercase">{LIBELLE_STATUT[dossier.statut]}</h4>
+        <p className="text-[11px] mt-1 font-semibold opacity-90">
+          Dossier <strong className="font-mono">{dossier.id}</strong> · {dossier.formation ?? '—'}
+          {dossier.dateDepot && <> · déposé le {new Date(dossier.dateDepot).toLocaleDateString('fr-FR')}</>}
+        </p>
+        {!decide && dossier.etape && ETAPES[dossier.etape] && (
+          <p className="text-[11px] mt-1 font-semibold">Étape actuelle : {ETAPES[dossier.etape]}</p>
+        )}
+        {dossier.statut === 'REFUSE' && dossier.motifRefus && (
+          <p className="text-[11px] mt-2 font-semibold">Motif communiqué par l'école : {dossier.motifRefus}</p>
+        )}
+        {dossier.statut === 'ACCEPTE' && (
+          <p className="text-[11px] mt-2 font-semibold">L'école vous contactera pour finaliser votre inscription.</p>
         )}
       </div>
 
-      {/* Progressive Step Line */}
-      <div className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3">
-        <span className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">Progression Académique</span>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          {steps.map((s, idx) => (
-            <div key={idx} className={`flex sm:flex-col items-center sm:items-start gap-3 sm:gap-2 border-l-2 sm:border-l-0 sm:border-t-2 pl-3 sm:pl-0 sm:pt-3.5 ${s.done ? 'border-primary' : 'border-[#E2DCDA]'}`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
-                s.done ? 'bg-primary text-text-on-primary' : s.current ? 'bg-neutral-800 text-white animate-pulse' : 'bg-neutral-100 text-neutral-400 border border-neutral-200'
-              }`}>
-                {s.done ? '✓' : idx + 1}
+      <section aria-labelledby="mes-pieces-titre" className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-2" id="mes-pieces">
+        <h5 id="mes-pieces-titre" className="text-[10px] font-black uppercase text-neutral-500 tracking-wider m-0">Vos pièces</h5>
+        {pieces.map((p) => (
+          <div key={p.code} className="border-b border-neutral-100 last:border-0 py-2">
+            <div className="flex flex-wrap justify-between items-center gap-2">
+              <span className="text-neutral-700 font-semibold">{p.libelle}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={p.jointe ? 'text-emerald-700' : 'text-amber-700'}>{p.jointe ? 'Jointe' : 'Manquante'}</span>
+                {p.jointe && jeton && (
+                  <button type="button" onClick={() => setVue(p)} className="px-2 py-1 rounded-lg text-[11px] font-black text-primary hover:bg-primary/5 bg-transparent border-0 cursor-pointer">Voir</button>
+                )}
+                {modifiable && jeton && (
+                  <button type="button" onClick={() => choisirFichier(p)} disabled={depot !== null}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-black bg-primary text-white border-0 cursor-pointer disabled:opacity-50">
+                    {depot === p.code ? 'Envoi…' : p.jointe ? 'Remplacer' : 'Ajouter'}
+                  </button>
+                )}
               </div>
-              <div>
-                <h5 className="font-extrabold text-[#1E293B] text-[11px] leading-tight">{s.label}</h5>
-                <p className="text-[9px] text-neutral-400 font-semibold">{s.done ? 'Étape validée' : s.current ? 'Action requise' : 'À venir'}</p>
+            </div>
+            {erreursPieces[p.code] && <p role="alert" className="text-[11px] text-rose-700 font-semibold mt-1 m-0">{erreursPieces[p.code]}</p>}
+          </div>
+        ))}
+        <div className="flex justify-between items-center pt-1">
+          <span className="text-neutral-500 font-semibold">Frais de dossier</span>
+          <span className={dossier.frais !== 'NON_DECLARES' ? 'text-emerald-700' : 'text-neutral-400'}>{LIBELLE_FRAIS[dossier.frais]}</span>
+        </div>
+        {!modifiable && <p className="text-[10px] text-neutral-400 font-semibold m-0">La décision est rendue : les pièces ne se modifient plus.</p>}
+        <input ref={entree} type="file" className="hidden" accept={ACCEPT} aria-label="Fichier de la pièce"
+          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void deposer(f); }} />
+      </section>
+
+      <section aria-labelledby="echanges-titre" className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3" id="echanges-ecole">
+        <h5 id="echanges-titre" className="text-[10px] font-black uppercase text-neutral-500 tracking-wider m-0">Messages avec l'école</h5>
+        <div className="max-h-72 overflow-y-auto space-y-2 pr-1" aria-live="polite">
+          {chargementMessages && <p className="text-[11px] text-neutral-400 font-semibold">Chargement des messages…</p>}
+          {!chargementMessages && messages.length === 0 && (
+            <p className="text-[11px] text-neutral-400 font-semibold">Aucun message pour l'instant. Posez votre question à l'école ci-dessous.</p>
+          )}
+          {messages.map((m) => (
+            <div key={m.id} className={`flex ${m.auteur === 'CANDIDAT' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-3 py-2 ${m.auteur === 'CANDIDAT' ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-800'}`}>
+                <p className="text-[10px] font-black opacity-80 m-0">{m.auteur === 'CANDIDAT' ? 'Vous' : m.auteurNom} · {heure(m.envoyeLe)}</p>
+                <p className="text-xs font-semibold whitespace-pre-line break-words m-0 mt-0.5">{m.texte}</p>
               </div>
             </div>
           ))}
+          <div ref={finFil} />
         </div>
-      </div>
-
-      {/* Notifications timeline */}
-      <div className="bg-white border border-neutral-200 rounded-2xl p-4 space-y-3">
-        <span className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">Dernières Notifications</span>
-        {candidate.notifications && candidate.notifications.length > 0 ? (
-          <div className="space-y-2.5">
-            {candidate.notifications.map((n, i) => (
-              <div key={i} className="flex gap-3 items-start p-2.5 bg-[#FAF8F6] border border-neutral-200 rounded-xl">
-                <span translate="no" className="material-symbols-outlined text-xs text-primary mt-0.5">notifications</span>
-                <div className="flex-1">
-                  <p className="text-neutral-600 font-bold leading-relaxed">{n.message}</p>
-                  <span className="text-[8.5px] text-neutral-400 block mt-1 font-semibold">{new Date(n.sentAt).toLocaleString('fr-FR')}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {jeton ? (
+          <form onSubmit={envoyer} noValidate className="space-y-2">
+            <label htmlFor="message-candidat" className="sr-only">Votre message à l'école</label>
+            <textarea id="message-candidat" rows={3} maxLength={2000} value={texte} onChange={(e) => setTexte(e.target.value)}
+              placeholder="Votre question ou votre réponse à l'école…"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-800 focus:outline-none focus:border-primary" />
+            {erreurMessage && <p role="alert" className="text-[11px] text-rose-700 font-semibold m-0">{erreurMessage}</p>}
+            <div className="flex justify-end">
+              <button type="submit" disabled={envoi} className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black border-0 cursor-pointer disabled:opacity-50">
+                {envoi ? 'Envoi…' : 'Envoyer'}
+              </button>
+            </div>
+          </form>
         ) : (
-          <div className="p-4 text-center text-neutral-400 text-[10px]">Aucune notification récente.</div>
+          <p className="text-[11px] text-neutral-400 font-semibold m-0">Reconnectez-vous pour écrire à l'école.</p>
         )}
-      </div>
+      </section>
+
+      {vue && (
+        <VisionneuseFichier titre={vue.libelle} charger={() => suiviApi.piece(jeton, vue.code)} onFermer={() => setVue(null)} />
+      )}
     </div>
   );
 }

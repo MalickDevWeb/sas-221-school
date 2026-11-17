@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';
 
 interface SessionGlobalControlsProps {
@@ -6,8 +7,8 @@ interface SessionGlobalControlsProps {
   setGeneralOpen: (v: boolean) => void;
   generalDeadline: string;
   setGeneralDeadline: (v: string) => void;
-  generalFees: number;
-  setGeneralFees: (v: number) => void;
+  generalFees: number | null;
+  setGeneralFees: (v: number | null) => void;
   onApply: () => void;
 }
 
@@ -21,6 +22,7 @@ export function SessionGlobalControls({
   onApply
 }: SessionGlobalControlsProps) {
   const { settings, updateSettings } = useCandidatureSettings();
+  const [erreurBouton, setErreurBouton] = useState<string | null>(null);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -36,7 +38,9 @@ export function SessionGlobalControls({
           <button
             onClick={() => {
               const nextVal = settings.showRegisterButton === false;
-              updateSettings({ showRegisterButton: nextVal });
+              // Affichage mis à jour seulement si le serveur enregistre ; sinon le refus est signalé
+              setErreurBouton(null);
+              updateSettings({ showRegisterButton: nextVal }).catch((err) => setErreurBouton(`Non enregistré : ${resolveErrorMessage(err)}`));
             }}
             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer border ${
               settings.showRegisterButton !== false
@@ -47,6 +51,7 @@ export function SessionGlobalControls({
             {settings.showRegisterButton !== false ? 'Masquer' : 'Afficher'}
           </button>
         </div>
+        {erreurBouton && <p role="alert" className="text-[10px] font-bold text-rose-700">{erreurBouton}</p>}
       </div>
 
       <div className="bg-white border border-neutral-200 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-xs">
@@ -72,11 +77,11 @@ export function SessionGlobalControls({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[8px] text-neutral-400 font-black uppercase">Date Limite</label>
-            <input type="date" value={generalDeadline} onChange={e => setGeneralDeadline(e.target.value)} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
+            <input type="date" value={generalDeadline ?? ''} onChange={e => setGeneralDeadline(e.target.value)} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
           </div>
           <div>
             <label className="text-[8px] text-neutral-400 font-black uppercase">Frais (FCFA)</label>
-            <input type="number" value={generalFees} onChange={e => setGeneralFees(Number(e.target.value))} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
+            <input type="number" min={0} placeholder="Inchangés" value={generalFees ?? ''} onChange={e => setGeneralFees(e.target.value === '' ? null : Number(e.target.value))} className="w-full px-2 py-1 text-[10px] border border-neutral-200 bg-white rounded-lg focus:outline-none" />
           </div>
         </div>
         <button onClick={onApply} className="w-full py-1.5 bg-[#1E293B] hover:bg-[#0F172A] text-white text-[9px] font-black rounded-lg uppercase tracking-wider transition-all cursor-pointer">

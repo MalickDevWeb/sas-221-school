@@ -1,3 +1,6 @@
+/** Sous-onglets de la salle de classe du professeur. */
+export type ClassroomSubTab = 'modules' | 'homework' | 'evaluations' | 'grades' | 'attendance' | 'announcements';
+
 import type { FormEvent } from 'react';
 import type { 
   ClassroomReminder, 
@@ -14,8 +17,8 @@ export interface ClassroomProps {
   readonly courses: readonly ProfessorCourse[];
   readonly onSelectCourse: (id: string) => void;
   readonly selectedCourse?: ProfessorCourse | null;
-  readonly classroomSubTab?: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements';
-  readonly setClassroomSubTab?: (tab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => void;
+  readonly classroomSubTab?: ClassroomSubTab;
+  readonly setClassroomSubTab?: (tab: ClassroomSubTab) => void;
   readonly profName?: string;
   readonly triggerToast?: (msg: string) => void;
   readonly modules: readonly CourseModule[];

@@ -25,13 +25,13 @@ export function ScannerDashboardSection({
           type="button" onClick={() => setScanMode('scan')}
           className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'scan' ? 'bg-white text-primary shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
         >
-          <QrCode className="h-4 w-4 stroke-[2.5]" />Scanner l'étudiant
+          <QrCode className="h-4 w-4 stroke-[2.5]" />Scanner un badge
         </button>
         <button
           type="button" onClick={() => setScanMode('showQR')}
           className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${scanMode === 'showQR' ? 'bg-white text-primary shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : 'text-neutral-500 hover:text-neutral-800'}`}
         >
-          <User className="h-4 w-4 stroke-[2.5]" />Faire scanner l'étudiant
+          <User className="h-4 w-4 stroke-[2.5]" />Afficher le QR code de l'entrée
         </button>
       </div>
 
@@ -47,18 +47,14 @@ export function ScannerDashboardSection({
               <Maximize2 className="h-4 w-4 stroke-[2.5]" />
             </div>
           </div>
-          <div className="flex flex-col gap-1 text-xs text-neutral-400 font-bold uppercase tracking-wider">
-            <p className="text-neutral-700 font-extrabold flex items-center gap-1.5 justify-center">
-              <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />Portail Principal
-            </p>
-            <p className="text-[9px] text-neutral-400">ID Borne: PRT-MAIN-01</p>
-          </div>
+          {/* Charte §3.10 : « Portail Principal » et « ID Borne: PRT-MAIN-01 » étaient inventés : retirés */}
+          <p className="text-xs text-neutral-500 font-semibold">L'élève ou le professeur scanne ce QR code pour pointer son arrivée ou son départ. Il change chaque minute.</p>
         </div>
       ) : (
         <div className="bg-white border border-neutral-200/60 p-6 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col items-center gap-5 animate-fade-in text-center">
           <div className="space-y-1">
-            <h3 className="font-extrabold text-base text-neutral-800">Scanner les Badges Étudiants</h3>
-            <p className="text-xs text-neutral-500">Placez le QR Code de l'étudiant devant la caméra</p>
+            <h3 className="font-extrabold text-base text-neutral-800">Scanner les badges des élèves</h3>
+            <p className="text-xs text-neutral-500">Placez le QR code de l'élève devant la caméra.</p>
           </div>
 
           <div className="w-full max-w-sm rounded-2xl overflow-hidden border border-neutral-200/60 bg-neutral-50 relative p-1 flex items-center justify-center" style={{ width: '203px' }}>
@@ -67,7 +63,7 @@ export function ScannerDashboardSection({
 
           <div className="w-full relative flex py-1 items-center">
             <div className="flex-grow border-t border-neutral-200/60" />
-            <span className="flex-shrink mx-4 text-[10px] font-black text-neutral-400 uppercase tracking-widest">OU SAISIR LE MATRICULE</span>
+            <span className="flex-shrink mx-4 text-[10px] font-black text-neutral-400 uppercase tracking-widest">Ou saisir le matricule</span>
             <div className="flex-grow border-t border-neutral-200/60" />
           </div>
 

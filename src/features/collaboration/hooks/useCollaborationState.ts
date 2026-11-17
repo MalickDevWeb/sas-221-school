@@ -8,7 +8,8 @@ import { useGroupAuditState } from './useGroupAuditState';
 
 export function useCollaborationState() {
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
-  const [activeGroupId, setActiveGroupId] = useState<string>('group-1');
+  // Aucun groupe sélectionné tant que l'utilisateur n'en a pas choisi un
+  const [activeGroupId, setActiveGroupId] = useState<string>('');
 
   const triggerToast = useCallback((message: string, success: boolean) => {
     setToast({ message, success });
@@ -17,8 +18,10 @@ export function useCollaborationState() {
 
   const virtualClassState = useVirtualClassState(triggerToast);
   const workgroupState = useWorkgroupState(triggerToast);
-  const workspaceState = useGroupWorkspaceState(activeGroupId, triggerToast);
-  const tasksState = useGroupTasksState(activeGroupId, triggerToast);
+  // Groupe affiché : celui choisi, sinon le premier groupe réel (même règle que la page)
+  const groupeEffectif = activeGroupId || workgroupState.workgroups[0]?.id || '';
+  const workspaceState = useGroupWorkspaceState(groupeEffectif, triggerToast);
+  const tasksState = useGroupTasksState(groupeEffectif, triggerToast);
   const wikiState = useGroupWikiState(triggerToast);
   const auditState = useGroupAuditState(triggerToast);
 

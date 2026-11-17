@@ -12,14 +12,13 @@ export function LeaderSelectionDropdown({ selectedStudents, leaderId, setLeaderI
 
   return (
     <div>
-      <label className="block text-[10px] font-bold text-gray-700 mb-0.5">Désigner le Chef de Groupe</label>
-      <select
+      <label htmlFor="groupe-chef" className="block text-[10px] font-bold text-gray-700 mb-0.5">Désigner le Chef de Groupe</label>
+      <select id="groupe-chef"
         value={leaderId}
         onChange={(e) => setLeaderId(e.target.value)}
         className="w-full text-xs px-2.5 py-1.5 border border-neutral-gray-200 rounded-lg"
-        required
       >
-        <option value="">-- Choisir un chef --</option>
+        <option value="">Premier élève sélectionné (par défaut)</option>
         {selectedStudents.map((s) => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}

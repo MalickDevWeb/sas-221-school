@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import axios from 'axios';
 import { publicApiClient } from '@/shared/lib/apiClient';
 import type { TenantPalette } from '@/shared/utils/colorExtractor';
-import { ECOLE_221_PALETTE, generatePaletteFromHex } from '@/shared/utils/colorExtractor';
+import { ECOLE_221_PALETTE, generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
 
 interface TenantBranding {
   primaryColor: string;
@@ -16,7 +17,29 @@ interface TenantInfo {
   name: string;
   slug: string;
   branding: TenantBranding;
+  /** Coordonnées réelles saisies à l'inscription (null si absentes — jamais inventées). */
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  /** Statut renvoyé par GET /public/tenants/{slug} (ex. « PENDING » : en attente de validation) ; null si absent. */
+  statut?: string | null;
 }
+
+/** Réponse de GET /public/tenants/{slug} (champs absents tolérés). */
+type ReponseTenantPublique = {
+  id?: string;
+  name?: string;
+  slug?: string;
+  statut?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  branding?: { primaryColor?: string; palette?: TenantPalette; logoUrl?: string } | null;
+};
+
+/** Vrai si l'école est en attente de validation par l'équipe My School. */
+export const estEnAttenteDeValidation = (tenant: { statut?: string | null } | null | undefined): boolean =>
+  (tenant?.statut ?? '').toUpperCase() === 'PENDING';
 
 interface TenantState {
   currentTenant: TenantInfo | null;
@@ -52,7 +75,7 @@ export const useTenantStore = create<TenantState>()(
         try {
           localStorage.setItem('tenant_id', tenant.id);
           localStorage.setItem('tenant_slug', slug);
-        } catch {}
+        } catch { /* stockage indisponible (navigation privée, quota) : l'école reste résolue en mémoire */ }
 
         const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
         let branding: TenantBranding = isEcole221
@@ -67,7 +90,7 @@ export const useTenantStore = create<TenantState>()(
         try {
           const cached = localStorage.getItem(`tenant_theme_${slug}`);
           if (cached && !isEcole221) branding = JSON.parse(cached);
-        } catch {}
+        } catch { /* cache de thème illisible ou absent : thème par défaut */ }
 
         const tenantInfo: TenantInfo = {
           id: tenant.id,
@@ -94,12 +117,14 @@ export const useTenantStore = create<TenantState>()(
         get().applyTheme(newBranding);
         try {
           localStorage.setItem(`tenant_theme_${current.slug}`, JSON.stringify(newBranding));
-        } catch {}
+        } catch { /* stockage indisponible : le thème est appliqué sans être mis en cache */ }
       },
 
       resolveTenant: async (slug: string) => {
         // 1. Si le tenant en mémoire correspond déjà et a un branding, réappliquer
-        if (get().currentTenant?.slug === slug && get().currentTenant?.branding?.primaryColor) {
+        // (sauf école en attente de validation : son statut est revérifié, elle a pu être validée depuis)
+        if (get().currentTenant?.slug === slug && get().currentTenant?.branding?.primaryColor
+            && !estEnAttenteDeValidation(get().currentTenant)) {
           get().applyTheme(get().currentTenant!.branding);
           return;
         }
@@ -111,7 +136,7 @@ export const useTenantStore = create<TenantState>()(
           if (cached) {
             localCachedBranding = JSON.parse(cached);
           }
-        } catch {}
+        } catch { /* cache de thème illisible : ignoré */ }
 
         if (localCachedBranding) {
           const tenantInfo: TenantInfo = {
@@ -127,8 +152,8 @@ export const useTenantStore = create<TenantState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { data } = await publicApiClient.get(`/public/tenants/${slug}`);
-          const branding = data.branding || {};
+          const { data } = await publicApiClient.get<ReponseTenantPublique>(`/public/tenants/${slug}`);
+          const branding: NonNullable<ReponseTenantPublique['branding']> = data.branding || {};
           const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
           const primaryColor = isEcole221 ? '#B3181C' : (branding.primaryColor || localCachedBranding?.primaryColor || '#B3181C');
           const palette = isEcole221 ? ECOLE_221_PALETTE : (branding.palette || generatePaletteFromHex(primaryColor));
@@ -137,6 +162,10 @@ export const useTenantStore = create<TenantState>()(
             id: data.id || 'tenant-' + slug,
             name: data.name || slug,
             slug: data.slug || slug,
+            phone: data.phone ?? null,
+            email: data.email ?? null,
+            city: data.city ?? null,
+            statut: typeof data.statut === 'string' ? data.statut.toUpperCase() : null,
             branding: {
               primaryColor,
               palette,
@@ -148,38 +177,30 @@ export const useTenantStore = create<TenantState>()(
             localStorage.setItem('tenant_id', tenantInfo.id);
             localStorage.setItem('tenant_slug', tenantInfo.slug);
             localStorage.setItem(`tenant_theme_${slug}`, JSON.stringify(tenantInfo.branding));
-          } catch {}
+          } catch { /* stockage indisponible : l'école reste résolue en mémoire */ }
 
           set({ currentTenant: tenantInfo, isLoading: false });
           get().applyTheme(tenantInfo.branding);
-        } catch {
-          console.warn(`Tenant API indisponible, fallback local pour '${slug}'`);
+        } catch (err: unknown) {
+          // École inexistante (404) : la signaler
+          if (axios.isAxiosError(err) && err.response?.status === 404) {
+            try {
+              localStorage.removeItem(`tenant_theme_${slug}`);
+              if (localStorage.getItem('tenant_slug') === slug) {
+                localStorage.removeItem('tenant_slug');
+                localStorage.removeItem('tenant_id');
+              }
+            } catch { /* stockage indisponible : rien à nettoyer */ }
+            set({ currentTenant: null, isLoading: false, error: `introuvable:${slug}` });
+            return;
+          }
+          // Serveur injoignable : on garde la fiche déjà connue (cache), sans jamais en inventer une
+          console.warn(`Tenant API indisponible pour '${slug}'`);
           const existing = get().currentTenant;
           if (existing && existing.slug === slug) {
             get().applyTheme(existing.branding);
-            set({ isLoading: false });
-            return;
           }
-
-          if (localCachedBranding) {
-            set({ isLoading: false });
-            return;
-          }
-
-          const isEcole221 = slug === 'ecole221' || slug === 'ecole-221';
-          const mockTenant: TenantInfo = isEcole221
-            ? MOCK_ECOLE_221
-            : {
-                id: 'mock-' + slug,
-                name: slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' '),
-                slug,
-                branding: {
-                  primaryColor: '#B3181C',
-                  palette: ECOLE_221_PALETTE,
-                },
-              };
-          set({ currentTenant: mockTenant, isLoading: false });
-          get().applyTheme(mockTenant.branding);
+          set({ isLoading: false, error: localCachedBranding || existing ? null : `indisponible:${slug}` });
         }
       },
 
@@ -202,7 +223,7 @@ export const useTenantStore = create<TenantState>()(
               palette,
               logoUrl: branding.logoUrl,
             }));
-          } catch {}
+          } catch { /* stockage indisponible : le thème est appliqué sans être mis en cache */ }
         }
 
         const inject = (varName: string, hex: string) => {
@@ -214,7 +235,12 @@ export const useTenantStore = create<TenantState>()(
         };
 
         // ── Couleur principale ──────────────────────────────────────────
-        inject('--color-primary', palette.primary);
+        // L'application pose du texte blanc sur la couleur principale (« bg-primary text-white », près de
+        // 300 fois). Une couleur d'école très claire (ex. #eef1e7) rendrait boutons et menus illisibles (blanc sur
+        // blanc). Sous le seuil WCAG de 3:1 avec le blanc, on garde la teinte de l'école dans sa variante foncée,
+        // garantie lisible (primaryDark ≥ 4,5:1) ; la couleur d'origine reste visible en fond clair (primaryLight).
+        const primaireLisible = getContrastRatio(palette.primary, '#FFFFFF') >= 3 ? palette.primary : palette.primaryDark;
+        inject('--color-primary', primaireLisible);
         inject('--color-primary-light', palette.primaryLight);
         inject('--color-primary-dark', palette.primaryDark);
 
@@ -229,10 +255,10 @@ export const useTenantStore = create<TenantState>()(
         root.style.setProperty('--surface-page', palette.surfaceWarm);
 
         // ── Texte sur fond primaire ───────────────────────────────────────
-        root.style.setProperty('--color-text-on-primary', palette.textOnPrimary);
+        root.style.setProperty('--color-text-on-primary', primaireLisible === palette.primary ? palette.textOnPrimary : '#FFFFFF');
 
         // ── Compatibilité brand-red ──────────────────────────────────────
-        root.style.setProperty('--color-brand-red-deep', palette.primary);
+        root.style.setProperty('--color-brand-red-deep', primaireLisible);
         root.style.setProperty('--color-brand-red-light', palette.primaryLight);
       },
 
@@ -245,7 +271,7 @@ export const useTenantStore = create<TenantState>()(
               const parsed = JSON.parse(raw);
               tenant = parsed?.state?.currentTenant;
             }
-          } catch {}
+          } catch { /* état persisté illisible : aucune école en cache */ }
         }
         if (tenant?.branding) {
           get().applyTheme(tenant.branding);

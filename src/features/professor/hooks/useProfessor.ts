@@ -9,9 +9,9 @@ import { useProfessorScheduleMutations } from './useProfessorScheduleMutations';
 
 export function useProfessor() {
   const { utilisateur } = useAuthStore();
-  const profId = utilisateur?.id || 'usr-prof-01';
-  const profNom = utilisateur?.nom || 'Cheikh Anta';
-  const profPrenom = 'Dr.';
+  // Identité réelle de l'utilisateur connecté uniquement (plus de professeur ni de titre inventés)
+  const profId = utilisateur?.id || '';
+  const profNom = utilisateur?.nom?.trim() || '';
 
   const initialData = useProfessorInitialData(profId);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
@@ -58,7 +58,7 @@ export function useProfessor() {
   const selectedCourse = initialData.courses.find(c => c.id === selectedCourseId);
 
   return {
-    profName: `${profPrenom} ${profNom}`,
+    profName: profNom,
     selectedCourseId,
     selectedCourse,
     ...initialData,

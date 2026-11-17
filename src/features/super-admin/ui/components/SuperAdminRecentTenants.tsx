@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { CheckCircle2, Clock, XCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, ArrowRight, ChevronRight } from 'lucide-react';
 import { Tenant } from '@/features/super-admin/domain/models/PlatformModels';
+import { useEntrerDansEcole } from '../hooks/useEntrerDansEcole';
 
 interface SuperAdminRecentTenantsProps {
   tenants: Tenant[];
@@ -10,6 +11,7 @@ interface SuperAdminRecentTenantsProps {
 }
 
 export const SuperAdminRecentTenants: React.FC<SuperAdminRecentTenantsProps> = ({ tenants, isLoading }) => {
+  const entrerDansEcole = useEntrerDansEcole();
   const recentTenants = [...tenants]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
@@ -59,16 +61,24 @@ export const SuperAdminRecentTenants: React.FC<SuperAdminRecentTenantsProps> = (
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  className="hover:bg-white/[0.03] transition-colors"
+                  onClick={() => entrerDansEcole(t)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); entrerDansEcole(t); }
+                  }}
+                  role="link"
+                  tabIndex={0}
+                  title={`Entrer dans l'école ${t.name}`}
+                  aria-label={`Entrer dans l'école ${t.name}`}
+                  className="group cursor-pointer hover:bg-white/[0.04] focus-visible:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500/60 transition-colors"
                 >
                   <td className="px-5 py-3.5">
-                    <div className="font-bold text-xs text-white tracking-tight">{t.name}</div>
+                    <div className="font-bold text-xs text-white tracking-tight group-hover:text-indigo-300 transition-colors">{t.name}</div>
                     <span className="text-[10px] text-indigo-300 font-mono bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-500/20 inline-block mt-0.5">
                       /t/{t.slug}
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className="text-xs text-slate-300">{t.contactEmail || 'contact@ecole.sn'}</span>
+                    <span className="text-xs text-slate-300">{t.email || t.contactEmail || '—'}</span>
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -85,7 +95,10 @@ export const SuperAdminRecentTenants: React.FC<SuperAdminRecentTenantsProps> = (
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-xs text-slate-400 text-right font-medium">
-                    {new Date(t.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    <span className="inline-flex items-center gap-1.5">
+                      {new Date(t.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      <ChevronRight size={14} aria-hidden className="text-slate-600 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all" />
+                    </span>
                   </td>
                 </motion.tr>
               ))

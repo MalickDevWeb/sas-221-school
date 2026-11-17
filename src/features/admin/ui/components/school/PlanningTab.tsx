@@ -11,7 +11,8 @@ interface Props {
   rooms: Room[];
   classes: Classe[];
   slots: PlanningSlot[];
-  onUpdateSlots: (slots: PlanningSlot[]) => void;
+  /** Renvoie null si le serveur a enregistré, sinon son message. */
+  onUpdateSlots: (slots: PlanningSlot[]) => Promise<string | null>;
 }
 
 export function PlanningTab({ rooms, classes, slots, onUpdateSlots }: Props) {
@@ -31,6 +32,9 @@ export function PlanningTab({ rooms, classes, slots, onUpdateSlots }: Props) {
     handleClearCell,
     handleSaveSlot,
     handleDeleteSlot,
+    handleMoveSlot,
+    apercuDeplacement,
+    deplacementEnCours,
   } = usePlanningTabState(classes, slots, onUpdateSlots);
 
   return (
@@ -38,7 +42,9 @@ export function PlanningTab({ rooms, classes, slots, onUpdateSlots }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-extrabold text-[#1E293B] text-sm">Gestion des Emplois du Temps</h3>
-          <p className="text-[10px] text-neutral-400 font-semibold">Gérer le planning sans conflits en glissant/déposant profs, salles & classes.</p>
+          <p className="text-[10px] text-neutral-400 font-semibold">
+            Glissez un cours vers une autre case pour le déplacer (sur un autre cours, les deux sont échangés), ou un professeur ou une salle pour l'affecter.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-[10px] uppercase font-black text-neutral-400 font-bold">Classe :</label>
@@ -70,8 +76,11 @@ export function PlanningTab({ rooms, classes, slots, onUpdateSlots }: Props) {
           onDropItem={handleDropItem}
           onClearCell={handleClearCell}
           onSelectSlot={setEditingSlot}
+          onMoveSlot={handleMoveSlot}
+          apercuDeplacement={apercuDeplacement}
+          deplacementEnCours={deplacementEnCours}
         />
-        <PlanningSidebar rooms={rooms} classes={classes} />
+        <PlanningSidebar rooms={rooms} />
       </div>
 
       {editingSlot && (

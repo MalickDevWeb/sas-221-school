@@ -5,7 +5,7 @@ interface Homework { id: string; titre: string; dateLimite: string; points: stri
 
 export function CourseHomeworksTab({
   details, homeworkStatus, uploadedFiles, uploadingId, uploadProgress,
-  handleFileChange, setUploadedFiles, setHomeworkStatus, triggerToast
+  handleFileChange
 }: {
   details: { devoirs: Homework[] };
   homeworkStatus: Record<string, 'A rendre' | 'Soumis'>;
@@ -17,11 +17,7 @@ export function CourseHomeworksTab({
   setHomeworkStatus: React.Dispatch<React.SetStateAction<Record<string, 'A rendre' | 'Soumis'>>>;
   triggerToast: (msg: string) => void;
 }) {
-  const handleRetract = (id: string) => {
-    setUploadedFiles(prev => { const c = { ...prev }; delete c[id]; return c; });
-    setHomeworkStatus(prev => ({ ...prev, [id]: 'A rendre' }));
-    triggerToast("La soumission du devoir a été annulée.");
-  };
+  // Retrait d'un dépôt : aucun endpoint serveur → pas de bouton « Retirer ».
 
   return (
     <div className="space-y-4 animate-fade-in font-sans">
@@ -54,7 +50,6 @@ export function CourseHomeworksTab({
                 uploadingId={uploadingId}
                 uploadProgress={uploadProgress}
                 onFileChange={handleFileChange}
-                onRetract={handleRetract}
               />
             </div>
           ))}

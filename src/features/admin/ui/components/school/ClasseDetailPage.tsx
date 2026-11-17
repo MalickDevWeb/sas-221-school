@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
+import { ficheClassePdf } from './ficheClassePdf';
 import { toast } from 'sonner';
 import { Classe, Filiere, PlanningSlot } from '../../../domain/SchoolModels';
-import { Student, INITIAL_STUDENTS } from '../../../domain/StudentModels';
+import { Student, mapStudentFromApi } from '../../../domain/StudentModels';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
+import { AjouterEleveExistant } from './AjouterEleveExistant';
+import { MotDePasseProvisoireModal } from '../MotDePasseProvisoireModal';
+import { avecNombre } from '@/shared/lib/pluriel';
 import { apiClient } from '@/shared/lib/apiClient';
+import { demanderConfirmation } from '@/shared/lib/confirmation';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { afficherErreur } from '@/shared/lib/validationPersonnalisee';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
+
+const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const fcfa = (n: number | null | undefined) => (n == null ? '—' : `${n.toLocaleString('fr-FR')} FCFA`);
+/** Valeur par défaut stable (un « [] » recréé à chaque rendu relancerait la synchronisation sans fin). */
+const AUCUN_ELEVE: Student[] = [];
 
 interface Props {
   classe: Classe;
@@ -21,34 +33,34 @@ export function ClasseDetailPage({
   classe,
   filieres,
   slots,
-  allStudents = INITIAL_STUDENTS,
+  allStudents = AUCUN_ELEVE,
   onBack,
   onEditClasse,
   onUpdateStudents,
 }: Props) {
   const [activeTab, setActiveTab] = useState<'students' | 'schedule' | 'subjects' | 'finances'>('students');
   const [studentSearch, setStudentSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'REGLE' | 'RETARD'>('ALL');
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
 
   // Form states for manual student add
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentEmail, setNewStudentEmail] = useState('');
-  const [newStudentMatricule, setNewStudentMatricule] = useState(`2026-${classe.level}-${Math.floor(100 + Math.random() * 900)}`);
-  const [newStudentPhone, setNewStudentPhone] = useState('+221 77 ');
+  const [newStudentMatricule, setNewStudentMatricule] = useState('');   // vide = généré par le serveur
+  const [newStudentPhone, setNewStudentPhone] = useState('');
+  // APP-TL-23 : élève sans e-mail → connexion par matricule (même règle que l'inscription des admis)
+  const [newStudentSansEmail, setNewStudentSansEmail] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [motDePasseInfo, setMotDePasseInfo] = useState<{ nom: string; identifiant: string; connexionParMatricule: boolean; matricule: string | null; motDePasse: string } | null>(null);
 
-  // Filter students for this class
-  const [classStudents, setClassStudents] = useState<Student[]>(() => {
-    const matched = allStudents.filter(
-      s => s.classe?.toLowerCase() === classe.name.toLowerCase() ||
-           s.classe?.toLowerCase().includes(classe.level.toLowerCase())
-    );
-    if (matched.length === 0) {
-      return allStudents.slice(0, 2).map(s => ({ ...s, classe: classe.name }));
-    }
-    return matched;
-  });
+  // Élèves de cette classe : uniquement ceux que le serveur rattache à la classe (aucun élève emprunté à d'autres classes)
+  const elevesDeLaClasse = useMemo(() =>
+    allStudents.filter(s => (s.classeId ? s.classeId === classe.id : !!s.classe && s.classe.toLowerCase() === classe.name.toLowerCase())),
+  [allStudents, classe.id, classe.name]);
+  const [classStudents, setClassStudents] = useState<Student[]>(elevesDeLaClasse);
+  // Les élèves de l'école arrivent après l'ouverture de la fiche (chargement asynchrone) ou sont relus après une
+  // inscription : la liste est recalculée à chaque fois.
+  useEffect(() => { setClassStudents(elevesDeLaClasse); }, [elevesDeLaClasse]);
 
   const filiereName = filieres.find(f => f.id === classe.filiereId)?.name || 'Tronc Commun / Multidisciplinaire';
   const classSlots = slots.filter(s => s.classeId === classe.id || s.classeId === classe.name);
@@ -65,61 +77,78 @@ export function ClasseDetailPage({
   });
   const subjectsList = Array.from(subjectsMap.values());
 
-  // Financial calculations
+  // Calculs financiers : uniquement à partir du tarif réel de la classe (aucun tarif ni capacité supposés)
+  const price = classe.price ?? null;
+  const capacity = classe.capacityMax ?? null;
   const totalStudents = classStudents.length;
-  const expectedRevenue = totalStudents * (classe.price || 450000);
-  const paidCount = classStudents.filter(s => s.financialStatus === 'En Règle').length;
-  const lateCount = totalStudents - paidCount;
-  const collectedRevenue = paidCount * (classe.price || 450000);
-  const remainingRevenue = lateCount * (classe.price || 450000);
-  const collectionRate = totalStudents > 0 ? Math.round((collectedRevenue / expectedRevenue) * 100) : 100;
-  const occupancyRate = Math.min(100, Math.round((totalStudents / (classe.capacityMax || 35)) * 100));
+  // APP-TL-22 : plus de statut de frais « En Règle / En Retard » saisi à la main ni de liste de
+  // « débiteurs » : seul le montant attendu (tarif × effectif) est calculé ici ; les versements réels de chaque élève
+  // sont suivis dans Finances › Écolages.
+  const expectedRevenue = price != null ? totalStudents * price : null;
+  const occupancyRate = capacity ? Math.min(100, Math.round((totalStudents / capacity) * 100)) : null;
+  const capaciteDepassee = capacity != null && capacity > 0 && totalStudents > capacity;
 
   const filteredStudents = classStudents.filter(s => {
     const matchesSearch =
       s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
       s.matricule.toLowerCase().includes(studentSearch.toLowerCase());
-    if (!matchesSearch) return false;
-
-    if (statusFilter === 'REGLE') return s.financialStatus === 'En Règle';
-    if (statusFilter === 'RETARD') return s.financialStatus === 'En Retard';
-    return true;
+    return matchesSearch;
   });
 
   const handleManualEnroll = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStudentName.trim()) return;
+    if (enrolling) return;
+    const form = e.currentTarget as HTMLFormElement;
+    const nom = newStudentName.trim();
+    const email = newStudentEmail.trim();
+    if (!nom) {
+      const champ = form.querySelector<HTMLInputElement>('input[name="nom"]');
+      if (champ) afficherErreur(champ, 'Le nom et le prénom de l\'élève sont obligatoires.');
+      return;
+    }
+    if (!newStudentSansEmail && !EMAIL_VALIDE.test(email)) {
+      const champ = form.querySelector<HTMLInputElement>('input[name="email"]');
+      if (champ) afficherErreur(champ, "Saisissez l'adresse e-mail de l'élève, ou cochez « Sans e-mail » (connexion par matricule).");
+      return;
+    }
 
-    const newStudent: Student = {
-      id: `s-${Date.now()}`,
-      matricule: newStudentMatricule.trim() || `2026-${classe.level}-001`,
-      name: newStudentName.trim(),
-      email: newStudentEmail.trim() || `${newStudentName.toLowerCase().replace(/\s+/g, '.')}@ecole221.sn`,
-      classe: classe.name,
-      financialStatus: 'En Règle',
-      qrStatus: 'AUTORISÉ',
-      gpa: '15.0/20',
-      phoneParent: newStudentPhone.trim() || '+221 77 000 00 00',
-    };
+    const body: Record<string, string | boolean> = newStudentSansEmail
+      ? { name: nom, sansEmail: true, classeId: classe.id }
+      : { name: nom, email, classeId: classe.id };
+    if (newStudentPhone.trim()) body.telephone = newStudentPhone.trim();
+    if (newStudentMatricule.trim()) body.matricule = newStudentMatricule.trim();
 
-    const updated = [newStudent, ...classStudents];
-    setClassStudents(updated);
-    if (onUpdateStudents) onUpdateStudents(updated);
-
+    setEnrolling(true);
     try {
-      await apiClient.post('/admin/students', {
-        name: newStudent.name,
-        matricule: newStudent.matricule,
-        promotion_id: classe.id,
-        classe: classe.name,
-      });
-    } catch {}
-
-    toast.success(`Élève ${newStudent.name} inscrit avec succès !`);
-    setNewStudentName('');
-    setNewStudentEmail('');
-    setNewStudentMatricule(`2026-${classe.level}-${Math.floor(100 + Math.random() * 900)}`);
-    setIsAddingStudent(false);
+      const { data } = await apiClient.post<unknown>('/admin/students', body);
+      const cree = mapStudentFromApi(data);
+      const brut = objetBrut(data);
+      const motDePasseProvisoire = texteOuNull(brut.motDePasseProvisoire);
+      const connexionParMatricule = brut.sansEmail === true;
+      const updated = [cree, ...classStudents];
+      setClassStudents(updated);
+      if (onUpdateStudents) onUpdateStudents(updated);
+      toast.success(`Compte élève créé pour ${cree.name}.`);
+      if (motDePasseProvisoire) {
+        setMotDePasseInfo({
+          nom: cree.name,
+          identifiant: texteOuNull(brut.identifiant) ?? (connexionParMatricule ? cree.matricule : cree.email),
+          connexionParMatricule,
+          matricule: cree.matricule || null,
+          motDePasse: motDePasseProvisoire,
+        });
+      }
+      setNewStudentName('');
+      setNewStudentEmail('');
+      setNewStudentMatricule('');
+      setNewStudentPhone('');
+      setNewStudentSansEmail(false);
+      setIsAddingStudent(false);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));   // formulaire conservé, liste inchangée
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   const handleBulkImportComplete = (imported: Student[]) => {
@@ -128,36 +157,35 @@ export function ClasseDetailPage({
     if (onUpdateStudents) onUpdateStudents(updated);
   };
 
-  const toggleStudentFinancialStatus = (id: string) => {
-    setClassStudents(prev =>
-      prev.map(s => {
-        if (s.id === id) {
-          const next = s.financialStatus === 'En Règle' ? 'En Retard' : 'En Règle';
-          toast.info(`${s.name} passé à : ${next}`);
-          return { ...s, financialStatus: next };
-        }
-        return s;
-      })
-    );
+  const toggleStudentQrStatus = async (id: string) => {
+    const st = classStudents.find(s => s.id === id);
+    if (!st) return;
+    try {
+      const { data } = await apiClient.patch<unknown>(`/admin/students/${id}/toggle-status`);
+      const r = objetBrut(data);
+      const qrStatus: Student['qrStatus'] = r.qrStatus === 'SUSPENDU' ? 'SUSPENDU' : 'AUTORISÉ';
+      const status: Student['status'] = r.status === 'Suspendu' ? 'Suspendu' : 'Actif';
+      setClassStudents(prev => prev.map(s => (s.id === id ? { ...s, qrStatus, status } : s)));
+      toast.success(qrStatus === 'SUSPENDU' ? `${st.name} est suspendu : accès refusé.` : `${st.name} est réactivé : accès autorisé.`);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
+    }
   };
 
-  const toggleStudentQrStatus = (id: string) => {
-    setClassStudents(prev =>
-      prev.map(s => {
-        if (s.id === id) {
-          const next = s.qrStatus === 'AUTORISÉ' ? 'SUSPENDU' : 'AUTORISÉ';
-          toast.info(`Accès badge QR de ${s.name} : ${next}`);
-          return { ...s, qrStatus: next };
-        }
-        return s;
-      })
-    );
-  };
-
-  const handleRemoveStudent = (id: string, name: string) => {
-    if (window.confirm(`Confirmez-vous le retrait de ${name} de cette promotion ?`)) {
-      setClassStudents(prev => prev.filter(s => s.id !== id));
-      toast.success(`${name} a été retiré de la promotion.`);
+  const handleRemoveStudent = async (id: string, name: string) => {
+    // Le serveur ne stocke pas l'affectation aux classes : le seul retrait réel est le retrait de l'école
+    if (!(await demanderConfirmation(
+      `Retirer ${name} de l'école ? Son compte sera supprimé s'il n'appartient à aucune autre école.`,
+      { titre: 'Retirer un élève', confirmer: 'Retirer' }
+    ))) return;
+    try {
+      await apiClient.delete(`/admin/students/${id}`);
+      const updated = classStudents.filter(s => s.id !== id);
+      setClassStudents(updated);
+      if (onUpdateStudents) onUpdateStudents(updated);
+      toast.success(`${name} a été retiré de l'école.`);
+    } catch (err) {
+      toast.error(resolveErrorMessage(err));
     }
   };
 
@@ -169,10 +197,8 @@ export function ClasseDetailPage({
       'Matricule': s.matricule,
       'Email': s.email,
       'Promotion': classe.name,
-      'Moyenne': s.gpa,
-      'Statut Frais': s.financialStatus,
       'Badge Accès': s.qrStatus,
-      'Contact Tuteur': s.phoneParent,
+      'Téléphone': s.phoneParent || '—',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -182,45 +208,17 @@ export function ClasseDetailPage({
     toast.success('Fiche promotionnelle exportée en Excel avec succès !');
   };
 
-  // Export de la promotion en PDF officiel
-  const exportClassToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`ÉCOLE 221 - FICHE DE PROMOTION`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Classe : ${classe.name} (${classe.level})`, 14, 30);
-    doc.text(`Filière : ${filiereName}`, 14, 38);
-    doc.text(`Effectif : ${totalStudents} élèves • Frais annuels : ${classe.price.toLocaleString('fr-FR')} FCFA`, 14, 46);
-    doc.text(`Taux de Recouvrement : ${collectionRate}% (${paidCount} à jour / ${lateCount} en retard)`, 14, 54);
-
-    doc.setLineWidth(0.5);
-    doc.line(14, 58, 196, 58);
-
-    doc.setFontSize(10);
-    let y = 68;
-    doc.setFont('helvetica', 'bold');
-    doc.text('N°', 14, y);
-    doc.text('Nom & Prénom', 26, y);
-    doc.text('Matricule', 85, y);
-    doc.text('Moyenne', 125, y);
-    doc.text('Statut Frais', 150, y);
-
-    doc.setFont('helvetica', 'normal');
-    classStudents.forEach((s, idx) => {
-      y += 8;
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(String(idx + 1), 14, y);
-      doc.text(s.name.substring(0, 28), 26, y);
-      doc.text(s.matricule, 85, y);
-      doc.text(s.gpa, 125, y);
-      doc.text(s.financialStatus, 150, y);
-    });
-
-    doc.save(`Fiche_Officielle_${classe.name.replace(/\s+/g, '_')}.pdf`);
-    toast.success('Document PDF officiel de la promotion téléchargé !');
+  // Fiche de classe PDF : modèle commun des documents de l'école
+  const exportClassToPDF = async () => {
+    try {
+      await ficheClassePdf({
+        classe: classe.name, niveau: classe.level, filiere: filiereName, fraisAnnuels: price, capacite: capacity,
+        eleves: classStudents.map(s => ({ nom: s.name, matricule: s.matricule, telephone: s.phoneParent || null })),
+      });
+      toast.success('Fiche de classe téléchargée (PDF).');
+    } catch (err) {
+      toast.error(`Fiche de classe non produite : ${err instanceof Error ? err.message : 'erreur inconnue'}.`);
+    }
   };
 
   return (
@@ -257,7 +255,7 @@ export function ClasseDetailPage({
           </button>
 
           <button
-            onClick={exportClassToPDF}
+            onClick={() => void exportClassToPDF()}
             className="px-3 py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             title="Générer la fiche PDF officielle"
           >
@@ -298,7 +296,7 @@ export function ClasseDetailPage({
               {filiereName}
             </span>
             <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-              {classe.price.toLocaleString('fr-FR')} FCFA / an
+              {price == null ? 'Tarif non renseigné' : `${fcfa(price)} / an`}
             </span>
           </div>
 
@@ -316,11 +314,16 @@ export function ClasseDetailPage({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-white/10">
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Effectif Actuel</span>
-              <span className="text-xl font-black text-white mt-0.5 block">{totalStudents} / {classe.capacityMax}</span>
+              <span className="text-xl font-black text-white mt-0.5 block">{totalStudents} / {capacity ?? '—'}</span>
               <div className="w-full bg-white/20 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${occupancyRate}%` }} />
+                <div className={`${capaciteDepassee ? 'bg-amber-400' : 'bg-primary'} h-full rounded-full transition-all`} style={{ width: `${occupancyRate ?? 0}%` }} />
               </div>
-              <span className="text-[9px] text-neutral-400 block mt-1">{occupancyRate}% de remplissage</span>
+              {/* Capacité dépassée annoncée (le taux étant plafonné) */}
+              <span id="classe-remplissage" className={`text-[9px] block mt-1 ${capaciteDepassee ? 'text-amber-300 font-bold' : 'text-neutral-400'}`}>
+                {occupancyRate == null ? 'Capacité non renseignée'
+                  : capaciteDepassee && capacity != null ? `Capacité dépassée de ${avecNombre(totalStudents - capacity, 'élève')}`
+                    : `${occupancyRate}\u00a0% de remplissage`}
+              </span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
@@ -330,17 +333,17 @@ export function ClasseDetailPage({
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
-              <span className="text-[10px] text-neutral-300 uppercase font-black block">Taux Recouvrement</span>
-              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{collectionRate}%</span>
-              <span className="text-[10px] text-neutral-400 block mt-2">{paidCount} à jour • {lateCount} en retard</span>
+              <span className="text-[10px] text-neutral-300 uppercase font-black block">Frais Annuels</span>
+              <span className="text-xl font-black text-emerald-400 mt-0.5 block">{fcfa(price)}</span>
+              <span className="text-[10px] text-neutral-400 block mt-2">par élève</span>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-3.5 backdrop-blur-xs">
               <span className="text-[10px] text-neutral-300 uppercase font-black block">Budget Promotion</span>
               <span className="text-xl font-black text-white mt-0.5 block truncate">
-                {(expectedRevenue / 1000000).toFixed(1)}M FCFA
+                {expectedRevenue == null ? '—' : `${(expectedRevenue / 1000000).toFixed(1)}M FCFA`}
               </span>
-              <span className="text-[10px] text-emerald-300 block mt-2">{(collectedRevenue / 1000000).toFixed(1)}M déjà encaissé</span>
+              <span className="text-[10px] text-emerald-300 block mt-2">{expectedRevenue == null ? 'Tarif non renseigné' : 'Montant attendu (tarif × effectif)'}</span>
             </div>
           </div>
         </div>
@@ -404,42 +407,23 @@ export function ClasseDetailPage({
         {/* TAB 1: STUDENTS */}
         {activeTab === 'students' && (
           <div className="space-y-5">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-grow max-w-lg">
+            {/* flex-wrap : avec le 3e bouton, les boutons passent sous la recherche quand la place manque */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-grow min-w-[14rem] max-w-lg">
                 <div className="relative flex-grow">
                   <span translate="no" className="material-symbols-outlined absolute left-3 top-2.5 text-neutral-400 text-sm">search</span>
                   <input
                     type="text"
-                    placeholder="Rechercher par nom ou matricule..."
+                    placeholder="Rechercher dans cette classe (nom ou matricule)…"
+                    aria-label="Rechercher un élève de cette classe par nom ou matricule"
                     value={studentSearch}
                     onChange={e => setStudentSearch(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-[#FAF8F6] border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                   />
                 </div>
-
-                <div className="flex bg-neutral-100 p-1 rounded-xl text-[10px] font-black shrink-0">
-                  <button
-                    onClick={() => setStatusFilter('ALL')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'ALL' ? 'bg-white text-primary shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    Tous
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('REGLE')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'REGLE' ? 'bg-white text-emerald-700 shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    En Règle ({paidCount})
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('RETARD')}
-                    className={`px-2.5 py-1 rounded-lg cursor-pointer border-0 ${statusFilter === 'RETARD' ? 'bg-white text-red-700 shadow-xs' : 'text-neutral-500'}`}
-                  >
-                    En Retard ({lateCount})
-                  </button>
-                </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setShowExcelImport(true)}
                   className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
@@ -447,6 +431,14 @@ export function ClasseDetailPage({
                   <span translate="no" className="material-symbols-outlined text-sm text-emerald-600">upload_file</span>
                   <span>Importer Excel / CSV</span>
                 </button>
+                {/* Élève déjà inscrit dans l'école (souvent sans classe) rangé dans cette classe ; liste relue */}
+                <AjouterEleveExistant
+                  classe={classe}
+                  onRelu={(eleves) => {
+                    setClassStudents(eleves);
+                    if (onUpdateStudents) onUpdateStudents(eleves);
+                  }}
+                />
                 <button
                   onClick={() => setIsAddingStudent(!isAddingStudent)}
                   className="px-4 py-2 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all flex items-center gap-1.5 cursor-pointer border-0"
@@ -471,6 +463,7 @@ export function ClasseDetailPage({
                     <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Nom & Prénom *</label>
                     <input
                       type="text"
+                      name="nom"
                       required
                       placeholder="ex. Fatou Sow"
                       value={newStudentName}
@@ -482,31 +475,48 @@ export function ClasseDetailPage({
                     <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Matricule</label>
                     <input
                       type="text"
+                      placeholder="Généré automatiquement si vide"
                       value={newStudentMatricule}
                       onChange={e => setNewStudentMatricule(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email</label>
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Email {newStudentSansEmail ? '' : '* '}(identifiant de connexion)</label>
                     <input
                       type="email"
-                      placeholder="fatou.sow@ecole221.sn"
+                      name="email"
+                      required={!newStudentSansEmail}
+                      disabled={newStudentSansEmail}
+                      placeholder={newStudentSansEmail ? 'Connexion par matricule' : 'prenom.nom@exemple.sn'}
                       value={newStudentEmail}
                       onChange={e => setNewStudentEmail(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary disabled:bg-neutral-100"
                     />
+                    <label className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newStudentSansEmail}
+                        onChange={e => { setNewStudentSansEmail(e.target.checked); if (e.target.checked) setNewStudentEmail(''); }}
+                      />
+                      Sans e-mail (connexion par matricule)
+                    </label>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Téléphone Parent</label>
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase block mb-1">Téléphone</label>
                     <input
-                      type="text"
+                      type="tel"
+                      placeholder="+221 …"
                       value={newStudentPhone}
                       onChange={e => setNewStudentPhone(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
+                <p className="text-[10px] text-neutral-500 font-semibold m-0">
+                  Le compte est créé dans l'école ; un mot de passe provisoire est généré par le serveur et affiché une seule fois, avec une fiche à imprimer.
+                  L'élève est affecté à cette classe.
+                </p>
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
@@ -517,9 +527,10 @@ export function ClasseDetailPage({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-1.5 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all border-0 cursor-pointer"
+                    disabled={enrolling}
+                    className="px-5 py-1.5 bg-primary text-white text-xs font-black rounded-xl shadow hover:bg-[#921316] transition-all border-0 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                   >
-                    Inscrire dans la classe
+                    {enrolling ? 'Création en cours…' : 'Créer le compte élève'}
                   </button>
                 </div>
               </form>
@@ -532,18 +543,27 @@ export function ClasseDetailPage({
                   <tr className="bg-[#FAF8F6] text-[10px] font-black text-neutral-400 uppercase tracking-wider border-b border-neutral-200">
                     <th className="px-5 py-3.5">Élève</th>
                     <th className="px-5 py-3.5">Matricule</th>
-                    <th className="px-5 py-3.5">Moyenne (GPA)</th>
-                    <th className="px-5 py-3.5">Statut Paiement</th>
                     <th className="px-5 py-3.5">Badge & Accès</th>
-                    <th className="px-5 py-3.5">Contact Parent</th>
+                    <th className="px-5 py-3.5">Téléphone</th>
                     <th className="px-5 py-3.5 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-10 text-center text-neutral-400 font-bold">
-                        Aucun élève trouvé. Utilisez l'import Excel ou le bouton d'inscription pour en ajouter.
+                      <td colSpan={5} className="px-5 py-10 text-center text-neutral-500 font-bold">
+                        {/* La recherche ne porte que sur les élèves de la classe */}
+                        {classStudents.length === 0 || !studentSearch.trim() ? (
+                          'Aucun élève dans cette classe pour l\'instant.'
+                        ) : (
+                          <span className="inline-flex flex-col items-center gap-2">
+                            <span>Aucun élève de cette classe ne correspond à « {studentSearch.trim()} ».</span>
+                            <button type="button" onClick={() => setStudentSearch('')}
+                              className="text-xs font-bold text-primary underline underline-offset-2 cursor-pointer">
+                              Effacer la recherche
+                            </button>
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ) : (
@@ -562,24 +582,6 @@ export function ClasseDetailPage({
                         </td>
                         <td className="px-5 py-3.5 font-mono text-[11px] text-neutral-700">{st.matricule}</td>
                         <td className="px-5 py-3.5">
-                          <span className="px-2.5 py-1 bg-amber-50 text-amber-800 font-black rounded-lg text-[11px]">
-                            {st.gpa}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <button
-                            onClick={() => toggleStudentFinancialStatus(st.id)}
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase cursor-pointer border-0 transition-all ${
-                              st.financialStatus === 'En Règle'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-red-100 text-red-700 hover:bg-red-200'
-                            }`}
-                            title="Cliquer pour basculer le statut financier"
-                          >
-                            {st.financialStatus}
-                          </button>
-                        </td>
-                        <td className="px-5 py-3.5">
                           <button
                             onClick={() => toggleStudentQrStatus(st.id)}
                             className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase cursor-pointer border-0 transition-all ${
@@ -587,19 +589,19 @@ export function ClasseDetailPage({
                                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                 : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
                             }`}
-                            title="Cliquer pour basculer l'autorisation du badge QR"
+                            title="Cliquer pour suspendre / réactiver l'élève (badge et connexion)"
                           >
                             {st.qrStatus}
                           </button>
                         </td>
                         <td className="px-5 py-3.5 text-neutral-600 text-[11px] font-bold">
-                          {st.phoneParent}
+                          {st.phoneParent || '—'}
                         </td>
                         <td className="px-5 py-3.5 text-center">
                           <button
                             onClick={() => handleRemoveStudent(st.id, st.name)}
                             className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent inline-flex items-center"
-                            title="Retirer cet élève de la classe"
+                            title="Retirer cet élève de l'école"
                           >
                             <span translate="no" className="material-symbols-outlined text-sm font-bold">delete</span>
                           </button>
@@ -715,81 +717,29 @@ export function ClasseDetailPage({
               <div>
                 <h4 className="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
                   <span translate="no" className="material-symbols-outlined text-emerald-600">account_balance_wallet</span>
-                  Plan Financier & Recouvrement — {classe.name}
+                  Plan Financier — {classe.name}
                 </h4>
                 <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
-                  Frais de scolarité annuels fixés à {classe.price.toLocaleString('fr-FR')} FCFA par élève.
+                  {price == null
+                    ? 'Tarif annuel non renseigné pour cette classe : montants indisponibles.'
+                    : `Frais de scolarité annuels fixés à ${fcfa(price)} par élève.`}
                 </p>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-black text-emerald-900 block">Taux de Recouvrement</span>
-                <span className="text-2xl font-black text-emerald-600">{collectionRate}%</span>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs">
                 <span className="text-[10px] uppercase font-bold text-neutral-400 block">Total Attendu</span>
-                <span className="text-xl font-black text-[#1E293B] block mt-1">{expectedRevenue.toLocaleString('fr-FR')} FCFA</span>
-                <span className="text-[10px] text-neutral-500 font-semibold">{totalStudents} étudiants inscrits</span>
+                <span className="text-xl font-black text-[#1E293B] block mt-1">{fcfa(expectedRevenue)}</span>
+                <span className="text-[10px] text-neutral-500 font-semibold">{totalStudents} élèves inscrits × tarif annuel</span>
               </div>
-              <div className="p-5 bg-white border border-emerald-200 rounded-2xl shadow-xs">
-                <span className="text-[10px] uppercase font-bold text-emerald-600 block">Total Déjà Encaissé</span>
-                <span className="text-xl font-black text-emerald-600 block mt-1">{collectedRevenue.toLocaleString('fr-FR')} FCFA</span>
-                <span className="text-[10px] text-emerald-700 font-semibold">{paidCount} étudiants à jour</span>
+              <div className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs">
+                <span className="text-[10px] uppercase font-bold text-neutral-400 block">Versements des élèves</span>
+                <p className="text-[11px] text-neutral-600 font-semibold mt-1 m-0">
+                  Les versements réels et le reste dû de chaque élève sont suivis dans Finances › Écolages. L'accès d'un
+                  élève au campus, à l'application et au bulletin ne dépend jamais des frais de scolarité.
+                </p>
               </div>
-              <div className="p-5 bg-white border border-rose-200 rounded-2xl shadow-xs">
-                <span className="text-[10px] uppercase font-bold text-rose-600 block">Reste à Recouvrer</span>
-                <span className="text-xl font-black text-rose-600 block mt-1">{remainingRevenue.toLocaleString('fr-FR')} FCFA</span>
-                <span className="text-[10px] text-rose-700 font-semibold">{lateCount} étudiants débiteurs</span>
-              </div>
-            </div>
-
-            <div className="border border-neutral-200 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <h5 className="text-xs font-black text-[#1E293B] uppercase tracking-wider">
-                  Élèves avec Retard de Paiement ({lateCount})
-                </h5>
-                {lateCount > 0 && (
-                  <button
-                    onClick={() => toast.success(`Relances SMS & WhatsApp envoyées avec succès aux ${lateCount} tuteurs d'élèves.`)}
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase cursor-pointer border-0 flex items-center gap-1.5 transition-all shadow-sm"
-                  >
-                    <span translate="no" className="material-symbols-outlined text-sm">send</span>
-                    <span>Envoyer Relance SMS / WhatsApp</span>
-                  </button>
-                )}
-              </div>
-
-              {lateCount === 0 ? (
-                <div className="py-4 text-emerald-600 text-xs font-bold flex items-center gap-2">
-                  <span translate="no" className="material-symbols-outlined text-lg">check_circle</span>
-                  <span>Tous les élèves de cette promotion sont actuellement en règle de paiement.</span>
-                </div>
-              ) : (
-                <div className="divide-y divide-neutral-100">
-                  {classStudents.filter(s => s.financialStatus === 'En Retard').map(s => (
-                    <div key={s.id} className="py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xs font-black text-[#1E293B]">{s.name}</span>
-                        <span className="text-[10px] text-neutral-400 font-mono ml-2">({s.matricule})</span>
-                        <p className="text-[10px] text-neutral-500 m-0">Tuteur: {s.phoneParent}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleStudentFinancialStatus(s.id)}
-                          className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-bold cursor-pointer border border-emerald-200"
-                        >
-                          Encaisser
-                        </button>
-                        <span className="px-3 py-1 bg-rose-100 text-rose-700 font-black text-[10px] rounded-full uppercase">
-                          Solde en attente
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -803,6 +753,23 @@ export function ClasseDetailPage({
           classeId={classe.id}
           onClose={() => setShowExcelImport(false)}
           onImportComplete={handleBulkImportComplete}
+        />
+      )}
+
+      {motDePasseInfo && (
+        <MotDePasseProvisoireModal
+          nom={motDePasseInfo.nom}
+          identifiant={motDePasseInfo.identifiant}
+          motDePasse={motDePasseInfo.motDePasse}
+          connexionParMatricule={motDePasseInfo.connexionParMatricule}
+          fiche={{
+            nom: motDePasseInfo.nom,
+            classe: classe.name,
+            matricule: motDePasseInfo.matricule,
+            identifiant: motDePasseInfo.identifiant,
+            connexionParMatricule: motDePasseInfo.connexionParMatricule,
+          }}
+          onClose={() => setMotDePasseInfo(null)}
         />
       )}
     </div>

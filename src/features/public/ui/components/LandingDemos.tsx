@@ -166,7 +166,7 @@ const FamilyMockup: React.FC = () => {
     <div className="relative w-full h-36 flex items-center justify-center select-none overflow-hidden rounded-2xl bg-gradient-to-br from-pink-950/40 via-slate-900/90 to-slate-950 border border-pink-500/20 p-3">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Notification mobile & boutons de paiement Wave/OM */}
+      {/* Notification mobile & versements Wave/OM suivis (aucun paiement en ligne) */}
       <div className="w-full max-w-[210px] space-y-2 relative z-10">
         {/* Notification pill */}
         <div className="bg-slate-900/90 border border-pink-500/30 rounded-xl p-2 shadow-lg flex items-center gap-2">
@@ -188,7 +188,7 @@ const FamilyMockup: React.FC = () => {
             </div>
             <div>
               <p className="text-[8px] font-black text-[#1DA1F2]">Wave</p>
-              <p className="text-[6px] text-slate-400">1-Clic direct</p>
+              <p className="text-[6px] text-slate-400">Versement suivi</p>
             </div>
           </div>
           <div className="bg-[#FF6600]/10 border border-[#FF6600]/40 rounded-lg p-1.5 flex items-center gap-1.5">
@@ -197,7 +197,7 @@ const FamilyMockup: React.FC = () => {
             </div>
             <div>
               <p className="text-[8px] font-black text-[#FF6600]">Orange M.</p>
-              <p className="text-[6px] text-slate-400">Instantané</p>
+              <p className="text-[6px] text-slate-400">Versement suivi</p>
             </div>
           </div>
         </div>

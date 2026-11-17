@@ -1,3 +1,4 @@
+import { MODE_SIMULE } from '@/shared/config/modeSimule';
 import { ApiOnboardingRepository } from '../api/ApiOnboardingRepository';
 import { InMemoryOnboardingRepository } from '../local/InMemoryOnboardingRepository';
 import {
@@ -8,7 +9,7 @@ import {
 /**
  * Injection des dépendances (DI) calquée sur src/features/professor.
  */
-const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+const useMock = MODE_SIMULE; // simulé : développement seulement (shared/config/modeSimule)
 
 export const onboardingRepository = useMock
   ? new InMemoryOnboardingRepository()

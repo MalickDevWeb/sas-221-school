@@ -27,11 +27,11 @@ export const SuperAdminLayout = () => {
     { icon: <LayoutDashboard size={18} />, label: "Vue d'ensemble", path: '/super-admin/dashboard' },
     { icon: <Globe size={18} />, label: 'Établissements', path: '/super-admin/tenants' },
     { icon: <Users size={18} />, label: 'Utilisateurs', path: '/super-admin/users' },
-    { icon: <CreditCard size={18} />, label: 'Facturation SaaS', path: '/super-admin/billing' },
+    { icon: <CreditCard size={18} />, label: 'Facturation', path: '/super-admin/billing' },
     { icon: <BarChart3 size={18} />, label: 'Rapports & Audit', path: '/super-admin/reports' },
-    { icon: <TrendingUp size={18} />, label: 'Analytiques', path: '/super-admin/analytics' },
+    { icon: <TrendingUp size={18} />, label: 'Statistiques', path: '/super-admin/analytics' },
     { icon: <Settings2 size={18} />, label: 'Système & Santé', path: '/super-admin/system' },
-    { icon: <HelpCircle size={18} />, label: 'Support & Tickets', path: '/super-admin/support' },
+    { icon: <HelpCircle size={18} />, label: 'Support', path: '/super-admin/support' },
     { icon: <Settings size={18} />, label: 'Paramètres', path: '/super-admin/settings' },
   ];
 
@@ -99,7 +99,7 @@ export const SuperAdminLayout = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <div className="truncate">
               <p className="text-[11px] font-bold text-slate-200 truncate">{utilisateur?.nom || 'Super Admin'}</p>
-              <p className="text-[10px] text-slate-400 truncate">Opérationnel • Neon DB</p>
+              <p className="text-[10px] text-slate-400 truncate">{utilisateur?.email || 'Session super-admin'}</p>
             </div>
           </div>
 

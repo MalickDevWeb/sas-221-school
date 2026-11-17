@@ -1,4 +1,5 @@
 import React from 'react';
+import { SousMenuModule, type EntreeSousMenu } from '@/shared/components/SousMenuModule';
 
 interface Props {
   activeTab: string;
@@ -8,74 +9,22 @@ interface Props {
   onClose?: () => void;
 }
 
+/** Sous-menu du module (modèle commun SousMenuModule). */
 export function PlanningSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse, onClose }: Props) {
-  const menuItems = [
-    { id: 'calendar', label: 'Calendrier & Salles', icon: 'calendar_today' },
-    { id: 'conflicts', label: 'Matrice des Conflits', icon: 'warning' },
-    { id: 'ai_opt', label: 'Assistant IA Planner', icon: 'psychology' },
-    { id: 'history', label: 'Historique & Audit', icon: 'history' },
-    { id: 'stats', label: 'Associations & Stats', icon: 'analytics' },
+  const entrees: EntreeSousMenu[] = [
+    { id: 'calendar', libelle: 'Calendrier & Salles', icone: 'calendar_today' },
+    { id: 'conflicts', libelle: 'Matrice des Conflits', icone: 'warning' },
+    { id: 'history', libelle: 'Historique & Audit', icone: 'history' },
+    { id: 'stats', libelle: 'Associations & Stats', icone: 'analytics' },
   ];
-
   return (
-    <div
-      className={`bg-white border border-[#E2DCDA] rounded-2xl p-4 flex flex-col transition-all duration-300 gap-4 shrink-0 shadow-sm ${
-        isCollapsed ? 'w-16' : 'w-64'
-      }`}
-      id="planning-subsidebar"
-    >
-      <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
-        {!isCollapsed && (
-          <span className="text-xs font-black uppercase tracking-wider text-[#1E293B]">
-            Moteur de Planification
-          </span>
-        )}
-        <div className="flex items-center gap-1 ml-auto">
-          <button
-            onClick={onToggleCollapse}
-            className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition-colors flex items-center justify-center cursor-pointer"
-            title={isCollapsed ? 'Ouvrir' : 'Réduire'}
-          >
-            <span translate="no" className="material-symbols-outlined text-lg font-bold">
-              {isCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left'}
-            </span>
-          </button>
-          {!isCollapsed && onClose && (
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg hover:bg-primary/10 text-neutral-500 hover:text-primary transition-colors flex items-center justify-center cursor-pointer"
-              title="Masquer le volet"
-            >
-              <span translate="no" className="material-symbols-outlined text-lg">
-                visibility_off
-              </span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      <nav className="flex flex-col gap-1.5">
-        {menuItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-[#4A5568] hover:bg-neutral-50 hover:text-neutral-900'
-              }`}
-              title={item.label}
-            >
-              <span translate="no" className="material-symbols-outlined text-lg shrink-0">
-                {item.icon}
-              </span>
-              {!isCollapsed && <span className="truncate leading-none">{item.label}</span>}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    <SousMenuModule id="planning-subsidebar" titre="Moteur de Planification" entrees={entrees} actif={activeTab} onChoisir={onSelectTab}
+      replie={isCollapsed} onBasculerRepli={onToggleCollapse}
+      actionEnTete={onClose && (
+        <button type="button" onClick={onClose} title="Masquer le volet" aria-label="Masquer le volet"
+          className="p-1 rounded-lg hover:bg-primary/10 text-neutral-500 hover:text-primary transition-colors flex items-center justify-center cursor-pointer border-0 bg-transparent">
+          <span translate="no" className="material-symbols-outlined text-lg">visibility_off</span>
+        </button>
+      )} />
   );
 }

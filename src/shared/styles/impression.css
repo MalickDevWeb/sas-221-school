@@ -1,0 +1,19 @@
+/*
+ * Impression des pages de l'application (window.print) — modèle commun des documents de l'école (2026-11-15).
+ * Même police que les PDF (Noto Sans, licence OFL), A4, fond blanc, menus et boutons masqués, lisible en noir et
+ * blanc. Pour exclure un élément : attribut data-sans-impression (ou classe Tailwind print:hidden).
+ */
+@font-face { font-family: "Noto Sans"; src: url("/fonts/NotoSans-Regular-sousensemble.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Noto Sans"; src: url("/fonts/NotoSans-Bold-sousensemble.ttf") format("truetype"); font-weight: 700; }
+
+@media print {
+  @page { size: A4; margin: 14mm 14mm 18mm; @bottom-center { content: "Page " counter(page) "/" counter(pages) " — Document généré par My School"; font: 8pt "Noto Sans", Arial, sans-serif; color: #64748b; } }
+  html, body { background: #fff !important; }
+  body { font-family: "Noto Sans", Arial, sans-serif; color: #1e293b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  nav, aside, button, [data-sans-impression], [role="tablist"], #offline-badge, #sync-toast, [data-sonner-toaster] { display: none !important; }
+  main, section, article { box-shadow: none !important; }
+  table { border-collapse: collapse; width: 100%; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  a[href]::after { content: ""; }
+}

@@ -1,17 +1,24 @@
 import React, { useState, useCallback } from 'react';
-import { useParentContext } from '../components/layout/ParentLayout';
+import { ClassesVirtuellesAccueil } from '@/features/collaboration/ui/components/ClassesVirtuellesAccueil';
+import { GroupesWhatsappRejoindre } from '@/shared/components/GroupesWhatsappRejoindre';
+import { useParentContext } from '../components/layout/ParentContext';
 import { ParentChildBanner } from '../components/ParentChildBanner';
 import { ParentDashboardStats } from '../components/ParentDashboardStats';
 import { AttestationModal } from '../components/AttestationModal';
 import { RetraitEleveModal } from '../components/RetraitEleveModal';
+import { ParentEmptyState, ParentErrorState } from '../components/ParentStatusBlocks';
 
 /**
  * Page Principale du Tableau de Bord Parent.
- * Permet de suivre en temps réel la scolarité de chaque enfant inscrit,
+ * Permet de suivre la scolarité de chaque enfant rattaché au compte,
  * de générer l'attestation officielle de scolarité et d'obtenir le pass de retrait sécurisé.
+ * APP-FE-07 : aucun enfant ni statistique inventés ; liste vide et erreurs affichées explicitement.
  */
 export function ParentDashboardPage() {
-  const { selectedChild, stats, loading, children, switchChild, selectedChildId } = useParentContext();
+  const {
+    selectedChild, stats, loading, children, switchChild, selectedChildId,
+    childrenError, statsError, reloadDashboard,
+  } = useParentContext();
   const [isAttestationOpen, setIsAttestationOpen] = useState(false);
   const [isRetraitOpen, setIsRetraitOpen] = useState(false);
 
@@ -31,7 +38,7 @@ export function ParentDashboardPage() {
     setIsRetraitOpen(false);
   }, []);
 
-  if (loading) {
+  if (loading && children.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -41,15 +48,6 @@ export function ParentDashboardPage() {
       </div>
     );
   }
-
-  const child = selectedChild ?? {
-    prenom: '—',
-    nom: '',
-    classe: '—',
-    filiere: '—',
-    niveau: '—',
-    matricule: '—',
-  };
 
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto w-full animate-fade-in pb-24 md:pb-8">
@@ -63,54 +61,81 @@ export function ParentDashboardPage() {
             <h1 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight">
               Bonjour, bienvenue sur votre espace parent
             </h1>
-            <p className="text-xs text-neutral-500 font-semibold">Suivez la scolarité de votre enfant en temps réel</p>
+            <p className="text-xs text-neutral-500 font-semibold">Suivez la scolarité de votre enfant</p>
           </div>
         </div>
       </div>
 
-      {/* Sélecteur enfant pour familles multi-élèves */}
-      {children.length > 1 && (
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {children.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => switchChild(c.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-solid ${
-                selectedChildId === c.id
-                  ? 'bg-primary text-white border-primary shadow-md shadow-blue-200'
-                  : 'bg-white text-neutral-600 border-neutral-200 hover:border-blue-300'
-              }`}
-            >
-              <span translate="no" className="material-symbols-outlined text-[14px]">person</span>
-              {c.prenom} {c.nom}
-            </button>
-          ))}
-        </div>
+      {/* Classes virtuelles de la classe de ses enfants (le parent est informé, l'élève rejoint) */}
+      {/* FEAT-007 : groupes WhatsApp de l'école à rejoindre (ceux de la classe de ses enfants et de toute l'école) */}
+      <GroupesWhatsappRejoindre id="groupes-whatsapp-parent" />
+      {!childrenError && children.length > 0 && (
+        <ClassesVirtuellesAccueil id="classes-virtuelles-parent" titre="Classes virtuelles de votre enfant"
+          description="Cours en visioconférence publiés pour sa classe : votre enfant les rejoint depuis son espace." rejoindre={false} />
       )}
 
-      {/* Fiche enfant avec boutons d'actions connectés */}
-      <ParentChildBanner
-        child={child}
-        onOpenAttestation={handleOpenAttestation}
-        onOpenRetrait={handleOpenRetrait}
-      />
+      {childrenError ? (
+        <ParentErrorState message={childrenError} onRetry={reloadDashboard} />
+      ) : children.length === 0 || !selectedChild ? (
+        <ParentEmptyState
+          icon="family_restroom"
+          title="Aucun enfant rattaché à votre compte. Contactez l'établissement."
+        />
+      ) : (
+        <>
+          {/* Sélecteur enfant pour familles multi-élèves */}
+          {children.length > 1 && (
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {children.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => switchChild(c.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-solid ${
+                    selectedChildId === c.id
+                      ? 'bg-primary text-white border-primary shadow-md shadow-blue-200'
+                      : 'bg-white text-neutral-600 border-neutral-200 hover:border-blue-300'
+                  }`}
+                >
+                  <span translate="no" className="material-symbols-outlined text-[14px]">person</span>
+                  {c.prenom} {c.nom}
+                </button>
+              ))}
+            </div>
+          )}
 
-      {/* KPIs & Grille d'activités */}
-      <ParentDashboardStats stats={stats} />
+          {/* Fiche enfant avec boutons d'actions connectés */}
+          <ParentChildBanner
+            child={selectedChild}
+            onOpenAttestation={handleOpenAttestation}
+            onOpenRetrait={handleOpenRetrait}
+          />
 
-      {/* Modale Attestation de Scolarité (Document officiel) */}
-      <AttestationModal
-        isOpen={isAttestationOpen}
-        onClose={handleCloseAttestation}
-        child={child}
-      />
+          {/* KPIs & Grille d'activités : uniquement les valeurs fournies par le backend */}
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-7 h-7 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+          ) : statsError ? (
+            <ParentErrorState message={statsError} onRetry={reloadDashboard} />
+          ) : stats ? (
+            <ParentDashboardStats stats={stats} />
+          ) : null}
 
-      {/* Modale Pass Retrait Sécurisé (QR Code vigile) */}
-      <RetraitEleveModal
-        isOpen={isRetraitOpen}
-        onClose={handleCloseRetrait}
-        child={child}
-      />
+          {/* Modale Attestation de Scolarité (Document officiel) */}
+          <AttestationModal
+            isOpen={isAttestationOpen}
+            onClose={handleCloseAttestation}
+            child={selectedChild}
+          />
+
+          {/* Modale Pass Retrait Sécurisé (QR Code vigile) */}
+          <RetraitEleveModal
+            isOpen={isRetraitOpen}
+            onClose={handleCloseRetrait}
+            child={selectedChild}
+          />
+        </>
+      )}
     </div>
   );
 }

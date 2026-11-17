@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import { useDeviceStore } from '@/features/screenguard/hooks/useDeviceStore';
 import { BlockedMobileImport } from '@/features/screenguard/ui/components/BlockedMobileImport';
-import { apiClient } from '@/shared/lib/apiClient';
+import { toast } from 'sonner';
 
 interface Props {
   promotions: any[];
   onImportSuccess: () => void;
 }
 
-export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
+export function AdminExcelImport(_props: Props) {
   const { isMobile, isTablet } = useDeviceStore();
-  const [csvText, setCsvText] = useState("Nom;Matricule;Classe\nAssane Diallo;221-M901;221-GL\nMariama Fall;221-M902;221-MOBI");
+  const [csvText, setCsvText] = useState('');   // aucune donnée pré-remplie
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
 
   const parseCsv = () => {
     const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean);
-    if (!lines.length) return;
+    if (!lines.length) {
+      toast.error('Collez le contenu CSV (ligne d\'entête puis une ligne par élève).');
+      return;
+    }
     const separator = lines[0].includes(';') ? ';' : lines[0].includes(',') ? ',' : '\t';
     const parsedHeaders = lines[0].split(separator).map(h => h.trim());
     const parsedRows = lines.slice(1).map(line => line.split(separator).map(cell => cell.trim()));
@@ -37,32 +39,12 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
     setStep(2);
   };
 
-  const handleImport = async () => {
-    setLoading(true);
-    const finalStudents = rows.map(row => {
-      const student: any = {};
-      headers.forEach((h, idx) => {
-        const field = mapping[h];
-        if (field) {
-          if (field === 'promotion_id') {
-            const matched = promotions.find(p => p.name.toLowerCase() === row[idx]?.toLowerCase() || p.id === row[idx]);
-            student[field] = matched ? matched.id : 'p-1';
-          } else {
-            student[field] = row[idx];
-          }
-        }
-      });
-      return student;
-    }).filter(s => s.name);
-
-    try {
-      await apiClient.post('/admin/students/bulk', { students: finalStudents });
-      onImportSuccess();
-      setStep(1);
-      setCsvText('');
-    } catch { /* handled by apiClient interceptor */ } finally {
-      setLoading(false);
-    }
+  const handleImport = () => {
+    // Fonctionnalité non disponible : aucune route backend d'import groupé d'étudiants
+    // (ex-POST /admin/students/bulk, à spécifier — APP-ARC-01). Aucun envoi n'est simulé.
+    toast.info('Fonctionnalité non disponible', {
+      description: `Import groupé non pris en charge par le serveur (${rows.length} ligne(s) analysée(s), rien n'a été enregistré).`,
+    });
   };
 
   return (
@@ -80,7 +62,7 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
 
       {step === 1 ? (
         <div className="space-y-2">
-          <textarea rows={3} className="w-full font-mono text-[10px] bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none" value={csvText} onChange={e => setCsvText(e.target.value)} />
+          <textarea rows={3} className="w-full font-mono text-[10px] bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl p-2 outline-none" value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="Nom;Email;Matricule;Classe" />
           <button type="button" onClick={parseCsv} className="w-full h-9 bg-primary hover:bg-primary/90 text-white font-black uppercase rounded-xl tracking-wider cursor-pointer">Analyse des Colonnes</button>
         </div>
       ) : (
@@ -100,7 +82,7 @@ export function AdminExcelImport({ promotions, onImportSuccess }: Props) {
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={() => setStep(1)} className="flex-1 h-9 border border-[#E2DCDA] rounded-xl font-bold uppercase hover:bg-neutral-50">Retour</button>
-            <button type="button" onClick={handleImport} disabled={loading} className="flex-[2] h-9 bg-primary text-white font-black uppercase rounded-xl hover:bg-primary/90">{loading ? 'Importation...' : 'Valider & Importer'}</button>
+            <button type="button" onClick={handleImport} title="Fonctionnalité non disponible" className="flex-[2] h-9 bg-primary/60 text-white font-black uppercase rounded-xl cursor-not-allowed">Valider &amp; Importer (indisponible)</button>
           </div>
         </div>
       )}

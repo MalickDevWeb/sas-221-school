@@ -1,21 +1,13 @@
-import { useAuthStore } from '@/core/store/authStore';
 import type { ProfileDemoItem } from '../domain/LandingModels';
 
+/**
+ * « Découvrir le portail » depuis la page d'accueil.
+ *
+ * Aucune session n'est fabriquée ; l'utilisateur est conduit à la recherche de son établissement
+ * puis à la vraie connexion (POST /auth/login).
+ */
 export class LaunchPortalDemoUseCase {
-  execute(demo: ProfileDemoItem, navigate: (path: string) => void): void {
-    const { connexionReussie } = useAuthStore.getState();
-
-    connexionReussie({
-      utilisateur: {
-        id: `demo-${demo.roleKey}`,
-        nom: demo.demoUser,
-        role: demo.roleKey,
-        email: demo.demoEmail,
-      },
-      token: `demo-token-${demo.roleKey}`,
-    });
-
-    navigate(demo.targetPath);
+  execute(_demo: ProfileDemoItem, navigate: (path: string) => void): void {
+    navigate('/login');
   }
 }
-

@@ -1,20 +1,21 @@
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 import { printTable } from './utils/ExportUtils';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 export function TabCommunication({ selectedStudent, erpData }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [commMode, setCommMode] = useState<'timeline' | 'chat'>('timeline');
 
   const handlePrintChat = () => {
     const headers = ['Expéditeur', 'Message', 'Date'];
-    const rows = finalErpData.extra.messages.map((msg: any) => [msg.sender, msg.text, msg.date]);
+    const rows = finalErpData.extra.messages.map((msg) => [msg.sender, msg.text, msg.date]);
     printTable(`Journal de Communication - ${selectedStudent.name}`, headers, rows);
   };
 
@@ -41,7 +42,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
 
       {commMode === 'timeline' && (
         <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-neutral-200">
-          {finalErpData.timeline.map((evt: any, idx: number) => (
+          {finalErpData.timeline.map((evt, idx: number) => (
             <div key={idx} className="relative space-y-1">
               <span className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full border-2 border-white ${idx === finalErpData.timeline.length - 1 ? 'bg-primary ring-4 ring-primary/25 animate-ping' : 'bg-neutral-400'}`} />
               <p className="text-[10px] text-neutral-400 font-bold">{evt.year}</p>
@@ -73,7 +74,7 @@ export function TabCommunication({ selectedStudent, erpData }: Props) {
             </button>
           </div>
           <div className="space-y-3">
-            {finalErpData.extra.messages.map((msg: any, idx: number) => (
+            {finalErpData.extra.messages.map((msg, idx: number) => (
               <div key={idx} className="bg-white p-3 rounded-xl border border-neutral-100 shadow-sm space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-[#1E293B] text-[10px] uppercase text-primary">{msg.sender}</span>

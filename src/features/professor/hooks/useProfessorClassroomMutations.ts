@@ -6,14 +6,14 @@ import {
   createModuleUseCase,
   createQuizUseCase
 } from '../infrastructure/config/dependencies';
-import type { QuizQuestion } from '../domain/ProfessorModels';
+import type { QuizQuestion, ClassroomReminder, ProfessorLesson, CourseModule, CourseQuiz } from '../domain/ProfessorModels';
 
 export function useProfessorClassroomMutations(
   selectedCourseId: string,
-  setReminders: React.Dispatch<React.SetStateAction<any[]>>,
-  setLessons: React.Dispatch<React.SetStateAction<any[]>>,
-  setModules: React.Dispatch<React.SetStateAction<any[]>>,
-  setQuizzes: React.Dispatch<React.SetStateAction<any[]>>
+  setReminders: React.Dispatch<React.SetStateAction<ClassroomReminder[]>>,
+  setLessons: React.Dispatch<React.SetStateAction<ProfessorLesson[]>>,
+  setModules: React.Dispatch<React.SetStateAction<CourseModule[]>>,
+  setQuizzes: React.Dispatch<React.SetStateAction<CourseQuiz[]>>
 ) {
   const handleCreateReminder = useCallback(async (content: string, isUrgent: boolean) => {
     if (!selectedCourseId) return;

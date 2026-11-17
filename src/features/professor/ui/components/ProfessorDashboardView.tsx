@@ -12,7 +12,7 @@ interface Props {
   readonly courses: readonly ProfessorCourse[];
   readonly homeworksCount: number;
   readonly validatedGrades: number;
-  readonly classAvg: number;
+  readonly classAvg: number | null;
   readonly schedule: readonly ProfessorSchedule[];
   readonly students: readonly StudentEnrolled[];
   readonly onMarkAttendance: (studentId: string, status: AttendanceStatus) => void;
@@ -33,7 +33,6 @@ export function ProfessorDashboardView({
   const [showPresence, setShowPresence] = useState(false);
   const [presenceTab, setPresenceTab] = useState<'badge' | 'scanner'>('badge');
   const [pointageType, setPointageType] = useState<'arrivée' | 'départ'>('arrivée');
-  const [localVigilCheckInsCount, setLocalVigilCheckInsCount] = useState(0);
   const [showQRZoom, setShowQRZoom] = useState(false);
 
   return (
@@ -41,7 +40,6 @@ export function ProfessorDashboardView({
       <ProfessorHeaderBanner
         profName={profName}
         coursesCount={courses.length}
-        vigilCheckInsCount={localVigilCheckInsCount}
         onOpenPresence={(tab, type) => {
           setPresenceTab(tab);
           setPointageType(type);
@@ -60,7 +58,7 @@ export function ProfessorDashboardView({
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Performance moyenne</span>
           </div>
-          <p className="mt-5 text-3xl font-black text-neutral-800">{classAvg} <span className="text-sm font-semibold text-neutral-400">/ 20</span></p>
+          <p className="mt-5 text-3xl font-black text-neutral-800">{classAvg ?? '—'} <span className="text-sm font-semibold text-neutral-400">/ 20</span></p>
           <p className="mt-2.5 text-xs text-neutral-400 font-bold">Moyenne générale de vos classes</p>
         </div>
 
@@ -80,10 +78,10 @@ export function ProfessorDashboardView({
             <div className="p-2 bg-primary-light rounded-xl border border-primary/10">
               <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Workflow</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Séances à venir</span>
           </div>
-          <p className="mt-5 text-3xl font-black text-neutral-800">{courses.length * 3}</p>
-          <p className="mt-2.5 text-xs text-neutral-400 font-bold">Actions pédagogiques à mener</p>
+          <p className="mt-5 text-3xl font-black text-neutral-800">{schedule.filter(s => s.status === 'a_venir').length}</p>
+          <p className="mt-2.5 text-xs text-neutral-400 font-bold">Séances planifiées non annulées</p>
         </div>
       </div>
 
@@ -95,7 +93,6 @@ export function ProfessorDashboardView({
           onMarkAttendance={onMarkAttendance}
           initialTab={presenceTab}
           pointageType={pointageType}
-          onScanComplete={() => setLocalVigilCheckInsCount(prev => prev + 1)}
         />
       )}
 

@@ -1,17 +1,19 @@
 import React from 'react';
-import { ArrowLeft, Users, BookOpen, PenTool, Award } from 'lucide-react';
+import { ArrowLeft, Users, BookOpen, PenTool, Award, ClipboardList } from 'lucide-react';
 import { ProfessorProfileSection } from './ProfessorProfileSection';
 import { ProfessorClassroomHeader } from './ProfessorClassroomHeader';
 import { ProfessorClassroomSessions } from './ProfessorClassroomSessions';
+import type { ClassroomSubTab } from './classroom/ClassroomProps';
+import type { ProfessorCourse, ProfessorSchedule } from '../../domain/ProfessorModels';
 
 interface ClassroomSidebarProps {
-  readonly selectedCourse: any;
+  readonly selectedCourse: ProfessorCourse | null | undefined;
   readonly onSelectCourse: (id: string) => void;
   readonly activeTab: string;
   readonly onSelectTab: (tab: string) => void;
-  readonly classroomSubTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements';
-  readonly setClassroomSubTab: (tab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => void;
-  readonly schedule: readonly any[];
+  readonly classroomSubTab: ClassroomSubTab;
+  readonly setClassroomSubTab: (tab: ClassroomSubTab) => void;
+  readonly schedule: readonly ProfessorSchedule[];
   readonly profName?: string;
   readonly initials?: string;
   readonly onLogout?: () => void;
@@ -24,7 +26,7 @@ export function ProfessorClassroomSidebar({
     (s) => s && selectedCourse && (s.courseId === selectedCourse.id || (s.courseTitle || "").toLowerCase() === (selectedCourse.titre || "").toLowerCase())
   );
 
-  const handleSubTabClick = (subTab: 'modules' | 'homework' | 'grades' | 'attendance' | 'announcements') => {
+  const handleSubTabClick = (subTab: ClassroomSubTab) => {
     onSelectTab('classroom');
     setClassroomSubTab(subTab);
   };
@@ -41,16 +43,17 @@ export function ProfessorClassroomSidebar({
         <div>
           <span className="px-3 text-[10px] font-black uppercase text-[#64748B] tracking-wider block mb-1.5">Espace pédagogique</span>
           <nav className="flex flex-col gap-1">
-            {[
+            {([
               { id: 'attendance', label: 'Présence & Appel', icon: Users },
               { id: 'modules', label: 'Chapitres & Supports', icon: BookOpen },
               { id: 'homework', label: 'Devoirs de classe', icon: PenTool },
+              { id: 'evaluations', label: 'Évaluations & moyennes', icon: ClipboardList },
               { id: 'grades', label: 'Notes d\'Évaluation', icon: Award },
-            ].map((item) => {
+            ] as const satisfies readonly { id: ClassroomSubTab; label: string; icon: unknown }[]).map((item) => {
               const IconComp = item.icon;
               const isActive = activeTab === 'classroom' && classroomSubTab === item.id;
               return (
-                <button key={item.id} onClick={() => handleSubTabClick(item.id as any)} className={`w-full flex items-center gap-3 px-3 py-2 text-xs rounded-lg transition-all text-left cursor-pointer border-0 ${isActive ? 'bg-primary-container text-on-primary-container font-black shadow-3xs' : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'}`}>
+                <button key={item.id} onClick={() => handleSubTabClick(item.id)} className={`w-full flex items-center gap-3 px-3 py-2 text-xs rounded-lg transition-all text-left cursor-pointer border-0 ${isActive ? 'bg-primary-container text-on-primary-container font-black shadow-3xs' : 'text-secondary hover:bg-secondary-container/50 hover:translate-x-1 font-semibold'}`}>
                   <IconComp className={`h-4 w-4 ${isActive ? 'text-white' : 'text-neutral-400'}`} />
                   <span>{item.label}</span>
                 </button>

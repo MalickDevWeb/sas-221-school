@@ -1,9 +1,10 @@
 import React from 'react';
+import type { CourseDetails } from './course-details/useRealCourseDetails';
 import { CoursItem } from './types';
 
 interface CourseDetailSidebarProps {
   course: CoursItem;
-  details: any;
+  details: CourseDetails;
 }
 
 export function CourseDetailSidebar({ course, details }: CourseDetailSidebarProps) {
@@ -40,8 +41,8 @@ export function CourseDetailSidebar({ course, details }: CourseDetailSidebarProp
         </h5>
         
         <div className="space-y-2">
-          {details.chapitres.map((chap: any, idx: number) => {
-            const hasActiveLesson = chap.lecons.some((l: any) => l.estDerniereEnseignee);
+          {details.chapitres.map((chap, idx: number) => {
+            const hasActiveLesson = chap.lecons.some((l) => l.estDerniereEnseignee);
             return (
               <div 
                 key={idx}
@@ -57,7 +58,7 @@ export function CourseDetailSidebar({ course, details }: CourseDetailSidebarProp
                 
                 {/* Sub chapters list */}
                 <div className="space-y-1">
-                  {chap.lecons.map((lecon: any, lIdx: number) => (
+                  {chap.lecons.map((lecon, lIdx: number) => (
                     <div 
                       key={lIdx}
                       className={`p-2 rounded-xl text-[10px] font-bold flex items-center justify-between gap-1.5 ${

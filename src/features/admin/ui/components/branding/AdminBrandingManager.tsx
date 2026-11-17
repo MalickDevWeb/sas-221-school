@@ -1,69 +1,45 @@
 import React, { useState } from 'react';
-import { Palette, Image, Sparkles, Building2 } from 'lucide-react';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { ThemeEditor } from '@/features/school-settings/ThemeEditor';
+import { ModuleAvecSousMenu, SousMenuModule, useRepliSousMenu, type EntreeSousMenu } from '@/shared/components/SousMenuModule';
 import { BrandingLogoSection } from './BrandingLogoSection';
 import { BrandingBackgroundSection } from './BrandingBackgroundSection';
 import { BrandingIdentitySection } from './BrandingIdentitySection';
+import { BrandingAdresseSection } from './BrandingAdresseSection';
 
-type Tab = 'colors' | 'logo' | 'background' | 'identity';
+type Tab = 'colors' | 'logo' | 'background' | 'identity' | 'adresse';
+
+/** Personnalisation : modèle commun des modules (sous-menu à gauche). */
+const ENTREES: EntreeSousMenu[] = [
+  { id: 'colors', libelle: '1. Couleurs & Thème', icone: 'palette' },
+  { id: 'logo', libelle: '2. Logo de l’École', icone: 'image' },
+  { id: 'background', libelle: '3. Photo d’Arrière-Plan', icone: 'wallpaper' },
+  { id: 'identity', libelle: '4. Identité & Campus', icone: 'apartment' },
+  { id: 'adresse', libelle: '5. Adresse de l’école', icone: 'language' },
+];
 
 export function AdminBrandingManager() {
   const { currentTenant } = useTenantStore();
   const [activeTab, setActiveTab] = useState<Tab>('colors');
-  const schoolName = currentTenant?.name || 'École 221';
-
-  const tabs = [
-    { id: 'colors' as const, label: '1. Couleurs & Thème', icon: Palette },
-    { id: 'logo' as const, label: '2. Logo de l’École', icon: Image },
-    { id: 'background' as const, label: '3. Photo d’Arrière-Plan', icon: Sparkles },
-    { id: 'identity' as const, label: '4. Identité & Campus', icon: Building2 },
-  ];
+  const [replie, basculerRepli] = useRepliSousMenu('personnalisation');
+  const schoolName = currentTenant?.name || 'votre établissement';
 
   return (
-    <div className="space-y-6 animate-fade-in text-xs font-bold text-[#4A5568]" id="admin-branding-manager">
-      <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-black text-slate-900 tracking-tight">Personnalisation & Identité de Marque</h2>
-            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-              {schoolName}
-            </span>
-          </div>
-          <p className="text-[11px] text-neutral-400 font-semibold mt-0.5">
-            Configurez la charte graphique, le logo officiel, le fond d'écran du login et les coordonnées de l'établissement.
-          </p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3">
-        {tabs.map(t => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer border ${
-                isActive
-                  ? 'bg-primary text-text-on-primary border-primary shadow-xs'
-                  : 'bg-white hover:bg-neutral-50 text-neutral-600 border-neutral-200'
-              }`}
-            >
-              <Icon size={14} />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="pt-1">
+    <div className="animate-fade-in text-xs font-bold text-[#4A5568]" id="admin-branding-manager">
+      {/* Un seul titre par page : celui de la section affichée (« Couleurs de l'école », « Adresse de l'école »…) */}
+      <ModuleAvecSousMenu
+        id="admin-branding-root"
+        sousMenu={
+          <SousMenuModule id="branding-subsidebar" titre={`Personnalisation — ${schoolName}`} entrees={ENTREES} actif={activeTab}
+            onChoisir={(id) => setActiveTab(id as Tab)} replie={replie} onBasculerRepli={basculerRepli} />
+        }
+      >
         {activeTab === 'colors' && <ThemeEditor />}
         {activeTab === 'logo' && <BrandingLogoSection />}
         {activeTab === 'background' && <BrandingBackgroundSection />}
         {activeTab === 'identity' && <BrandingIdentitySection />}
-      </div>
+        {activeTab === 'adresse' && <BrandingAdresseSection />}
+      </ModuleAvecSousMenu>
     </div>
   );
 }
-

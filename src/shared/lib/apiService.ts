@@ -9,10 +9,6 @@ export const adminService = {
     const { data } = await apiClient.post('/admin/gates/assign', { gate, guard });
     return data;
   },
-  updateStudentStatus: async (id: string, statutFrais: string) => {
-    const { data } = await apiClient.patch(`/admin/students/${id}/status`, { statutFrais });
-    return data;
-  },
   assignSchedule: async (courseId: string, day: string, time: string, room: string, professorId?: string) => {
     const { data } = await apiClient.post('/admin/schedule/assign', { courseId, day, time, room, professorId });
     return data;
@@ -29,7 +25,8 @@ export const securityService = {
     return data;
   },
   submitScanLog: async (badgeId: string) => {
-    const { data } = await apiClient.post('/security/scan-logs', { badgeId });
+    // pas de mise en file automatique : hors ligne, le terminal décide lui-même (useVigilLocalState, EF-10)
+    const { data } = await apiClient.post('/security/scan-logs', { badgeId }, { sansFileHorsLigne: true } as object);
     return data;
   },
 };
@@ -55,7 +52,8 @@ export const profService = {
     return data;
   },
   getTodaySchedule: async () => {
-    const { data } = await apiClient.get('/prof/today-schedule');
+    // Emploi du temps du jour : ProfExtraController GET /professor/schedule (APP-ARC-01)
+    const { data } = await apiClient.get('/professor/schedule');
     return data;
   },
 };

@@ -1,4 +1,5 @@
-import React from 'react';
+import { QrLocal } from '@/shared/components/QrLocal';
+import React, { useState } from 'react';
 
 interface Props {
   isOpen: boolean;
@@ -7,11 +8,12 @@ interface Props {
 }
 
 export function RetraitEleveModal({ isOpen, onClose, child }: Props) {
+  // Instant figé au premier affichage (react-hooks/purity : pas de Date.now() à chaque rendu)
+  const [maintenant] = useState(() => Date.now());
   if (!isOpen) return null;
 
   const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-  const qrData = encodeURIComponent(`RETRAIT|${child.matricule}|${child.prenom}_${child.nom}|${Date.now()}`);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
+  const qrUrl = `RETRAIT|${child.matricule}|${child.prenom}_${child.nom}|${maintenant}`; // dessiné localement
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
@@ -35,7 +37,7 @@ export function RetraitEleveModal({ isOpen, onClose, child }: Props) {
           </div>
 
           <div className="mx-auto w-48 h-48 bg-slate-50 p-3 rounded-2xl border-2 border-dashed border-indigo-200 flex items-center justify-center shadow-inner">
-            <img src={qrUrl} alt="QR Code Retrait" className="w-full h-full object-contain rounded-xl" />
+            <QrLocal valeur={qrUrl} titre="QR Code Retrait" className="w-full h-full rounded-xl" />
           </div>
 
           <div className="space-y-1">

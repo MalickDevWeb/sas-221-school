@@ -1,14 +1,30 @@
 import React from 'react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
+import { nomPays } from '@/shared/constants/pays';
+
+/** Libellés des informations saisies au dépôt (portail candidat ou espace parent). */
+const LIBELLES_DOSSIER: Record<string, string> = {
+  dateNaissance: 'Date de naissance', lieuNaissance: 'Lieu de naissance', sexe: 'Sexe', nationalite: 'Nationalité',
+  numeroPiece: 'N° CNI / passeport', adresse: 'Adresse', niveau: 'Niveau demandé', diplomePrecedent: 'Diplôme précédent',
+  etablissementPrecedent: 'Dernier établissement', serieBac: 'Série du bac', anneeBac: 'Année du bac', mentionBac: 'Mention',
+  sessionRentree: 'Session de rentrée', garantNom: 'Garant', garantLien: 'Lien avec le garant',
+  garantTelephone: 'Téléphone du garant', garantEmail: 'Email du garant', garantProfession: 'Profession du garant',
+  deposePar: 'Déposé par',
+};
 
 export function CandidateDetailsSection({ candidate }: { candidate: ExtendedCandidate }) {
   const d = candidate.details;
+  const dossier = Object.entries(d?.dossier ?? {}).filter(([cle, v]) => cle in LIBELLES_DOSSIER && v);
 
   return (
     <div className="bg-neutral-50 p-3 rounded-xl space-y-1.5 border border-neutral-100">
       <span className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">Fiche de Candidature Spécifique</span>
       <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px]">
         <div>Filière Cible : <span className="text-[#1E293B] block font-extrabold">{candidate.course}</span></div>
+
+        {dossier.map(([cle, v]) => (
+          <div key={cle}>{LIBELLES_DOSSIER[cle]} : <span className="text-[#1E293B] block">{cle === 'sexe' ? (v === 'F' ? 'Féminin' : v === 'M' ? 'Masculin' : v) : cle === 'nationalite' ? nomPays(v) : v}</span></div>
+        ))}
 
         {d?.universityOfOrigin && (<>
           <div>Université d'Origine : <span className="text-[#1E293B] block">{d.universityOfOrigin}</span></div>

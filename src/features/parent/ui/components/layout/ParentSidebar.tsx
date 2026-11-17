@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/core/store/authStore';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { anneeAcademiqueCourte } from '@/shared/lib/anneeAcademique';
 import type { ChildProfile } from '@/features/parent/types';
 
 interface Props {
@@ -45,7 +46,7 @@ export function ParentSidebar({ children, selectedChildId, onSelectChild, unread
           <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Portail Parent</p>
         </div>
-        <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2025-26</p>
+        <p className="text-secondary font-label-md text-xs mt-1">Année Académique {anneeAcademiqueCourte()}</p>
       </div>
 
       {/* Sélecteur d'enfant */}

@@ -26,14 +26,14 @@ export function ParentApplicationTrackingPage() {
 
   useEffect(() => {
     parentApi.getApplications()
-      .then((data) => {
+      .then((data: ParentApplication[]) => {
         const list = Array.isArray(data) ? data : [];
         setDossiers(list);
         if (list.length > 0) {
           setExpanded(list[0].id);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.warn("Erreur chargement candidatures:", err);
         setDossiers([]);
       })
@@ -106,7 +106,7 @@ export function ParentApplicationTrackingPage() {
                 className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/60 transition-colors"
               >
                 <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                  statutKey === STATUT_CANDIDATURE.VALIDE || statutKey === STATUT_CANDIDATURE.ACCEPTE ? 'bg-emerald-100' : statutKey === STATUT_CANDIDATURE.REFUSE ? 'bg-red-100' : 'bg-amber-100'
+                  isCandidatureValidee(statutKey) ? 'bg-emerald-100' : isCandidatureRefusee(statutKey) ? 'bg-red-100' : 'bg-amber-100'
                 }`}>
                   <span translate="no" className={`material-symbols-outlined text-[22px] ${cfg.color}`}>{cfg.icon}</span>
                 </div>

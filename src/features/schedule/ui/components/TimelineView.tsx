@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, User, MapPin, ArrowRight } from 'lucide-react';
-import { CourseSession, CourseDay } from '@/features/schedule/domain/Schedule';
+import { CourseSession, CourseDay, joursAffiches, LIBELLES_JOURS } from '@/features/schedule/domain/Schedule';
+import { datesSemaineCourante } from '@/shared/lib/semaine';
 
 export function TimelineView({ state }: { state: any }) {
   const { schedule, selectedDayMobile, setSelectedDayMobile, triggerToast, fitsFilters, resetAllFilters, setActivePlanCourse, liveSessions, handleJoinLive, enCoursId, prochainId } = state;
@@ -10,9 +11,9 @@ export function TimelineView({ state }: { state: any }) {
       <div className="lg:col-span-3 space-y-3.5 print:hidden">
         <p className="font-black text-[10px] text-[#291715]/40 uppercase tracking-widest pl-1">Calendrier Hebdomadaire</p>
         <div className="flex lg:flex-col gap-2.5 overflow-x-auto pb-3 lg:pb-0 select-none no-scrollbar snap-x scroll-smooth">
-          {(['LUN', 'MAR', 'MER', 'JEU', 'VEN'] as const).map((day) => {
-            const dayLabel = { LUN: 'Lundi', MAR: 'Mardi', MER: 'Mercredi', JEU: 'Jeudi', VEN: 'Vendredi' }[day];
-            const dayDate = { LUN: '23 Oct', MAR: '24 Oct', MER: '25 Oct', JEU: '26 Oct', VEN: '27 Oct' }[day];
+          {joursAffiches(schedule as CourseSession[]).map((day) => {
+            const dayLabel = LIBELLES_JOURS[day];
+            const dayDate = (datesSemaineCourante() as Record<string, string>)[day]; // dates réelles
             const resultsCount = schedule.filter((c: CourseSession) => c.jour === day).filter(fitsFilters).length;
             const isSelected = selectedDayMobile === day;
 
@@ -28,7 +29,7 @@ export function TimelineView({ state }: { state: any }) {
 
       <div className="lg:col-span-9 space-y-4">
         <div className="flex justify-between items-center px-1">
-          <h3 className="font-black text-xs uppercase tracking-widest text-[#291715]/70">Plan du {selectedDayMobile === 'LUN' ? 'Lundi' : selectedDayMobile === 'MAR' ? 'Mardi' : selectedDayMobile === 'MER' ? 'Mercredi' : selectedDayMobile === 'JEU' ? 'Jeudi' : 'Vendredi'}</h3>
+          <h3 className="font-black text-xs uppercase tracking-widest text-[#291715]/70">Plan du {LIBELLES_JOURS[selectedDayMobile as CourseDay] ?? 'Lundi'}</h3>
           <span className="px-3.5 py-1 text-[9px] font-black uppercase rounded-full bg-primary-light text-primary border border-primary/10 select-none">{schedule.filter((c: CourseSession) => c.jour === selectedDayMobile).filter(fitsFilters).length} séances configurées</span>
         </div>
 

@@ -8,7 +8,11 @@ export interface VirtualClass {
   readonly isPublished: boolean;
   readonly date: string;
   readonly time: string;
-  readonly restrictToGoogleAccount: boolean;
+  /** Début (le lien apparaît aux élèves) et fin (la séance disparaît), AAAA-MM-JJTHH:MM */
+  readonly debut?: string | null;
+  readonly fin?: string | null;
+  /** Calculé par le serveur à l'heure de l'école */
+  readonly statut?: 'a_venir' | 'en_cours' | 'terminee' | 'sans_horaire';
 }
 
 export interface AdminMeeting {
@@ -21,14 +25,18 @@ export interface AdminMeeting {
   readonly meetLink: string;
   readonly date: string;
   readonly time: string;
+  readonly debut?: string | null;
+  readonly fin?: string | null;
+  readonly statut?: 'a_venir' | 'en_cours' | 'terminee' | 'sans_horaire';
 }
 
+/** Élève (membre ou candidat d'un groupe), tel que renvoyé par le serveur. */
 export interface GroupMember {
   readonly id: string;
   readonly name: string;
-  readonly email: string;
-  readonly gpa: number;
-  readonly gender: 'M' | 'F';
+  readonly email: string | null;
+  /** Chef du groupe (liste des membres d'un groupe uniquement). */
+  readonly leader?: boolean;
 }
 
 export interface Workgroup {
@@ -48,7 +56,8 @@ export interface CollabMessage {
   readonly id: string;
   readonly groupId: string;
   readonly senderName: string;
-  readonly senderRole: 'ETUDIANT' | 'PROFESSEUR' | 'ADMIN';
+  /** Rôle de l'auteur, quand il est connu (jamais supposé). */
+  readonly senderRole?: 'ETUDIANT' | 'PROFESSEUR' | 'ADMIN';
   readonly text: string;
   readonly fileType?: 'image' | 'video' | 'voice' | 'zip' | 'pdf' | 'presentation' | 'code' | 'link' | 'none';
   readonly fileUrl?: string;
@@ -128,6 +137,5 @@ export interface MeetAttendance {
   readonly entryTime: string;
   readonly exitTime?: string;
   readonly durationMinutes?: number;
-  readonly participationScore: number;
-  readonly isAuthorizedAccount: boolean;
+  readonly participationScore?: number;
 }

@@ -32,10 +32,6 @@ export class ManageAdminUseCase {
     return this.adminRepository.deleteProfessor(id);
   }
 
-  async setStudentPaymentStatus(id: string, status: string): Promise<AdminStudent> {
-    return this.adminRepository.updateStudentPayment(id, status);
-  }
-
   async fetchSchedule(): Promise<AdminSession[]> {
     return this.adminRepository.getSchedule();
   }

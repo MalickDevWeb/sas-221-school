@@ -70,9 +70,7 @@ export const TenantFormSections: React.FC<Props> = ({ formData, onChange }) => {
           <label className="text-slate-300 font-medium block mb-1">Email de Connexion *</label>
           <input required type="email" name="adminEmail" value={formData.adminEmail} onChange={onChange}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500" placeholder="admin@campus.sn" />
-          {formData.adminEmail && (
-            <p className="text-[10px] text-amber-400 font-mono mt-1">MDP temporaire : {formData.adminEmail}221!</p>
-          )}
+          <p className="text-[10px] text-slate-400 mt-1">Un mot de passe provisoire aléatoire sera généré et affiché une seule fois après la création.</p>
         </div>
       </div>
     </div>

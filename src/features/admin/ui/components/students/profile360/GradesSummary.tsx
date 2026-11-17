@@ -1,9 +1,10 @@
+import type { UeProfil } from './profil360';
 import React, { useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { copyToClipboard, exportToCSV } from './utils/ExportUtils';
 
 interface ChartProps {
-  chartData: any[];
+  chartData: { name: string; Note: number | null; MoyenneClasse: number | null }[];
 }
 
 export function GradesChart({ chartData }: ChartProps) {
@@ -31,7 +32,7 @@ export function GradesChart({ chartData }: ChartProps) {
 
 interface ReportProps {
   gpa: string;
-  filteredGrades: any[];
+  filteredGrades: UeProfil[];
   studentName: string;
 }
 
@@ -39,7 +40,7 @@ export function PerformanceReport({ gpa, filteredGrades, studentName }: ReportPr
   const [copied, setCopied] = useState(false);
 
   const handleCopyGrades = () => {
-    const text = filteredGrades.map(g => `${g.module}: ${g.grade}/20 (Coef. ${g.coefficient})`).join('\n');
+    const text = filteredGrades.map(g => `${g.module}: ${g.grade ?? "—"}/20 (Coef. ${g.coefficient ?? "—"})`).join('\n');
     copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

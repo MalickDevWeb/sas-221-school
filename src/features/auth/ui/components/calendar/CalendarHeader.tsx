@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Filter, Search } from 'lucide-react';
+import { Calendar, Search } from 'lucide-react';
 
 export function CalendarHeader({ state }: { state: any }) {
   return (
@@ -53,19 +53,9 @@ export function CalendarHeader({ state }: { state: any }) {
 
       {/* Filter and search row */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-        {/* Class Level Selector */}
-        <div className="sm:col-span-4 relative">
-          <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary" />
-          <select
-            value={state.level}
-            onChange={(e) => state.setLevel(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 bg-neutral-50 border border-neutral-200 hover:border-neutral-300 rounded-xl text-xs font-black text-neutral-700 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10 cursor-pointer appearance-none shadow-sm"
-          >
-            <option value="L3GL">Licence 3 - GL</option>
-            <option value="L2SR">Licence 2 - SR</option>
-            <option value="M1IA">Master 1 - IA</option>
-          </select>
-          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400 text-xs">▼</span>
+        {/* Classe réelle */}
+        <div className="sm:col-span-4 h-10 px-4 flex items-center bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-black text-neutral-700 truncate">
+          {Array.from(new Set((state.rawSessions ?? []).map((x: { classe?: string }) => x.classe).filter(Boolean))).join(', ') || (state.consultable ? 'Aucune classe affectée' : 'Classe affichée après connexion')}
         </div>
 
         {/* Search Field */}

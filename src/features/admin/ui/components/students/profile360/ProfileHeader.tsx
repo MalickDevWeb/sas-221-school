@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
+import { ouvrirDocumentImprimable, tableauCleValeurHtml } from '@/shared/lib/documentImprimable';
 
 interface Props {
   selectedStudent: Student;
@@ -16,8 +17,19 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
     setTimeout(() => setQrRegenerated(false), 2000);
   };
 
+  // Fiche de l'élève sur le modèle commun des documents de l'école
   const handlePrint = () => {
-    window.print();
+    const s = selectedStudent;
+    ouvrirDocumentImprimable({
+      titre: "Fiche de l'élève", sousTitre: s.name, titreFenetre: `Fiche de l'élève — ${s.name}`,
+      corps: tableauCleValeurHtml([
+        { cle: 'Nom et prénom', valeur: s.name || '—' },
+        { cle: 'Matricule', valeur: s.matricule || '—' },
+        { cle: 'Classe', valeur: s.classe || 'Non affecté(e)' },
+        { cle: 'Adresse e-mail', valeur: s.email || '—' },
+        { cle: 'Téléphone', valeur: s.phoneParent || '—' },
+      ]),
+    });
   };
 
   return (
@@ -31,16 +43,12 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
           <p className="text-xs text-neutral-400 font-bold mt-0.5">
             Matricule : <span className="text-neutral-600">{selectedStudent.matricule}</span> • Classe : <span className="text-neutral-600">{selectedStudent.classe}</span>
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-extrabold uppercase text-neutral-500 tracking-wider">Compte Actif (ERP)</span>
-          </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
         <div className={`px-3 py-1.5 rounded-xl border font-black text-[10px] uppercase tracking-wider text-center ${selectedStudent.qrStatus === 'AUTORISÉ' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800 animate-pulse'}`}>
-          {selectedStudent.qrStatus === 'AUTORISÉ' ? '🟢 ACCÈS COMPTEUR VALIDE' : '🔴 ACCÈS INTERDIT'}
+          {selectedStudent.qrStatus === 'AUTORISÉ' ? 'Badge : accès autorisé' : 'Badge : accès refusé'}
         </div>
         <button
           onClick={onGenerateCert}
@@ -48,7 +56,7 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
           className="px-3 py-1.5 bg-primary hover:bg-[#921316] text-white rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition-colors cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-sm">print</span>
-          <span>{certLoading ? 'Génération...' : 'Certificat Scolarité'}</span>
+          <span>{certLoading ? 'Préparation…' : 'Attestation de scolarité'}</span>
         </button>
         <button
           onClick={handleRegenerateQr}
@@ -60,7 +68,8 @@ export function ProfileHeader({ selectedStudent, onGenerateCert, certLoading }: 
         <button
           onClick={handlePrint}
           className="p-1.5 border border-neutral-200 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-800 bg-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
-          title="Imprimer tout le dossier étudiant"
+          title="Imprimer la fiche de l'élève"
+          aria-label="Imprimer la fiche de l'élève"
         >
           <span translate="no" className="material-symbols-outlined text-sm">print_connect</span>
         </button>

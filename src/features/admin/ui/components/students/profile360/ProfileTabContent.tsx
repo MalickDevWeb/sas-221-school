@@ -1,3 +1,5 @@
+import type { Profil360 } from './profil360';
+import type { ChampsProfil360 } from './hooks/useStudentProfile360';
 import React from 'react';
 import { Student } from '../../../../domain/StudentModels';
 import { ProfileTabSection } from './ProfileSidebar';
@@ -9,14 +11,14 @@ import { TabFinances } from './TabFinances';
 import { TabActivities } from './TabActivities';
 import { TabSecurity } from './TabSecurity';
 import { TabCommunication } from './TabCommunication';
-import { TabAI } from './TabAI';
+import { TabSynthese } from './TabSynthese';
 
 interface TabContentProps {
   activeSection: ProfileTabSection;
   selectedStudent: Student;
   onUpdateStudent: (s: Student) => void;
-  erpData: any;
-  updateProfile: (fields: any) => Promise<boolean>;
+  erpData: Profil360 | null;
+  updateProfile: (fields: ChampsProfil360) => Promise<boolean>;
 }
 
 export function ProfileTabContent({
@@ -50,8 +52,8 @@ export function ProfileTabContent({
       return <TabSecurity selectedStudent={selectedStudent} erpData={erpData} />;
     case 'communication':
       return <TabCommunication selectedStudent={selectedStudent} erpData={erpData} />;
-    case 'ai':
-      return <TabAI selectedStudent={selectedStudent} erpData={erpData} />;
+    case 'synthese':
+      return <TabSynthese selectedStudent={selectedStudent} />;
     default:
       return null;
   }

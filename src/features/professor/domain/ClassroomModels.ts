@@ -24,6 +24,8 @@ export interface CourseModule {
   readonly courseId: string;
   readonly title: string;
   readonly description: string;
+  /** Statut de publication, s'il est renvoyé par le serveur. */
+  readonly status?: 'brouillon' | 'publie';
 }
 
 export interface QuizQuestion {

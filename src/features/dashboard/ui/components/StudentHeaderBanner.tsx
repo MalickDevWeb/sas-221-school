@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getDynamicBadgeData } from '@/shared/lib/qrSecurity';
+import { QrLocal } from '@/shared/components/QrLocal';
+import { useBadgeNumerique } from '@/features/student/hooks/useBadgeNumerique';
 import { useTenantStore } from '@/core/store/tenantStore';
+import { useMesPointages } from '@/shared/hooks/usePointage';
 
 interface StudentHeaderBannerProps {
-  attendancesCount: number;
   onPointer: (type: 'arrivée' | 'départ') => void;
   onShowBadge: (type: 'arrivée' | 'départ') => void;
   studentName?: string;
@@ -11,32 +12,22 @@ interface StudentHeaderBannerProps {
 }
 
 export function StudentHeaderBanner({ 
-  attendancesCount, onPointer, onShowBadge, studentName, matricule 
+  onPointer, onShowBadge, studentName, matricule 
 }: StudentHeaderBannerProps) {
   const currentTenant = useTenantStore((s) => s.currentTenant);
   const schoolName = currentTenant?.name ? currentTenant.name : "l'École 221";
 
   const currentHour = new Date().getHours();
-  const nameToDisplay = studentName ? studentName.split(' ')[0] : "Abdoulaye";
-  const welcomeMessage = currentHour >= 18 
-    ? `Bonsoir, ${nameToDisplay} !` 
-    : currentHour >= 12 
-      ? `Bon après-midi, ${nameToDisplay} !` 
-      : `Bonjour, ${nameToDisplay} !`;
+  const nameToDisplay = studentName?.trim() ? studentName.trim().split(' ')[0] : '';
+  const greeting = currentHour >= 18 ? 'Bonsoir' : currentHour >= 12 ? 'Bon après-midi' : 'Bonjour';
+  const welcomeMessage = nameToDisplay ? `${greeting}, ${nameToDisplay} !` : `${greeting} !`;
 
-  // Déterminer automatiquement le type de pointage (alternance Arrivée / Départ)
-  const nextPointerType = attendancesCount % 2 === 0 ? 'arrivée' : 'départ';
+  // Sens du prochain pointage et pointages du jour donnés par le serveur
+  const { prochainType: nextPointerType, aujourdhui, sensConnu } = useMesPointages();
 
-  const [minuteEpoch, setMinuteEpoch] = useState(() => Math.floor(Date.now() / 60000));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMinuteEpoch(Math.floor(Date.now() / 60000));
-    }, 10000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const qrData = getDynamicBadgeData(matricule || "SN-2026-8492", studentName || "Abdoulaye Diallo", minuteEpoch);
+  // Aucun QR sans matricule réel (pas de badge inventé) ; le contenu est signé par le serveur (QR dessiné localement).
+  const realMatricule = matricule?.trim() || '';
+  const { contenu: qrData } = useBadgeNumerique(Boolean(realMatricule));
 
 
   return (
@@ -52,11 +43,11 @@ export function StudentHeaderBanner({
           </p>
         </div>
 
-        {attendancesCount > 0 && (
+        {aujourdhui > 0 && (
           <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-2.5 sm:px-3 py-1 rounded-full">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
             <span className="font-mono text-[8.5px] sm:text-[9.5px] text-primary font-black">
-              {attendancesCount} {attendancesCount === 1 ? 'pointage' : 'pointages'}
+              {aujourdhui} {aujourdhui === 1 ? 'pointage' : 'pointages'} aujourd'hui
             </span>
           </div>
         )}
@@ -71,22 +62,24 @@ export function StudentHeaderBanner({
           className="bg-white p-2.5 h-[120px] w-[120px] rounded-2xl border border-neutral-200/50 flex flex-col items-center justify-center shadow-3xs hover:shadow-2xs hover:bg-neutral-100/50 transition-all relative group cursor-pointer shrink-0"
         >
           {/* Pulsing active status badge - critical to show active/payment validation */}
+          {qrData && (
           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 bg-green-500/10 border border-green-500/20 text-green-700 px-1 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider">
             <span className="h-1 w-1 rounded-full bg-green-500 animate-pulse"></span>
             ACTIF
           </div>
+          )}
 
           {/* QR Code Mini-Card - Custom 100px size for pristine scanning */}
           <div className="bg-white p-1 rounded-xl border border-neutral-200/60 shadow-3xs relative overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-350 mt-3">
-            <img
-              id="student-qr-code-img"
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=1b1c1e&margin=4`}
-              alt="QR Code d'accès"
-              className="w-[74px] h-[74px] object-contain"
-              referrerPolicy="no-referrer"
-            />
-            {/* Horizontal scan line effect */}
-            <div className="absolute inset-x-0 h-0.5 bg-primary/50 top-1 animate-[bounce_4s_infinite] pointer-events-none"></div>
+            {qrData ? (
+              <span id="student-qr-code-img" className="block">
+                <QrLocal valeur={qrData} titre="QR Code d'accès" className="w-[74px] h-[74px]" />
+              </span>
+            ) : (
+              <div id="student-qr-code-unavailable" className="w-[74px] h-[74px] flex items-center justify-center text-center text-[9px] font-semibold text-neutral-500 leading-tight">
+                Matricule non renseigné
+              </div>
+            )}
           </div>
         </div>
 
@@ -97,7 +90,7 @@ export function StudentHeaderBanner({
           className="bg-primary text-white rounded-xl font-black uppercase tracking-wider shadow-md hover:bg-primary-dark transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap border border-primary/10 w-[145px] h-[35px] text-[10px] leading-[12px]"
         >
           <span translate="no" className="material-symbols-outlined text-[11px] font-black animate-pulse">qr_code_scanner</span>
-          Scanner ({nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})
+          {!sensConnu ? 'Scanner' : `Scanner (${nextPointerType === 'arrivée' ? 'Arrivée' : 'Départ'})`}
         </button>
       </div>
     </div>

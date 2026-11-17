@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ShieldCheck, ShieldAlert, CreditCard, ChevronRight } from 'lucide-react';
+import { Button } from '@/design-system/components/Button';
 
 interface Student {
   id: string;
@@ -7,7 +8,6 @@ interface Student {
   name: string;
   email: string;
   classe: string;
-  financialStatus: string;
   qrStatus: string;
 }
 
@@ -15,9 +15,11 @@ interface Props {
   students: Student[];
   onToggleQr: (id: string) => void;
   onViewProfile: (student: Student) => void;
+  /** École sans élève : bouton « Inscrire un élève » sous le message. */
+  onInscrire?: () => void;
 }
 
-export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Props) {
+export function MobileStudentCards({ students, onToggleQr, onViewProfile, onInscrire }: Props) {
   const [search, setSearch] = useState('');
 
   const filtered = students.filter(
@@ -35,7 +37,8 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
         </span>
         <input
           type="text"
-          placeholder="Recherche par matricule ou nom..."
+          aria-label="Rechercher un élève"
+          placeholder="Rechercher par nom ou matricule…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-9 pr-4 py-2.5 border border-slate-200 bg-white rounded-xl text-xs font-semibold focus:ring-1 focus:ring-[#B3181C] focus:outline-none shadow-xs"
@@ -47,7 +50,6 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
         {filtered.length > 0 ? (
           filtered.map((student) => {
             const isAuthorized = student.qrStatus === 'AUTORISÉ';
-            const isInRule = student.financialStatus === 'En Règle';
 
             return (
               <div
@@ -72,11 +74,6 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
                 <div className="flex items-center justify-between text-[10px] font-extrabold pt-2 border-t border-slate-50">
                   <span className="text-slate-500">{student.classe}</span>
                   <div className="flex gap-2">
-                    <span className={`px-2 py-0.5 rounded-md text-[8px] uppercase ${
-                      isInRule ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
-                    }`}>
-                      {student.financialStatus}
-                    </span>
                     <button
                       onClick={() => onToggleQr(student.id)}
                       className={`px-2 py-0.5 rounded-md text-[8px] uppercase cursor-pointer flex items-center gap-0.5 font-black ${
@@ -90,7 +87,7 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
                 </div>
 
                 <button
-                  onClick={() => onViewProfile(student as any)}
+                  onClick={() => onViewProfile(student)}
                   className="w-full mt-1.5 py-2 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   Fiche Profil 360°
@@ -100,8 +97,19 @@ export function MobileStudentCards({ students, onToggleQr, onViewProfile }: Prop
             );
           })
         ) : (
-          <div className="bg-white border border-slate-150 rounded-2xl p-8 text-center text-slate-400 font-extrabold text-[10px] uppercase tracking-wider">
-            Aucun élève correspondant au matricule ou nom.
+          // Message juste selon le cas
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-3">
+            <p className="text-sm font-semibold text-slate-700">
+              {students.length === 0 ? "Aucun élève pour l'instant." : 'Aucun élève ne correspond à votre recherche.'}
+            </p>
+            {students.length === 0 ? onInscrire && (
+              <Button onClick={onInscrire}>
+                <span translate="no" aria-hidden="true" className="material-symbols-outlined text-[18px]">person_add</span>
+                Inscrire un élève
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => setSearch('')}>Effacer la recherche</Button>
+            )}
           </div>
         )}
       </div>

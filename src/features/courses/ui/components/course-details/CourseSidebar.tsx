@@ -1,6 +1,8 @@
 import React from 'react';
+import type { Course } from '@/features/courses/domain/Course';
+import type { CourseDetails } from './useRealCourseDetails';
 
-export function CourseSidebar({ course, details }: { course: any, details: any }) {
+export function CourseSidebar({ course, details }: { course: Course; details: CourseDetails }) {
   return (
     <div className="w-full lg:w-80 bg-white lg:border-r border-b lg:border-b-0 border-neutral-gray-150 flex flex-col shrink-0 p-5 space-y-4">
       <div className="bg-[#FAF9F7] rounded-2xl border border-neutral-gray-250 p-4 space-y-3">
@@ -32,15 +34,15 @@ export function CourseSidebar({ course, details }: { course: any, details: any }
         </h5>
         
         <div className="space-y-2">
-          {details.chapitres.map((chap: any, idx: number) => {
-            const hasActiveLesson = chap.lecons.some((l: any) => l.estDerniereEnseignee);
+          {details.chapitres.map((chap, idx: number) => {
+            const hasActiveLesson = chap.lecons.some((l) => l.estDerniereEnseignee);
             return (
               <div key={idx} className={`p-3 rounded-2xl border transition-all text-left ${hasActiveLesson ? 'bg-[#FFF8F7] border-brand-red-deep/30 shadow-3xs' : 'bg-white border-neutral-gray-200/70 hover:bg-[#FAF9F7]'}`}>
                 <h6 className="text-[11px] font-black text-[#291715] line-clamp-1 mb-1.5 font-sans">
                   {chap.titre}
                 </h6>
                 <div className="space-y-1">
-                  {chap.lecons.map((lecon: any, lIdx: number) => (
+                  {chap.lecons.map((lecon, lIdx: number) => (
                     <div key={lIdx} className={`p-2 rounded-xl text-[10px] font-bold flex items-center justify-between gap-1.5 font-sans ${lecon.estDerniereEnseignee ? 'bg-[#3f1e1e] text-white' : 'bg-[#FAF9F7]/70 text-neutral-600'}`}>
                       <span className="truncate flex-1">{lecon.titre}</span>
                       {lecon.estDerniereEnseignee ? (

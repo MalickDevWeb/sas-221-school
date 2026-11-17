@@ -14,7 +14,7 @@ interface Props {
 export function StudentProfile360Tab({ selectedStudent, onUpdateStudent }: Props) {
   const [activeSection, setActiveSection] = useState<ProfileTabSection>('general');
   const [certLoading, setCertLoading] = useState(false);
-  const { erpData, loading, updateProfile } = useStudentProfile360(selectedStudent.id, selectedStudent.name);
+  const { erpData, loading, error, updateProfile, updateError, refetch } = useStudentProfile360(selectedStudent.id, selectedStudent.name);
 
   const handleGenerateCert = () => {
     setCertLoading(true);
@@ -35,6 +35,12 @@ export function StudentProfile360Tab({ selectedStudent, onUpdateStudent }: Props
 
   return (
     <div className="space-y-6" id="student-360-tab-root">
+      {(error || updateError) && (
+        <div role="alert" id="profil360-erreur" className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between gap-3">
+          <span>{error ? `Le dossier 360° n'a pas pu être chargé : ${error}` : `La modification n'a pas été enregistrée : ${updateError}`}</span>
+          {error && <button type="button" onClick={() => void refetch()} className="px-3 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 cursor-pointer">Réessayer</button>}
+        </div>
+      )}
       <ProfileHeader
         selectedStudent={selectedStudent}
         onGenerateCert={handleGenerateCert}

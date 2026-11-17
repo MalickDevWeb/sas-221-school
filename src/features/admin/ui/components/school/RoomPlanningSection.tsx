@@ -32,6 +32,7 @@ export function RoomPlanningSection({ room, rooms, slots, onUpdateSlots }: Props
 
     // Send Real-time notification to students and teachers
     notificationRepository.sendNotification({
+      classeId: updated.classeId,
       title: `Modification de Cours : ${updated.subject}`,
       desc: `Le cours de ${updated.prof} (Classe: ${updated.classeId}) en salle ${updated.roomName} a été mis à jour.`,
       time: "À l'instant",
@@ -50,6 +51,7 @@ export function RoomPlanningSection({ room, rooms, slots, onUpdateSlots }: Props
     if (target) {
       // Send Real-time notification
       notificationRepository.sendNotification({
+        classeId: target.classeId,
         title: `Cours Annulé : ${target.subject}`,
         desc: `Le cours de ${target.prof} du ${target.day} (${target.slot}) a été annulé par l'administration.`,
         time: "À l'instant",

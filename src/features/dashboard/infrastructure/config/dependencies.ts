@@ -4,8 +4,9 @@ import { createGetDashboardDataUseCase } from '../../usecases/GetDashboardDataUs
 import { createRegisterClockInUseCase } from '../../usecases/RegisterClockInUseCase';
 import { createSendLiveReactionUseCase } from '../../usecases/SendLiveReactionUseCase';
 import { createSendLiveChatUseCase } from '../../usecases/SendLiveChatUseCase';
+import { MODE_SIMULE } from '@/shared/config/modeSimule';
 
-const isMock = import.meta.env.VITE_USE_MOCK === 'true';
+const isMock = MODE_SIMULE; // simulé : développement seulement (shared/config/modeSimule)
 
 export const dashboardRepository = isMock 
   ? new InMemoryDashboardRepository() 

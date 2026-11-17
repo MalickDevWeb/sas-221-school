@@ -1,7 +1,10 @@
 import { AxiosInstance } from 'axios';
-import { saveToCache, getFromCache, queueMutation } from './offlineSyncManager';
+import { saveToCache, getFromCache, queueMutation, migrerFileHorsLigne, MESSAGE_NON_MIS_EN_FILE } from './offlineSyncManager';
 
 export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
+  // Au chargement : anciennes entrées de la file nettoyées (jeton retiré du stockage, URL complétée)
+  migrerFileHorsLigne();
+
   // Axios response interceptor for offline caching & fallback
   apiClient.interceptors.response.use(
     (response) => {
@@ -19,9 +22,16 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
           if (cached) {
             return { ...error, data: cached, status: 200, statusText: 'OK', headers: {}, config };
           }
-        } else if (config && config.method && config.method !== 'get' && config.method !== 'GET') {
-          queueMutation(config.url || '', config.method, config.data, config.headers);
-          return Promise.reject(new Error("Vous êtes hors-ligne. Votre action a été mise en attente."));
+        } else if (config && config.method && config.method !== 'get' && config.method !== 'GET'
+          // requête dont l'appelant gère lui-même l'absence de réseau (scan du vigile : décision hors ligne, EF-10)
+          && !(config as { sansFileHorsLigne?: boolean }).sansFileHorsLigne
+          // connexion, mot de passe… : jamais mis en file (le corps contiendrait un mot de passe, stocké en clair)
+          && !/(^|\/)auth\//.test(config.url || '')) {
+          // URL complète (base /api ou VITE_API_URL) ; en-têtes filtrés et jamais de jeton dans la file
+          const resultat = queueMutation(apiClient.getUri(config), config.method, config.data, config.headers);
+          return Promise.reject(new Error(resultat === 'en-file'
+            ? "Vous êtes hors-ligne. Votre action a été mise en attente."
+            : MESSAGE_NON_MIS_EN_FILE[resultat]));
         }
       }
       return Promise.reject(error);
@@ -32,7 +42,7 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
   try {
     const originalFetch = window.fetch;
     const customFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      const urlStr = typeof input === 'string' ? input : (input as any).url || String(input);
+      const urlStr = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
       const method = init?.method || 'GET';
       const isGet = method.toUpperCase() === 'GET';
 
@@ -46,9 +56,12 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
               headers: { 'Content-Type': 'application/json' }
             });
           }
+        } else if (/\/auth\//.test(urlStr)) {
+          // connexion / déconnexion : jamais rejouées plus tard (le rejeu utiliserait la session de la personne suivante)
+          throw new Error("Vous êtes hors-ligne : cette action n'est pas mise en attente.");
         } else {
-          queueMutation(urlStr, method, init?.body);
-          throw new Error("Vous êtes hors-ligne. Action mise en attente.");
+          const resultat = queueMutation(urlStr, method, init?.body, init?.headers);
+          throw new Error(resultat === 'en-file' ? "Vous êtes hors-ligne. Action mise en attente." : MESSAGE_NON_MIS_EN_FILE[resultat]);
         }
       }
 
@@ -80,7 +93,7 @@ export function setupOfflineInterceptors(apiClient: AxiosInstance): void {
     };
 
     try {
-      (window as any).fetch = customFetch;
+      window.fetch = customFetch;
     } catch {
       Object.defineProperty(window, 'fetch', {
         value: customFetch,

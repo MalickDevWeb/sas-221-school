@@ -40,7 +40,7 @@ export function ProfessorScheduleFilters({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#291715]/60"><Icon icon="lucide:users" className="h-4 w-4 text-primary" /><span>Classe :</span></div>
           <div className="relative min-w-[160px]">
-            <select value={filterClass} onChange={(e) => { setFilterClass(e.target.value); triggerToast(`Filtre classe : ${e.target.value}`); }} className="appearance-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
+            <select value={filterClass} onChange={(e) => { setFilterClass(e.target.value); triggerToast(`Filtre classe : ${e.target.value}`); }} className="appearance-none bg-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
               <option value="TOUS">Toutes les classes</option>
               {classesList.map((cls) => <option key={cls} value={cls}>{cls}</option>)}
             </select>
@@ -51,7 +51,7 @@ export function ProfessorScheduleFilters({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#291715]/60"><Icon icon="lucide:sliders-horizontal" className="h-4 w-4 text-primary" /><span>Format :</span></div>
           <div className="relative min-w-[140px]">
-            <select value={filterType} onChange={(e) => { setFilterType(e.target.value); triggerToast(`Affichage format : ${e.target.value}`); }} className="appearance-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
+            <select value={filterType} onChange={(e) => { setFilterType(e.target.value); triggerToast(`Affichage format : ${e.target.value}`); }} className="appearance-none bg-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
               <option value="TOUS">Tous formats</option>
               <option value="CM">CM (Magistral)</option>
               <option value="TD">TD (Dirigés)</option>
@@ -64,7 +64,7 @@ export function ProfessorScheduleFilters({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#291715]/60"><Icon icon="lucide:check-circle-2" className="h-4 w-4 text-green-600" /><span>Statut :</span></div>
           <div className="relative min-w-[150px]">
-            <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); triggerToast(`Filtre statut : ${e.target.value}`); }} className="appearance-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
+            <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); triggerToast(`Filtre statut : ${e.target.value}`); }} className="appearance-none bg-none w-full pl-9 pr-10 py-2.5 bg-[#FAF8F6] hover:bg-neutral-50 text-neutral-800 font-extrabold text-xs rounded-2xl border border-neutral-250/85 focus:outline-none focus:border-primary cursor-pointer transition-all outline-none">
               <option value="TOUS">Tous les statuts</option>
               <option value="a_venir">📅 À Venir</option>
               <option value="annule">❌ Annulés</option>

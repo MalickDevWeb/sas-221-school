@@ -13,10 +13,10 @@ export const AttendanceHeader: React.FC<Props> = ({ loading, onRefresh, onOpenAd
         <span translate="no" className="material-symbols-outlined text-primary text-lg">
           schedule
         </span>
-        Pointages & Émargements (Aujourd'hui)
+        Pointages & Émargements
       </h4>
       <p className="text-[10px] text-neutral-400 font-semibold">
-        Cliquez sur un collaborateur pour entrer dans sa fiche détaillée, pointer ou justifier son statut.
+        Pointages enregistrés sur le serveur. Cliquez sur une ligne pour corriger les horaires ou justifier le statut.
       </p>
     </div>
 

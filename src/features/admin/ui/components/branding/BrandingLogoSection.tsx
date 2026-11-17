@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { Image, Check, Link as LinkIcon } from 'lucide-react';
+import { Image, Link as LinkIcon } from 'lucide-react';
 import { useTenantStore } from '@/core/store/tenantStore';
-import { superAdminService } from '@/services/superAdminService';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { enregistrerIdentite, envoyerImage } from '@/shared/lib/identiteVisuelle';
 import { BrandingLogoUploader } from './BrandingLogoUploader';
-
-const PRESET_LOGOS = [
-  { name: 'Emblème Universitaire', url: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Blason Académique', url: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Étoile Tech & Sciences', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Campus Excellence', url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=150&auto=format&fit=crop&q=80' },
-];
 
 export const BrandingLogoSection: React.FC = () => {
   const { currentTenant, updateBranding } = useTenantStore();
@@ -18,18 +12,27 @@ export const BrandingLogoSection: React.FC = () => {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  /** Enregistré côté serveur d'abord ; l'affichage ne change qu'après sa confirmation. */
   const handleSave = async (urlToSave: string) => {
     setIsSaving(true);
     try {
-      setLogoUrl(urlToSave);
-      updateBranding({ logoUrl: urlToSave });
-      if (currentTenant?.id && !currentTenant.id.startsWith('mock-') && !currentTenant.id.startsWith('default-')) {
-        await superAdminService.updateTenant(currentTenant.id, { logo: urlToSave });
-      }
-      toast.success(urlToSave ? 'Logo officiel mis à jour avec succès !' : 'Logo supprimé.');
-    } catch {
-      toast.error('Erreur lors de la sauvegarde du logo');
+      const enregistre = await enregistrerIdentite({ logoUrl: urlToSave });
+      setLogoUrl(enregistre.logoUrl ?? '');
+      updateBranding({ logoUrl: enregistre.logoUrl ?? undefined });
+      toast.success(urlToSave ? 'Logo enregistré.' : 'Logo supprimé.');
+    } catch (err) {
+      toast.error(`Logo non enregistré : ${resolveErrorMessage(err)}`);
     } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFichier = async (fichier: File) => {
+    setIsSaving(true);
+    try {
+      await handleSave(await envoyerImage(fichier));
+    } catch (err) {
+      toast.error(`Image non envoyée : ${resolveErrorMessage(err)}`);
       setIsSaving(false);
     }
   };
@@ -47,7 +50,7 @@ export const BrandingLogoSection: React.FC = () => {
         </div>
 
         {/* Upload direct de fichier */}
-        <BrandingLogoUploader currentUrl={logoUrl} onUpload={handleSave} onClear={() => handleSave('')} />
+        <BrandingLogoUploader currentUrl={logoUrl} onUpload={(f) => void handleFichier(f)} onClear={() => void handleSave('')} />
 
         {/* Option URL manuelle */}
         <div className="pt-2">
@@ -65,22 +68,7 @@ export const BrandingLogoSection: React.FC = () => {
           )}
         </div>
 
-        {/* Modèles de logos prédéfinis */}
-        <div>
-          <span className="text-xs font-bold text-slate-700 block mb-2">Ou choisissez un modèle prédéfini :</span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {PRESET_LOGOS.map((preset) => {
-              const isSelected = logoUrl === preset.url;
-              return (
-                <div key={preset.name} onClick={() => handleSave(preset.url)} className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-center cursor-pointer transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20' : 'border-neutral-200 bg-neutral-50/50 hover:bg-white'}`}>
-                  <img src={preset.url} alt={preset.name} className="w-12 h-12 rounded-lg object-cover shadow-xs" />
-                  <span className="text-[11px] font-bold text-slate-800 leading-tight">{preset.name}</span>
-                  {isSelected && <span className="text-[10px] text-indigo-600 font-bold flex items-center gap-1"><Check size={11} /> Actif</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Pas de « modèles prédéfinis » : chaque école utilise son propre logo. */}
       </div>
     </div>
   );

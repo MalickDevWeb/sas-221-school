@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/core/store/authStore';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/apiClient';
+import { usePrechargementEspace } from '@/core/router/prechargementEspaces';
 
 export const SuperAdminLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,15 +15,33 @@ export const SuperAdminLoginPage = () => {
   const { utilisateur, deconnexion } = useAuthStore();
   const navigate = useNavigate();
 
+  const isSuperAdmin = utilisateur && (utilisateur.role === 'SUPER_ADMIN' || utilisateur.role === 'PLATFORM_OWNER');
+  // Cette page ne mène qu'à l'espace de la plateforme → son code est téléchargé pendant la saisie
+  usePrechargementEspace('plateforme');
+
+  useQuery({
+    queryKey: ['superadmin', 'me', utilisateur?.email],
+    queryFn: async () => {
+      const res = await apiClient.get('/auth/me');
+      navigate('/super-admin/dashboard');
+      return res.data;
+    },
+    enabled: Boolean(isSuperAdmin),
+  });
+
   React.useEffect(() => {
-    if (!utilisateur) return;
-    if (utilisateur.role !== 'SUPER_ADMIN' && utilisateur.role !== 'PLATFORM_OWNER') {
-      deconnexion(); return;
+    if (utilisateur && !isSuperAdmin) {
+      deconnexion();
     }
-    import('@/shared/lib/apiClient').then(({ apiClient }) => {
-      apiClient.get('/auth/me').then(() => navigate('/super-admin/dashboard')).catch(() => deconnexion());
-    });
-  }, [utilisateur, navigate, deconnexion]);
+  }, [utilisateur, isSuperAdmin, deconnexion]);
+
+  // Développement seulement (npm run dev) : null dans une version construite, le bouton n'existe donc pas en production.
+  const identifiantsDev = import.meta.env.DEV ? __IDENTIFIANTS_DEV__ : null;
+  const preremplir = () => {
+    if (!identifiantsDev) return;
+    setEmail(identifiantsDev.email);
+    setPassword(identifiantsDev.motDePasse);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +62,8 @@ export const SuperAdminLoginPage = () => {
           <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6">
             <ShieldCheck className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Platform Control</h1>
-          <p className="text-slate-400">Restricted access for Super Administrators</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Espace plateforme</h1>
+          <p className="text-slate-400">Accès réservé aux super-administrateurs</p>
         </div>
 
         <div className="bg-[#1E293B]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-8">
@@ -99,18 +120,24 @@ export const SuperAdminLoginPage = () => {
                 </>
               )}
             </button>
+
+            {identifiantsDev && (
+              <button
+                type="button"
+                id="superadmin-preremplir"
+                onClick={preremplir}
+                className="w-full h-10 rounded-xl border border-dashed border-amber-400/60 text-amber-300 hover:bg-amber-400/10 text-sm font-semibold transition-all"
+              >
+                Pré-remplir le super-admin (développement)
+              </button>
+            )}
           </form>
         </div>
         
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-500 mb-2">
-            Protected by advanced encryption. Unauthorized access is strictly prohibited.
+            Accès réservé aux administrateurs de la plateforme. Toute tentative d'accès non autorisé est journalisée.
           </p>
-          <div className="inline-block bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 font-mono">
-              Test: <strong>superadmin@ecole221.sn</strong> / <strong>SuperAdmin@221!</strong>
-            </p>
-          </div>
         </div>
       </div>
     </div>

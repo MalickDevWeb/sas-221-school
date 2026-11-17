@@ -6,18 +6,19 @@ import { useProfessorClassroomFormState } from './useProfessorClassroomFormState
 import { useProfessorQuizFormState } from './useProfessorQuizFormState';
 import { useProfessorScheduleState } from './useProfessorScheduleState';
 import { apiClient } from '@/shared/lib/apiClient';
+import type { ClassroomSubTab } from '../ui/components/classroom/ClassroomProps';
 
 export function useProfessorDashboardPage() {
   const professor = useProfessor();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [classroomSubTab, setClassroomSubTab] = useState<'modules' | 'homework' | 'grades' | 'attendance' | 'announcements'>('modules');
+  const [classroomSubTab, setClassroomSubTab] = useState<ClassroomSubTab>('modules');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveSessions, setLiveSessions] = useState<any[]>([]);
 
   const fetchLiveSessions = useCallback(async () => {
     try {
       const res = await apiClient.get('/student/live-sessions');
-      setLiveSessions(Array.isArray(res.data) ? res.data : []);
+      setLiveSessions(Array.isArray(res.data) ? res.data : (res.data?.content ?? []));   // réponse paginée {content}
     } catch (err) {
       console.error(err);
     }

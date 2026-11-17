@@ -9,7 +9,7 @@ interface Props {
 
 export function StudentCard({ grade, onClick }: Props) {
   const finalGrade = grade.finalGrade;
-  const isPass = finalGrade >= 10;
+  const isPass = finalGrade !== null && finalGrade >= 10;
   const initials = grade.studentNom
     .split(' ')
     .slice(0, 2)
@@ -50,18 +50,21 @@ export function StudentCard({ grade, onClick }: Props) {
           <span className="text-neutral-200">|</span>
           <div className="text-center min-w-8">
             <span className="block text-[8px] font-black uppercase text-brand-red-deep">Note</span>
-            <span className="text-xs font-black text-brand-red-deep">{finalGrade}</span>
+            <span className="text-xs font-black text-brand-red-deep">{finalGrade ?? "Non noté"}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-            isPass 
+            finalGrade === null
+              ? 'bg-neutral-100 text-neutral-500 border border-neutral-200'
+              : isPass
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-500/10' 
               : 'bg-amber-50 text-amber-700 border border-amber-500/10'
           }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${isPass ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            {isPass ? 'Validé' : 'Rattrapage'}
+            <span className={`h-1.5 w-1.5 rounded-full ${finalGrade === null ? 'bg-neutral-400' : isPass ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            {/* note absente : « Non noté » */}
+            {finalGrade === null ? 'Non noté' : isPass ? 'Validé' : 'Rattrapage'}
           </span>
 
           <button className="h-8 w-8 rounded-xl bg-primary-light group-hover:bg-brand-red-deep flex items-center justify-center text-brand-red-deep group-hover:text-white border border-primary/10 group-hover:border-transparent transition-all duration-300">

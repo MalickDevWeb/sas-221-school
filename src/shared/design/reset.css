@@ -12,8 +12,10 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fadeIn  { animation: fadeIn  0.35s ease both; }
-.animate-slideUp { animation: slideUp 0.4s ease both; }
+/* « backwards » et non « both » (16/11) : une transformation conservée après l'animation fait de l'élément le cadre
+   des éléments « fixed » qu'il contient ; les fenêtres se plaçaient dans la page, sous la barre du haut. */
+.animate-fadeIn  { animation: fadeIn  0.35s ease backwards; }
+.animate-slideUp { animation: slideUp 0.4s ease backwards; }
 
 /* ── Transition des variables CSS (couleurs du thème) ── */
 :root {
@@ -51,9 +53,9 @@ html, body {
   height: 0px !important;
 }
 
-/* Custom fade in animation transition helper */
+/* Custom fade in animation transition helper (« backwards » : voir .animate-fadeIn plus haut) */
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @keyframes fadeIn {
@@ -89,4 +91,15 @@ button, input, select, textarea {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/*
+ * Listes déroulantes (16/11) : le module @tailwindcss/forms dessine la flèche des <select> en image de fond, à 0,5rem
+ * du bord droit, et lui réserve 2,5rem de marge intérieure à droite. Toute classe px-*, p-* ou pr-* plus petite
+ * (px-2, px-3… : 89 listes sur 101) annulait cette réserve et le texte passait sous la flèche (« Tous les statu⌄ts »).
+ * Réserve rétablie pour toute liste d'une ligne qui garde cette flèche. Une liste qui dessine sa propre icône porte
+ * bg-none (flèche du module retirée) et garde sa marge.
+ */
+select:not([multiple]):not([size]):not(.bg-none) {
+  padding-right: 2rem;
 }

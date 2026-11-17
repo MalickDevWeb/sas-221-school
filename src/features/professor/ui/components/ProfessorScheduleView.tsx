@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, GraduationCap, FileText, Laptop, Info, CalendarPlus } from 'lucide-react';
 import type { ProfessorSchedule } from '../../domain/ProfessorModels';
 import { ProfessorScheduleFilters } from './ProfessorScheduleFilters';
 import { ProfessorGridView } from './ProfessorGridView';
 import { ProfessorTimelineView } from './ProfessorTimelineView';
 import { ProfessorSessionModal } from './ProfessorSessionModal';
+
+/** Semaine RÉELLE (lundi → vendredi). */
+function semaineCourante(aujourdhui: Date = new Date()): string {
+  const lundi = new Date(aujourdhui);
+  lundi.setDate(aujourdhui.getDate() - ((aujourdhui.getDay() + 6) % 7));
+  const vendredi = new Date(lundi);
+  vendredi.setDate(lundi.getDate() + 4);
+  const f = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return `Semaine du ${f(lundi)} au ${f(vendredi)}`;
+}
 import { ProfessorSyncModal } from './ProfessorSyncModal';
 
 interface Props {
@@ -25,15 +35,14 @@ export function ProfessorScheduleView({ schedule, handleCancelCourse, handleResc
   const [selectedSession, setSelectedSession] = useState<ProfessorSchedule | null>(null);
   const [isSyncOpen, setIsSyncOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(() => typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('google_access_token') : null);
 
-  const classesList = Array.from(new Set(schedule.map(s => s.classe || 'L3-GL'))).filter(Boolean);
+  const classesList = Array.from(new Set(schedule.map(s => s.classe || '—'))).filter(Boolean);
   const triggerToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
 
   const fitsFilters = (s: ProfessorSchedule) => {
     const mType = filterType === 'TOUS' || s.type === filterType;
     const mStatus = filterStatus === 'TOUS' || (s.status || 'a_venir') === filterStatus;
-    const mClass = filterClass === 'TOUS' || (s.classe || 'L3-GL') === filterClass;
+    const mClass = filterClass === 'TOUS' || (s.classe || '—') === filterClass;
     const mSearch = !searchQuery.trim() || 
       (s.courseTitle || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
       (s.room || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -41,19 +50,8 @@ export function ProfessorScheduleView({ schedule, handleCancelCourse, handleResc
     return mType && mStatus && mClass && mSearch;
   };
 
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      const token = new URLSearchParams(hash.substring(1)).get('access_token');
-      if (token) {
-        sessionStorage.setItem('google_access_token', token);
-        setGoogleAccessToken(token);
-        setIsSyncOpen(true);
-        triggerToast('Connexion à Google Calendar réussie !');
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
-  }, []);
+  // APP-TL-26 : l'adresse n'est pas lue pour un « #access_token » (n'importe quel jeton serait gardé dans le
+  // navigateur) ; l'agenda s'exporte en .ics.
 
   return (
     <div className="flex-1 min-h-screen bg-[#FAF8F6] relative">
@@ -64,15 +62,15 @@ export function ProfessorScheduleView({ schedule, handleCancelCourse, handleResc
       )}
 
       <ProfessorSessionModal session={selectedSession} onClose={() => setSelectedSession(null)} onCancel={async (id, r) => { await handleCancelCourse(id, r); triggerToast('Séance annulée !'); }} onReschedule={async (id, d, t, rm) => { await handleRescheduleCourse(id, d, t, rm); triggerToast('Séance reprogrammée !'); }} onEnter={onEnterCourse} />
-      <ProfessorSyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} schedule={schedule} googleAccessToken={googleAccessToken} setGoogleAccessToken={setGoogleAccessToken} triggerToast={triggerToast} />
+      <ProfessorSyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} schedule={schedule} triggerToast={triggerToast} />
 
       <div className="animate-fade-in flex flex-col h-full w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-black text-[#291715] tracking-tight leading-none mb-1">Mon Emploi du Temps</h1>
-            <p className="text-neutral-500 text-xs font-bold">Semaine du 23 au 27 Octobre 2023 • Semestre 1 • Espace Enseignant</p>
+            <p className="text-neutral-500 text-xs font-bold">{semaineCourante()} • Espace Enseignant</p>
           </div>
-          <button onClick={() => setIsSyncOpen(true)} className="flex items-center justify-center gap-2 bg-primary text-white px-5 h-11 rounded-2xl hover:bg-primary-dark transition-all font-black text-xs uppercase tracking-wider cursor-pointer border-0 shadow-md whitespace-nowrap"><CalendarPlus className="h-4 w-4" /> Synchroniser l'agenda</button>
+          <button onClick={() => setIsSyncOpen(true)} className="flex items-center justify-center gap-2 bg-primary text-white px-5 h-11 rounded-2xl hover:bg-primary-dark transition-all font-black text-xs uppercase tracking-wider cursor-pointer border-0 shadow-md whitespace-nowrap"><CalendarPlus className="h-4 w-4" /> Exporter l'agenda (.ics)</button>
         </div>
 
         <ProfessorScheduleFilters viewMode={viewMode} setViewMode={setViewMode} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterType={filterType} setFilterType={setFilterType} filterStatus={filterStatus} setFilterStatus={setFilterStatus} filterClass={filterClass} setFilterClass={setFilterClass} classesList={classesList} triggerToast={triggerToast} />

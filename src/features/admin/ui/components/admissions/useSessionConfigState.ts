@@ -1,19 +1,34 @@
 import { useState, useEffect } from 'react';
 import { getAdmissionsDb, saveAdmissionsDb, Campaign } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
 import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useSessionConfigState() {
   const { settings, updateSettings } = useCandidatureSettings();
-  const [generalOpen, setGeneralOpen] = useState(true);
-  const [generalDeadline, setGeneralDeadline] = useState('2026-10-31');
-  const [generalFees, setGeneralFees] = useState(50000);
+  // Valeurs du serveur uniquement
+  const [generalOpen, setGeneralOpen] = useState(settings.ouvert);
+  const [generalDeadline, setGeneralDeadline] = useState(settings.dateFermeture);
+  const [generalFees, setGeneralFees] = useState<number | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     setCampaigns(getAdmissionsDb().campaigns);
     setGeneralOpen(settings.ouvert);
+    setGeneralDeadline(settings.dateFermeture);
   }, [settings]);
+
+  /** Exécute une sauvegarde et n'annonce le succès qu'après la réponse du serveur. */
+  const sauver = async (action: () => Promise<unknown>, succes: string) => {
+    try {
+      await action();
+      showToast(succes);
+      return true;
+    } catch (err) {
+      showToast(`Non enregistré : ${resolveErrorMessage(err)}`);
+      return false;
+    }
+  };
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -24,13 +39,13 @@ export function useSessionConfigState() {
     const updated = campaigns.map(c => ({
       ...c,
       state: (generalOpen ? 'Ouverte' : 'Fermée') as Campaign['state'],
-      deadline: generalDeadline,
-      fees: generalFees
+      deadline: generalDeadline || c.deadline,
+      fees: generalFees ?? c.fees
     }));
-    setCampaigns(updated);
-    saveAdmissionsDb({ campaigns: updated });
-    await updateSettings({ ouvert: generalOpen, dateFermeture: generalDeadline });
-    showToast("Paramètres globaux appliqués avec succès !");
+    if (await sauver(async () => {
+      await saveAdmissionsDb({ campaigns: updated });
+      await updateSettings({ ouvert: generalOpen, dateFermeture: generalDeadline });
+    }, 'Paramètres globaux enregistrés.')) setCampaigns(updated);
   };
 
   const handleToggleStatus = (id: string) => {
@@ -41,30 +56,24 @@ export function useSessionConfigState() {
       }
       return c;
     });
-    setCampaigns(next);
-    saveAdmissionsDb({ campaigns: next });
-    showToast("Statut de la session mis à jour !");
+    void sauver(() => saveAdmissionsDb({ campaigns: next }), 'Statut de la session enregistré.').then(ok => { if (ok) setCampaigns(next); });
   };
 
   const handleQuickUpdate = (id: string, fields: Partial<Campaign>) => {
     const next = campaigns.map(c => c.id === id ? { ...c, ...fields } : c);
-    setCampaigns(next);
-    saveAdmissionsDb({ campaigns: next });
+    void sauver(() => saveAdmissionsDb({ campaigns: next }), 'Session enregistrée.').then(ok => { if (ok) setCampaigns(next); });
   };
 
   const handleSaveCampaign = (saved: Campaign) => {
     const exists = campaigns.some(c => c.id === saved.id);
     const next = exists ? campaigns.map(c => c.id === saved.id ? saved : c) : [saved, ...campaigns];
-    setCampaigns(next);
-    saveAdmissionsDb({ campaigns: next });
-    showToast(exists ? "Session d'inscription modifiée !" : "Nouvelle session créée avec succès !");
+    void sauver(() => saveAdmissionsDb({ campaigns: next }), exists ? "Session d'inscription modifiée." : 'Nouvelle session créée.')
+      .then(ok => { if (ok) setCampaigns(next); });
   };
 
   const handleDeleteCampaign = (id: string) => {
     const next = campaigns.filter(c => c.id !== id);
-    setCampaigns(next);
-    saveAdmissionsDb({ campaigns: next });
-    showToast("Session supprimée avec succès !");
+    void sauver(() => saveAdmissionsDb({ campaigns: next }), 'Session supprimée.').then(ok => { if (ok) setCampaigns(next); });
   };
 
   return {

@@ -1,37 +1,38 @@
+import type { ChampsProfil360 } from './hooks/useStudentProfile360';
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 import { AdmissionCard, MedicalCard } from './GeneralCards';
+import { ParentsEleve } from './ParentsEleve';
 
 interface Props {
   selectedStudent: Student;
   onUpdateStudent: (s: Student) => void;
-  erpData?: any;
-  onUpdateProfileFields?: (fields: any) => Promise<boolean>;
+  erpData?: Profil360 | null;
+  onUpdateProfileFields?: (fields: ChampsProfil360) => Promise<boolean>;
 }
 
 export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdateProfileFields }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [phone, setPhone] = useState(selectedStudent.phoneParent);
   const [email, setEmail] = useState(selectedStudent.email);
-  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra?.sante?.split(',')[0] || 'O+');
-  const [allergies, setAllergies] = useState(finalErpData.extra?.sante?.split(',')[1] || 'Aucune');
+  const [bloodGroup, setBloodGroup] = useState(finalErpData.extra.sante   /* APP-BE-17 : pas de groupe sanguin inventé */);
+  const [allergies, setAllergies] = useState(finalErpData.extra.allergies   /* APP-BE-17 : pas d'allergie présumée */);
   const [isSaved, setIsSaved] = useState(false);
+  const [echec, setEchec] = useState(false);
 
+  /** « Enregistré » seulement si le serveur a accepté. */
   const handleSave = async () => {
-    onUpdateStudent({
-      ...selectedStudent,
-      email,
-      phoneParent: phone
-    });
-    if (onUpdateProfileFields) {
-      await onUpdateProfileFields({
-        email,
-        phoneParent: phone,
-        bloodGroup,
-        allergies
-      });
+    setEchec(false);
+    const enregistre = onUpdateProfileFields
+      ? await onUpdateProfileFields({ email, phoneParent: phone, bloodGroup, allergies })
+      : false;
+    if (!enregistre) {
+      setEchec(true);   // le motif est affiché en haut du Profil 360° (updateError)
+      return;
     }
+    onUpdateStudent({ ...selectedStudent, email, phoneParent: phone });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
@@ -86,9 +87,12 @@ export function TabGeneral({ selectedStudent, onUpdateStudent, erpData, onUpdate
       <div className="flex justify-end pt-2">
         <button onClick={handleSave} className="px-4 py-2 bg-primary hover:bg-[#921316] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5">
           <span translate="no" className="material-symbols-outlined text-sm">save</span>
-          <span>{isSaved ? 'Enregistré avec succès !' : 'Enregistrer les modifications'}</span>
+          <span>{isSaved ? 'Enregistré avec succès !' : echec ? 'Non enregistré — réessayer' : 'Enregistrer les modifications'}</span>
         </button>
       </div>
+
+      {/* APP-BE-27 : comptes parents liés à l'élève */}
+      <ParentsEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
     </div>
   );
 }

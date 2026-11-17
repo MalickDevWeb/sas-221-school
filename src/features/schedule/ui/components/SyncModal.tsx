@@ -3,10 +3,10 @@ import { createPortal } from 'react-dom';
 import { X, CalendarPlus, Download, Info, Loader2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { exportToICS } from '@/features/schedule/utils/icalExport';
-import { initiateGoogleOAuth } from '@/features/schedule/utils/googleCalendarSync';
+import { classesDe } from '@/features/schedule/domain/Schedule';
 
 export function SyncModal({ state }: { state: any }) {
-  const { isSyncModalOpen, setIsSyncModalOpen, googleAccessToken, handleGoogleDisconnect, handleFullSync, isSyncingWithGoogle, syncProgress, schedule, triggerToast } = state;
+  const { isSyncModalOpen, setIsSyncModalOpen, schedule, triggerToast } = state;
   if (!isSyncModalOpen) return null;
 
   return createPortal(
@@ -22,7 +22,7 @@ export function SyncModal({ state }: { state: any }) {
           <button onClick={() => setIsSyncModalOpen(false)} className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all cursor-pointer flex items-center justify-center border-0">
             <X className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 mb-1.5"><span className="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-black uppercase tracking-widest text-white">Intégration Google & iCal</span></div>
+          <div className="flex items-center gap-2 mb-1.5"><span className="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-black uppercase tracking-widest text-white">Export iCalendar (.ics)</span></div>
           <h4 className="text-xl font-black leading-tight tracking-tight">Synchronisation de l'agenda</h4>
         </div>
         <div className="p-6 space-y-6 bg-[#FAF8F6] overflow-y-auto flex-1">
@@ -37,7 +37,7 @@ export function SyncModal({ state }: { state: any }) {
               </div>
             </div>
             <div className="pt-3 border-t border-neutral-100 flex justify-end">
-              <button onClick={() => { exportToICS(schedule, 'L3-GL'); triggerToast("Fichier .ics téléchargé avec succès ! Importez-le dans votre calendrier préféré."); setIsSyncModalOpen(false); }} className="w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-primary/10">
+              <button onClick={() => { exportToICS(schedule, classesDe(schedule)[0] || 'emploi-du-temps'); triggerToast("Fichier .ics téléchargé avec succès ! Importez-le dans votre calendrier préféré."); setIsSyncModalOpen(false); }} className="w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-primary-dark text-text-on-primary rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-primary/10">
                 <Download className="h-4 w-4" /> Télécharger le calendrier (.ics)
               </button>
             </div>

@@ -3,15 +3,25 @@ import { FinancesSubSidebar } from './finances/FinancesSubSidebar';
 import { EcolagesTab } from './finances/EcolagesTab';
 import { DepensesTab } from './finances/DepensesTab';
 import { ReportsTab } from './finances/ReportsTab';
-import { AutomationTab } from './finances/AutomationTab';
+import { VueEnsembleTab } from './finances/VueEnsembleTab';
+import { EncaissementsTab } from './finances/EncaissementsTab';
+import { SuiviSoldesTab } from './finances/SuiviSoldesTab';
 import { Expense } from '../../domain/FinancesModels';
 import { useAdminFinances } from './finances/useAdminFinances';
-import { TabletDrawerWrapper } from '@/features/screenguard/ui/components/TabletDrawerWrapper';
+import { useVersements } from './finances/financesDonnees';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { ModuleAvecSousMenu, useRepliSousMenu } from '@/shared/components/SousMenuModule';
 
+/**
+ * Finances : Vue d'ensemble, Scolarité des élèves,
+ * Encaissements, Dépenses, Suivi des soldes, Bilans & exports. Un seul titre par section (dans la section).
+ */
 export function AdminFinanceDashboard() {
-  const [activeTab, setActiveTab] = useState('ecolages');
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const { students, setStudents, expenses, addExpense, loading } = useAdminFinances();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isCollapsed, basculerRepli] = useRepliSousMenu('finances');
+  const { students, expenses, addExpense, ouvrirDossier, encaisser, error } = useAdminFinances();
+  const versements = useVersements();
+  const erreurVersements = versements.isError ? resolveErrorMessage(versements.error) : null;
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
 
   const showToast = (message: string, success: boolean) => {
@@ -20,69 +30,61 @@ export function AdminFinanceDashboard() {
   };
 
   const handleAddExpense = async (newExp: Omit<Expense, 'id'>) => {
-    await addExpense(newExp);
-    showToast(`Dépense de ${newExp.amount.toLocaleString()} FCFA enregistrée !`, true);
+    try {
+      const created = await addExpense(newExp);
+      showToast(`Dépense de ${created.amount.toLocaleString('fr-FR')} FCFA enregistrée.`, true);
+      return true;
+    } catch (err) {
+      showToast(err instanceof Error && !(err as { isAxiosError?: boolean }).isAxiosError ? err.message : resolveErrorMessage(err), false);
+      return false;
+    }
   };
 
-  const handleToggleStudentStatus = (id: string) => {
-    // Optional toggler
-  };
-
-  const handleTriggerRelances = () => {
-    showToast('Simulation lancée : 42 SMS/WhatsApp de relance personnalisés envoyés aux retardataires.', true);
-  };
-
-  const handleTriggerBlocage = () => {
-    setStudents(
-      students.map((s) => (s.status === 'En Retard' ? { ...s, status: 'En Retard', debt: s.debt + 5000 } : s))
-    );
-    showToast("Alerte Sécurité : Tous les élèves débiteurs sont bloqués aux portiques d'accès ! QR Codes désactivés.", false);
+  // Un versement change les dossiers ET le journal : les deux sont relus après la réponse du serveur
+  const encaisserEtRelire = async (v: Parameters<typeof encaisser>[0]) => {
+    const reponse = await encaisser(v);
+    void versements.refetch();
+    return reponse;
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full" id="admin-finances-root">
-      <TabletDrawerWrapper>
-        <FinancesSubSidebar
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          isCollapsed={isCollapsed}
-          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-        />
-      </TabletDrawerWrapper>
+    <ModuleAvecSousMenu
+      id="admin-finances-root"
+      sousMenu={<FinancesSubSidebar activeTab={activeTab} onSelectTab={setActiveTab} isCollapsed={isCollapsed} onToggleCollapse={basculerRepli} />}
+    >
+      {toast && (
+        <div
+          className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
+            toast.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}
+        >
+          <span translate="no" className="material-symbols-outlined text-sm">{toast.success ? 'check_circle' : 'error'}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
 
-      <div className="flex-grow min-w-0 w-full bg-white border border-[#E2DCDA] rounded-2xl p-3 sm:p-6 shadow-sm min-h-[550px] relative overflow-hidden">
-        {toast && (
-          <div
-            className={`absolute top-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-black shadow-md flex items-center gap-2 ${
-              toast.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
-            }`}
-          >
-            <span translate="no" className="material-symbols-outlined text-sm">
-              {toast.success ? 'check_circle' : 'error'}
-            </span>
-            <span>{toast.message}</span>
-          </div>
-        )}
+      {error && (
+        <p role="alert" id="finances-erreur" className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+          Les données financières n'ont pas pu être chargées : {error}
+        </p>
+      )}
 
-        {activeTab === 'ecolages' && (
-          <EcolagesTab students={students} onToggleStatus={handleToggleStudentStatus} />
-        )}
-
-        {activeTab === 'expenses' && (
-          <DepensesTab expenses={expenses} onAddExpense={handleAddExpense} />
-        )}
-
-        {activeTab === 'reports' && <ReportsTab />}
-
-        {activeTab === 'recovery' && (
-          <AutomationTab
-            onTriggerRelances={handleTriggerRelances}
-            onTriggerBlocage={handleTriggerBlocage}
-          />
-        )}
-      </div>
-    </div>
+      {activeTab === 'overview' && (
+        <VueEnsembleTab dossiers={students} depenses={expenses} versements={versements.data ?? []}
+          erreurVersements={erreurVersements} onEncaisser={() => setActiveTab('ecolages')} />
+      )}
+      {activeTab === 'ecolages' && (
+        <EcolagesTab students={students} onOuvrir={ouvrirDossier} onEncaisser={encaisserEtRelire} versements={versements.data ?? []} />
+      )}
+      {activeTab === 'encaissements' && (
+        <EncaissementsTab dossiers={students} versements={versements.data ?? []} chargement={versements.isPending}
+          erreur={erreurVersements} onReessayer={() => void versements.refetch()} />
+      )}
+      {activeTab === 'expenses' && <DepensesTab expenses={expenses} onAddExpense={handleAddExpense} />}
+      {activeTab === 'soldes' && <SuiviSoldesTab />}
+      {activeTab === 'reports' && (
+        <ReportsTab dossiers={students} depenses={expenses} versements={versements.data ?? []} erreurVersements={erreurVersements} />
+      )}
+    </ModuleAvecSousMenu>
   );
 }

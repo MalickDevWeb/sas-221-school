@@ -7,7 +7,7 @@ export function VigilMobileNav() {
   const basePath = match ? `/t/${match[1]}/vigile` : '/vigile';
 
   const items = [
-    { to: basePath, icon: 'qr_code_scanner', label: 'Scan' },
+    { to: basePath, icon: 'qr_code_scanner', label: 'Scanner' },
     { to: `${basePath}/rapports`, icon: 'history', label: 'Historique' },
     { to: `${basePath}/profil`, icon: 'account_circle', label: 'Profil' },
   ];

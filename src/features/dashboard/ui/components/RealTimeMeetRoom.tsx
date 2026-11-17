@@ -2,6 +2,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 import { motion } from 'motion/react';
 import { LiveSession } from '@/features/student/types';
+import { useTenantStore } from '@/core/store/tenantStore';
 
 interface RealTimeMeetRoomProps {
   readonly selectedLive: LiveSession;
@@ -11,11 +12,18 @@ interface RealTimeMeetRoomProps {
 }
 
 export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTimeMeetRoomProps) {
-  const meetUrl = (selectedLive as any).hlsUrl || (selectedLive as any).streamUrl || "https://meet.google.com";
+  const nomEcole = useTenantStore((st) => st.currentTenant?.name);
+  // Lien réel du cours seulement
+  const brut: Record<string, unknown> = { ...selectedLive };
+  const meetUrl = [brut.hlsUrl, brut.streamUrl].find((v): v is string => typeof v === 'string' && v.length > 0) ?? null;
 
   const handleOpenMeet = () => {
+    if (!meetUrl) {
+      triggerToast("Lien du cours indisponible : le professeur ne l'a pas encore publié.");
+      return;
+    }
     window.open(meetUrl, '_blank', 'noopener,noreferrer');
-    triggerToast("Ouverture de Google Meet...");
+    triggerToast("Ouverture de Google Meet…");
   };
 
   return (
@@ -29,7 +37,7 @@ export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTi
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping shrink-0" />
           <span className="font-mono text-[9px] font-black text-blue-500 uppercase tracking-widest shrink-0">
-            Amphi Google Meet
+            Cours en ligne
           </span>
           <span className="text-white/20 text-xs">|</span>
           <h4 className="text-xs font-bold text-white truncate">{selectedLive.courseName}</h4>
@@ -79,7 +87,7 @@ export function RealTimeMeetRoom({ selectedLive, onLeave, triggerToast }: RealTi
       <div className="p-3 bg-neutral-950 border-t border-white/5 text-center shrink-0">
         <p className="text-[9px] text-neutral-500 font-extrabold uppercase tracking-widest flex items-center justify-center gap-1">
           <Icon icon="lucide:shield-check" className="h-3.5 w-3.5 text-blue-500/50" />
-          École 221 • Espace Amphi Virtuel Sécurisé
+          {nomEcole ? `Cours en ligne de ${nomEcole}` : 'Cours en ligne de votre école'}
         </p>
       </div>
     </motion.div>

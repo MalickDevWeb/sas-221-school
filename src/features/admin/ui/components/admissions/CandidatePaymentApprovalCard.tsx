@@ -1,7 +1,8 @@
-import React from 'react';
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { ExtendedCandidate } from '../../../domain/AdmissionsExtendedModels';
 import { getAdmissionsDb, saveAdmissionsDb, addAuditLog } from '@/features/auth/ui/components/candidature/portal/admissionsDb';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 interface Props {
   candidate: ExtendedCandidate;
@@ -10,8 +11,27 @@ interface Props {
 
 export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: Props) {
   const isPaid = candidate.registrationFeePaid;
-  const method = candidate.details?.paymentMethod || 'ORANGE_MONEY';
-  const ref = candidate.details?.paymentTransactionRef || 'OM-SN-737385';
+  // APP-FE-09 : aucun moyen ni référence de paiement inventés
+  const method = candidate.details?.paymentMethod || 'Non renseigné';
+  const ref = candidate.details?.paymentTransactionRef || 'Référence non fournie';
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+
+  /** Le candidat n'est mis à jour à l'écran qu'APRÈS l'enregistrement par le serveur. */
+  const enregistrer = async (updated: ExtendedCandidate, action: string) => {
+    setErreur(null);
+    setEnvoi(true);
+    try {
+      const db = getAdmissionsDb();
+      await saveAdmissionsDb({ candidates: db.candidates.map(c => c.id === candidate.id ? updated : c) });
+      await addAuditLog(candidate.id, action, candidate.name);
+      onUpdateCandidate(updated);
+    } catch (err) {
+      setErreur(`Non enregistré : ${resolveErrorMessage(err)}`);
+    } finally {
+      setEnvoi(false);
+    }
+  };
 
   const handleConfirmPayment = () => {
     const updated: ExtendedCandidate = {
@@ -22,18 +42,14 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
         {
           id: `not-${Date.now()}`,
           type: 'paiement_valide',
-          message: 'Paiement des frais de dossier (25 000 FCFA) validé par l’administration. Votre dossier est débloqué pour la suite du parcours !',
+          message: 'Paiement des frais de dossier validé par l’administration.',
           sentAt: new Date().toISOString()
         },
         ...candidate.notifications
       ]
     };
 
-    const db = getAdmissionsDb();
-    const updatedCandidates = db.candidates.map(c => c.id === candidate.id ? updated : c);
-    saveAdmissionsDb({ candidates: updatedCandidates });
-    addAuditLog(candidate.id, 'Validation manuelle du paiement (25 000 FCFA) par Admin', candidate.name);
-    onUpdateCandidate(updated);
+    void enregistrer(updated, 'Validation manuelle du paiement des frais de dossier par l’administration');
   };
 
   const handleRevokePayment = () => {
@@ -42,11 +58,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
       registrationFeePaid: false,
       details: { ...candidate.details, paymentStatus: 'pending' }
     };
-    const db = getAdmissionsDb();
-    const updatedCandidates = db.candidates.map(c => c.id === candidate.id ? updated : c);
-    saveAdmissionsDb({ candidates: updatedCandidates });
-    addAuditLog(candidate.id, 'Annulation du statut de paiement par Admin', candidate.name);
-    onUpdateCandidate(updated);
+    void enregistrer(updated, 'Annulation du statut de paiement par l’administration');
   };
 
   return (
@@ -90,6 +102,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
           <button
             type="button"
             onClick={handleConfirmPayment}
+            disabled={envoi}
             className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
           >
             <Icon icon="solar:check-circle-bold" className="text-base" />
@@ -104,6 +117,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
             <button
               type="button"
               onClick={handleRevokePayment}
+              disabled={envoi}
               className="px-2.5 py-1 text-[10px] font-bold text-neutral-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
             >
               Annuler
@@ -111,6 +125,7 @@ export function CandidatePaymentApprovalCard({ candidate, onUpdateCandidate }: P
           </div>
         )}
       </div>
+      {erreur && <p role="alert" className="text-[11px] font-bold text-rose-700">{erreur}</p>}
     </div>
   );
 }

@@ -23,11 +23,12 @@ export function PatrolRoundsSection({ checkpoints, onCheckCheckpoint, onResetChe
         <div className="w-full bg-neutral-100 h-2.5 rounded-full overflow-hidden"><div className="bg-[#E31E24] h-full rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} /></div>
         <div className="flex justify-between items-center text-xs text-neutral-500 pt-1">
           <p className="font-bold">{completedCheckpoints} sur {checkpoints.length} points validés</p>
-          {completedCheckpoints === checkpoints.length ? <button onClick={onResetCheckpoints} className="text-primary font-extrabold flex items-center gap-1 hover:underline"><RefreshCw className="h-3 w-3" /> Recommencer</button> : <span className="text-amber-500 font-extrabold flex items-center gap-1">En cours de patrouille</span>}
+          {checkpoints.length === 0 ? <span className="text-neutral-400 font-extrabold">—</span> : completedCheckpoints === checkpoints.length ? <button onClick={onResetCheckpoints} className="text-primary font-extrabold flex items-center gap-1 hover:underline"><RefreshCw className="h-3 w-3" /> Recommencer</button> : <span className="text-amber-500 font-extrabold flex items-center gap-1">En cours de patrouille</span>}
         </div>
       </div>
       <div className="flex flex-col gap-2.5">
         <p className="text-xs font-extrabold text-neutral-400 uppercase tracking-widest pl-1">Points de passage</p>
+        {checkpoints.length === 0 && <p className="text-xs font-semibold text-neutral-400 pl-1">Aucun point de contrôle configuré.</p>}
         {checkpoints.map((cp) => <div key={cp.id} className={`bg-white border p-4 rounded-2xl flex justify-between items-center transition-all ${cp.status === 'Sécurisé' ? 'border-green-100 shadow-2xs' : 'border-neutral-200'}`}>
           <div className="flex items-start gap-3"><div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center transition-all ${cp.status === 'Sécurisé' ? 'bg-green-50 text-green-600' : 'bg-neutral-50 text-neutral-400'}`}>{cp.status === 'Sécurisé' ? <Check className="h-4 w-4 stroke-[3]" /> : <MapPin className="h-4 w-4" />}</div><div><h4 className={`font-extrabold text-sm ${cp.status === 'Sécurisé' ? 'text-neutral-700' : 'text-neutral-800'}`}>{cp.name}</h4><p className="text-[11px] text-neutral-400 mt-0.5">{cp.status === 'Sécurisé' ? `Vérifié à ${cp.lastCheck} par ${cp.guard}` : 'En attente de vérification'}</p></div></div>
           {cp.status !== 'Sécurisé' && <button onClick={() => onCheckCheckpoint(cp.id)} className="bg-neutral-50 hover:bg-primary hover:text-white text-primary font-bold text-xs px-3 py-2 rounded-xl transition-all border border-neutral-100">Vérifier</button>}

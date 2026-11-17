@@ -46,7 +46,7 @@ export const BrandingSettingsPage = () => {
               <button
                 type="button"
                 onClick={() => { leaveSchoolAdmin(); navigate('/super-admin/tenants'); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-950 text-purple-200 hover:text-white rounded-xl text-xs font-bold border border-purple-500/30 transition-all cursor-pointer shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-text-on-primary hover:opacity-90 rounded-xl text-xs font-bold border border-black/10 transition-all cursor-pointer shadow-xs"
               >
                 <Shield size={13} className="text-amber-400" /> Quitter l'école (Retour Super Admin)
               </button>

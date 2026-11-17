@@ -33,18 +33,22 @@ export class ApiAdminRepository implements AdminRepository {
     return true;
   }
 
-  async updateStudentPayment(id: string, status: string): Promise<AdminStudent> {
-    const { data } = await apiClient.patch<AdminStudent>(`/admin/students/${id}/status`, { statutFrais: status });
-    return data;
-  }
-
   async getSchedule(): Promise<AdminSession[]> {
     const { data } = await apiClient.get<AdminSession[]>('/admin/schedule');
     return data;
   }
 
   async rescheduleSession(id: string, update: { jourComplet: string; heureStr: string; salle: string }): Promise<AdminSession> {
-    const { data } = await apiClient.post<AdminSession>(`/admin/schedule/${id}/reschedule`, update);
-    return data;
+    // Route réelle : ProfExtraController POST /professor/schedule/{sessionId}/reschedule,
+    // corps RescheduleSessionRequestDto { day, time, room } ; la réponse n'est qu'un accusé (APP-ARC-01).
+    await apiClient.post(`/professor/schedule/${id}/reschedule`, {
+      day: update.jourComplet,
+      time: update.heureStr,
+      room: update.salle,
+    });
+    const sessions = await this.getSchedule();
+    const session = sessions.find(s => s.id === id);
+    if (!session) throw new Error('Séance introuvable après report');
+    return { ...session, ...update };
   }
 }

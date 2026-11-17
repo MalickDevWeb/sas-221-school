@@ -9,7 +9,7 @@ export type ProfileTabSection =
   | 'activities'
   | 'security'
   | 'communication'
-  | 'ai';
+  | 'synthese';
 
 interface SectionItem {
   id: ProfileTabSection;
@@ -26,7 +26,7 @@ const SECTION_ITEMS: SectionItem[] = [
   { id: 'activities', label: 'Vie Universitaire & Projets', icon: 'groups' },
   { id: 'security', label: 'Sécurité & Logs', icon: 'admin_panel_settings' },
   { id: 'communication', label: 'Communication & Timeline', icon: 'forum' },
-  { id: 'ai', label: '🔬 Diagnostic IA', icon: 'psychology' }
+  { id: 'synthese', label: 'Synthèse du suivi', icon: 'fact_check' }
 ];
 
 interface Props {

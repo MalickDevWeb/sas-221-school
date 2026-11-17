@@ -1,4 +1,6 @@
 import React from 'react';
+import { SousMenuModule, type EntreeSousMenu } from '@/shared/components/SousMenuModule';
+import { useRbacStore } from '@/core/store/rbacStore';
 
 interface Props {
   activeTab: string;
@@ -7,59 +9,17 @@ interface Props {
   onToggleCollapse: () => void;
 }
 
+/** Sous-menu du module (modèle commun SousMenuModule). */
 export function PersonnelSubSidebar({ activeTab, onSelectTab, isCollapsed, onToggleCollapse }: Props) {
-  const menuItems = [
-    { id: 'accounts', label: 'Création de Comptes', icon: 'person_add' },
-    { id: 'rbac', label: 'Droits d\'Accès (RBAC)', icon: 'key' },
-    { id: 'attendance', label: 'Présences & Émarge', icon: 'assignment_turned_in' },
+  // La matrice des droits n'est gérée que par l'administration (le serveur refuse les autres rôles)
+  const administration = useRbacStore((s) => s.mesDroits?.administration ?? false);
+  const entrees: EntreeSousMenu[] = [
+    { id: 'accounts', libelle: 'Comptes du personnel', icone: 'person_add' },
+    ...(administration ? [{ id: 'rbac', libelle: 'Droits d\'accès', icone: 'key' }] : []),
+    { id: 'attendance', libelle: 'Présences du personnel', icone: 'assignment_turned_in' },
   ];
-
   return (
-    <div
-      className={`bg-white border border-[#E2DCDA] rounded-2xl p-4 flex flex-col transition-all duration-300 gap-4 shrink-0 shadow-sm ${
-        isCollapsed ? 'w-16' : 'w-64'
-      }`}
-      id="personnel-subsidebar"
-    >
-      <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
-        {!isCollapsed && (
-          <span className="text-xs font-black uppercase tracking-wider text-[#1E293B]">
-            Ressources Humaines
-          </span>
-        )}
-        <button
-          onClick={onToggleCollapse}
-          className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition-colors ml-auto flex items-center justify-center cursor-pointer"
-          title={isCollapsed ? 'Ouvrir' : 'Réduire'}
-        >
-          <span translate="no" className="material-symbols-outlined text-lg font-bold">
-            {isCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left'}
-          </span>
-        </button>
-      </div>
-
-      <nav className="flex flex-col gap-1.5">
-        {menuItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-xl transition-all w-full text-left cursor-pointer ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-[#4A5568] hover:bg-neutral-50 hover:text-neutral-900'
-              }`}
-              title={item.label}
-            >
-              <span translate="no" className="material-symbols-outlined text-lg shrink-0">
-                {item.icon}
-              </span>
-              {!isCollapsed && <span className="truncate leading-none">{item.label}</span>}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    <SousMenuModule id="personnel-subsidebar" titre="Ressources Humaines" entrees={entrees} actif={activeTab} onChoisir={onSelectTab}
+      replie={isCollapsed} onBasculerRepli={onToggleCollapse} />
   );
 }

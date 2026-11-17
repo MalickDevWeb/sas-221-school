@@ -10,6 +10,8 @@ const TAB_TITLES: Record<string, string> = {
   classroom: 'Salle de Classe',
   schedule: 'Mon Emploi du Temps',
   collaboration: 'Espace Collaboration',
+  'messages-parents': 'Messages des parents',
+  corbeille: 'Corbeille',
 };
 
 export function ProfessorDashboardPageContent() {

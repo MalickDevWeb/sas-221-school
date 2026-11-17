@@ -1,19 +1,11 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { enregistrerIdentite } from '@/shared/lib/identiteVisuelle';
+import { ThemeContext, type ThemeContextValue } from './ThemeContext';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { generatePaletteFromHex } from '@/shared/utils/colorExtractor';
 import type { SchoolTheme, ThemeColors } from './theme.types';
 
-interface ThemeContextValue {
-  theme: SchoolTheme;
-  colors: ThemeColors;
-  setPreviewPalette: (primaryHex: string) => void;
-  clearPreview: () => void;
-  isPreviewActive: boolean;
-  saveTheme: (primaryHex: string) => Promise<void>;
-  resetToDefault: () => void;
-}
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function buildFullColors(palette: ReturnType<typeof generatePaletteFromHex>): ThemeColors {
   return {
@@ -73,7 +65,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setPreviewHex(null);
   };
 
+  /**
+   * Couleur enregistrée côté serveur AVANT d'être appliquée. Lève l'erreur du serveur en cas de refus.
+   */
   const saveTheme = async (primaryHex: string) => {
+    await enregistrerIdentite({ primaryColor: primaryHex });
     const palette = generatePaletteFromHex(primaryHex);
     applyTheme({
       primaryColor: primaryHex,
@@ -96,7 +92,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const currentTheme: SchoolTheme = useMemo(() => ({
     schoolId: currentTenant?.id,
     slug: currentTenant?.slug || 'ecole221',
-    name: currentTenant?.name || 'École 221',
+    name: currentTenant?.name || 'Votre établissement',
     logoUrl: currentTenant?.branding?.logoUrl,
     colors: fullColors,
   }), [currentTenant, fullColors]);
@@ -117,12 +113,3 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     </ThemeContext.Provider>
   );
 }
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme doit être utilisé à l\'intérieur d\'un ThemeProvider');
-  }
-  return context;
-}
-

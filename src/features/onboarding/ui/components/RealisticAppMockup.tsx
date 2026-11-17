@@ -123,7 +123,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
               {/* Logo / Monogramme avec la couleur choisie */}
               <div
                 className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center text-white text-xs font-black shadow-md border border-white/20 transition-all duration-300"
-                style={{ backgroundColor: palette.primary }}
+                style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
               >
                 {logo ? (
                   <img src={logo} className="w-full h-full object-contain p-0.5" alt="Logo" />
@@ -165,14 +165,14 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
               <div className="flex items-center gap-1.5">
                 <div
                   className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-xs"
-                  style={{ backgroundColor: palette.primary }}
+                  style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
                 >
                   Admin
                 </div>
               </div>
             </div>
 
-            {/* Cartes KPIs clés */}
+            {/* Cartes KPIs : aperçu des COULEURS de l'école — aucune statistique inventée (école neuve = 0 / « — ») */}
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 flex flex-col justify-between">
                 <div className="flex items-center justify-between text-slate-400 mb-1">
@@ -180,8 +180,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
                   <Icon icon="solar:users-group-rounded-bold-duotone" className="text-xs" style={{ color: palette.primary }} />
                 </div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-black text-white font-mono">1 240</span>
-                  <span className="text-[9px] font-bold text-emerald-400">+14%</span>
+                  <span className="text-base font-black text-white font-mono">0</span>
+                  <span className="text-[9px] font-bold text-slate-400">école neuve</span>
                 </div>
               </div>
 
@@ -191,8 +191,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
                   <Icon icon="solar:chart-2-bold-duotone" className="text-xs text-emerald-400" />
                 </div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-black text-white font-mono">98.4%</span>
-                  <span className="text-[9px] font-bold text-emerald-400">Stable</span>
+                  <span className="text-base font-black text-white font-mono">—</span>
+                  <span className="text-[9px] font-bold text-slate-400">aucune donnée</span>
                 </div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
             <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
               <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400 mb-2">
                 <span>Fréquentation Hebdomadaire</span>
-                <span className="font-mono text-emerald-400 font-bold">96.8% Moy.</span>
+                <span className="font-mono text-slate-400 font-bold">Aperçu des couleurs</span>
               </div>
               <div className="flex items-end justify-between h-10 gap-1.5 px-1">
                 {[45, 80, 60, 95, 75, 88].map((h, i) => (
@@ -223,7 +223,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
             {/* Bouton d'action Rapide aux couleurs de l'école */}
             <div
               className="py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider text-center text-white shadow-md flex items-center justify-center gap-1.5 transition-colors duration-300"
-              style={{ backgroundColor: palette.primary }}
+              style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
             >
               <span>Accéder à l'espace scolarité</span>
               <Icon icon="solar:arrow-right-line-duotone" className="text-xs" />
@@ -241,7 +241,7 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
       >
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm"
-          style={{ backgroundColor: palette.primary }}
+          style={{ backgroundColor: palette.primary, color: palette.textOnPrimary }}
         >
           <Icon icon="solar:qr-code-bold-duotone" className="text-base" />
         </div>
@@ -261,8 +261,8 @@ export const RealisticAppMockup: React.FC<RealisticAppMockupProps> = ({
           <Icon icon="solar:wallet-bold-duotone" className="text-base" />
         </div>
         <div className="text-left">
-          <p className="text-[10px] font-black text-white leading-tight">Paiements Wave & OM</p>
-          <p className="text-[8px] text-slate-400 font-semibold">Zéro Déplacement</p>
+          <p className="text-[10px] font-black text-white leading-tight">Scolarités suivies</p>
+          <p className="text-[8px] text-slate-400 font-semibold">Versements et reste à payer</p>
         </div>
       </motion.div>
     </div>

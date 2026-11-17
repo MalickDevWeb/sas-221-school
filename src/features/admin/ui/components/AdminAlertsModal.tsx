@@ -1,68 +1,25 @@
-import React, { useState } from 'react';
-import { toast } from 'sonner';
+import { MassSendTab } from './notifications/MassSendTab';
 
 interface AdminAlertsModalProps {
   onClose: () => void;
 }
 
+/**
+ * Annonce rapide (bouton « Annonce » des actions rapides). Elle reprend EXACTEMENT le formulaire de l'onglet
+ * « Annonces & alertes › Annonces » (destinataires avec nombre réel, envoi POST /v1/notifications/annonces) au lieu
+ * d'un second formulaire : une seule façon d'envoyer, une seule vérification.
+ */
 export function AdminAlertsModal({ onClose }: AdminAlertsModalProps) {
-  const [alertText, setAlertText] = useState('');
-  const [category, setCategory] = useState<'Système' | 'Inscriptions' | 'IT Admin'>('Système');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!alertText) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Alerte globale diffusée avec succès à tout l'établissement !");
-      onClose();
-    }, 1000);
-  };
-
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-[#FAF8F6] w-full max-w-sm rounded-2xl shadow-xl overflow-hidden border border-[#E2DCDA]">
-        <div className="p-4 bg-white border-b border-[#E2DCDA] flex justify-between items-center">
-          <h3 className="font-black text-base text-[#291715]">Alerte Globale</h3>
-          <button onClick={onClose} className="text-[#8E7977] hover:text-primary font-bold">[ Fermer ]</button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8E7977] uppercase block">Catégorie</label>
-            <select
-              value={category}
-              onChange={(e: any) => setCategory(e.target.value)}
-              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="Système">Système (Info)</option>
-              <option value="Inscriptions">Inscriptions (Scolarité)</option>
-              <option value="IT Admin">IT Admin (Maintenance)</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-[#8E7977] uppercase block">Contenu de l'Alerte</label>
-            <textarea
-              value={alertText}
-              onChange={(e) => setAlertText(e.target.value)}
-              placeholder="Saisissez le message d'alerte à diffuser..."
-              rows={4}
-              className="w-full bg-white border border-[#E2DCDA] rounded-xl p-2.5 text-xs outline-none focus:border-primary"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary hover:bg-[#8F1316] text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#B3181C]/15 transition-all"
-          >
-            {loading ? 'Diffusion...' : 'Diffuser l\'Alerte'}
+    <div role="dialog" aria-modal="true" aria-labelledby="annonce-rapide-titre" className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl border border-[#E2DCDA]">
+        <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#E2DCDA] flex justify-between items-center">
+          <h3 id="annonce-rapide-titre" className="font-black text-base text-[#291715]">Annonce</h3>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="text-[#8E7977] hover:text-primary cursor-pointer">
+            <span translate="no" aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>
           </button>
-        </form>
+        </div>
+        <div className="p-4"><MassSendTab compact /></div>
       </div>
     </div>
   );

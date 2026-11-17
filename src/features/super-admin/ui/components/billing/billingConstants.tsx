@@ -6,12 +6,12 @@ export const FEATURE_LABELS: Record<string, { label: string; icon: React.ReactNo
   MAX_STUDENTS: { label: 'Élèves max', icon: <Users size={14} />, desc: 'Nombre maximal d\'élèves inscrits' },
   MAX_TEACHERS: { label: 'Professeurs max', icon: <Users size={14} />, desc: 'Nombre maximal d\'enseignants' },
   MAX_CLASSES: { label: 'Classes max', icon: <BookOpen size={14} />, desc: 'Nombre maximal de classes/filières' },
-  AI_TUTOR: { label: 'Tuteur IA', icon: <Sparkles size={14} />, desc: 'Accès au tuteur IA pour les élèves' },
+  AI_TUTOR: { label: 'Tuteur IA (non disponible)', icon: <Sparkles size={14} />, desc: 'Hors du périmètre de cette version (APP-TL-24)' },
   LIVE_MEET: { label: 'Cours en direct', icon: <Zap size={14} />, desc: 'Visioconférence Live intégrée' },
-  ADVANCED_REPORTS: { label: 'Rapports avancés', icon: <TrendingUp size={14} />, desc: 'Analytics et exports PDF/Excel' },
+  ADVANCED_REPORTS: { label: 'Rapports avancés', icon: <TrendingUp size={14} />, desc: 'Statistiques et exports PDF/Excel' },
   MULTI_CAMPUS: { label: 'Multi-campus', icon: <Building2 size={14} />, desc: 'Gestion de plusieurs sites' },
   CUSTOM_DOMAIN: { label: 'Domaine personnalisé', icon: <Globe size={14} />, desc: 'URL école dédiée' },
-  STORAGE: { label: 'Stockage Cloud', icon: <Database size={14} />, desc: 'Espace de stockage documents' },
+  STORAGE: { label: 'Stockage des documents', icon: <Database size={14} />, desc: 'Espace de stockage documents' },
   SUPPORT_24_7: { label: 'Support Dédié 24/7', icon: <ShieldCheck size={14} />, desc: 'Assistance prioritaire' },
 };
 

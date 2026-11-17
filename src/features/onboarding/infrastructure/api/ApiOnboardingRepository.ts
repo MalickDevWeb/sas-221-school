@@ -20,6 +20,7 @@ export class ApiOnboardingRepository implements OnboardingRepository {
       primaryColor: data.primaryColor,
       adminPassword: data.adminPassword,
       adminPasswordConfirm: data.adminPasswordConfirm,
+      consentementContact: data.consentementContact === true,
     };
 
     const response = await publicApiClient.post<RegisteredSchool>('/register-school', payload);

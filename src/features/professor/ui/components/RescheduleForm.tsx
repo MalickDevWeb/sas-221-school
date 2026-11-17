@@ -30,7 +30,7 @@ export function RescheduleForm({ initialDay, initialRoom, initialTime, onSubmit,
             onChange={e => setDay(e.target.value)}
             className="w-full p-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold"
           >
-            {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'].map(d => (
+            {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map(d => (
               <option key={d} value={d}>
                 {d}
               </option>

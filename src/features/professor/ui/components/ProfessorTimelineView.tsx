@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 import type { ProfessorSchedule } from '../../domain/ProfessorModels';
 import { formatTimeRange, formatRoomName } from '../../utils/scheduleFormatter';
+import { datesSemaineCourante } from './ProfessorGridViewConstants';
 
 interface Props {
   readonly schedule: readonly ProfessorSchedule[];
@@ -13,8 +14,12 @@ interface Props {
   readonly liveSessions?: readonly any[];
 }
 
-const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] as const;
-const DAY_DATES = { Lundi: '23 Oct', Mardi: '24 Oct', Mercredi: '25 Oct', Jeudi: '26 Oct', Vendredi: '27 Oct' };
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as const;
+// Dates réelles de la semaine en cours
+const datesDuJour = (): Record<(typeof DAYS)[number], string> => {
+  const d = datesSemaineCourante();
+  return { Lundi: d.LUN, Mardi: d.MAR, Mercredi: d.MER, Jeudi: d.JEU, Vendredi: d.VEN, Samedi: d.SAM };
+};
 
 export function ProfessorTimelineView({
   schedule, selectedDay, setSelectedDay, fitsFilters, resetAllFilters, onSelectSession, liveSessions = []
@@ -34,7 +39,7 @@ export function ProfessorTimelineView({
               <button key={day} onClick={() => setSelectedDay(day)} className={`flex-grow lg:flex-grow-0 py-4 px-5 rounded-2xl font-black text-xs transition-all flex flex-row lg:flex-col items-center lg:items-start justify-between relative cursor-pointer min-w-[130px] shrink-0 snap-start border ${active ? 'bg-primary text-white border-primary shadow-md scale-102' : 'bg-white text-neutral-650 hover:bg-neutral-50 border-neutral-200'}`}>
                 <div className="text-left">
                   <span className="block text-xs uppercase tracking-tight">{day}</span>
-                  <span className={`block text-[10px] ${active ? 'text-white/80' : 'text-neutral-400'} font-bold mt-1`}>{DAY_DATES[day]}</span>
+                  <span className={`block text-[10px] ${active ? 'text-white/80' : 'text-neutral-400'} font-bold mt-1`}>{datesDuJour()[day]}</span>
                 </div>
                 {count > 0 && <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${active ? 'bg-white text-primary' : 'bg-primary-light text-primary'}`}>{count}</span>}
               </button>
@@ -77,7 +82,7 @@ export function ProfessorTimelineView({
                    </div>
                    <div className="flex-1 flex flex-col justify-between">
                      <div>
-                       <h4 className="font-extrabold text-xs leading-snug text-[#291715]">{session.classe || 'L3-GL'}</h4>
+                       <h4 className="font-extrabold text-xs leading-snug text-[#291715]">{session.classe || '—'}</h4>
                        <p className="text-[10px] text-neutral-500 font-bold mb-1.5">{session.courseTitle}</p>
                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${session.status === 'annule' ? 'bg-red-100 text-primary' : activeSession ? 'bg-primary text-white animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>{session.status === 'annule' ? 'Annulé' : activeSession ? 'En Direct' : 'Confirmé'}</span>
                      </div>

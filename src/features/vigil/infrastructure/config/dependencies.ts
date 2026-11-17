@@ -6,8 +6,9 @@ import { createScanBadgeUseCase } from '../../usecases/ScanBadgeUseCase';
 import { createGetLastScanUseCase } from '../../usecases/GetLastScanUseCase';
 import { Html5QrcodeScannerService } from '../local/Html5QrcodeScannerService';
 import { WebAudioService } from '../local/WebAudioService';
+import { MODE_SIMULE } from '@/shared/config/modeSimule';
 
-const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+const useMock = MODE_SIMULE; // simulé : développement seulement (shared/config/modeSimule)
 const repository = useMock
   ? new InMemoryVigilRepository()
   : new ApiVigilRepository(apiClient);

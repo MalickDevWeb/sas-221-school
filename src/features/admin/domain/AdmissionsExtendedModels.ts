@@ -38,6 +38,10 @@ export interface CandidateDocs {
 }
 
 export interface CandidateDetails {
+  /** Règles d'admission appliquées au dépôt (avertissements, pièces exigées en plus, session). */
+  alertesRegles?: string[];
+  piecesSupplementaires?: { code: string; libelle: string }[];
+  campagneId?: string | null;
   // Transfert
   universityOfOrigin?: string;
   facultyOfOrigin?: string;
@@ -67,6 +71,13 @@ export interface CandidateDetails {
   cniStatus?: 'pending' | 'valid' | 'rejected';
   cniRejectReason?: string;
   cniVerifiedAt?: string;
+
+  // Pièces réellement envoyées (dossier déposé par un parent) : liens http(s) ou null
+  photoUrl?: string | null;
+  transcriptsUrl?: string | null;
+  diplomaUrl?: string | null;
+  /** Informations saisies au dépôt (clé → valeur), fournies par le serveur. */
+  dossier?: Record<string, string>;
 
   // Paiement des frais de dossier
   paymentMethod?: string;
@@ -106,7 +117,15 @@ export interface ExtendedCandidate {
   step: 'new' | 'docs' | 'admitted' | 'rejected';
   docs: CandidateDocs;
   registrationFeePaid: boolean;
+  /** Dossier inscrit : élève créé (APP-TL-23), renvoyé par GET /admissions/db. */
+  inscrit?: boolean;
+  eleveId?: string | null;
+  /** Dossier déposé par un parent connecté (son compte sera lié à l'élève). */
+  parentDeposant?: boolean;
   details?: CandidateDetails;
   equivalence?: EquivalenceDetails;
   notifications: AdmissionNotification[];
+  /** Téléphone du candidat (« Prévenir par WhatsApp ») et messages du candidat non lus par l'école. */
+  phone?: string | null;
+  messagesNonLus?: number;
 }

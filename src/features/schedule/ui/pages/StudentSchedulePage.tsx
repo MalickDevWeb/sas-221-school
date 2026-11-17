@@ -42,7 +42,7 @@ export function StudentSchedulePage() {
         {state.viewMode === 'timeline' && <TimelineView state={state} />}
         {state.viewMode === 'grid' && <GridView state={state} />}
 
-        <ScheduleMetrics />
+        <ScheduleMetrics schedule={state.schedule ?? []} />
       </div>
     </div>
   );

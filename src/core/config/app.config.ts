@@ -67,33 +67,10 @@ export const APP_CONFIG = {
       width: 220,
       height: 220,
     },
-    defaultSimulatedBadge: '221-5092-B',
     finderSize: 21,
     finderSeed: 73,
     beepFrequencyStart: 523.25, // C5
     beepFrequencyEnd: 1046.50, // C6
     beepDuration: 0.3,
-  },
-
-  // Mocks Data and Fallbacks
-  vigilMock: {
-    id: 'usr-vigil-01',
-    nom: 'Diallo',
-    prenom: 'Aboulaye',
-    badgeId: 'E221-SEC-042',
-    equipe: 'Alpha Team',
-    derniereConnexion: '08:30 Aujourd’hui',
-    statut: 'Opérationnel',
-  },
-
-  studentMock: {
-    badgeOwner: 'Mamadou Ndiaye',
-    studentId: '221-5092-B',
-    statut: 'Autorisé',
-    message: 'Badge validé avec succès',
-    assiduite: '98%',
-    statutFrais: 'À jour',
-    zone: 'Bâtiment C - Entrée Nord',
-    time: '14:32',
   },
 };

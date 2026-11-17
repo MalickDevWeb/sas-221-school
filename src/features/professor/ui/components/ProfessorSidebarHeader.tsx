@@ -1,4 +1,5 @@
 import React from 'react';
+import { anneeAcademiqueCourte } from '@/shared/lib/anneeAcademique';
 import { useTenantStore } from '@/core/store/tenantStore';
 
 interface HeaderProps {
@@ -31,7 +32,7 @@ export function ProfessorSidebarHeader({ onSelectTab }: HeaderProps) {
         <h1 className="font-black text-[#1E293B] text-[15px] leading-tight tracking-tight">{schoolName}</h1>
         <p className="text-[10px] font-black text-brand-red-deep uppercase tracking-widest mt-0.5">Espace Enseignant</p>
       </div>
-      <p className="text-secondary font-label-md text-xs mt-1">Année Académique 2023-24</p>
+      <p className="text-secondary font-label-md text-xs mt-1">Année Académique {anneeAcademiqueCourte()}</p>
     </div>
   );
 }

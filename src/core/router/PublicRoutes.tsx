@@ -1,14 +1,17 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { Route } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
-
-const LandingPage = lazy(() => import('@/features/public/ui/pages/LandingPage').then(m => ({ default: m.LandingPage })));
-const TenantFinderPage = lazy(() => import('@/features/public/ui/pages/TenantFinderPage').then(m => ({ default: m.TenantFinderPage })));
-const SchoolRegistrationPage = lazy(() => import('@/features/onboarding/ui/pages/SchoolRegistrationPage').then(m => ({ default: m.SchoolRegistrationPage })));
-const TenantLoginPage = lazy(() => import('@/features/auth/ui/pages/TenantLoginPage').then(m => ({ default: m.TenantLoginPage })));
-const CandidaturePage = lazy(() => import('@/features/auth').then(m => ({ default: m.CandidaturePage })));
-const SuperAdminLoginPage = lazy(() => import('@/features/super-admin/ui/pages/SuperAdminLoginPage').then(m => ({ default: m.SuperAdminLoginPage })));
-const AdminPortalLoginPage = lazy(() => import('@/features/admin/ui/pages/AdminPortalLoginPage').then(m => ({ default: m.AdminPortalLoginPage })));
+import { EspaceIndisponiblePage } from './EspaceIndisponiblePage';
+import {
+  LandingPage,
+  TenantFinderPage,
+  SchoolRegistrationPage,
+  TenantLoginPage,
+  CandidaturePage,
+  SuperAdminLoginPage,
+  AdminPortalLoginPage,
+  ReinitialiserMotDePassePage,
+} from './PublicPages';
 
 export function renderPublicRoutes() {
   return (
@@ -19,6 +22,8 @@ export function renderPublicRoutes() {
       <Route path="/register-school" element={<SchoolRegistrationPage />} />
       <Route path="/inscription-ecole" element={<SchoolRegistrationPage />} />
       <Route path="/t/:tenantSlug/login" element={<TenantLoginPage />} />
+      <Route path="/t/:tenantSlug/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePassePage />} />
+      <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePassePage />} />
       <Route path="/t/:tenantSlug" element={<TenantLoginPage />} />
       <Route path="/ecole221" element={<TenantLoginPage />} />
       <Route path="/ecole-221" element={<TenantLoginPage />} />
@@ -26,6 +31,7 @@ export function renderPublicRoutes() {
       <Route path="/t/:tenantSlug/candidature" element={<CandidaturePage />} />
       <Route path="/super-admin" element={<SuperAdminLoginPage />} />
       <Route path="/admin" element={<AdminPortalLoginPage />} />
+      <Route path="/espace-indisponible" element={<EspaceIndisponiblePage />} />
       <Route
         path="/unauthorized"
         element={

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Campaign } from './admissionsDb';
+import type { Campaign } from './admissionsTypes';
 import { CampaignShareModal } from './CampaignShareModal';
+import { useTenantStore } from '@/core/store/tenantStore';
+import { useCandidatureSettings } from '@/features/auth/hooks/useCandidatureSettings';
+import { anneeAcademique } from '@/shared/lib/anneeAcademique';
 
 interface Props {
   campaigns: Campaign[];
@@ -12,6 +15,14 @@ interface Props {
 export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }: Props) {
   const [filter, setFilter] = useState<'ALL' | 'LICENCE' | 'MASTER'>('ALL');
   const [selectedShare, setSelectedShare] = useState<Campaign | null>(null);
+  // Données RÉELLES de l'école et de ses paramètres d'admission
+  const ecole = useTenantStore((s) => s.currentTenant);
+  const { settings, loading } = useCandidatureSettings();
+  const nomEcole = ecole?.name || 'cet établissement';
+  const ouvert = !loading && settings.ouvert;
+  const periode = settings.dateOuverture && settings.dateFermeture
+    ? `du ${new Date(settings.dateOuverture).toLocaleDateString('fr-FR')} au ${new Date(settings.dateFermeture).toLocaleDateString('fr-FR')}`
+    : null;
 
   const visibleCampaigns = campaigns.filter(c => {
     if (c.state === 'Brouillon' || c.state === 'Archivée') return false;
@@ -28,20 +39,23 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
         <div className="absolute -left-12 -bottom-12 w-56 h-56 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none" />
         <div className="max-w-xl space-y-3 z-10 relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Admissions Ouvertes · 2026-2027</span>
+            <span className={`w-2 h-2 rounded-full ${ouvert ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
+            <span>{loading ? 'Chargement…' : ouvert ? `Admissions ouvertes · ${anneeAcademique()}` : 'Admissions fermées'}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight text-white drop-shadow-xs">
-            Propulsez votre avenir avec les cursus d'excellence École 221
+            Candidater à {nomEcole}
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
-            Formations certifiées d'État en Génie Logiciel, Cloud DevOps, IA et Cybersécurité à Dakar. Dépôt de dossier 100% en ligne.
+            {settings.messageAvis
+              ? settings.messageAvis
+              : ouvert
+                ? `Dépôt de dossier en ligne${periode ? ` ${periode}` : ''}.`
+                : "Les candidatures ne sont pas ouvertes pour le moment. Revenez lorsque l'établissement aura ouvert sa campagne d'admission."}
           </p>
         </div>
         <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-bold z-10 relative">
-          <span className="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 backdrop-blur-md text-white flex items-center gap-1.5">🎓 Reconnus CAMES / ANAQ-Sup</span>
-          <span className="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 backdrop-blur-md text-emerald-300 flex items-center gap-1.5">⚡ +92% Insertion Pro</span>
-          <span className="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 backdrop-blur-md text-white flex items-center gap-1.5">🇸🇳 Dakar, Sénégal</span>
+          {periode && <span className="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 backdrop-blur-md text-white flex items-center gap-1.5">📅 Candidatures {periode}</span>}
+          {ecole?.city && <span className="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 backdrop-blur-md text-white flex items-center gap-1.5">📍 {ecole.city}</span>}
         </div>
       </motion.div>
 
@@ -63,19 +77,19 @@ export function PortalCampaignsList({ campaigns, onSelectCampaign, onGoToLogin }
       {/* Campaigns Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {visibleCampaigns.map((camp, idx) => {
-          const isOpen = camp.state === 'Ouverte';
+          const isOpen = ouvert && camp.state === 'Ouverte';   // campagne ouverte ET admissions de l'école ouvertes
           return (
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: idx * 0.08 }} whileHover={{ y: -4 }} key={camp.id} className="group bg-white border border-neutral-200/90 hover:border-primary/50 rounded-3xl overflow-hidden shadow-2xs hover:shadow-xl hover:shadow-primary/10 transition-all flex flex-col justify-between">
               <div>
                 <div className="relative h-40 bg-neutral-900 overflow-hidden">
-                  <img src={camp.imageUrl} alt={camp.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 opacity-95" />
+                  {camp.imageUrl && <img src={camp.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 opacity-95" />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                   <span className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-xs ${isOpen ? 'bg-emerald-500 text-white' : 'bg-neutral-600 text-white'}`}>
                     {camp.state}
                   </span>
                   <div className="absolute bottom-3 left-3 text-white text-[11px] font-black flex items-center gap-1.5 drop-shadow-md">
                     <span className="w-2 h-2 rounded-full bg-primary" />
-                    <span>{camp.code} · Session 2026/2027</span>
+                    <span>{camp.code}{camp.intake ? ` · Session ${camp.intake}` : ''}</span>
                   </div>
                 </div>
 

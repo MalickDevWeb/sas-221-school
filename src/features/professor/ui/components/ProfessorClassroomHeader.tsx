@@ -14,7 +14,7 @@ export function ProfessorClassroomHeader({ selectedCourse }: { selectedCourse: a
           </span>
           <span className="text-[8.5px] font-black uppercase tracking-wider text-white/95">Saisie active</span>
         </div>
-        <h3 className="font-sans font-black text-xs leading-tight tracking-tight line-clamp-1">{selectedCourse.classe || 'L3-GL'}</h3>
+        <h3 className="font-sans font-black text-xs leading-tight tracking-tight line-clamp-1">{selectedCourse.classe || '—'}</h3>
         <p className="text-[10px] text-white/70 font-semibold truncate mt-0.5">{selectedCourse.titre}</p>
         <div className="mt-2 text-[9px] font-bold bg-white/10 px-2 py-0.5 rounded inline-block">Salle: {selectedCourse.salle}</div>
       </div>

@@ -14,7 +14,7 @@ export const SuperAdminPlaceholderPage = () => {
         Module {sectionName}
       </h2>
       <p className="text-xs text-slate-400 max-w-sm">
-        Ce sous-module est en cours d'interconnexion avec les clusters du backend SaaS.
+        Cette page n'est pas encore disponible : aucune donnée n'est affichée tant que le service n'existe pas.
       </p>
     </div>
   );

@@ -26,7 +26,7 @@ export function SearchModal({ showSearch, setShowSearch, searchQuery, setSearchQ
       >
         <div className="p-4 border-b border-neutral-gray-150 flex items-center gap-3 shrink-0">
           <span translate="no" className="material-symbols-outlined text-brand-red-deep font-bold">search</span>
-          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} autoFocus className="flex-grow bg-transparent border-none outline-none focus:ring-0 text-sm font-bold text-[#291715]" placeholder="Tapez un mot-clé (devoirs, notes, IA...)" />
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} autoFocus className="flex-grow bg-transparent border-none outline-none focus:ring-0 text-sm font-bold text-[#291715]" placeholder="Tapez un mot-clé (devoirs, notes, bilan...)" />
           <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="bg-neutral-gray-100 hover:bg-neutral-gray-200 p-1.5 rounded-full text-secondary transition-colors">
             <span translate="no" className="material-symbols-outlined text-sm font-bold">close</span>
           </button>

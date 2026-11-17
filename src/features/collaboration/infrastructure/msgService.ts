@@ -1,20 +1,15 @@
 import { apiClient } from '@/shared/lib/apiClient';
 import { CollabMessage, VirtualClass, AdminMeeting, MeetAttendance } from '../domain/CollaborationModels';
-import { INITIAL_MEETS, INITIAL_ADMIN_MEETS, INITIAL_MESSAGES } from '../domain/CollaborationMockData';
 
 export function subscribeMessages(groupId: string, onUpdate: (messages: readonly CollabMessage[]) => void) {
   const fetchMsgs = async () => {
     if (!groupId) return;
     try {
       const res = await apiClient.get(`/collaboration/workgroups/${groupId}/messages`);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        onUpdate(res.data);
-      } else {
-        const fallbacks = INITIAL_MESSAGES.filter((m) => m.groupId === groupId);
-        onUpdate(fallbacks.length > 0 ? fallbacks : INITIAL_MESSAGES);
-      }
+      // APP-BE-14 : jamais de messages inventés
+      onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
-      onUpdate(INITIAL_MESSAGES);
+      onUpdate([]);
     }
   };
   fetchMsgs();
@@ -30,9 +25,10 @@ export function subscribeMeets(onUpdate: (meets: readonly VirtualClass[]) => voi
   const fetchMeets = async () => {
     try {
       const res = await apiClient.get('/collaboration/meets');
-      onUpdate(Array.isArray(res.data) && res.data.length > 0 ? res.data : INITIAL_MEETS);
+      // APP-BE-14 : jamais de classes virtuelles inventées
+      onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
-      onUpdate(INITIAL_MEETS);
+      onUpdate([]);
     }
   };
   fetchMeets();
@@ -40,17 +36,21 @@ export function subscribeMeets(onUpdate: (meets: readonly VirtualClass[]) => voi
   return () => clearInterval(timer);
 }
 
-export async function saveMeet(mt: VirtualClass): Promise<void> {
-  await apiClient.post('/collaboration/meets', mt);
+/** Renvoie les comptes RÉELLEMENT prévenus par le serveur (élèves de la classe et leurs parents), ou null. */
+export async function saveMeet(mt: VirtualClass): Promise<{ eleves: number; parents: number; professeurs: number } | null> {
+  const { data } = await apiClient.post<{ prevenus?: { eleves?: number; parents?: number; professeurs?: number } }>('/collaboration/meets', mt);
+  const p = data?.prevenus;
+  const n = (v: unknown) => (typeof v === 'number' ? v : 0);
+  return p && typeof p.eleves === 'number' ? { eleves: p.eleves, parents: n(p.parents), professeurs: n(p.professeurs) } : null;
 }
 
 export function subscribeAdminMeets(onUpdate: (meets: readonly AdminMeeting[]) => void) {
   const fetchAdmin = async () => {
     try {
       const res = await apiClient.get('/collaboration/admin-meets');
-      onUpdate(Array.isArray(res.data) && res.data.length > 0 ? res.data : INITIAL_ADMIN_MEETS);
+      onUpdate(Array.isArray(res.data) ? res.data : []);   // APP-BE-14 : pas de réunions inventées
     } catch {
-      onUpdate(INITIAL_ADMIN_MEETS);
+      onUpdate([]);
     }
   };
   fetchAdmin();
@@ -59,7 +59,12 @@ export function subscribeAdminMeets(onUpdate: (meets: readonly AdminMeeting[]) =
 }
 
 export async function saveAdminMeet(am: AdminMeeting): Promise<void> {
-  await apiClient.post('/collaboration/admin-meets', am);
+  // Le backend n'expose que POST /collaboration/meets (title, link, time) ; la liste admin
+  // est relue via GET /collaboration/admin-meets (APP-ARC-01).
+  await apiClient.post('/collaboration/meets', {
+    ...am,
+    link: am.meetLink,   // date et plage horaire : calculées par le serveur à partir de debut / fin
+  });
 }
 
 export function subscribeAttendances(onUpdate: (atts: readonly MeetAttendance[]) => void) {

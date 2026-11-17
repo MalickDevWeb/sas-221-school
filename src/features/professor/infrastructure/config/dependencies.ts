@@ -1,3 +1,4 @@
+import { MODE_SIMULE } from '@/shared/config/modeSimule';
 import { ApiProfessorRepository } from '../api/ApiProfessorRepository';
 import { InMemoryProfessorRepository } from '../local/InMemoryProfessorRepository';
 import { 
@@ -21,7 +22,7 @@ import {
   createCreateQuizUseCase
 } from '../../usecases/ProfessorUseCases';
 
-const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+const useMock = MODE_SIMULE; // simulé : développement seulement (shared/config/modeSimule)
 const professorRepository = useMock
   ? new InMemoryProfessorRepository()
   : new ApiProfessorRepository();

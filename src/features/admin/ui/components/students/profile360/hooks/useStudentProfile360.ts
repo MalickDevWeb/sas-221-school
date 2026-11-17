@@ -1,56 +1,54 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
-import { getStudentERPData } from '../utils/StudentMockData';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { versProfil360 } from '../profil360';
 
-export function useStudentProfile360(studentId: string, studentName: string) {
-  const [erpData, setErpData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/** Clé de cache du dossier 360° d'un élève (React Query, APP-FE-02). */
+export const cleProfil360 = (studentId: string) => ['admin', 'eleves', studentId, 'profil360'] as const;
 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+export interface ChampsProfil360 {
+  email?: string;
+  phoneParent?: string;
+  bloodGroup?: string;
+  allergies?: string;
+}
+
+/**
+ * Dossier 360° d'un élève (React Query, APP-FE-02) : mis en cache par élève, rechargé après une modification.
+ */
+export function useStudentProfile360(studentId: string, _studentName?: string) {
+  const client = useQueryClient();
+  const profil = useQuery({
+    queryKey: cleProfil360(studentId),
+    enabled: Boolean(studentId),
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/admin/students/${studentId}/profile360`);
+      if (!data) throw new Error('Le serveur a renvoyé un dossier vide.');
+      return versProfil360(data);
+    },
+  });
+
+  const modification = useMutation({
+    mutationFn: (fields: ChampsProfil360) => apiClient.post(`/admin/students/${studentId}/profile360`, fields),
+    onSuccess: () => client.invalidateQueries({ queryKey: cleProfil360(studentId) }),
+  });
+
+  /** true si le serveur a enregistré ; false sinon (le message est dans updateError). */
+  const updateProfile = async (fields: ChampsProfil360) => {
     try {
-      const response = await apiClient.get(`/admin/students/${studentId}/profile360`);
-      if (response.data) {
-        setErpData(response.data);
-      } else {
-        throw new Error('Données vides');
-      }
-    } catch (err: any) {
-      console.warn("Erreur lors de la récupération du profil 360 réel:", err?.message);
-      setError(err?.response?.data?.message || err?.message || "Impossible de charger le dossier 360.");
-      setErpData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [studentId, studentName]);
-
-  const updateProfile = async (fields: {
-    email?: string;
-    phoneParent?: string;
-    bloodGroup?: string;
-    allergies?: string;
-  }) => {
-    try {
-      await apiClient.post(`/admin/students/${studentId}/profile360`, fields);
-      await fetchProfile();
+      await modification.mutateAsync(fields);
       return true;
-    } catch (err: any) {
-      console.error('Failed to update student profile in database:', err);
+    } catch {
       return false;
     }
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
   return {
-    erpData,
-    loading,
-    error,
+    erpData: profil.data ?? null,
+    loading: profil.isLoading,
+    error: profil.error ? resolveErrorMessage(profil.error) : null,
     updateProfile,
-    refetch: fetchProfile
+    updateError: modification.error ? resolveErrorMessage(modification.error) : null,
+    refetch: profil.refetch,
   };
 }

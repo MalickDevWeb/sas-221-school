@@ -1,70 +1,76 @@
-import React from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { publicApiClient } from '@/shared/lib/apiClient';
+import { reporterErreurServeur } from '@/shared/errors/erreursServeurChamps';
 
-interface ForgotPasswordFormProps {
-  resetEmail: string;
-  setResetEmail: (email: string) => void;
-  resetLoading: boolean;
-  resetError: string;
-  handleResetSubmit: (e: React.FormEvent) => void;
-  setCurrentView: (view: 'CONNEXION' | 'MOT_DE_PASSE_OUBLIE' | 'SUCCESS') => void;
-}
+const schemaDemande = z.object({
+  email: z.string().trim()
+    .min(1, "Saisissez l'adresse e-mail de votre compte.")
+    .email('Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@ecole.sn).'),
+});
+type Demande = z.infer<typeof schemaDemande>;
 
-export function ForgotPasswordForm({
-  resetEmail,
-  setResetEmail,
-  resetLoading,
-  resetError,
-  handleResetSubmit,
-  setCurrentView
-}: ForgotPasswordFormProps) {
+/**
+ * « Mot de passe oublié » (APP-FEAT-02) : demande RÉELLE d'un lien de réinitialisation par e-mail.
+ * La réponse est la même que l'adresse corresponde à un compte ou non (le serveur ne révèle rien).
+ */
+export function ForgotPasswordForm({ onRetour }: { onRetour: () => void }) {
+  const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<Demande>({
+    resolver: zodResolver(schemaDemande), defaultValues: { email: '' }, mode: 'onTouched',
+  });
+
+  const demander = async ({ email }: Demande) => {
+    setErreur(null);
+    try {
+      const { data } = await publicApiClient.post('/auth/mot-de-passe-oublie', { email: email.trim() });
+      setConfirmation(typeof data?.message === 'string' ? data.message : 'Demande enregistrée.');
+    } catch (err) {
+      setErreur(reporterErreurServeur(err, setError, { motsCles: { email: /e-mail invalide|adresse e-mail de votre compte/i } }));
+    }
+  };
+
   return (
-    <form onSubmit={handleResetSubmit} className="space-y-3.5 md:space-y-4 lg:space-y-5 animate-fade-in">
-      {resetError && (
-        <div className="p-2.5 text-xs text-primary bg-primary-light rounded-xl border border-primary/20 font-semibold">
-          {resetError}
+    <div className="space-y-3.5 md:space-y-4 animate-fade-in" id="mot-de-passe-oublie">
+      {confirmation ? (
+        <div role="status" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs leading-relaxed space-y-1.5">
+          <p className="font-black">Demande enregistrée.</p>
+          <p>{confirmation}</p>
+          <p>Pensez à vérifier vos courriers indésirables. Sans e-mail, contactez l'administration de votre école.</p>
         </div>
+      ) : (
+        <form id="form-mot-de-passe-oublie" onSubmit={handleSubmit(demander)} noValidate data-validation-externe className="space-y-3">
+          <p className="text-xs text-[#5E4B49] leading-relaxed">
+            Saisissez l'adresse e-mail de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.
+          </p>
+          <div>
+            <label htmlFor="oubli-email" className="block text-[11px] font-bold text-[#5E4B49] mb-1">Adresse e-mail</label>
+            <input id="oubli-email" type="email" autoComplete="email" placeholder="prenom.nom@ecole.sn"
+              className="w-full h-11 px-3.5 rounded-xl border border-[#E2DCDA] bg-white text-sm focus:outline-none focus:border-primary aria-[invalid=true]:border-rose-400"
+              {...register('email')}
+              {...(errors.email ? { 'aria-invalid': true, 'aria-describedby': 'oubli-email-erreur' } : {})} />
+            {errors.email && <p id="oubli-email-erreur" role="alert" className="mt-1 text-[11px] font-bold text-rose-700">{errors.email.message}</p>}
+          </div>
+          {erreur && <p role="alert" className="text-[11px] font-bold text-rose-700">{erreur}</p>}
+          <button type="submit" disabled={isSubmitting} onMouseDown={e => e.preventDefault()}
+            className="w-full h-11 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-wider disabled:opacity-60 cursor-pointer">
+            {isSubmitting ? 'Envoi…' : 'Recevoir le lien'}
+          </button>
+        </form>
       )}
-
-      <div className="space-y-1">
-        <p className="text-[#8E7977] text-[11px] md:text-xs leading-relaxed mb-2.5">
-          Saisissez l'adresse e-mail associée à votre compte. Nous vous enverrons un lien de réinitialisation sécurisé.
-        </p>
-        <label className="text-[12px] font-bold text-[#3E2927] block" htmlFor="resetEmail">
-          Adresse e-mail <span className="text-status-danger font-bold">*</span>
-        </label>
-        <div className="relative group">
-          <span translate="no" className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-primary transition-colors">mail</span>
-          <input
-            className="w-full h-11 md:h-12 pl-10 pr-4 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-1 focus:ring-primary/10 text-[#291715] transition-all outline-none"
-            id="resetEmail"
-            name="resetEmail"
-            placeholder="votre_adresse@ecole.sn"
-            required
-            type="email"
-            value={resetEmail}
-            onChange={(e) => setResetEmail(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <button
-        className="w-full h-11 bg-primary hover:opacity-95 text-text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-primary/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        type="submit"
-        disabled={resetLoading}
-      >
-        <span>{resetLoading ? 'Envoi du lien...' : 'Envoyer le lien'}</span>
-      </button>
-
       <div className="flex justify-center pt-1">
         <button
           type="button"
-          onClick={() => setCurrentView('CONNEXION')}
+          onClick={onRetour}
           className="flex items-center gap-1 text-[11px] font-bold text-[#8E7977] hover:text-primary transition-colors cursor-pointer"
         >
           <span translate="no" className="material-symbols-outlined text-[15px]">arrow_back</span>
           <span>Retour à la connexion</span>
         </button>
       </div>
-    </form>
+    </div>
   );
 }

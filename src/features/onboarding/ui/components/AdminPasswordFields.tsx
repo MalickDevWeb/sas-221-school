@@ -6,6 +6,8 @@ interface AdminPasswordFieldsProps {
   confirmPassword?: string;
   error?: string;
   confirmError?: string;
+  /** Longueur minimale donnée par le serveur (GET /auth/regles-mot-de-passe?role=ADMIN) ; null si inconnue. */
+  longueurMin?: number | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -14,21 +16,21 @@ export const AdminPasswordFields: React.FC<AdminPasswordFieldsProps> = ({
   confirmPassword = '',
   error,
   confirmError,
+  longueurMin = null,
   onChange,
 }) => {
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Évaluation de la robustesse
-  const hasMinLen = password.length >= 8;
-  const hasDigitOrSpecial = /[0-9!@#$%^&*(),.?":{}|<>]/.test(password);
-  const hasUpper = /[A-Z]/.test(password);
-  const strengthScore = Number(hasMinLen) + Number(hasDigitOrSpecial) + Number(hasUpper);
-
-  const strengthColor =
-    strengthScore === 3 ? 'bg-emerald-500' : strengthScore === 2 ? 'bg-amber-500' : 'bg-rose-500';
-  const strengthLabel =
-    strengthScore === 3 ? 'Robuste' : strengthScore === 2 ? 'Moyen' : 'Faible (min. 8 car.)';
+  // Longueur exigée par le serveur pour l'administration d'école (phrases de passe acceptées) ; pas
+  // d'indicateur « majuscule, chiffre, caractère spécial », contraire à la politique du serveur. Le serveur refuse en
+  // plus les mots de passe courants et ceux qui reprennent le nom de l'école, le nom, l'e-mail ou le téléphone.
+  const longueur = [...password].length;
+  const longueurOk = longueurMin !== null && longueur >= longueurMin;
+  const strengthColor = longueurOk ? 'bg-emerald-500' : 'bg-amber-500';
+  const strengthLabel = longueurMin === null
+    ? `${longueur} caractères`
+    : longueurOk ? `${longueur} caractères : longueur suffisante` : `${longueur} caractères sur ${longueurMin} au minimum`;
 
   const getInputClass = (hasErr?: boolean) =>
     `w-full rounded-xl border ${
@@ -38,17 +40,11 @@ export const AdminPasswordFields: React.FC<AdminPasswordFieldsProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
       <div>
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Icon icon="solar:lock-password-bold-duotone" className="text-purple-400 text-sm" />
-            <span>Mot de passe administrateur</span>
-          </span>
-          {password && (
-            <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 lowercase">
-              <span className={`w-1.5 h-1.5 rounded-full ${strengthColor}`} />
-              {strengthLabel}
-            </span>
-          )}
+        {/* Libellé sur une ligne (comme « Confirmer ») pour que les deux champs restent alignés ;
+            la robustesse est indiquée sous le champ. */}
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+          <Icon icon="solar:lock-password-bold-duotone" className="text-purple-400 text-sm" />
+          <span>Mot de passe</span>
         </label>
         <div className="relative">
           <input
@@ -58,7 +54,7 @@ export const AdminPasswordFields: React.FC<AdminPasswordFieldsProps> = ({
             autoComplete="new-password"
             value={password}
             onChange={onChange}
-            placeholder="Minimum 8 caractères"
+            placeholder={longueurMin !== null ? `Au moins ${longueurMin} caractères` : 'Une phrase de plusieurs mots'}
             className={getInputClass(!!error)}
           />
           <button
@@ -69,11 +65,17 @@ export const AdminPasswordFields: React.FC<AdminPasswordFieldsProps> = ({
             <Icon icon={showPwd ? 'solar:eye-bold' : 'solar:eye-closed-bold'} className="text-base" />
           </button>
         </div>
-        {error && <p className="mt-1 text-xs text-rose-400 font-medium flex items-center gap-1">⚠️ {error}</p>}
+        {password && !error && (
+          <p className="mt-1 text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${strengthColor}`} />
+            {strengthLabel}
+          </p>
+        )}
+        {error && <p id="adminPassword-erreur" role="alert" className="mt-1 text-xs text-rose-400 font-medium flex items-center gap-1">⚠️ {error}</p>}
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
           <Icon icon="solar:shield-check-bold-duotone" className="text-purple-400 text-sm" />
           <span>Confirmer le mot de passe</span>
         </label>

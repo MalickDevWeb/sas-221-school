@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Crown, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
+import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/shared/lib/apiClient';
 import type { PlanDto, CreatePlanCommand, Entitlement } from '@/features/super-admin/domain/models/PlatformModels';
 import { FEATURE_LABELS } from './billingConstants';
@@ -12,13 +14,28 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
       { featureCode: 'MAX_STUDENTS', maxLimit: 100, isEnabled: true },
       { featureCode: 'MAX_TEACHERS', maxLimit: 20, isEnabled: true },
       { featureCode: 'MAX_CLASSES', maxLimit: 10, isEnabled: true },
-      { featureCode: 'AI_TUTOR', maxLimit: 0, isEnabled: false },
       { featureCode: 'LIVE_MEET', maxLimit: 0, isEnabled: false },
       { featureCode: 'ADVANCED_REPORTS', maxLimit: 0, isEnabled: false },
       { featureCode: 'MULTI_CAMPUS', maxLimit: 0, isEnabled: false },
     ],
   });
-  const [loading, setLoading] = useState(false);
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: CreatePlanCommand) => {
+      const { data } = await apiClient.post<PlanDto>('/v1/super-admin/plans', payload);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`✅ Plan "${data.name}" créé avec succès !`);
+      onCreated(data);
+      onClose();
+    },
+    onError: (err) => {
+      toast.error(resolveErrorMessage(err));
+    },
+  });
+
+  const loading = createMutation.isPending;
 
   const toggleFeature = (code: string) => {
     setForm((f: CreatePlanCommand) => ({
@@ -33,19 +50,9 @@ export const CreatePlanModal: React.FC<{ onClose: () => void; onCreated: (p: Pla
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const { data } = await apiClient.post<PlanDto>('/v1/super-admin/plans', form);
-      toast.success(`✅ Plan "${data.name}" créé avec succès !`);
-      onCreated(data);
-      onClose();
-    } catch {
-      toast.error('Erreur lors de la création du plan.');
-    } finally {
-      setLoading(false);
-    }
+    createMutation.mutate(form);
   };
 
   return (

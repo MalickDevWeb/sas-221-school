@@ -1,19 +1,22 @@
+import type { Profil360 } from './profil360';
 import React, { useState } from 'react';
 import { Student } from '../../../../domain/StudentModels';
-import { getStudentERPData } from './utils/StudentMockData';
+import { PROFIL_VIDE } from './utils/profilVide';
 import { ConnectionsTable, AuditTrailTable } from './SecurityTables';
+import { MotDePasseEleve } from './MotDePasseEleve';
 
 interface Props {
   selectedStudent: Student;
-  erpData?: any;
+  erpData?: Profil360 | null;
 }
 
 export function TabSecurity({ selectedStudent, erpData }: Props) {
-  const finalErpData = erpData || getStudentERPData(selectedStudent.id, selectedStudent.name);
+  const finalErpData = erpData ?? PROFIL_VIDE;
   const [secTab, setSecTab] = useState<'connections' | 'audit'>('connections');
 
   return (
     <div className="space-y-4 text-xs font-semibold text-neutral-600" id="tab-security">
+      <MotDePasseEleve eleveId={selectedStudent.id} nomEleve={selectedStudent.name} />
       <div className="flex border-b border-neutral-100 gap-2 pb-2">
         <button
           onClick={() => setSecTab('connections')}

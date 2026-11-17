@@ -39,8 +39,11 @@ export const SchoolRegistrationPage: React.FC = () => {
     handleLogoUpload,
     step,
     setStep,
+    allerAEtape,
     goToNextStep,
     goToPrevStep,
+    slugStatus,
+    verificationEnCours,
     isLoading,
     showSuccessModal,
     setShowSuccessModal,
@@ -164,7 +167,8 @@ export const SchoolRegistrationPage: React.FC = () => {
           </div>
 
           {/* Indicateur d'étapes */}
-          <StepProgressIndicator currentStep={step} onStepClick={setStep} />
+          {/* Avancer par l'indicateur passe par la même vérification que « Continuer » */}
+          <StepProgressIndicator currentStep={step} onStepClick={(n) => { void allerAEtape(n); }} />
 
           {/* Titre & Sous-titre de l'étape courante */}
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1.5 tracking-tight">
@@ -174,7 +178,7 @@ export const SchoolRegistrationPage: React.FC = () => {
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mb-6">
             {step === 1 && 'Donnez un nom et une adresse web personnalisée à votre établissement.'}
-            {step === 2 && "Choisissez votre palette de couleurs ou laissez l'IA analyser votre logo."}
+            {step === 2 && "Choisissez votre palette de couleurs ou laissez l'application extraire celles de votre logo."}
             {step === 3 && 'Configurez les accès du directeur ou responsable principal.'}
           </p>
 
@@ -182,14 +186,17 @@ export const SchoolRegistrationPage: React.FC = () => {
           <PlanBanner planParam={planParam} isTrial={isTrial} />
 
           {/* Formulaire Multi-Étapes avec animations de transition */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">   {/* validation de l'application (messages sous les champs), pas celle du navigateur */}
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <IdentityStepForm
                   key="step-1"
                   formData={formData}
                   onChange={handleChange}
-                  onNext={goToNextStep}
+                  onNext={() => { void goToNextStep(); }}
+                  fieldErrors={fieldErrors}
+                  slugStatus={slugStatus}
+                  verificationEnCours={verificationEnCours}
                 />
               )}
 
@@ -252,6 +259,7 @@ export const SchoolRegistrationPage: React.FC = () => {
         title={errorModal.title}
         message={errorModal.message}
         field={errorModal.field}
+        proposerConnexion={errorModal.field === 'Email administrateur'}
         onClose={closeErrorModal}
       />
 

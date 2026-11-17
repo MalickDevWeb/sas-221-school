@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AuditLog, GroupEvaluation } from '../domain/TaskWikiModels';
 import { subscribeAudits, saveAudit } from '../infrastructure/wikiService';
 import { subscribeEvaluations, saveEvaluation } from '../infrastructure/groupService';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 
 export function useGroupAuditState(triggerToast: (msg: string, isSuccess: boolean) => void) {
   const [audits, setAudits] = useState<readonly AuditLog[]>([]);
@@ -18,14 +19,13 @@ export function useGroupAuditState(triggerToast: (msg: string, isSuccess: boolea
 
   const addAuditLog = useCallback(async (groupId: string, userName: string, action: string) => {
     const timestamp = new Date().toLocaleString('fr-FR');
-    const randomIp = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
     const newLog: AuditLog = {
       id: `audit-${Date.now()}`,
       groupId,
       timestamp,
       userName,
       action,
-      ipAddress: randomIp,
+      // Adresse IP non connue côté client : jamais inventée (le serveur peut la renseigner)
     };
     await saveAudit(newLog);
   }, []);
@@ -47,8 +47,12 @@ export function useGroupAuditState(triggerToast: (msg: string, isSuccess: boolea
       criteria,
       gradedBy,
     };
-    await saveEvaluation(newEval);
-    triggerToast('Évaluation du groupe enregistrée avec succès !', true);
+    try {
+      await saveEvaluation(newEval);
+      triggerToast('Évaluation du groupe enregistrée.', true);
+    } catch (err) {
+      triggerToast(`Évaluation non enregistrée : ${resolveErrorMessage(err)}`, false);
+    }
   }, [triggerToast]);
 
   return {

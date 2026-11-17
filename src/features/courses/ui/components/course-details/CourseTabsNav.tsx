@@ -1,13 +1,11 @@
 import React from 'react';
+import type { useCourseDetailState } from './useCourseDetailState';
 
-export function CourseTabsNav({ state }: { state: any }) {
+export function CourseTabsNav({ state }: { state: ReturnType<typeof useCourseDetailState> }) {
   const { activeTab, setActiveTab, details } = state;
   return (
     <div className="flex border-b border-neutral-gray-200 bg-white shrink-0 overflow-x-auto no-scrollbar">
-      <button onClick={() => setActiveTab('parcours')} className={`flex-grow sm:flex-1 py-4 px-3 text-center font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all border-b-2 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${activeTab === 'parcours' ? 'border-brand-red-deep text-brand-red-deep bg-[#FFF8F7]/30' : 'border-transparent text-neutral-400 hover:text-neutral-600 hover:bg-[#FAF9F7]/50'}`}>
-        <span translate="no" className="material-symbols-outlined text-lg">explore</span>
-        Mon Parcours
-      </button>
+      {/* Charte §3.10 : onglet « Mon Parcours » retiré (séquences, crédits et horaires inventés, identiques pour toutes les matières) */}
       <button onClick={() => setActiveTab('chapters')} className={`flex-grow sm:flex-1 py-4 px-3 text-center font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all border-b-2 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${activeTab === 'chapters' ? 'border-brand-red-deep text-brand-red-deep bg-[#FFF8F7]/30' : 'border-transparent text-neutral-400 hover:text-neutral-600 hover:bg-[#FAF9F7]/50'}`}>
         <span translate="no" className="material-symbols-outlined text-lg">auto_stories</span>
         Détails & Progression

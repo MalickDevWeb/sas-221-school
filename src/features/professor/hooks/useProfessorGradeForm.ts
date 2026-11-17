@@ -16,14 +16,11 @@ export function useProfessorGradeForm(professor: ProfessorWithGrades, triggerToa
   }, []);
 
   const handleGradeSave = useCallback(async (studentId: string) => {
-    try {
-      await professor.handleUpdateGrade(studentId, editCC, editExam);
-      setEditingGradeStudentId(null);
-      triggerToast('Note enregistrée avec succès !');
-    } catch (err) {
-      triggerToast('Erreur lors de la mise à jour');
-      throw err;
-    }
+    // En cas d'échec, l'erreur remonte telle quelle : le message réel (ex. « Note "cc" hors de l'intervalle
+    // 0–20 ») est affiché par handleUpdateGrade, et ni le toast de succès ni la fermeture n'ont lieu.
+    await professor.handleUpdateGrade(studentId, editCC, editExam);
+    setEditingGradeStudentId(null);
+    triggerToast('Note enregistrée avec succès !');
   }, [editCC, editExam, professor, triggerToast]);
 
   return {

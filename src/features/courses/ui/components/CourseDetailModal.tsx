@@ -18,10 +18,9 @@ export function CourseDetailModal({ course, onClose, triggerToast }: CourseDetai
   const state = useCourseDetailModalState(course, triggerToast);
   const {
     details, activeTab, setActiveTab,
-    selectedAnswers, quizValidated,
     uploadedFiles, setUploadedFiles, uploadingId, uploadProgress,
     homeworkStatus, setHomeworkStatus,
-    handleSelectOption, handleValidateQuiz, handleResetQuiz, handleFileChange
+    handleFileChange
   } = state;
 
   return createPortal(
@@ -78,16 +77,7 @@ export function CourseDetailModal({ course, onClose, triggerToast }: CourseDetai
             <div className="flex-1 p-5 md:p-6 overflow-y-auto min-h-0 space-y-5 no-scrollbar">
               {activeTab === 'chapters' && <CourseChaptersTab state={{ course, details }} />}
               {activeTab === 'resources' && <CourseResourcesTab course={course} details={details} triggerToast={triggerToast} />}
-              {activeTab === 'quizzes' && (
-                <CourseQuizzesTab
-                  details={details}
-                  selectedAnswers={selectedAnswers}
-                  handleSelectOption={handleSelectOption}
-                  quizValidated={quizValidated}
-                  handleValidateQuiz={handleValidateQuiz}
-                  handleResetQuiz={handleResetQuiz}
-                />
-              )}
+              {activeTab === 'quizzes' && <CourseQuizzesTab courseId={course.id} />}
               {activeTab === 'homework' && (
                 <CourseHomeworksTab
                   details={details}

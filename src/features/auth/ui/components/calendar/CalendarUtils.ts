@@ -15,6 +15,7 @@ const DAY_MAP: Record<string, number> = {
   MER: 3,
   JEU: 4,
   VEN: 5,
+  SAM: 6,
 };
 
 export function getNextCourse(sessions: readonly CourseSession[], currentHourStr: string = "11:22"): NextCourseCountdown | null {

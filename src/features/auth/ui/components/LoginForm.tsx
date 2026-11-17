@@ -1,14 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from '@iconify/react';
 import confetti from 'canvas-confetti';
 import { useLogin } from '../../hooks/useLogin';
+import { prechargerEspacePresume, usePrechargementEspaceDeLAppareil } from '../../hooks/prechargementConnexion';
 import { useCandidatureSettings } from '../../hooks/useCandidatureSettings';
 import { useTenantStore } from '@/core/store/tenantStore';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { ResetSuccessMessage } from './ResetSuccessMessage';
 import { ROUTES } from '@/shared/constants';
+
+/**
+ * Règles de saisie de la connexion (APP-FE-14 : react-hook-form + zod, décision APP-TL-08).
+ * APP-TL-23 : un élève inscrit sans e-mail se connecte avec son MATRICULE. Un identifiant avec « @ » doit
+ * être une adresse valide ; sans « @ », c'est un matricule (lettres, chiffres et tirets). Le serveur n'accepte le
+ * matricule que pour un compte élève.
+ */
+const FORMAT_MATRICULE = /^[A-Za-z0-9][A-Za-z0-9-]{2,39}$/;
+const schemaConnexion = z.object({
+  email: z.string().trim()
+    .min(1, 'Saisissez votre adresse e-mail ou votre matricule.')
+    .superRefine((v, ctx) => {
+      if (v.includes('@')) {
+        if (!z.string().email().safeParse(v).success) {
+          ctx.addIssue({ code: 'custom', message: 'Adresse e-mail invalide : vérifiez le format (ex. prenom.nom@ecole.sn).' });
+        }
+      } else if (!FORMAT_MATRICULE.test(v)) {
+        ctx.addIssue({ code: 'custom', message: 'Saisissez une adresse e-mail (ex. prenom.nom@ecole.sn) ou un matricule (ex. ETU-2026-…).' });
+      }
+    }),
+  password: z.string().min(1, 'Saisissez votre mot de passe.'),
+});
+type Connexion = z.infer<typeof schemaConnexion>;
 
 interface LoginFormProps {
   isMobile?: boolean;
@@ -16,15 +42,18 @@ interface LoginFormProps {
 
 export function LoginForm({ isMobile = false }: LoginFormProps) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { register, handleSubmit, setValue, clearErrors, formState: { errors } } = useForm<Connexion>({
+    resolver: zodResolver(schemaConnexion),
+    defaultValues: { email: '', password: '' },
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [currentView, setCurrentView] = useState<'CONNEXION' | 'MOT_DE_PASSE_OUBLIE' | 'SUCCESS'>('CONNEXION');
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetError, setResetError] = useState('');
+  const [currentView, setCurrentView] = useState<'CONNEXION' | 'MOT_DE_PASSE_OUBLIE'>('CONNEXION');
   const { executer, etat, erreur } = useLogin();
   const { settings } = useCandidatureSettings();
+  // Code de l'espace téléchargé pendant la saisie quand il est connu d'avance (appareil déjà utilisé par des
+  // comptes du même espace ; identifiant saisi : matricule ou compte déjà connecté ici) — jamais à l'aveugle
+  usePrechargementEspaceDeLAppareil();
+  const champIdentifiant = register('email');
 
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
   const currentTenant = useTenantStore((s) => s.currentTenant);
@@ -32,42 +61,8 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
   const isDefaultSchool = activeSlug === 'ecole221' || activeSlug === 'ecole-221';
   const schoolDisplayName = isDefaultSchool ? 'École 221' : (currentTenant?.name || activeSlug.toUpperCase());
 
-  const localRegisteredAdmin = typeof window !== 'undefined'
-    ? localStorage.getItem(`tenant_admin_${activeSlug}`)
-    : null;
 
-  const quickCredentials = {
-    admin: {
-      label: 'Admin',
-      email: isDefaultSchool ? 'admin221@gmail.com' : (localRegisteredAdmin || `admin@${activeSlug}.sn`),
-      password: 'ecole221',
-      badgeClass: 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200',
-    },
-    etudiant: {
-      label: 'Étudiant',
-      email: isDefaultSchool ? 'etudiant221@gmail.com' : `etudiant@${activeSlug}.sn`,
-      password: 'ecole221',
-      badgeClass: 'bg-[#EAF7EE] hover:bg-[#D0EBD9] text-[#1E5E3A] border-[#1E5E3A]/20',
-    },
-    professeur: {
-      label: 'Prof',
-      email: isDefaultSchool ? 'professeur221@gmail.com' : `prof@${activeSlug}.sn`,
-      password: 'ecole221',
-      badgeClass: 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200',
-    },
-    vigile: {
-      label: 'Vigile',
-      email: isDefaultSchool ? 'vigile221@gmail.com' : `vigile@${activeSlug}.sn`,
-      password: 'ecole221',
-      badgeClass: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200',
-    },
-    parent: {
-      label: 'Parent',
-      email: isDefaultSchool ? 'parent221@gmail.com' : `parent@${activeSlug}.sn`,
-      password: 'ecole221',
-      badgeClass: 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200',
-    },
-  };
+  // Boutons « Identifiants rapides » retirés (adresses inventées, même en mode développement).
 
   const loading = etat === 'CHARGEMENT';
   const success = etat === 'SUCCES';
@@ -84,49 +79,20 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
     }
   }, [success]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || loading || success) return;
-    executer({ email, motDePasse: password });
-  };
-
-  const handleResetSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) return;
-    setResetLoading(true);
-    setResetError('');
-    setTimeout(() => {
-      setResetLoading(false);
-      setCurrentView('SUCCESS');
-    }, 1200);
+  const seConnecter = (v: Connexion) => {
+    if (loading || success) return;
+    executer({ email: v.email, motDePasse: v.password });
   };
 
   if (currentView === 'MOT_DE_PASSE_OUBLIE') {
-    return (
-      <ForgotPasswordForm
-        resetEmail={resetEmail}
-        setResetEmail={setResetEmail}
-        resetLoading={resetLoading}
-        resetError={resetError}
-        handleResetSubmit={handleResetSubmit}
-        setCurrentView={setCurrentView}
-      />
-    );
-  }
-
-  if (currentView === 'SUCCESS') {
-    return (
-      <ResetSuccessMessage
-        resetEmail={resetEmail}
-        setCurrentView={setCurrentView}
-        setResetEmail={setResetEmail}
-      />
-    );
+    return <ForgotPasswordForm onRetour={() => setCurrentView('CONNEXION')} />;
   }
 
   return (
     <motion.form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(seConnecter)}
+      noValidate
+      data-validation-externe
       animate={etat === 'ERREUR' ? { x: [-8, 8, -6, 6, -3, 3, 0] } : {}}
       transition={{ duration: 0.4 }}
       className={`space-y-3.5 ${isMobile ? 'pt-1 space-y-3' : 'md:space-y-4'}`}
@@ -159,20 +125,25 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
 
       <div className="space-y-1">
         <label className={`text-[12px] font-bold block ${isMobile ? 'text-[#3E2927] mb-[2px]' : 'text-[#3E2927]'}`} htmlFor="email">
-          Adresse e-mail <span className="text-[#DE4E3F] font-bold">*</span>
+          Adresse e-mail ou matricule <span className="text-[#DE4E3F] font-bold">*</span>
         </label>
         <div className="relative group">
           <Icon icon="solar:letter-bold-duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E7977]/80 text-[18px] pointer-events-none group-focus-within:text-primary transition-colors" />
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-4 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="email"
-            required
             type="email"
-            value={email}
+            autoCapitalize="none"
+            spellCheck={false}
+            autoComplete="username"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-erreur' : undefined}
             disabled={loading || success}
-            onChange={(e) => setEmail(e.target.value)}
+            {...champIdentifiant}
+            onBlur={(e) => { void champIdentifiant.onBlur(e); prechargerEspacePresume(e.target.value); }}
           />
         </div>
+        {errors.email && <p id="email-erreur" role="alert" className="text-[11px] font-semibold text-red-600">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -184,11 +155,12 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           <input
             className="w-full h-11 md:h-12 bg-[#FAF8F6] border border-[#E2DCDA] rounded-xl text-xs placeholder-[#A29492] focus:border-primary focus:ring-2 focus:ring-primary/10 pl-10 pr-10 text-[#291715] transition-all outline-none disabled:opacity-60"
             id="password"
-            required
             type={showPassword ? 'text' : 'password'}
-            value={password}
+            autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'password-erreur' : undefined}
             disabled={loading || success}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register('password')}
           />
           <button
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E7977]/80 hover:text-[#1c1110] transition-colors p-1 flex items-center justify-center rounded-md cursor-pointer"
@@ -198,6 +170,7 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
             <Icon icon={showPassword ? 'solar:eye-closed-bold-duotone' : 'solar:eye-bold-duotone'} className="text-[18px]" />
           </button>
         </div>
+        {errors.password && <p id="password-erreur" role="alert" className="text-[11px] font-semibold text-red-600">{errors.password.message}</p>}
       </div>
 
       {/* Bouton d'action principal avec State Machine */}
@@ -252,7 +225,6 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
           type="button"
           onClick={() => {
             setCurrentView('MOT_DE_PASSE_OUBLIE');
-            setResetEmail(email);
           }}
           className="text-[#8E7977] hover:text-primary hover:underline transition-colors cursor-pointer"
         >
@@ -260,29 +232,6 @@ export function LoginForm({ isMobile = false }: LoginFormProps) {
         </button>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-[#E2DCDA]/60 space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-bold text-[#3E2927] uppercase tracking-wider">
-            Identifiants Rapides ({schoolDisplayName}) :
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(quickCredentials).map(([key, item]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setEmail(item.email);
-                setPassword(item.password);
-              }}
-              title={`${item.label} : ${item.email}`}
-              className={`px-2.5 py-1 text-[9.5px] font-black rounded-lg border transition-all cursor-pointer active:scale-95 ${item.badgeClass}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </motion.form>
   );
 }

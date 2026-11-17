@@ -44,21 +44,27 @@ export const SubscriptionQuotaSection: React.FC<SubscriptionQuotaSectionProps> =
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900">Utilisation des ressources</h3>
-            <p className="text-xs text-gray-400">Suivez la consommation de vos quotas en temps réel</p>
+            <p className="text-xs text-gray-400">Quotas de votre formule et consommation réelle de l'établissement</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={onUpgradeClick}
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/70 transition-colors"
         >
-          Ajuster les quotas <ArrowUpRight size={14} />
+          Voir les formules <ArrowUpRight size={14} />
         </button>
       </div>
 
+      {features.length === 0 && (
+        <p className="text-sm text-gray-500">Aucun quota n'est précisé pour votre formule.</p>
+      )}
       <div className="space-y-5">
         {features.map((feat, index) => {
-          const percent = Math.min(100, Math.round((feat.used / feat.limit) * 100));
-          const { bar, text } = getStatusStyles(percent);
+          // pourcentage seulement si la consommation est mesurée et la limite connue
+          const limite = feat.limit && feat.limit > 0 ? feat.limit : null;
+          const percent = feat.used !== null && limite !== null ? Math.min(100, Math.round((feat.used / limite) * 100)) : null;
+          const { bar, text } = getStatusStyles(percent ?? 0);
 
           return (
             <div key={feat.code} className="p-3.5 rounded-2xl bg-gray-50/60 border border-gray-100/80 hover:bg-gray-50 transition-colors">
@@ -71,15 +77,21 @@ export const SubscriptionQuotaSection: React.FC<SubscriptionQuotaSectionProps> =
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500 font-medium">
-                    <strong className="text-gray-900 font-bold">{feat.used}</strong> / {feat.limit}
+                    {feat.used !== null
+                      ? <strong className="text-gray-900 font-bold">{feat.used}</strong>
+                      : <span className="italic">non mesuré</span>}
+                    {' / '}{limite !== null ? limite : 'limite non précisée'}
                   </span>
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${text}`}>
-                    {percent}%
-                  </span>
+                  {percent !== null && (
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${text}`}>
+                      {percent}%
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Animated Progress Bar */}
+              {percent !== null && (
               <div className="h-2.5 bg-gray-200/70 rounded-full overflow-hidden p-0.5">
                 <motion.div
                   initial={{ width: 0 }}
@@ -88,11 +100,12 @@ export const SubscriptionQuotaSection: React.FC<SubscriptionQuotaSectionProps> =
                   className={`h-full rounded-full shadow-xs ${bar}`}
                 />
               </div>
+              )}
 
-              {percent >= 80 && (
+              {percent !== null && percent >= 80 && (
                 <div className="flex items-center gap-1.5 mt-2 text-[11px] text-amber-600 font-medium">
                   <AlertCircle size={12} className="flex-shrink-0" />
-                  <span>Seuil de sécurité atteint ({percent}%). Pensez à augmenter la capacité.</span>
+                  <span>Seuil de sécurité atteint ({percent}%). Une formule plus large se demande à l'équipe My School.</span>
                 </div>
               )}
             </div>

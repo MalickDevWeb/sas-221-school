@@ -1,6 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { ROUTES } from '@/shared/constants';
+import { useTenantStore } from '@/core/store/tenantStore';
+import { useAuthStore } from '@/core/store/authStore';
+import { messageErreur, marquerErreurAffichee, erreurDejaAffichee } from '@/shared/errors/errorDictionary';
+import { objetBrut, texteOuNull } from '@/shared/lib/lectureServeur';
 
 let lastNetworkToastTime = 0;
 const TOAST_THROTTLE_MS = 10_000;
@@ -13,7 +17,6 @@ export function isBackgroundUrl(url?: string): boolean {
     url.includes('/collaboration/') ||
     url.includes('/notifications/') ||
     url.includes('/checkpoint-status') ||
-    url.includes('/student/tutor/') ||
     url.includes('/attendances') ||
     url.includes('/audits') ||
     url.includes('/notes') ||
@@ -28,25 +31,29 @@ function showThrottledNetworkError() {
   const now = Date.now();
   if (now - lastNetworkToastTime > TOAST_THROTTLE_MS) {
     lastNetworkToastTime = now;
-    toast.error('Erreur de connexion', {
-      description: 'Veuillez vérifier votre connexion réseau.'
+    toast.error('Connexion impossible', {
+      id: 'erreur-reseau',   // une seule notification, même si plusieurs appels échouent ensemble
+      description: 'Vérifiez votre connexion Internet. L\'application réessaie automatiquement.',
     });
   }
 }
+
+let derniereSessionExpiree = 0;
 
 function handleAuthRedirect(currentPath: string) {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('ecole-221-auth-storage');
 
-  let tenantSlug = '';
-  try {
+  // École de l'URL d'abord (/t/<école>/…), sinon celle mémorisée
+  let tenantSlug = currentPath.match(/^\/t\/([^/]+)/)?.[1] || '';
+  if (!tenantSlug) try {
     const stored = localStorage.getItem('tenant-storage');
     if (stored) {
       const parsed = JSON.parse(stored);
       tenantSlug = parsed?.state?.currentTenant?.slug || '';
     }
-  } catch {}
+  } catch { /* état persisté illisible : pas d'école pour la redirection */ }
 
   if (currentPath.startsWith('/super-admin')) {
     window.location.href = '/super-admin';
@@ -64,14 +71,43 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
     return Promise.reject(error);
   }
 
+  // Message lisible pour les écrans qui affichent error.message — dictionnaire d'erreurs commun, en français.
+  try {
+    error.message = messageErreur(error);
+  } catch { /* message d'origine conservé */ }
+
   const status = error.response?.status;
   const url = error.config?.url || '';
   const isLoginRequest = url.includes('auth/login');
-  if (isLoginRequest || status === 401) {
+  const currentPath = (window.location.pathname.replace(/\/+$/, '') || '/');
+
+  // Session expirée ou invalidée (jeton refusé)
+  if (status === 401) {
+    const surPageDeConnexion = currentPath === ROUTES.login || /\/login$/.test(currentPath) ||
+      ['/', '/accueil', '/admin', '/super-admin'].includes(currentPath);
+    let sessionOuverte = false;
+    try { sessionOuverte = !!localStorage.getItem('ecole-221-auth-storage'); } catch { /* stockage indisponible */ }
+    if (!isLoginRequest && sessionOuverte && !surPageDeConnexion) {
+      const maintenant = Date.now();
+      if (maintenant - derniereSessionExpiree > 5000) {
+        derniereSessionExpiree = maintenant;
+        toast.error('Session expirée', { description: 'Veuillez vous reconnecter.' });
+        handleAuthRedirect(currentPath);
+      }
+    }
+    return Promise.reject(error);
+  }
+  if (isLoginRequest) {
     return Promise.reject(error);
   }
 
-  const currentPath = (window.location.pathname.replace(/\/+$/, '') || '/');
+  // Mot de passe provisoire pas encore remplacé (session ouverte avant la règle, ou drapeau perdu) :
+  // on affiche l'écran de changement au lieu d'un « Erreur 403 » par requête refusée.
+  if (status === 403 && (error.response?.data as { code?: string } | undefined)?.code === 'MOT_DE_PASSE_PROVISOIRE') {
+    useAuthStore.getState().marquerMotDePasseProvisoire(true);
+    marquerErreurAffichee(error);
+    return Promise.reject(error);
+  }
   const isPublicOrLoginPage = currentPath === ROUTES.login ||
     currentPath === '/' || currentPath === '/accueil' ||
     currentPath === '/super-admin' || currentPath === '/admin' ||
@@ -79,13 +115,9 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
 
   if (status === 403 && !isPublicOrLoginPage) {
     toast.error('Accès refusé', {
+      id: 'erreur-acces',
       description: 'Vous n\'avez pas les permissions nécessaires.'
     });
-    return Promise.reject(error);
-  }
-
-  if (status === 401 && !isPublicOrLoginPage && !currentPath.includes('/dashboard')) {
-    handleAuthRedirect(currentPath);
     return Promise.reject(error);
   }
 
@@ -101,14 +133,38 @@ export async function handleApiResponseError(error: AxiosError): Promise<never> 
   if (status === 404 && responseData.includes('tenant not found')) {
     localStorage.removeItem('tenant_slug');
     localStorage.removeItem('tenant_id');
+    // École supprimée ou inexistante : page « Établissement introuvable » plutôt qu'une erreur 404 par écran
+    const slugUrl = currentPath.match(/^\/t\/([^/]+)/)?.[1];
+    if (slugUrl) {
+      try { localStorage.removeItem(`tenant_theme_${slugUrl}`); } catch { /* stockage indisponible */ }
+      useTenantStore.setState({ currentTenant: null, error: `introuvable:${slugUrl}` });
+    }
     return Promise.reject(error);
   }
 
   if (status === 500 && (responseData.includes('proxy') || responseData.includes('econnrefused'))) {
     if (!isBackgroundUrl(url)) showThrottledNetworkError();
+  } else if ((status ?? 0) >= 500 && !isBackgroundUrl(url)) {
+    // Une panne du serveur donne UNE notification claire.
+    setTimeout(() => {
+      if (erreurDejaAffichee(error)) return;
+      toast.error('Le serveur ne répond pas', {
+        id: 'erreur-serveur',
+        description: 'Certaines informations ne peuvent pas s\'afficher pour le moment. Réessayez dans quelques instants.',
+      });
+    }, 0);
   } else if (status !== 404 && !isBackgroundUrl(url)) {
-    const serverMsg = (error.response?.data as any)?.message;
-    toast.error(`Erreur ${status}`, { description: serverMsg || `L'appel vers ${url} a échoué.` });
+    const serverMsg = texteOuNull(objetBrut(error.response?.data).message);
+    // Différé : si l'écran affiche lui-même le message (resolveErrorMessage dans son catch, exécuté avant
+    // ce délai), le message global n'est pas répété.
+    setTimeout(() => {
+      if (erreurDejaAffichee(error)) return;
+      const titre = status === 409 ? 'Action impossible' : status === 429 ? 'Trop de tentatives' : 'Demande refusée';
+      toast.error(titre, {
+        id: `erreur-${status}-${serverMsg ?? ''}`,   // la même erreur n'est affichée qu'une fois
+        description: serverMsg || 'Le serveur a refusé la demande. Vérifiez les informations saisies.',
+      });
+    }, 0);
   }
 
   return Promise.reject(error);

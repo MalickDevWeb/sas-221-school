@@ -3,17 +3,12 @@ import { CourseModalHeader } from './CourseModalHeader';
 import { CourseModalLeftColumn } from './CourseModalLeftColumn';
 import { CourseModalRightColumn } from './CourseModalRightColumn';
 
-const LEVEL_LABELS: Record<string, string> = {
-  L3GL: 'L3 developpement Web',
-  L2SR: 'L2 Systèmes & Réseaux',
-  M1IA: 'M1 Intelligence Artificielle',
-};
-
 export function CourseModal({ state }: { readonly state: any }) {
   const { selectedCourse } = state;
   if (!selectedCourse) return null;
 
-  const classLabel = LEVEL_LABELS[state.level] || 'L3 developpement Web';
+  // classe réelle de la séance
+  const classLabel = selectedCourse.classe || 'Classe non renseignée';
 
   return (
     <div 

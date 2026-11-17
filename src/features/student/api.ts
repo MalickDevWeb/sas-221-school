@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/apiClient';
+import { useQuery } from '@tanstack/react-query';
 import {
   StudentProfile,
   StudentDashboard,
@@ -8,7 +9,6 @@ import {
   LiveSessionDto,
   GradeDto,
   CourseDto,
-  HomeworkDto,
 } from './types';
 
 // 5) Endpoints Student (24 REST)
@@ -94,17 +94,12 @@ export const getCourses = async (): Promise<CourseDto[]> => {
   return data;
 };
 
-export const getCourseDetails = async (courseId: string) => {
-  const { data } = await apiClient.get(`/student/courses/${courseId}/details`);
+export const getCourseDetails = async (courseId: string): Promise<Record<string, unknown>> => {
+  const { data } = await apiClient.get<Record<string, unknown>>(`/student/courses/${courseId}/details`);
   return data;
 };
 
 // Devoirs
-export const getHomeworks = async (): Promise<HomeworkDto[]> => {
-  const { data } = await apiClient.get('/student/homeworks');
-  return data;
-};
-
 export const submitHomework = async (courseId: string, homeworkId: string, file: File, comment?: string) => {
   const form = new FormData();
   form.append('file', file);
@@ -115,34 +110,34 @@ export const submitHomework = async (courseId: string, homeworkId: string, file:
   return data;
 };
 
-export const startHomework = async (homeworkId: string, startTime: string) => {
-  const { data } = await apiClient.post(`/student/homeworks/${homeworkId}/start`, { startTime });
-  return data;
-};
 
-export const progressHomework = async (homeworkId: string, payload: { progress: number; timeSpent: number }) => {
-  const { data } = await apiClient.post(`/student/homeworks/${homeworkId}/progress`, payload);
-  return data;
-};
 
-// Quiz & tuteur IA
-export const submitQuiz = async (courseId: string, payload: { quizId: string; answers: { questionId: string; answer: string }[] }) => {
-  const { data } = await apiClient.post(`/student/courses/${courseId}/quizzes/submit`, payload);
-  return data;
-};
+// --- Hooks React Query ---
+export function useStudentProfile() {
+  return useQuery({
+    queryKey: ['student', 'profile'],
+    queryFn: getStudentProfile,
+  });
+}
 
-export const chatWithTutor = async (message: string) => {
-  const { data } = await apiClient.post('/student/tutor/chat', { message });
-  return data;
-};
+export function useStudentDashboard() {
+  return useQuery({
+    queryKey: ['student', 'dashboard'],
+    queryFn: getStudentDashboard,
+  });
+}
 
-// Emails
-export const sendNotification = async (payload: { recipientId: string; content: string }) => {
-  const { data } = await apiClient.post('/student/send-notification', payload);
-  return data;
-};
+export function useStudentGrades() {
+  return useQuery({
+    queryKey: ['student', 'grades'],
+    queryFn: getGrades,
+  });
+}
 
-export const requestConfirmation = async (payload: { type: string; target: string }) => {
-  const { data } = await apiClient.post('/student/request-confirmation', payload);
-  return data;
-};
+export function useStudentCourses() {
+  return useQuery({
+    queryKey: ['student', 'courses'],
+    queryFn: getCourses,
+  });
+}
+

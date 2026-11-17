@@ -1,20 +1,15 @@
 import { apiClient } from '@/shared/lib/apiClient';
 import { RepoDocument, GroupHomework } from '../domain/CollaborationModels';
-import { INITIAL_DOCUMENTS, INITIAL_HOMEWORKS } from '../domain/CollaborationMockData';
 
 export function subscribeDocs(groupId: string, onUpdate: (docs: readonly RepoDocument[]) => void) {
   const fetchDocs = async () => {
     if (!groupId) return;
     try {
       const res = await apiClient.get(`/collaboration/workgroups/${groupId}/documents`);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        onUpdate(res.data);
-      } else {
-        const fallback = INITIAL_DOCUMENTS.filter((d) => d.groupId === groupId);
-        onUpdate(fallback.length > 0 ? fallback : INITIAL_DOCUMENTS);
-      }
+      // APP-BE-14 : jamais de documents inventés
+      onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
-      onUpdate(INITIAL_DOCUMENTS);
+      onUpdate([]);
     }
   };
   fetchDocs();
@@ -31,13 +26,10 @@ export function subscribeHomeworks(groupId: string, onUpdate: (homeworks: readon
     if (!groupId) return;
     try {
       const res = await apiClient.get(`/collaboration/workgroups/${groupId}/homeworks`);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        onUpdate(res.data);
-      } else {
-        onUpdate(INITIAL_HOMEWORKS);
-      }
+      // APP-BE-14 : jamais de devoirs inventés
+      onUpdate(Array.isArray(res.data) ? res.data : []);
     } catch {
-      onUpdate(INITIAL_HOMEWORKS);
+      onUpdate([]);
     }
   };
   fetchHomeworks();

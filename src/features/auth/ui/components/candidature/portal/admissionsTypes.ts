@@ -31,44 +31,14 @@ export interface Message {
   role: "CANDIDAT" | "ADMIN" | "SECRETAIRE";
 }
 
-export interface PersonalDetails {
-  firstName: string;
-  lastName: string;
-  gender: 'M' | 'F';
-  birthDate: string;
-  birthPlace: string;
-  nationality: string;
-  cniNumber: string;
-  phone: string;
-  email: string;
-  address: string;
-  city: string;
-}
-
-export interface GuardianDetails {
-  fullName: string;
-  relationship: 'Père' | 'Mère' | 'Tuteur Légal' | 'Autre';
-  phone: string;
-  email: string;
-  profession: string;
-}
-
-export interface AcademicDetails {
-  previousSchool: string;
-  bacSeries: string;
-  bacYear: string;
-  bacMention: string;
-  targetLevel: string;
-  targetFiliere: string;
-  intakeSession: string;
-}
-
 export interface UploadedDocInfo {
   name: string;
   size: string;
   uploadedAt: string;
   status: 'ready' | 'uploaded';
   url?: string;
+  /** Aperçu dans l'application (fichier resté dans le navigateur) — la pièce envoyée est confidentielle. */
+  apercu?: { url: string; type: string };
 }
 
 export interface DocumentsState {

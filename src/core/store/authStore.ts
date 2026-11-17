@@ -1,13 +1,26 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RoleUtilisateur } from '@/shared/constants';
+import { URL_API, entetesServeur } from '@/shared/lib/entetesApi';
+
+export interface UtilisateurConnecte {
+  id: string;
+  nom: string;
+  prenom?: string;
+  role: RoleUtilisateur;
+  email?: string;
+  /** Mot de passe provisoire (donné par l'administration) à remplacer avant d'accéder à son espace. */
+  doitChangerMotDePasse?: boolean;
+}
 
 interface AuthState {
-  utilisateur: { id: string; nom: string; role: RoleUtilisateur; email?: string } | null;
+  utilisateur: UtilisateurConnecte | null;
   token: string | null;
   estConnecte: boolean;
   originalSuperAdminRole: RoleUtilisateur | null;
-  connexionReussie: (payload: { utilisateur: { id: string; nom: string; role: RoleUtilisateur; email?: string }; token: string }) => void;
+  connexionReussie: (payload: { utilisateur: UtilisateurConnecte; token: string }) => void;
+  /** Fixe l'obligation de changer le mot de passe provisoire (connexion, réponse 403 du serveur, changement réussi). */
+  marquerMotDePasseProvisoire: (doitChanger: boolean) => void;
   impersonateSchoolAdmin: () => void;
   leaveSchoolAdmin: () => void;
   deconnexion: () => void;
@@ -23,8 +36,10 @@ export const useAuthStore = create<AuthState>()(
 
       connexionReussie: (payload) => {
         const user = { ...payload.utilisateur };
-        if (user && user.role && typeof user.role === 'object' && (user.role as any).value) {
-          user.role = (user.role as any).value;
+        // rôle parfois reçu sous la forme { value: 'ADMIN' } (énumération sérialisée)
+        const role: unknown = user.role;
+        if (role && typeof role === 'object' && 'value' in role && typeof role.value === 'string') {
+          user.role = role.value as RoleUtilisateur;
         }
         set({
           utilisateur: user,
@@ -32,6 +47,12 @@ export const useAuthStore = create<AuthState>()(
           estConnecte: true,
           originalSuperAdminRole: null,
         });
+      },
+
+      marquerMotDePasseProvisoire: (doitChanger) => {
+        const current = get().utilisateur;
+        if (!current || !!current.doitChangerMotDePasse === doitChanger) return;
+        set({ utilisateur: { ...current, doitChangerMotDePasse: doitChanger } });
       },
 
       impersonateSchoolAdmin: () => {
@@ -50,7 +71,27 @@ export const useAuthStore = create<AuthState>()(
       },
 
       deconnexion: () => {
-        localStorage.removeItem('access_token');
+        // Déconnexion réelle : le serveur révoque le jeton et efface le cookie ; le navigateur oublie le jeton (sinon
+        // la session reste ouverte pour la personne suivante sur un poste partagé).
+        // Mêmes en-têtes qu'apiClient (X-Tenant-Slug + jeton) : le serveur ne lit pas le Referer (revue B3)
+        const entetes = entetesServeur({ avecJeton: true });
+        try {
+          void fetch(`${URL_API}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            keepalive: true,
+            headers: entetes,
+          }).catch(() => { /* hors ligne : le jeton expirera de lui-même */ });
+        } catch { /* fetch indisponible */ }
+        try {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('auth_token');
+          // Cache hors ligne des réponses (notes, profil, badge…) : commun à tous les comptes de ce navigateur, il
+          // est vidé pour que la personne suivante sur un poste partagé ne lise pas les données de la précédente.
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith('off_cache_') || k.startsWith('mon_ecole_ai_tutor_sessions_') || k === 'student_notifications' || k === 'v_scan_logs' || k === 'v_checkpoints')
+            .forEach((k) => localStorage.removeItem(k));
+        } catch { /* stockage indisponible */ }
         set({
           utilisateur: null,
           token: null,

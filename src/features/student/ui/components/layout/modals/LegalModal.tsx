@@ -22,9 +22,10 @@ export function LegalModal({ showLegalModal, setShowLegalModal }: Props) {
           <button onClick={() => setShowLegalModal(null)} className="text-white/80 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer"><span translate="no" className="material-symbols-outlined text-xs">close</span></button>
         </div>
         <div className="flex-grow p-5 font-medium text-[10.5px] text-[#291715] space-y-3.5 leading-relaxed">
-          {showLegalModal === 'conditions' && (<><h5 className="font-bold text-xs text-primary">Acceptation des Conditions</h5><p>L'accès au portail est réservé aux étudiants inscrits pour l'année universitaire active.</p><h5 className="font-bold text-xs text-primary">Sécurité des Devoirs</h5><p>Tout plagiat fait l'objet d'un rapport transmis au conseil d'éthique.</p></>)}
-          {showLegalModal === 'privacy' && (<><h5 className="font-bold text-xs text-primary">Droit & Protection de vos données</h5><p>L'École 221 garantit que vos données académiques ne font l'objet d'aucune commercialisation.</p></>)}
-          {showLegalModal === 'mentions' && (<><h5 className="font-bold text-xs text-primary">Éditeur du Service</h5><p>Direction Centrale Pédagogique Numérique de l'Université de Dakar École 221.</p><h5 className="font-bold text-xs text-primary">Hébergement Cloud</h5><p>Déployé sur l'infrastructure sécurisée de Cloud Run (Europe-West).</p></>)}
+          {/* Charte §3.10 : ne rien inventer */}
+          {showLegalModal === 'conditions' && <p>Conditions d'utilisation : à compléter par l'éditeur de la plateforme.</p>}
+          {showLegalModal === 'privacy' && <p>Politique de confidentialité : à compléter par l'éditeur de la plateforme.</p>}
+          {showLegalModal === 'mentions' && <p>Mentions légales : à compléter par l'éditeur de la plateforme.</p>}
         </div>
         <div className="p-4 bg-neutral-gray-50 border-t border-neutral-gray-150 shrink-0 text-right">
           <button onClick={() => setShowLegalModal(null)} className="w-full py-2.5 bg-[#291715] hover:bg-[#402421] text-white rounded-xl text-xs font-bold transition-all cursor-pointer">Fermer</button>

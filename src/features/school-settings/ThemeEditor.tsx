@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { resolveErrorMessage } from '@/shared/errors/errorDictionary';
 import { toast } from 'sonner';
-import { useTheme } from '@/design-system/ThemeProvider';
+import { useTheme } from '@/design-system/useTheme';
 import { ThemePreview } from './ThemePreview';
 import { generatePaletteFromHex, getContrastRatio } from '@/shared/utils/colorExtractor';
 import {
@@ -44,9 +45,9 @@ export function ThemeEditor() {
     setIsSaving(true);
     try {
       await saveTheme(selectedHex);
-      toast.success('Palette de marque mise à jour pour l\'établissement !');
-    } catch {
-      toast.error('Erreur lors de l\'enregistrement de la palette');
+      toast.success('Couleur de l\'école enregistrée.');
+    } catch (err) {
+      toast.error(`Couleur non enregistrée : ${resolveErrorMessage(err)}`);
     } finally {
       setIsSaving(false);
     }
@@ -56,22 +57,22 @@ export function ThemeEditor() {
     resetToDefault();
     setSelectedHex('#B3181C');
     clearPreview();
-    toast.info('Restauration de la charte École 221');
+    toast.info("Couleurs par défaut affichées : cliquez sur « Appliquer à l'école » pour les enregistrer.");
   };
 
   const contrast = getContrastRatio(selectedHex, activePalette.textOnPrimary);
   const isAccessible = contrast >= 4.5;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 p-6">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-border pb-6">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-primary">Paramètres d'Établissement</span>
-          <h1 className="text-2xl font-black text-text-body mt-1">Identité Visuelle & Thème (Multi-Tenant)</h1>
+          <span className="text-xs font-black uppercase tracking-wider text-primary">Personnalisation</span>
+          <h1 className="text-2xl font-black text-text-body mt-1">Couleurs de l'école</h1>
           <p className="text-xs text-text-muted mt-1 max-w-xl">
-            Personnalisez la couleur de marque de votre établissement. Le Design System calcule automatiquement les nuances,
-            les fonds et le contraste de lisibilité (WCAG 4.5:1) pour tous vos utilisateurs.
+            Choisissez la couleur de votre établissement. Les nuances, les fonds et la lisibilité des textes sont
+            calculés automatiquement pour tous les utilisateurs.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -80,7 +81,7 @@ export function ThemeEditor() {
             onClick={handleReset}
             className="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-body hover:bg-neutral-100 rounded-xl transition-all cursor-pointer"
           >
-            Réinitialiser (École 221)
+            Revenir aux couleurs par défaut
           </button>
           <button
             type="button"
@@ -96,19 +97,19 @@ export function ThemeEditor() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Colonne de gauche : Contrôles & Palettes */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Catalogue 50 Palettes Multi-Écoles */}
+          {/* Palettes proposées */}
           <div className="p-5 rounded-2xl bg-surface-card border border-surface-border space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-black text-text-body">Catalogue 50 Palettes Multi-Écoles</h2>
-                <p className="text-[11px] text-text-muted">Palettes harmonieuses et vérifiées WCAG</p>
+                <h2 className="text-sm font-black text-text-body">Palettes proposées</h2>
+                <p className="text-[11px] text-text-muted">Teintes harmonieuses, choisies pour rester faciles à lire</p>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                 {SAAS_50_PALETTES.filter((p) => {
                   const mCat = selectedCategory === 'tous' || p.category === selectedCategory;
                   const mSearch = searchQuery === '' || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.primary.toLowerCase().includes(searchQuery.toLowerCase());
                   return mCat && mSearch;
-                }).length} / 50 palettes
+                }).length} / {SAAS_50_PALETTES.length} palettes
               </span>
             </div>
 
@@ -133,7 +134,7 @@ export function ThemeEditor() {
             {/* Champ de recherche rapide */}
             <input
               type="text"
-              placeholder="Rechercher par nom ou code hex (#1D4ED8)..."
+              placeholder="Rechercher une palette par nom ou par code couleur (ex. #1D4ED8)…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-3 py-2 text-xs rounded-xl border border-surface-border bg-white text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -164,21 +165,18 @@ export function ThemeEditor() {
                         <div
                           className="w-5 h-5 rounded-md shadow-2xs border border-black/10 shrink-0"
                           style={{ backgroundColor: preset.primary }}
-                          title={`Primaire: ${preset.primary}`}
+                          title={`Couleur principale : ${preset.primary}`}
                         />
                         <div
                           className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
                           style={{ backgroundColor: preset.accent }}
-                          title={`Accent: ${preset.accent}`}
+                          title={`Couleur d'accent : ${preset.accent}`}
                         />
                         <div
                           className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
                           style={{ backgroundColor: preset.secondary }}
-                          title={`Secondaire: ${preset.secondary}`}
+                          title={`Couleur secondaire : ${preset.secondary}`}
                         />
-                        <span className="text-[9px] font-mono font-bold text-text-muted ml-auto">
-                          #{preset.id}
-                        </span>
                       </div>
 
                       <div className="flex items-center justify-between">
@@ -208,7 +206,7 @@ export function ThemeEditor() {
               />
               <div className="flex-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">
-                  Code Hexadécimal
+                  Code couleur (ex. #B3181C)
                 </label>
                 <input
                   type="text"
@@ -228,10 +226,10 @@ export function ThemeEditor() {
                 {isAccessible ? 'verified' : 'warning'}
               </span>
               <div>
-                <span className="font-bold">Contraste calculé : {contrast.toFixed(1)}:1. </span>
+                <span className="font-bold">Lisibilité : {contrast >= 7 ? 'excellente' : isAccessible ? 'bonne' : 'faible'}. </span>
                 <span>
                   {isAccessible
-                    ? 'Excellente lisibilité garantie selon la norme WCAG AA.'
+                    ? 'Les textes resteront faciles à lire sur cette couleur.'
                     : 'Le texte peut être difficile à lire sur ce fond. Privilégiez une teinte plus soutenue.'}
                 </span>
               </div>
@@ -241,7 +239,7 @@ export function ThemeEditor() {
 
         {/* Colonne de droite : Live Preview */}
         <div className="lg:col-span-6 space-y-4 sticky top-6">
-          <ThemePreview schoolName={theme.name} colors={previewColors} />
+          <ThemePreview schoolName={theme.name} colors={previewColors} logoUrl={theme.logoUrl} />
           <p className="text-[11px] text-text-muted text-center italic">
             Les changements sont immédiatement répercutés sur les menus, boutons, tableaux et tableaux de bord.
           </p>

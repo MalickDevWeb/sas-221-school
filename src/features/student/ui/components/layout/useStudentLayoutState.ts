@@ -1,16 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { SettingsPrefs } from './modals/SettingsModal';
-import { useStudentNotifications } from './useStudentNotifications';
 import { useStudentSearch } from './useStudentSearch';
 import { useStudentTicket } from './useStudentTicket';
-import { useStudentNotifActions } from './useStudentNotifActions';
 
 export function useStudentLayoutState() {
   // UI panel visibility
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState<'conditions' | 'privacy' | 'mentions' | null>(null);
   const [openDocSection, setOpenDocSection] = useState<number | null>(0);
@@ -28,18 +23,13 @@ export function useStudentLayoutState() {
   const [tempMood, setTempMood] = useState(studentMood);
   const [isEditingMood, setIsEditingMood] = useState(false);
 
-  // Settings
-  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
-  const [settingsPrefs, setSettingsPrefs] = useState<SettingsPrefs>({ emailNotifs: true, paymentNotifs: true, proactiveAiTutor: true, smoothScroll: true, language: 'Français', experimentalDark: false });
 
   // Refs for click-outside
-  const notifRef = useRef<HTMLDivElement>(null);
   const calendarPopRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifications(false);
       if (calendarPopRef.current && !calendarPopRef.current.contains(e.target as Node)) setShowCalendar(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setShowProfile(false);
     };
@@ -49,23 +39,14 @@ export function useStudentLayoutState() {
 
   // Sub-hooks
   const search = useStudentSearch();
-  const ticket = useStudentTicket(triggerLayoutToast);
-  const notifs = useStudentNotifications();
-  const notifActions = useStudentNotifActions(notifs.notifications, notifs.setNotifications, triggerLayoutToast, setShowNotifications, setShowProfile);
+  const ticket = useStudentTicket();
+  // Notifications : cloche commune (ClocheNotifications, GET /v1/notifications/mes) — une seule interrogation du serveur
 
   return {
     ...search,
     ...ticket,
-    ...notifActions,
-    notifications: notifs.notifications,
-    setNotifications: notifs.setNotifications,
-    alertNotif: notifs.alertNotif,
-    setAlertNotif: notifs.setAlertNotif,
-    unreadCount: notifs.unreadCount,
-    showNotifications, setShowNotifications,
     showCalendar, setShowCalendar,
     showProfile, setShowProfile,
-    showSettings, setShowSettings,
     showDocModal, setShowDocModal,
     showLegalModal, setShowLegalModal,
     openDocSection, setOpenDocSection,
@@ -74,8 +55,6 @@ export function useStudentLayoutState() {
     studentMood, setStudentMood,
     tempMood, setTempMood,
     isEditingMood, setIsEditingMood,
-    notifFilter, setNotifFilter,
-    settingsPrefs, setSettingsPrefs,
-    notifRef, calendarPopRef, profileRef,
+    calendarPopRef, profileRef,
   };
 }

@@ -1,56 +1,49 @@
 import axios, { InternalAxiosRequestConfig } from 'axios';
 import { setupOfflineInterceptors } from './setupOfflineInterceptors';
 import { handleApiResponseError } from './apiErrorHandler';
+import { installerRelanceReseau } from './relanceReseau';
+import { slugEcoleCourante } from './hoteEcole';
+import { URL_API, jetonSession } from './entetesApi';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: URL_API,
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
 
 export const publicApiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: URL_API,
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: false,
 });
 
+/**
+ * Le navigateur n'envoie QUE X-Tenant-Slug (fiche 04) : le serveur résout l'école
+ * (slug, puis id, puis sous-domaine) et vérifie l'appartenance de l'utilisateur (SEC-003).
+ *
+ * Règle du slug (F8) : école de l'adresse (sous-domaine de la plateforme ou domaine propre résolu), puis chemin
+ * /t/<slug>, puis choix mémorisé ; jamais le premier libellé d'un nom d'hôte quelconque (« portail » sur
+ * portail.lycee-thies.sn, « papa-221 » sur papa-221.vercel.app).
+ * Les appels hors axios (XHR d'envoi de fichier, fetch de déconnexion) utilisent la même règle (entetesApi.ts).
+ */
 function injectTenantHeaders<T extends InternalAxiosRequestConfig>(config: T): T {
-  const urlSlugMatch = window.location.pathname.match(/\/t\/([^/]+)/);
-  if (urlSlugMatch && urlSlugMatch[1]) {
-    const slug = urlSlugMatch[1].trim();
-    config.headers['X-Tenant-Slug'] = slug;
-    if (slug === 'ecole221' || slug === 'ecole-221') {
-      config.headers['X-Tenant-ID'] = 'default-tenant-id';
-    }
-  }
-
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  if (parts.length > 2) {
-    const subdomain = parts[0];
-    if (subdomain !== 'www' && subdomain !== 'app') {
-      config.headers['X-Tenant-Slug'] = subdomain;
-      config.headers['X-Tenant-ID'] = subdomain;
-    }
-  }
-
-  const forcedTenant = localStorage.getItem('tenant_id');
-  if (forcedTenant && !config.headers['X-Tenant-ID']) config.headers['X-Tenant-ID'] = forcedTenant;
-  const forcedSlug = localStorage.getItem('tenant_slug');
-  if (forcedSlug && !config.headers['X-Tenant-Slug']) config.headers['X-Tenant-Slug'] = forcedSlug;
-
+  const slug = slugEcoleCourante();
+  if (slug) config.headers['X-Tenant-Slug'] = slug;
   return config;
 }
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
+  const token = jetonSession();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return injectTenantHeaders(config);
 });
 
 publicApiClient.interceptors.request.use(injectTenantHeaders);
 
+// relance d'abord les lectures coupées par le réseau, puis seulement affiche l'erreur
+installerRelanceReseau(apiClient);
+installerRelanceReseau(publicApiClient);
 apiClient.interceptors.response.use((r) => r, handleApiResponseError);
 setupOfflineInterceptors(apiClient);

@@ -14,7 +14,8 @@ const DAYS = [
   { key: 'Mardi', short: 'MAR' },
   { key: 'Mercredi', short: 'MER' },
   { key: 'Jeudi', short: 'JEU' },
-  { key: 'Vendredi', short: 'VEN' }
+  { key: 'Vendredi', short: 'VEN' },
+  { key: 'Samedi', short: 'SAM' }   // Cours du samedi placés par l'administration
 ] as const;
 
 export function ProfessorWeeklySchedule({ schedule, onEnterCourse }: Props) {

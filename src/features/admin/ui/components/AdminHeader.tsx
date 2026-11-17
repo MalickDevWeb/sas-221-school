@@ -9,7 +9,7 @@ interface Props {
 export function AdminHeader({ onLogout }: Props) {
   const { utilisateur } = useAuthStore();
   const currentTenant = useTenantStore((s) => s.currentTenant);
-  const schoolName = currentTenant?.name || 'École 221';
+  const schoolName = currentTenant?.name || 'Votre établissement';
 
   return (
     <header className="w-full top-0 sticky z-[40] bg-white/90 backdrop-blur-md border-b border-neutral-gray-200/80 shadow-sm animate-fade-in" id="admin-header">

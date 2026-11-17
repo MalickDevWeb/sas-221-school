@@ -1,16 +1,15 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
-import { CameraScanner } from './CameraScanner';
+import { ScannerPointage } from '@/shared/components/ScannerPointage';
 
 interface PresenceModalProps {
   readonly pointageType: 'arrivée' | 'départ';
   readonly onClose: () => void;
-  readonly onRegisterClockIn: (method: string, keepOpen?: boolean) => void;
 }
 
 export function PresenceModal({
-  pointageType, onClose, onRegisterClockIn
+  pointageType, onClose
 }: PresenceModalProps) {
   useEffect(() => {
     document.body.classList.add('no-scroll');
@@ -46,11 +45,7 @@ export function PresenceModal({
         </div>
 
         <div className="p-5 text-center space-y-4">
-          <CameraScanner
-            onCancel={onClose}
-            pointageType={pointageType}
-            onScanComplete={() => onRegisterClockIn('Camera Scan', true)}
-          />
+          <ScannerPointage sens={pointageType} />
 
           <button 
             onClick={onClose}

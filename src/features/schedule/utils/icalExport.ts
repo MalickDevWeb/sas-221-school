@@ -1,4 +1,5 @@
 import { CourseSession } from '../domain/Schedule';
+import { dateCompacteDuJour } from '@/shared/lib/semaine';
 
 /**
  * Génère un fichier iCalendar (.ics) standard pour importer tout l'emploi du temps
@@ -15,31 +16,26 @@ export function exportToICS(sessions: CourseSession[], className: string = 'L3-G
     'X-WR-TIMEZONE:Africa/Dakar'
   ];
 
-  // Helper pour formater les dates sous forme YYYYMMDDTHHMMSS
-  const getFormattedDate = (jour: string, time: string): string => {
-    // La semaine de référence dans le mock est du 23 au 27 Octobre 2023
-    let datePrefix = '20231023'; // Lundi 23 Octobre
-    if (jour === 'MAR') datePrefix = '20231024';
-    if (jour === 'MER') datePrefix = '20231025';
-    if (jour === 'JEU') datePrefix = '20231026';
-    if (jour === 'VEN') datePrefix = '20231027';
-
-    // Remplacer les deux points de l'heure par rien (ex: "08:00" -> "080000")
-    const cleanTime = time.replace(':', '') + '00';
-    return `${datePrefix}T${cleanTime}`;
+  // Dates de la semaine EN COURS
+  const getFormattedDate = (jour: CourseSession['jour'], time: string): string => {
+    const cleanTime = (time || '00:00').replace(':', '') + '00';   // "08:00" -> "080000"
+    return `${dateCompacteDuJour(jour)}T${cleanTime}`;
   };
+  const maintenant = new Date();
+  const horodatage = `${maintenant.getUTCFullYear()}${String(maintenant.getUTCMonth() + 1).padStart(2, '0')}${String(maintenant.getUTCDate()).padStart(2, '0')}T${String(maintenant.getUTCHours()).padStart(2, '0')}${String(maintenant.getUTCMinutes()).padStart(2, '0')}00Z`;
 
-  sessions.forEach((s) => {
+  // séances sans horaire lisible ou annulées : non exportées (aucune heure inventée)
+  sessions.filter((s) => s.heureDebut && s.heureFin && s.status !== 'annule').forEach((s) => {
     const startStr = getFormattedDate(s.jour, s.heureDebut);
     const endStr = getFormattedDate(s.jour, s.heureFin);
 
     icsContent.push('BEGIN:VEVENT');
     icsContent.push(`UID:session_${s.id}@ecole221.sn`);
-    icsContent.push(`DTSTAMP:${getFormattedDate('LUN', '08:00')}Z`);
+    icsContent.push(`DTSTAMP:${horodatage}`);
     icsContent.push(`DTSTART;TZID=Africa/Dakar:${startStr}`);
     icsContent.push(`DTEND;TZID=Africa/Dakar:${endStr}`);
     icsContent.push(`SUMMARY:[${s.type}] ${s.nom}`);
-    icsContent.push(`DESCRIPTION:Enseignant : ${s.professeur}\\nType : ${s.type}\\n\\nSyllabus/Description :\\n${s.description.replace(/\n/g, '\\n')}`);
+    icsContent.push(`DESCRIPTION:Enseignant : ${s.professeur}\\nType : ${s.type}\\n\\nSyllabus/Description :\\n${(s.description || '').replace(/\n/g, '\\n')}`);
     icsContent.push(`LOCATION:${s.salle}`);
     icsContent.push('STATUS:CONFIRMED');
     icsContent.push('SEQUENCE:0');
